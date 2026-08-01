@@ -15,6 +15,8 @@ Rather than replacing developers, Project0 treats AI as a specialized engineerin
 
 The objective is to dramatically reduce development cost and time while maintaining professional software engineering quality.
 
+Secondary Objective: Use Project0 as a vehicle for adopting and applying modern AI-assisted software development practices, tools, and workflows while building a production-quality software platform.
+
 ------------------------------------------------------------------------
 
 # 2. Vision
