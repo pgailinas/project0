@@ -16,8 +16,6 @@ theme:
     text: Merriweather Sans
     code: Red Hat Mono
 
-  logo: assets/logo.png
-
   features:
     - navigation.instant
     - navigation.tracking
