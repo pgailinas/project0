@@ -17,16 +17,26 @@ The project emphasizes:
 
 ## Documentation
 
-Project0 documentation is organized into the following primary documents:
+Project0 documentation is organized into the following primary documents.
 
-| Document                                         | Description                                                                           |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------- |
-| **Project Charter**                              | Defines the project vision, objectives, scope, deliverables, and success criteria.    |
-| **Documentation Standards**                      | Establishes documentation conventions, organization, and formatting rules.            |
-| **Documentation Agent Functional Specification** | Defines the required capabilities and behavior of the Documentation Agent.            |
-| **Documentation Agent Architecture**             | Describes the high-level architecture and major system components.                    |
-| **Documentation Agent Component Design**         | Defines the detailed responsibilities and interfaces of each architectural component. |
-| **Implementation Roadmap**                       | Describes the planned implementation phases and project milestones.                   |
+### Project
+
+| Document | Description |
+| --- | --- |
+| [**Project Charter**](01_Project_Charter.md) | Defines the project vision, objectives, scope, deliverables, and success criteria. |
+| [**Document Standards**](02_Doc_Standards.md) | Establishes project documentation conventions, organization, formatting, and maintenance standards. |
+| [**Implementation Roadmap**](06_Implementation_Roadmap.md) | Defines the planned implementation sequence, development phases, dependencies, deliverables, validation strategy, and success criteria. |
+| [**Implementation Status**](07_Implementation_Status.md) | Summarizes current implementation progress and provides access to the authoritative implementation status tracker. |
+
+### Document AI Agent
+
+| Document | Description |
+| --- | --- |
+| [**Functional Spec**](03_Doc_Agent_Functional_Spec.md) | Defines the required capabilities and behavior of the Document AI Agent. |
+| [**Doc Agent Architecture**](04_Doc_Agent_Architecture.md) | Describes the high-level architecture, workflow, and major system components. |
+| [**Doc Agent Design**](05_Doc_Agent_Design.md) | Defines the detailed responsibilities, interfaces, inputs, outputs, and dependencies of each architectural component. |
+
+Additional repository organization information is provided in the [**Project Directory Structure**](Project_Directory_Structure.md).
 
 ---
 
@@ -71,5 +81,4 @@ Project0 serves as the foundation for a broader AI software development platform
 
 ## Getting Started
 
-Begin with the **Project Charter** to understand the overall vision and objectives, then continue through the documentation in the order presented to gain a complete understanding of the Project0 architecture and planned implementation.
-
+Begin with the [**Project Charter**](01_Project_Charter.md) to understand the overall vision and objectives, then continue through the project and Document AI Agent documentation to understand the approved design and planned implementation.
