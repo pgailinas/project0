@@ -19,8 +19,8 @@ theme:
   features:
     - navigation.instant
     - navigation.tracking
-    - navigation.sections
     - navigation.top
+    - navigation.expand
     - content.action.edit
 
   palette:
@@ -41,16 +41,18 @@ theme:
       accent: deep orange
 
 nav:
-  - Home: index.md
-  - Project Directory Structure: Project_Directory_Structure.md
-  - Project Documentation:
+  - Welcome to Project0: index.md
+  - Directory Structure: Project_Directory_Structure.md
+  - Project:
       - Project Charter: 01_Project_Charter.md
-      - Documentation Standards: 02_Documentation_Standards.md
-      - Functional Specification: 03_Documentation_Agent_Functional_Specification.md
-      - Architecture: 04_Documentation_Agent_Architecture.md
-      - Component Design: 05_Documentation_Agent_Component_Design.md
+      - Document Standards: 02_Doc_Standards.md
       - Implementation Roadmap: 06_Implementation_Roadmap.md
       - Implementation Status: 07_Implementation_Status.md
+  - Document AI Agent:
+      - Functional Spec: 03_Doc_Agent_Functional_Spec.md
+      - Doc Agent Architecture: 04_Doc_Agent_Architecture.md
+      - Doc Agent Design: 05_Doc_Agent_Design.md
+
 
 markdown_extensions:
   - attr_list

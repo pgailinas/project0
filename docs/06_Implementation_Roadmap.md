@@ -1,9 +1,9 @@
 # Implementation Roadmap
 
-**Version:** 0.1
-**Status:** Draft
-**Owner:** Project0
-**Last Updated:** 2026-08-01
+**Version:** 0.1  
+**Status:** Draft  
+**Owner:** Project0  
+**Last Updated:** 2026-08-01  
 
 ---
 
