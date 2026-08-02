@@ -1,7 +1,13 @@
-
-
-
-"""Project0 startup and environment validation."""
+# ============================================================
+# Project0 - Documentation Agent
+#
+# File: logging_config.py
+#
+# Purpose:
+#     Configure startup and environment validation for the
+#     Documentation Agent.
+#
+# ============================================================
 
 import logging
 from pathlib import Path
