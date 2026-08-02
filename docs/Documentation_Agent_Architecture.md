@@ -1,7 +1,6 @@
 # Documentation Agent Architecture
 
 **Version:** 0.2  
-**Status:** Draft  
 **Owner:** Project0  
 **Last Updated:** 2026-08-01
 

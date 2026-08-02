@@ -34,9 +34,9 @@ Project0 documentation is organized into the following primary documents.
 
 | Document                                                   | Description                                                                                                           |
 | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| [**Functional Spec**](Documentation_Agent_Functional_Spec.md)     | Defines the required capabilities and behavior of the Document AI Agent.                                              |
-| [**Doc Agent Architecture**](Documentation_Agent_Architecture.md) | Describes the high-level architecture, workflow, and major system components.                                         |
-| [**Doc Agent Design**](Documentation_Agent_Design.md)             | Defines the detailed responsibilities, interfaces, inputs, outputs, and dependencies of each architectural component. |
+| [**Doc AI Agent Functional Spec**](Documentation_Agent_Functional_Spec.md)     | Defines the required capabilities and behavior of the Document AI Agent.                                              |
+| [**Doc AI Agent Architecture**](Documentation_Agent_Architecture.md) | Describes the high-level architecture, workflow, and major system components.                                         |
+| [**Doc AI Agent Design**](Documentation_Agent_Design.md)             | Defines the detailed responsibilities, interfaces, inputs, outputs, and dependencies of each architectural component. |
 
 ---
 

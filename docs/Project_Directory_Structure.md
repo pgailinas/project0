@@ -1,6 +1,11 @@
 # Project Directory Structure
 
-## Overview
+**Version:** 0.1  
+**Owner:** Project0  
+**Last Updated:** 2026-08-01
+
+---
+# Overview
 
 This document describes the Project0 repository organization and the
 purpose of each major directory within the project.
@@ -14,8 +19,7 @@ Documentation Agent.
 The repository serves as the authoritative source for all project
 documentation, implementation, and supporting artifacts.
 
-------------------------------------------------------------------------
-
+---
 # Repository Structure
 
 ``` text
@@ -59,33 +63,17 @@ project0/
 
 ## Repository Directory Purposes
 
-  -----------------------------------------------------------------------
-  Directory                           Purpose
-  ----------------------------------- -----------------------------------
-  docs/                               Project documentation, GitHub Pages
-                                      source, implementation roadmap,
-                                      implementation status, supporting
-                                      assets and companion spreadsheets.
+| Directory | Purpose |
+|-----------|---------|
+| `docs/` | Project documentation, GitHub Pages source, implementation roadmap, implementation status, supporting assets, and companion spreadsheets. |
+| `src/` | Python implementation of the Documentation Agent organized by architectural component. |
+| `tests/` | Unit, integration, and end-to-end testing. |
+| `scripts/` | Development and automation scripts. |
+| `README.md` | GitHub repository landing page. |
+| `mkdocs.yml` | Material for MkDocs configuration. |
+| `pyproject.toml` | Python project configuration and dependencies. |
 
-  src/                                Python implementation of the
-                                      Documentation Agent organized by
-                                      architectural component.
-
-  tests/                              Unit, integration, and end-to-end
-                                      testing.
-
-  scripts/                            Development and automation scripts.
-
-  README.md                           GitHub repository landing page.
-
-  mkdocs.yml                          Material for MkDocs configuration.
-
-  pyproject.toml                      Python project configuration and
-                                      dependencies.
-  -----------------------------------------------------------------------
-
-------------------------------------------------------------------------
-
+---
 # Relationship Between Documentation and Implementation
 
 Implementation within `src/` follows the project architecture. Material
@@ -93,8 +81,7 @@ for MkDocs generates the GitHub Pages website directly from the Markdown
 documents stored in `docs/`. The generated HTML is a published
 representation of the documentation and is not the authoritative source.
 
-------------------------------------------------------------------------
-
+---
 # Important Notes
 
 -   The GitHub repository is the authoritative source for Project0
