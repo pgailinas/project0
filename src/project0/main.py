@@ -9,29 +9,40 @@
 # ============================================================
 
 import logging
+import sys
 
 from project0.common.logging_config import configure_logging
-from project0.config.paths import PROJECT_ROOT
-from project0.config.settings import SETTINGS
+from project0.common.startup_validation import (
+    StartupValidationError,
+    validate_startup,
+)
+from project0.config.settings import load_settings
+
+LOGGER = logging.getLogger(__name__)
 
 
-logger = logging.getLogger(__name__)
-
-
-def main() -> None:
-    """Run the Project0 Documentation Agent."""
+def main() -> int:
+    """Initialize and validate the Project0 application."""
 
     configure_logging()
 
-    logger.info(
-        "%s %s starting.",
-        SETTINGS.project_name,
-        SETTINGS.application_name,
-    )
+    LOGGER.info("Starting Project0.")
 
-    logger.info("Project root: %s", PROJECT_ROOT)
+    try:
+        settings = load_settings()
+        validate_startup(settings)
+    except StartupValidationError as exc:
+        LOGGER.error("Project0 startup validation failed: %s", exc)
+        return 1
+    except Exception:
+        LOGGER.exception("Unexpected error during Project0 startup.")
+        return 1
+
+    LOGGER.info("Project0 initialized successfully.")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
+    
     

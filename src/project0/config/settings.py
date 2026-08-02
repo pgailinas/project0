@@ -10,30 +10,48 @@
 # ============================================================
 
 from dataclasses import dataclass
+from pathlib import Path
 
 
 @dataclass(frozen=True)
-class Settings:
-    """
-    Shared application configuration.
+class ProjectSettings:
+    """Shared runtime configuration for Project0."""
 
-    These values represent the default runtime configuration for
-    the Documentation Agent. Future releases may override these
-    values from a TOML configuration file or command-line options.
-    """
-
-    project_name: str = "Project0"
-    application_name: str = "Documentation Agent"
-
+    project_root: Path
+    docs_dir: Path
+    source_dir: Path
+    tests_dir: Path
     log_level: str = "INFO"
 
-    documentation_extension: str = ".md"
 
-    encoding: str = "utf-8"
+def load_settings() -> ProjectSettings:
+    """Create the shared Project0 configuration."""
+
+    project_root = Path(__file__).resolve().parents[3]
+
+    return ProjectSettings(
+        project_root=project_root,
+        docs_dir=project_root / "docs",
+        source_dir=project_root / "src",
+        tests_dir=project_root / "tests",
+        log_level="INFO",
+    )
 
 
-#
-# Shared application settings
-#
-SETTINGS = Settings()
+def load_settings() -> ProjectSettings:
+    """Create the shared Project0 configuration."""
+
+    project_root = Path(__file__).resolve().parents[3]
+
+    return ProjectSettings(
+        project_root=project_root,
+        docs_dir=project_root / "docs",
+        source_dir=project_root / "src",
+        tests_dir=project_root / "tests",
+        log_level="INFO",
+    )
+
+
+SETTINGS = load_settings()
+
 
