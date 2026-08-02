@@ -42,13 +42,7 @@ htmlcov/
 # VS Code
 # ------------------------------------------------------------
 
-.vscode/settings.json
-
-# Keep shared launch/tasks/extensions if desired
-!.vscode/
-!.vscode/launch.json
-!.vscode/tasks.json
-!.vscode/extensions.json
+.vscode/
 
 # ------------------------------------------------------------
 # Logs
