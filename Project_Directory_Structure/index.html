@@ -429,24 +429,6 @@
         
       
       
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Project Directory Structure
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -463,36 +445,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Overview
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
       
     </li>
   
@@ -589,7 +541,7 @@
   <span class="md-ellipsis">
     
   
-    Document AI Agent
+    Documentation AI Agent
   
 
     
@@ -605,7 +557,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Document AI Agent
+    Documentation AI Agent
   
 
           </label>
@@ -625,7 +577,7 @@
   <span class="md-ellipsis">
     
   
-    Functional Spec
+    Documentation AI Agent Functional Spec
   
 
     
@@ -653,7 +605,7 @@
   <span class="md-ellipsis">
     
   
-    Doc Agent Architecture
+    Documentation AI Agent Architecture
   
 
     
@@ -681,7 +633,7 @@
   <span class="md-ellipsis">
     
   
-    Doc Agent Design
+    Documentation AI Agent Design
   
 
     
@@ -722,25 +674,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Overview
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -765,7 +698,11 @@
 
 
 <h1 id="project-directory-structure">Project Directory Structure</h1>
-<h2 id="overview">Overview</h2>
+<p><strong>Version:</strong> 0.1<br />
+<strong>Owner:</strong> Project0<br />
+<strong>Last Updated:</strong> 2026-08-01</p>
+<hr />
+<h1 id="overview">Overview</h1>
 <p>This document describes the Project0 repository organization and the
 purpose of each major directory within the project.</p>
 <p>Project0 is organized as a documentation-first software development
@@ -815,24 +752,44 @@ documentation, implementation, and supporting artifacts.</p>
 </span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>└── .gitignore
 </span></code></pre></div>
 <h2 id="repository-directory-purposes">Repository Directory Purposes</h2>
-<hr />
-<p>Directory                           Purpose</p>
-<hr />
-<p>docs/                               Project documentation, GitHub Pages
-                                      source, implementation roadmap,
-                                      implementation status, supporting
-                                      assets and companion spreadsheets.</p>
-<p>src/                                Python implementation of the
-                                      Documentation Agent organized by
-                                      architectural component.</p>
-<p>tests/                              Unit, integration, and end-to-end
-                                      testing.</p>
-<p>scripts/                            Development and automation scripts.</p>
-<p>README.md                           GitHub repository landing page.</p>
-<p>mkdocs.yml                          Material for MkDocs configuration.</p>
-<p>pyproject.toml                      Python project configuration and
-                                      dependencies.</p>
-<hr />
+<table>
+<thead>
+<tr>
+<th>Directory</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>docs/</code></td>
+<td>Project documentation, GitHub Pages source, implementation roadmap, implementation status, supporting assets, and companion spreadsheets.</td>
+</tr>
+<tr>
+<td><code>src/</code></td>
+<td>Python implementation of the Documentation Agent organized by architectural component.</td>
+</tr>
+<tr>
+<td><code>tests/</code></td>
+<td>Unit, integration, and end-to-end testing.</td>
+</tr>
+<tr>
+<td><code>scripts/</code></td>
+<td>Development and automation scripts.</td>
+</tr>
+<tr>
+<td><code>README.md</code></td>
+<td>GitHub repository landing page.</td>
+</tr>
+<tr>
+<td><code>mkdocs.yml</code></td>
+<td>Material for MkDocs configuration.</td>
+</tr>
+<tr>
+<td><code>pyproject.toml</code></td>
+<td>Python project configuration and dependencies.</td>
+</tr>
+</tbody>
+</table>
 <hr />
 <h1 id="relationship-between-documentation-and-implementation">Relationship Between Documentation and Implementation</h1>
 <p>Implementation within <code>src/</code> follows the project architecture. Material
