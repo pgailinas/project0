@@ -8,7 +8,7 @@ Track implementation progress for the Documentation Agent.
 
 The authoritative implementation tracker is maintained in:
 
-- [07_Implementation_Status.ods](./07_Implementation_Status.ods)
+- [Implementation_Status.ods](./Implementation_Status.ods)
 
 ## Current Phase
 
@@ -20,4 +20,4 @@ In Progress
 
 ## Last Updated
 
-2026-08-01
+2026-08-02

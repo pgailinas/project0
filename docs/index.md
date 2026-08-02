@@ -19,24 +19,24 @@ The project emphasizes:
 
 Project0 documentation is organized into the following primary documents.
 
-### Project
+### Core Project Documentation
 
-| Document | Description |
-| --- | --- |
-| [**Project Charter**](01_Project_Charter.md) | Defines the project vision, objectives, scope, deliverables, and success criteria. |
-| [**Document Standards**](02_Doc_Standards.md) | Establishes project documentation conventions, organization, formatting, and maintenance standards. |
-| [**Implementation Roadmap**](06_Implementation_Roadmap.md) | Defines the planned implementation sequence, development phases, dependencies, deliverables, validation strategy, and success criteria. |
-| [**Implementation Status**](07_Implementation_Status.md) | Summarizes current implementation progress and provides access to the authoritative implementation status tracker. |
+| Document                                                   | Description                                                                                                                             |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| [**Project Charter**](Project_Charter.md)               | Defines the project vision, objectives, scope, deliverables, and success criteria.                                                      |
+| [**Development Environment**](Development_Environment.md)       | Defines the standard Project0 development environment, installation, configuration, development workflow, and troubleshooting guidance. |
+| [**Document Standards**](Documentation_Standards.md)              | Establishes project documentation conventions, organization, formatting, and maintenance standards.                                     |
+| [**Project Directory Structure**](Project_Directory_Structure.md) | Defines the standard Project0 repository organization, directory layout, and purpose of each major project component. |
+| [**Implementation Roadmap**](Implementation_Roadmap.md) | Defines the planned implementation sequence, development phases, dependencies, deliverables, validation strategy, and success criteria. |
+| [**Implementation Status**](Implementation_Status.md)   | Summarizes current implementation progress and provides access to the authoritative implementation status tracker.                      |
 
 ### Document AI Agent
 
-| Document | Description |
-| --- | --- |
-| [**Functional Spec**](03_Doc_Agent_Functional_Spec.md) | Defines the required capabilities and behavior of the Document AI Agent. |
-| [**Doc Agent Architecture**](04_Doc_Agent_Architecture.md) | Describes the high-level architecture, workflow, and major system components. |
-| [**Doc Agent Design**](05_Doc_Agent_Design.md) | Defines the detailed responsibilities, interfaces, inputs, outputs, and dependencies of each architectural component. |
-
-Additional repository organization information is provided in the [**Project Directory Structure**](Project_Directory_Structure.md).
+| Document                                                   | Description                                                                                                           |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| [**Functional Spec**](Documentation_Agent_Functional_Spec.md)     | Defines the required capabilities and behavior of the Document AI Agent.                                              |
+| [**Doc Agent Architecture**](Documentation_Agent_Architecture.md) | Describes the high-level architecture, workflow, and major system components.                                         |
+| [**Doc Agent Design**](Documentation_Agent_Design.md)             | Defines the detailed responsibilities, interfaces, inputs, outputs, and dependencies of each architectural component. |
 
 ---
 
@@ -81,4 +81,6 @@ Project0 serves as the foundation for a broader AI software development platform
 
 ## Getting Started
 
-Begin with the [**Project Charter**](01_Project_Charter.md) to understand the overall vision and objectives, then continue through the project and Document AI Agent documentation to understand the approved design and planned implementation.
+Begin with the [**Project Charter**](Project_Charter.md) to understand the overall vision and objectives. Next, review the [**Development Environment**](Development_Environment.md) to configure a standard Project0 development workstation. Then continue through the remaining project documentation and the Document AI Agent documents to understand the approved architecture, implementation roadmap, and planned capabilities.
+
+
