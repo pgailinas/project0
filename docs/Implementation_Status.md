@@ -1,20 +1,19 @@
 # Implementation Status
 
-**Version:** 0.1  
+**Version:** 0.2  
 **Owner:** Project0  
 **Last Updated:** 2026-08-02  
 
 ---
 
-## Purpose
-
-Track implementation progress for the Documentation Agent.
-
 ## Authoritative Status Tracker
 
-The authoritative implementation tracker is maintained in:
+The current implementation status is maintained in a LibreOffice spreadsheet.
 
-- [Implementation_Status.ods](./Implementation_Status.ods)
+- **View the current status:** [Implementation_Status.pdf](Implementation_Status.pdf)
+- **Download the editable spreadsheet:** [Implementation_Status.ods](Implementation_Status.ods)
+
+The PDF is intended for convenient viewing in a web browser. The ODS file is the editable project planning document.
 
 ## Current Phase
 
@@ -24,5 +23,4 @@ Phase 2 – Core Infrastructure
 
 Phase 1 – Completed
 Phase 2 – In Progress
-
 
