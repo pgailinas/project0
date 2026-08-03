@@ -2,7 +2,7 @@
 
 ## AI-Native Software Development Platform
 
-**Project0** is a foundational project for developing a modular, AI-assisted software engineering platform. It establishes the architecture, documentation standards, workflows, and AI agent framework that will be reused across future software development projects.
+**Project0** is a foundational project for developing a modular, AI-assisted software engineering platform. It establishes the platform architecture, shared design standards, documentation framework, workflows, and AI agent framework that will be reused across future software development projects.
 
 The project emphasizes:
 
@@ -27,10 +27,11 @@ Project0 documentation is organized into the following primary documents.
 | [**Development Environment**](Development_Environment.md)       | Defines the standard Project0 development environment, installation, configuration, development workflow, and troubleshooting guidance. |
 | [**Document Standards**](Documentation_Standards.md)              | Establishes project documentation conventions, organization, formatting, and maintenance standards.                                     |
 | [**Project Directory Structure**](Project_Directory_Structure.md) | Defines the standard Project0 repository organization, directory layout, and purpose of each major project component. |
+| [**Shared Data Models and Error Contracts**](Shared_Data_Models_and_Error_Contracts.md) |Defines the shared information models and standard error contracts used for communication between Project0 platform components and future AI agents. |
 | [**Implementation Roadmap**](Implementation_Roadmap.md) | Defines the planned implementation sequence, development phases, dependencies, deliverables, validation strategy, and success criteria. |
 | [**Implementation Status**](Implementation_Status.md)   | Summarizes current implementation progress and provides access to the authoritative implementation status tracker.                      |
 
-### Document AI Agent
+### Documentation AI Agent
 
 | Document                                                   | Description                                                                                                           |
 | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
