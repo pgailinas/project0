@@ -1,8 +1,8 @@
 # Documentation Agent Component Design
 
-**Version:** 0.2  
+**Version:** 0.3  
 **Owner:** Project0  
-**Last Updated:** 2026-08-01
+**Last Updated:** 2026-08-03
 
 ------------------------------------------------------------------------
 
@@ -42,7 +42,7 @@ The Documentation Agent consists of five primary components:
 - Validation Engine
 - Reasoning Service
 
-These components interact through the Workflow Engine using well-defined interfaces. Individual components do not directly manipulate the internal state of other components.
+These components interact through the Workflow Engine using well-defined interfaces. Individual components do not directly manipulate the internal state of other components. Each component exposes a stable public interface while encapsulating its internal implementation.
 
 ------------------------------------------------------------------------
 
@@ -65,6 +65,31 @@ Coordinate the end-to-end documentation workflow.
 - Manage revision workflows.
 - Present proposed updates, validation results, and completion summaries.
 
+### Interfaces
+
+#### Provides
+
+- Start workflow.
+- Continue workflow.
+- Request user review.
+- Apply approved changes.
+- Complete workflow.
+
+#### Consumes
+
+- Repository Tools interface.
+- Knowledge Service interface.
+- Validation Engine interface.
+- Reasoning Service interface.
+
+### Design Notes
+
+- Serves as the sole orchestrator.
+- Does not directly manipulate repository content.
+- Delegates deterministic repository operations to Repository Tools.
+- Delegates AI-assisted analysis to the Reasoning Service.
+- Routes proposed changes through user review before application.
+
 ### Inputs
 
 - User requests
@@ -79,7 +104,7 @@ Coordinate the end-to-end documentation workflow.
 - Component requests
 - Completion status
 
-### Dependencies
+### Required Services
 
 - Repository Tools
 - Knowledge Service
@@ -106,6 +131,27 @@ Provide deterministic access to repository content.
 - Read and write Markdown files.
 - Generate Git diffs.
 
+### Interfaces
+
+#### Provides
+
+- Inspect repository status.
+- Read repository content.
+- Write approved documentation changes.
+- Generate repository diffs.
+
+#### Consumes
+
+- Local Git repository.
+- Local file system.
+
+### Design Notes
+
+- Performs deterministic repository operations only.
+- Does not make documentation decisions.
+- Does not apply changes without Workflow Engine authorization.
+- Encapsulates Git and file-system access from other components.
+
 ### Inputs
 
 - Local Git repository
@@ -117,7 +163,7 @@ Provide deterministic access to repository content.
 - Repository change information
 - Document content
 
-### Dependencies
+### External Dependencies
 
 - Git
 - Local file system
@@ -142,6 +188,26 @@ Provide repository knowledge required during documentation analysis.
 - Assemble repository context.
 - Supply context to the Workflow Engine.
 
+### Interfaces
+
+#### Provides
+
+- Retrieve relevant documentation.
+- Retrieve authoritative project information.
+- Assemble repository context.
+
+#### Consumes
+
+- Repository Tools interface.
+- Documentation standards.
+
+### Design Notes
+
+- Supplies grounded repository context.
+- Does not generate documentation changes.
+- Uses authoritative project documentation as the primary source of truth.
+- Returns context in a form suitable for workflow and reasoning operations.
+
 ### Inputs
 
 - Repository content
@@ -152,7 +218,7 @@ Provide repository knowledge required during documentation analysis.
 - Repository context
 - Repository knowledge
 
-### Dependencies
+### Required Services
 
 - Repository Tools
 
@@ -176,6 +242,27 @@ Verify documentation quality before and after approved documentation changes.
 - Validate MkDocs build.
 - Produce validation reports.
 
+### Interfaces
+
+#### Provides
+
+- Validate proposed documentation updates.
+- Validate applied documentation changes.
+- Produce validation reports.
+
+#### Consumes
+
+- Proposed documentation updates.
+- Applied documentation changes.
+- Documentation standards.
+
+### Design Notes
+
+- Performs deterministic validation whenever practical.
+- Reports validation failures without modifying content.
+- Supports validation before and after approved changes are applied.
+- Returns structured validation results to the Workflow Engine.
+
 ### Inputs
 
 - Proposed documentation updates
@@ -186,7 +273,7 @@ Verify documentation quality before and after approved documentation changes.
 - Validation reports
 - Validation results
 
-### Dependencies
+### External Dependencies
 
 - Markdown validation tools
 - MkDocs
@@ -209,6 +296,27 @@ Perform AI-assisted documentation reasoning.
 - Generate proposed documentation updates.
 - Explain proposed documentation changes.
 
+### Interfaces
+
+#### Provides
+
+- Analyze documentation impact.
+- Generate proposed documentation updates.
+- Explain proposed documentation changes.
+
+#### Consumes
+
+- Repository context.
+- User requests.
+- Documentation standards.
+
+### Design Notes
+
+- Performs only tasks requiring AI-assisted reasoning.
+- Does not directly read or write repository files.
+- Produces proposed changes for validation and user review.
+- Uses repository context supplied by the Knowledge Service.
+
 ### Inputs
 
 - Repository context
@@ -219,10 +327,13 @@ Perform AI-assisted documentation reasoning.
 - Proposed documentation updates
 - Documentation impact explanations
 
-### Dependencies
+### Required Services
+
+- Knowledge Service
+
+### External Dependencies
 
 - AI reasoning provider
-- Knowledge Service
 
 ### Future Considerations
 
@@ -231,13 +342,23 @@ Perform AI-assisted documentation reasoning.
 
 ------------------------------------------------------------------------
 
-# 5. Component Interactions
+# 5. Interface Design Principles
 
-The Workflow Engine coordinates all component interactions. Components communicate through well-defined interfaces and do not directly manipulate the internal state of other components. Proposed documentation changes are processed individually through the review workflow until all proposed changes have been reviewed.
+- Interfaces shall remain technology independent.
+- Components communicate only through public interfaces.
+- Components shall not directly access another component's internal state.
+- Interface contracts shall remain backward compatible whenever practical.
+- Shared data models and error contracts shall be defined separately.
 
 ------------------------------------------------------------------------
 
-# 6. Design Constraints
+# 6. Component Interactions
+
+The Workflow Engine coordinates all component interactions. Components communicate through well-defined interfaces and do not directly manipulate the internal state of other components. Proposed documentation changes are processed individually through the review workflow until all proposed changes have been reviewed. All proposed documentation changes requiring user approval are routed through the User Review process before application.
+
+------------------------------------------------------------------------
+
+# 7. Design Constraints
 
 - Preserve modularity.
 - Use deterministic processing whenever AI reasoning is not required.
@@ -248,7 +369,7 @@ The Workflow Engine coordinates all component interactions. Components communica
 
 ------------------------------------------------------------------------
 
-# 7. Related Documents
+# 8. Related Documents
 
 - Project Charter
 - Documentation Standards

@@ -62,16 +62,20 @@ Implement the foundational components required by the Documentation Agent.
 
 Primary activities:
 
-* Implement the Workflow Engine.
-* Implement Repository Tools.
-* Define component interfaces.
+* Define public component interfaces.
+* Define shared data model and error contracts.
 * Establish component communication.
+* Implement Repository Tools.
+* Implement the Workflow Engine.
+
+
+
 
 Deliverables:
 
-* Functional Workflow Engine.
-* Repository access services.
 * Component interface definitions.
+* Repository access services.
+* Functional Workflow Engine.
 
 ---
 
