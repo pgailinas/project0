@@ -2,7 +2,7 @@
 
 **Version:** 0.2  
 **Owner:** Project0  
-**Last Updated:** 2026-08-01
+**Last Updated:** 2026-08-03
 
 ------------------------------------------------------------------------
 
@@ -31,6 +31,8 @@
 11. All documentation is version controlled in Git.
 
 12. Material for MkDocs is the standard publishing platform.
+
+13. Design documents should define contracts, responsibilities, and interactions, but should not prescribe implementation details.
 
 # Spreadsheet Companion Documents
 
