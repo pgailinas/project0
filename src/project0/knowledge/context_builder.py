@@ -15,6 +15,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
+from project0.interfaces.repository_interfaces import RepositoryInterface
 from project0.knowledge.context_filters import ContextFilter
 from project0.knowledge.context_rules import (
     ContextRuleRegistry,
@@ -26,10 +27,7 @@ from project0.models.context_models import (
     ContextDocument,
     ContextPackage,
 )
-from project0.repository.repository_service import (
-    FileBatchResult,
-    RepositoryService,
-)
+from project0.repository.repository_service import FileBatchResult
 
 
 LOGGER = logging.getLogger(__name__)
@@ -44,7 +42,7 @@ class ContextBuilder:
     deferred.
     """
 
-    repository_service: RepositoryService
+    repository_service: RepositoryInterface
     rule_registry: ContextRuleRegistry = field(
         default_factory=create_context_rule_registry
     )
@@ -216,7 +214,7 @@ class ContextBuilder:
 
 
 def create_context_builder(
-    repository_service: RepositoryService,
+    repository_service: RepositoryInterface,
     project_id: str = "Project0",
     rule_registry: ContextRuleRegistry | None = None,
 ) -> ContextBuilder:

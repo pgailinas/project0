@@ -1,8 +1,8 @@
 # Project Directory Structure
 
-**Version:** 0.1  
+**Version:** 0.2  
 **Owner:** Project0  
-**Last Updated:** 2026-08-01
+**Last Updated:** 2026-08-04
 
 ---
 # Overview
@@ -41,17 +41,27 @@ project0/
 │       └── mermaid.js
 ├── src/
 │   └── project0/
-│       ├── __init__.py
-│       ├── workflow/
-│       ├── repository/
+│       ├── common/
+│       ├── config/
+│       ├── interfaces/
 │       ├── knowledge/
+│       ├── models/
+│       ├── platform/
 │       ├── reasoning/
 │       ├── validation/
-│       ├── interfaces/
-│       ├── models/
-│       ├── config/
-│       └── common/
+│       ├── workflow/
+│       └── main.py
 ├── tests/
+│   ├── integration/
+│   └── unit/
+│       ├── common/
+│       ├── config/
+│       ├── knowledge/
+│       ├── models/
+│       ├── platform/
+│       ├── reasoning/
+│       ├── validation/
+│       └── workflow/
 ├── scripts/
 ├── mkdocs.yml
 ├── pyproject.toml

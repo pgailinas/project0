@@ -16,11 +16,13 @@ from unittest.mock import Mock, call
 
 import pytest
 
-from project0.workflow.workflow_engine import (
+from project0.models.workflow_models import (
     TaskStatus,
-    WorkflowEngine,
     WorkflowStatus,
     WorkflowTask,
+)
+from project0.workflow.workflow_engine import (
+    WorkflowEngine,
     create_workflow_engine,
 )
 

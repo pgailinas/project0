@@ -12,79 +12,24 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
-from enum import StrEnum
-from typing import Callable, Protocol
+from typing import Sequence
 from uuid import uuid4
+
+from project0.interfaces.workflow_interfaces import (
+    WorkflowEventPublisherInterface,
+)
+from project0.models.workflow_models import (
+    TaskExecutionResult,
+    TaskStatus,
+    WorkflowExecutionResult,
+    WorkflowStatus,
+    WorkflowTask,
+)
 
 
 LOGGER = logging.getLogger(__name__)
-
-
-class WorkflowStatus(StrEnum):
-    """Supported workflow execution states."""
-
-    PENDING = "pending"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-
-
-class TaskStatus(StrEnum):
-    """Supported task execution states."""
-
-    PENDING = "pending"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-
-
-@dataclass(frozen=True, slots=True)
-class WorkflowTask:
-    """A single executable task within a workflow."""
-
-    name: str
-    action: Callable[[], object]
-    task_id: str = field(default_factory=lambda: str(uuid4()))
-
-
-@dataclass(frozen=True, slots=True)
-class TaskExecutionResult:
-    """Result of one task execution."""
-
-    task_id: str
-    task_name: str
-    status: TaskStatus
-    started_at: datetime
-    completed_at: datetime
-    output: object | None = None
-    error_message: str | None = None
-
-
-@dataclass(frozen=True, slots=True)
-class WorkflowExecutionResult:
-    """Result of a complete workflow execution."""
-
-    workflow_id: str
-    workflow_name: str
-    status: WorkflowStatus
-    started_at: datetime
-    completed_at: datetime
-    task_results: tuple[TaskExecutionResult, ...]
-    error_message: str | None = None
-
-
-class WorkflowEventPublisher(Protocol):
-    """Optional event-publishing interface used by the Workflow Engine."""
-
-    def publish(
-        self,
-        event_name: str,
-        workflow_id: str,
-        task_id: str | None = None,
-    ) -> None:
-        """Publish a workflow or task event."""
 
 
 @dataclass(slots=True)
@@ -95,12 +40,12 @@ class WorkflowEngine:
     Task execution stops at the first failure.
     """
 
-    event_publisher: WorkflowEventPublisher | None = None
+    event_publisher: WorkflowEventPublisherInterface | None = None
 
     def execute(
         self,
         workflow_name: str,
-        tasks: list[WorkflowTask],
+        tasks: Sequence[WorkflowTask],
         workflow_id: str | None = None,
     ) -> WorkflowExecutionResult:
         """Execute a workflow and return a structured result."""
@@ -248,7 +193,7 @@ class WorkflowEngine:
 
 
 def create_workflow_engine(
-    event_publisher: WorkflowEventPublisher | None = None,
+    event_publisher: WorkflowEventPublisherInterface | None = None,
 ) -> WorkflowEngine:
     """Create a WorkflowEngine instance."""
 
