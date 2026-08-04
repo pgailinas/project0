@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -754,9 +754,9 @@
 
 
 <h1 id="implementation-roadmap">Implementation Roadmap</h1>
-<p><strong>Version:</strong> 0.1<br />
+<p><strong>Version:</strong> 0.2<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-03  </p>
+<strong>Last Updated:</strong> 2026-08-04</p>
 <hr />
 <h1 id="1-purpose">1. Purpose</h1>
 <h2 id="objective">Objective</h2>
@@ -815,22 +815,24 @@
 <li>Working platform communication infrastructure.</li>
 </ul>
 <hr />
-<h2 id="phase-3-first-end-to-end-workflow">Phase 3 — First End-to-End Workflow</h2>
-<p>Validate the platform architecture by implementing one complete Documentation AI Agent workflow.</p>
+<h2 id="phase-3-repository-knowledge-services">Phase 3 — Repository Knowledge Services</h2>
+<p>Implement and validate the deterministic repository knowledge subsystem that provides structured repository context for future AI reasoning.</p>
 <p>Primary activities:</p>
 <ul>
-<li>Execute repository discovery.</li>
-<li>Build a validated context package.</li>
-<li>Invoke the Documentation AI Agent.</li>
-<li>Validate the proposed documentation artifact.</li>
-<li>Produce a reviewable documentation proposal.</li>
+<li>Implement repository document parsing.</li>
+<li>Implement deterministic document indexing.</li>
+<li>Implement deterministic document selection.</li>
+<li>Implement context formatting.</li>
+<li>Implement the Knowledge Service.</li>
+<li>Validate the complete knowledge pipeline.</li>
 </ul>
 <p>Deliverables:</p>
 <ul>
-<li>Functional end-to-end workflow.</li>
-<li>Validated context package generation.</li>
-<li>Documentation proposal generation.</li>
-<li>Initial workflow execution report.</li>
+<li>Functional Knowledge Service.</li>
+<li>Deterministic repository knowledge pipeline.</li>
+<li>Structured Knowledge Request and Knowledge Result models.</li>
+<li>Unit and integration test coverage.</li>
+<li>Validated repository knowledge workflow.</li>
 </ul>
 <hr />
 <h2 id="phase-4-ai-reasoning-integration">Phase 4 — AI Reasoning Integration</h2>
@@ -905,7 +907,7 @@
 <p>Key dependencies include:</p>
 <ul>
 <li>Repository infrastructure before repository analysis.</li>
-<li>Repository knowledge before AI reasoning.</li>
+<li>Deterministic repository knowledge services before AI reasoning.</li>
 <li>AI reasoning before workflow integration.</li>
 <li>Workflow integration before end-to-end validation.</li>
 <li>Validation services before final system verification.</li>
@@ -944,7 +946,8 @@ updated only when the implementation strategy changes.</p>
 <li>Dispatcher integration.</li>
 <li>Multi-agent collaboration.</li>
 <li>Semantic repository services.</li>
-<li>Incremental repository indexing.</li>
+<li>Embedding generation.</li>
+<li>Vector-based repository search.</li>
 <li>Additional AI reasoning providers.</li>
 <li>Expanded validation capabilities.</li>
 </ul>
@@ -1015,7 +1018,7 @@ updated only when the implementation strategy changes.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.expand", "content.action.edit"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
         <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
       
