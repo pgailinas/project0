@@ -21,7 +21,27 @@ from project0.models.context_models import (
     ContextDocument,
     ContextPackage,
     ContextRequest,
+    ContextWorkflowType,
 )
+
+
+def test_context_workflow_type_values() -> None:
+    assert (
+        ContextWorkflowType.GENERAL_DOCUMENTATION
+        == "general_documentation"
+    )
+    assert (
+        ContextWorkflowType.UPDATE_DOCUMENTATION
+        == "update_documentation"
+    )
+    assert (
+        ContextWorkflowType.IMPLEMENT_COMPONENT
+        == "implement_component"
+    )
+    assert (
+        ContextWorkflowType.VALIDATE_DOCUMENTATION
+        == "validate_documentation"
+    )
 
 
 def test_context_build_status_values() -> None:
@@ -34,23 +54,38 @@ def test_context_build_status_values() -> None:
 
 
 def test_context_request_uses_default_project_id() -> None:
-    request = ContextRequest(context_id="context-1")
+    request = ContextRequest(
+        context_id="context-1",
+        workflow_type=ContextWorkflowType.GENERAL_DOCUMENTATION,
+    )
 
     assert request.context_id == "context-1"
+    assert (
+        request.workflow_type
+        == ContextWorkflowType.GENERAL_DOCUMENTATION
+    )
     assert request.project_id == "Project0"
 
 
 def test_context_request_accepts_custom_project_id() -> None:
     request = ContextRequest(
         context_id="context-2",
+        workflow_type=ContextWorkflowType.IMPLEMENT_COMPONENT,
         project_id="ProductA",
     )
 
+    assert (
+        request.workflow_type
+        == ContextWorkflowType.IMPLEMENT_COMPONENT
+    )
     assert request.project_id == "ProductA"
 
 
 def test_context_request_is_immutable() -> None:
-    request = ContextRequest(context_id="context-3")
+    request = ContextRequest(
+        context_id="context-3",
+        workflow_type=ContextWorkflowType.UPDATE_DOCUMENTATION,
+    )
 
     with pytest.raises(FrozenInstanceError):
         request.project_id = "Changed"  # type: ignore[misc]

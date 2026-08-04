@@ -16,6 +16,15 @@ from datetime import datetime
 from enum import StrEnum
 
 
+class ContextWorkflowType(StrEnum):
+    """Supported workflow types for context selection."""
+
+    GENERAL_DOCUMENTATION = "general_documentation"
+    UPDATE_DOCUMENTATION = "update_documentation"
+    IMPLEMENT_COMPONENT = "implement_component"
+    VALIDATE_DOCUMENTATION = "validate_documentation"
+
+
 class ContextBuildStatus(StrEnum):
     """Supported context-package build states."""
 
@@ -29,6 +38,7 @@ class ContextRequest:
     """Request used to build context for a Project0 task."""
 
     context_id: str
+    workflow_type: ContextWorkflowType
     project_id: str = "Project0"
 
 

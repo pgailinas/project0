@@ -5,7 +5,7 @@
 #
 # Purpose:
 #     Verify integration of startup validation, repository
-#     access, context building, and workflow execution.
+#     access, context rules, context building, and workflows.
 #
 # ============================================================
 
@@ -17,6 +17,7 @@ from project0.knowledge.context_builder import ContextBuilder
 from project0.models.context_models import (
     ContextBuildStatus,
     ContextPackage,
+    ContextWorkflowType,
 )
 from project0.repository.repository_service import RepositoryService
 from project0.workflow.workflow_engine import (
@@ -28,7 +29,7 @@ from project0.workflow.workflow_engine import (
 
 
 def test_context_builder_flow_packages_project_documentation() -> None:
-    """Build Project0 documentation context through a workflow."""
+    """Build general Project0 documentation context through a workflow."""
 
     validate_startup(SETTINGS)
 
@@ -43,7 +44,8 @@ def test_context_builder_flow_packages_project_documentation() -> None:
     context_task = WorkflowTask(
         name="Build Project0 Documentation Context",
         action=lambda: context_builder.build_documentation_context(
-            "integration-context"
+            "integration-context",
+            ContextWorkflowType.GENERAL_DOCUMENTATION,
         ),
     )
 
@@ -111,7 +113,8 @@ def test_context_builder_flow_preserves_document_metadata() -> None:
     context_task = WorkflowTask(
         name="Build Metadata Context",
         action=lambda: context_builder.build_documentation_context(
-            "integration-context-metadata"
+            "integration-context-metadata",
+            ContextWorkflowType.GENERAL_DOCUMENTATION,
         ),
     )
 
@@ -153,7 +156,8 @@ def test_context_builder_flow_excludes_generated_directories() -> None:
 
     context_package = (
         context_builder.build_documentation_context(
-            "integration-context-exclusions"
+            "integration-context-exclusions",
+            ContextWorkflowType.GENERAL_DOCUMENTATION,
         )
     )
 
@@ -171,3 +175,36 @@ def test_context_builder_flow_excludes_generated_directories() -> None:
         )
         for document in context_package.documents
     )
+
+
+def test_context_builder_flow_selects_component_documents() -> None:
+    """Verify component workflows select implementation context."""
+
+    validate_startup(SETTINGS)
+
+    repository_service = RepositoryService(
+        repository_root=SETTINGS.project_root
+    )
+    context_builder = ContextBuilder(
+        repository_service=repository_service
+    )
+
+    context_package = (
+        context_builder.build_documentation_context(
+            "integration-component-context",
+            ContextWorkflowType.IMPLEMENT_COMPONENT,
+        )
+    )
+
+    assert context_package.succeeded
+    assert context_package.source_count > 0
+
+    relative_paths = {
+        document.relative_path
+        for document in context_package.documents
+    }
+
+    assert "README.md" in relative_paths
+    assert "docs/Project_Charter.md" in relative_paths
+    assert "docs/Implementation_Roadmap.md" in relative_paths
+    assert "docs/Component_Communication_Design.md" in relative_paths

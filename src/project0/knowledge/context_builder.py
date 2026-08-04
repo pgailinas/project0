@@ -15,51 +15,57 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
-from project0.knowledge.context_filters import (
-    ContextFilter,
+from project0.knowledge.context_filters import ContextFilter
+from project0.knowledge.context_rules import (
+    ContextRuleRegistry,
+    ContextWorkflowType,
+    create_context_rule_registry,
 )
-
 from project0.models.context_models import (
     ContextBuildStatus,
     ContextDocument,
     ContextPackage,
 )
-
 from project0.repository.repository_service import (
     FileBatchResult,
     RepositoryService,
 )
 
+
 LOGGER = logging.getLogger(__name__)
+
 
 @dataclass(slots=True)
 class ContextBuilder:
-    """Build documentation context from repository content.
+    """Build task-specific documentation context from repository content.
 
-    The initial implementation includes Markdown files selected by
-    ContextFilter. Workflow-specific rules, ranking, and semantic
-    retrieval are intentionally deferred.
+    The initial implementation selects Markdown files using deterministic
+    workflow-specific rules. Ranking and semantic retrieval are intentionally
+    deferred.
     """
 
     repository_service: RepositoryService
-    context_filter: ContextFilter = field(
-        default_factory=ContextFilter
+    rule_registry: ContextRuleRegistry = field(
+        default_factory=create_context_rule_registry
     )
     project_id: str = "Project0"
 
     def build_documentation_context(
         self,
         context_id: str,
+        workflow_type: ContextWorkflowType,
     ) -> ContextPackage:
-        """Discover, read, and package all Markdown documentation."""
+        """Discover, select, read, and package Markdown documentation."""
 
         if not context_id.strip():
             raise ValueError("Context identifier cannot be empty.")
 
         LOGGER.info(
-            "Building documentation context '%s' for project '%s'.",
+            "Building documentation context '%s' for project '%s' "
+            "and workflow type '%s'.",
             context_id,
             self.project_id,
+            workflow_type,
         )
 
         discovery_result = (
@@ -87,8 +93,20 @@ class ContextBuilder:
                 errors=error_messages,
             )
 
-        filtered_files = self.context_filter.apply(
+        filter_criteria = self.rule_registry.get_filter_criteria(
+            workflow_type
+        )
+        context_filter = ContextFilter(criteria=filter_criteria)
+        filtered_files = context_filter.apply(
             discovery_result.files
+        )
+
+        LOGGER.info(
+            "Discovered %d documentation files and selected %d "
+            "for context '%s'.",
+            len(discovery_result.files),
+            len(filtered_files),
+            context_id,
         )
 
         relative_paths = [
@@ -97,7 +115,10 @@ class ContextBuilder:
         ]
 
         if not relative_paths:
-            warning = "No Markdown documentation files were discovered."
+            warning = (
+                "No Markdown documentation files matched the "
+                "workflow context rules."
+            )
 
             LOGGER.warning(
                 "%s Context id: %s",
@@ -197,10 +218,14 @@ class ContextBuilder:
 def create_context_builder(
     repository_service: RepositoryService,
     project_id: str = "Project0",
+    rule_registry: ContextRuleRegistry | None = None,
 ) -> ContextBuilder:
     """Create a ContextBuilder instance."""
 
     return ContextBuilder(
         repository_service=repository_service,
+        rule_registry=(
+            rule_registry or create_context_rule_registry()
+        ),
         project_id=project_id,
     )

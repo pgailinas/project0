@@ -4,8 +4,8 @@
 # File: test_context_builder.py
 #
 # Purpose:
-#     Verify documentation context discovery, packaging,
-#     warnings, failures, metadata, and factory creation.
+#     Verify workflow-specific context discovery, selection,
+#     packaging, warnings, failures, and factory creation.
 #
 # ============================================================
 
@@ -20,9 +20,12 @@ from project0.knowledge.context_builder import (
     ContextBuilder,
     create_context_builder,
 )
+from project0.knowledge.context_filters import ContextFilterCriteria
+from project0.knowledge.context_rules import ContextRuleRegistry
 from project0.models.context_models import (
     ContextBuildStatus,
     ContextPackage,
+    ContextWorkflowType,
 )
 from project0.repository.repository_service import (
     FileBatchResult,
@@ -64,6 +67,28 @@ def _file_content(
     )
 
 
+def _general_criteria() -> ContextFilterCriteria:
+    """Return filter criteria that include general documentation."""
+
+    return ContextFilterCriteria(
+        extensions=frozenset({".md"}),
+        include_patterns=("README.md", "docs/*.md"),
+        documentation_only=True,
+    )
+
+
+def _rule_registry(
+    criteria: ContextFilterCriteria | None = None,
+) -> Mock:
+    """Create a mocked rule registry for builder tests."""
+
+    registry = Mock(spec=ContextRuleRegistry)
+    registry.get_filter_criteria.return_value = (
+        criteria or _general_criteria()
+    )
+    return registry
+
+
 def test_create_context_builder_returns_builder() -> None:
     repository_service = Mock()
 
@@ -71,6 +96,7 @@ def test_create_context_builder_returns_builder() -> None:
 
     assert isinstance(builder, ContextBuilder)
     assert builder.repository_service is repository_service
+    assert builder.rule_registry is not None
     assert builder.project_id == "Project0"
 
 
@@ -85,14 +111,32 @@ def test_create_context_builder_uses_custom_project_id() -> None:
     assert builder.project_id == "ProductA"
 
 
+def test_create_context_builder_uses_custom_rule_registry() -> None:
+    repository_service = Mock()
+    rule_registry = _rule_registry()
+
+    builder = create_context_builder(
+        repository_service=repository_service,
+        rule_registry=rule_registry,
+    )
+
+    assert builder.rule_registry is rule_registry
+
+
 def test_build_documentation_context_rejects_empty_id() -> None:
-    builder = ContextBuilder(repository_service=Mock())
+    builder = ContextBuilder(
+        repository_service=Mock(),
+        rule_registry=_rule_registry(),
+    )
 
     with pytest.raises(ValueError, match="cannot be empty"):
-        builder.build_documentation_context("   ")
+        builder.build_documentation_context(
+            "   ",
+            ContextWorkflowType.GENERAL_DOCUMENTATION,
+        )
 
 
-def test_build_documentation_context_packages_all_documents() -> None:
+def test_build_documentation_context_packages_selected_documents() -> None:
     repository_service = Mock()
     repository_service.list_documentation_files.return_value = (
         RepositoryListResult(
@@ -112,9 +156,15 @@ def test_build_documentation_context_packages_all_documents() -> None:
         )
     )
 
-    builder = ContextBuilder(repository_service=repository_service)
+    builder = ContextBuilder(
+        repository_service=repository_service,
+        rule_registry=_rule_registry(),
+    )
 
-    package = builder.build_documentation_context("context-1")
+    package = builder.build_documentation_context(
+        "context-1",
+        ContextWorkflowType.GENERAL_DOCUMENTATION,
+    )
 
     assert isinstance(package, ContextPackage)
     assert package.status == ContextBuildStatus.COMPLETED
@@ -136,7 +186,34 @@ def test_build_documentation_context_packages_all_documents() -> None:
     ]
 
 
-def test_build_documentation_context_reads_discovered_paths() -> None:
+def test_build_documentation_context_uses_workflow_rule() -> None:
+    repository_service = Mock()
+    repository_service.list_documentation_files.return_value = (
+        RepositoryListResult(
+            files=(
+                _repository_file("README.md", 11),
+            )
+        )
+    )
+    repository_service.read_files.return_value = FileBatchResult()
+
+    rule_registry = _rule_registry()
+    builder = ContextBuilder(
+        repository_service=repository_service,
+        rule_registry=rule_registry,
+    )
+
+    builder.build_documentation_context(
+        "context-rule",
+        ContextWorkflowType.IMPLEMENT_COMPONENT,
+    )
+
+    rule_registry.get_filter_criteria.assert_called_once_with(
+        ContextWorkflowType.IMPLEMENT_COMPONENT
+    )
+
+
+def test_build_documentation_context_reads_rule_selected_paths() -> None:
     repository_service = Mock()
     repository_service.list_documentation_files.return_value = (
         RepositoryListResult(
@@ -148,16 +225,68 @@ def test_build_documentation_context_reads_discovered_paths() -> None:
     )
     repository_service.read_files.return_value = FileBatchResult()
 
-    builder = ContextBuilder(repository_service=repository_service)
+    builder = ContextBuilder(
+        repository_service=repository_service,
+        rule_registry=_rule_registry(),
+    )
 
-    builder.build_documentation_context("context-2")
+    builder.build_documentation_context(
+        "context-2",
+        ContextWorkflowType.GENERAL_DOCUMENTATION,
+    )
 
     repository_service.read_files.assert_called_once_with(
         [
             "docs/Architecture.md",
-            "README.md",            
+            "README.md",
         ]
     )
+
+
+def test_build_documentation_context_reads_only_matching_files() -> None:
+    repository_service = Mock()
+    repository_service.list_documentation_files.return_value = (
+        RepositoryListResult(
+            files=(
+                _repository_file("README.md", 11),
+                _repository_file("docs/Architecture.md", 15),
+                _repository_file("docs/archive/Old.md", 10),
+            )
+        )
+    )
+    repository_service.read_files.return_value = FileBatchResult(
+        files=(
+            _file_content("README.md", "# Project0\n"),
+            _file_content(
+                "docs/Architecture.md",
+                "# Architecture\n",
+            ),
+        )
+    )
+
+    criteria = ContextFilterCriteria(
+        extensions=frozenset({".md"}),
+        include_patterns=("README.md", "docs/*.md"),
+        exclude_paths=("docs/archive",),
+        documentation_only=True,
+    )
+    builder = ContextBuilder(
+        repository_service=repository_service,
+        rule_registry=_rule_registry(criteria),
+    )
+
+    package = builder.build_documentation_context(
+        "context-filtered",
+        ContextWorkflowType.GENERAL_DOCUMENTATION,
+    )
+
+    repository_service.read_files.assert_called_once_with(
+        [
+            "docs/Architecture.md",
+            "README.md",
+        ]
+    )
+    assert package.source_count == 2
 
 
 def test_build_documentation_context_preserves_document_metadata() -> None:
@@ -174,9 +303,15 @@ def test_build_documentation_context_preserves_document_metadata() -> None:
         files=(file_content,)
     )
 
-    builder = ContextBuilder(repository_service=repository_service)
+    builder = ContextBuilder(
+        repository_service=repository_service,
+        rule_registry=_rule_registry(),
+    )
 
-    package = builder.build_documentation_context("context-3")
+    package = builder.build_documentation_context(
+        "context-3",
+        ContextWorkflowType.GENERAL_DOCUMENTATION,
+    )
     document = package.documents[0]
 
     assert document.relative_path == "docs/Architecture.md"
@@ -185,15 +320,21 @@ def test_build_documentation_context_preserves_document_metadata() -> None:
     assert document.modified_at == file_content.file.modified_at
 
 
-def test_build_documentation_context_returns_warning_when_empty() -> None:
+def test_build_documentation_context_returns_warning_when_no_match() -> None:
     repository_service = Mock()
     repository_service.list_documentation_files.return_value = (
         RepositoryListResult()
     )
 
-    builder = ContextBuilder(repository_service=repository_service)
+    builder = ContextBuilder(
+        repository_service=repository_service,
+        rule_registry=_rule_registry(),
+    )
 
-    package = builder.build_documentation_context("context-empty")
+    package = builder.build_documentation_context(
+        "context-empty",
+        ContextWorkflowType.GENERAL_DOCUMENTATION,
+    )
 
     assert package.status == (
         ContextBuildStatus.COMPLETED_WITH_WARNINGS
@@ -202,7 +343,8 @@ def test_build_documentation_context_returns_warning_when_empty() -> None:
     assert package.source_count == 0
     assert package.total_characters == 0
     assert package.warnings == (
-        "No Markdown documentation files were discovered.",
+        "No Markdown documentation files matched the "
+        "workflow context rules.",
     )
 
     repository_service.read_files.assert_not_called()
@@ -222,10 +364,15 @@ def test_build_documentation_context_fails_on_discovery_error() -> None:
         )
     )
 
-    builder = ContextBuilder(repository_service=repository_service)
+    rule_registry = _rule_registry()
+    builder = ContextBuilder(
+        repository_service=repository_service,
+        rule_registry=rule_registry,
+    )
 
     package = builder.build_documentation_context(
-        "context-discovery-failure"
+        "context-discovery-failure",
+        ContextWorkflowType.GENERAL_DOCUMENTATION,
     )
 
     assert package.status == ContextBuildStatus.FAILED
@@ -236,6 +383,7 @@ def test_build_documentation_context_fails_on_discovery_error() -> None:
         "Unable to inspect repository file.",
     )
 
+    rule_registry.get_filter_criteria.assert_not_called()
     repository_service.read_files.assert_not_called()
 
 
@@ -262,10 +410,14 @@ def test_build_documentation_context_preserves_partial_reads() -> None:
         ),
     )
 
-    builder = ContextBuilder(repository_service=repository_service)
+    builder = ContextBuilder(
+        repository_service=repository_service,
+        rule_registry=_rule_registry(),
+    )
 
     package = builder.build_documentation_context(
-        "context-partial"
+        "context-partial",
+        ContextWorkflowType.GENERAL_DOCUMENTATION,
     )
 
     assert package.status == (
@@ -278,6 +430,38 @@ def test_build_documentation_context_preserves_partial_reads() -> None:
         "docs/Missing.md: Repository file was not found.",
     )
     assert package.errors == ()
+
+
+def test_build_documentation_context_propagates_missing_rule() -> None:
+    repository_service = Mock()
+    repository_service.list_documentation_files.return_value = (
+        RepositoryListResult(
+            files=(
+                _repository_file("README.md", 11),
+            )
+        )
+    )
+
+    rule_registry = _rule_registry()
+    rule_registry.get_filter_criteria.side_effect = ValueError(
+        "No context rule is registered."
+    )
+
+    builder = ContextBuilder(
+        repository_service=repository_service,
+        rule_registry=rule_registry,
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="No context rule is registered",
+    ):
+        builder.build_documentation_context(
+            "context-missing-rule",
+            ContextWorkflowType.IMPLEMENT_COMPONENT,
+        )
+
+    repository_service.read_files.assert_not_called()
 
 
 def test_format_read_warning_with_path() -> None:
@@ -306,99 +490,14 @@ def test_build_documentation_context_uses_timezone_aware_timestamp() -> None:
         RepositoryListResult()
     )
 
-    builder = ContextBuilder(repository_service=repository_service)
+    builder = ContextBuilder(
+        repository_service=repository_service,
+        rule_registry=_rule_registry(),
+    )
 
     package = builder.build_documentation_context(
-        "context-timestamp"
+        "context-timestamp",
+        ContextWorkflowType.GENERAL_DOCUMENTATION,
     )
 
     assert package.created_at.tzinfo == timezone.utc
-
-def test_context_builder_uses_default_context_filter() -> None:
-    repository_service = Mock()
-
-    builder = ContextBuilder(
-        repository_service=repository_service,
-    )
-
-    assert builder.context_filter is not None
-
-
-def test_build_documentation_context_uses_context_filter() -> None:
-    repository_service = Mock()
-
-    discovered_files = (
-        _repository_file("README.md", 11),
-    )
-
-    repository_service.list_documentation_files.return_value = (
-        RepositoryListResult(files=discovered_files)
-    )
-    repository_service.read_files.return_value = FileBatchResult(
-        files=(
-            _file_content(
-                "README.md",
-                "# Project0\n",
-            ),
-        )
-    )
-
-    context_filter = Mock()
-    context_filter.apply.return_value = discovered_files
-
-    builder = ContextBuilder(
-        repository_service=repository_service,
-        context_filter=context_filter,
-    )
-
-    builder.build_documentation_context("context-filter")
-
-    context_filter.apply.assert_called_once_with(
-        discovered_files
-    )
-
-
-def test_build_documentation_context_reads_only_filtered_files() -> None:
-    repository_service = Mock()
-
-    discovered_files = (
-        _repository_file("README.md", 11),
-        _repository_file("docs/archive/Old.md", 10),
-    )
-    filtered_files = (
-        discovered_files[0],
-    )
-
-    repository_service.list_documentation_files.return_value = (
-        RepositoryListResult(files=discovered_files)
-    )
-    repository_service.read_files.return_value = FileBatchResult(
-        files=(
-            _file_content(
-                "README.md",
-                "# Project0\n",
-            ),
-        )
-    )
-
-    context_filter = Mock()
-    context_filter.apply.return_value = filtered_files
-
-    builder = ContextBuilder(
-        repository_service=repository_service,
-        context_filter=context_filter,
-    )
-
-    package = builder.build_documentation_context(
-        "context-filtered-read"
-    )
-
-    repository_service.read_files.assert_called_once_with(
-        ["README.md"]
-    )
-    assert package.source_count == 1
-    assert [
-        document.relative_path
-        for document in package.documents
-    ] == ["README.md"]
-
