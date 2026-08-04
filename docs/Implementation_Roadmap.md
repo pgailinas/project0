@@ -1,8 +1,8 @@
 # Implementation Roadmap
 
-**Version:** 0.1  
+**Version:** 0.2  
 **Owner:** Project0  
-**Last Updated:** 2026-08-03  
+**Last Updated:** 2026-08-04
 
 ---
 
@@ -81,24 +81,26 @@ Deliverables:
 
 ---
 
-## Phase 3 — First End-to-End Workflow
+## Phase 3 — Repository Knowledge Services
 
-Validate the platform architecture by implementing one complete Documentation AI Agent workflow.
+Implement and validate the deterministic repository knowledge subsystem that provides structured repository context for future AI reasoning.
 
 Primary activities:
 
-* Execute repository discovery.
-* Build a validated context package.
-* Invoke the Documentation AI Agent.
-* Validate the proposed documentation artifact.
-* Produce a reviewable documentation proposal.
+* Implement repository document parsing.
+* Implement deterministic document indexing.
+* Implement deterministic document selection.
+* Implement context formatting.
+* Implement the Knowledge Service.
+* Validate the complete knowledge pipeline.
 
 Deliverables:
 
-* Functional end-to-end workflow.
-* Validated context package generation.
-* Documentation proposal generation.
-* Initial workflow execution report.
+* Functional Knowledge Service.
+* Deterministic repository knowledge pipeline.
+* Structured Knowledge Request and Knowledge Result models.
+* Unit and integration test coverage.
+* Validated repository knowledge workflow.
 
 ---
 
@@ -188,7 +190,7 @@ Implementation phases depend upon the completion of earlier foundational capabil
 Key dependencies include:
 
 * Repository infrastructure before repository analysis.
-* Repository knowledge before AI reasoning.
+* Deterministic repository knowledge services before AI reasoning.
 * AI reasoning before workflow integration.
 * Workflow integration before end-to-end validation.
 * Validation services before final system verification.
@@ -237,7 +239,8 @@ Future implementation efforts may include:
 * Dispatcher integration.
 * Multi-agent collaboration.
 * Semantic repository services.
-* Incremental repository indexing.
+* Embedding generation.
+* Vector-based repository search.
 * Additional AI reasoning providers.
 * Expanded validation capabilities.
 
