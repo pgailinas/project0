@@ -11,8 +11,7 @@
 ## Objective
 
 Define the high-level architecture of the Documentation Agent and the
-major functional components required to satisfy the Documentation Agent
-Functional Specification.
+major functional components required to satisfy the Documentation Agent Functional Specification.
 
 ## Scope
 
@@ -38,32 +37,48 @@ intentionally excluded.
 
 # 3. Architectural Workflow
 
-The implemented Phase 2 platform provides the foundation for future Documentation Agent workflows.
+The implemented Phase 3 platform provides the deterministic repository knowledge foundation for future Documentation Agent workflows.
 
 ```mermaid
 flowchart TD
     A["Application Entry Point<br/><small>main.py</small>"]
     B["Platform Dispatcher<br/><small>Dispatch Platform Workflow</small>"]
     C["Workflow Engine<br/><small>Execute Workflow Tasks</small>"]
+
     D["Context Builder<br/><small>Build Workflow-Specific Context</small>"]
-    E["Context Rule Registry<br/><small>Select Context Rules</small>"]
-    F["Context Filter<br/><small>Apply Selection Criteria</small>"]
-    G["Repository Service<br/><small>Discover and Read Files</small>"]
-    H["Local Repository<br/><small>Authoritative Project Content</small>"]
-    I["Context Package<br/><small>Selected Repository Knowledge</small>"]
-    J["Workflow Execution Result<br/><small>Task Output and Status</small>"]
+    E["Repository Service<br/><small>Discover and Read Files</small>"]
+    F["Context Package<br/><small>Workflow Context</small>"]
+
+    G["Knowledge Service<br/><small>Repository Knowledge Pipeline</small>"]
+    H["Document Parser"]
+    I["Document Index"]
+    J["Document Selector"]
+    K["Context Formatter"]
+    L["Knowledge Result"]
+
+    M["Workflow Execution Result<br/><small>Task Output and Status</small>"]
+
+    N["Local Repository<br/><small>Authoritative Project Content</small>"]
 
     A --> B
     B --> C
+
     C --> D
     D --> E
-    E --> F
-    F --> G
+    E --> N
+    E --> D
+    D --> F
+    F --> C
+
+    C --> G
     G --> H
-    G --> D
-    D --> I
-    I --> C
-    C --> J
+    H --> I
+    I --> J
+    J --> K
+    K --> L
+    L --> C
+
+    C --> M
 ```
 
 ## Implemented Runtime Flow
@@ -71,12 +86,16 @@ flowchart TD
 1. `main.py` creates the Platform Dispatcher.
 2. The Platform Dispatcher creates a workflow task.
 3. The Workflow Engine executes the task.
-4. The Context Builder requests workflow-specific selection criteria.
-5. The Context Rule Registry supplies the applicable context rule.
-6. The Context Filter selects eligible repository documents.
-7. The Repository Service reads the selected files.
-8. The Context Builder creates a Context Package.
-9. The Workflow Engine returns a Workflow Execution Result.
+4. The Context Builder constructs workflow-specific repository context.
+5. The Repository Service discovers and reads repository content.
+6. The Context Builder returns a Context Package.
+7. The Workflow Engine invokes the Knowledge Service when structured repository knowledge is required.
+8. The Knowledge Service parses repository documents.
+9. Parsed documents are indexed.
+10. The Document Selector identifies the most relevant repository documents.
+11. The Context Formatter produces deterministic formatted context.
+12. The Knowledge Service returns a Knowledge Result.
+13. The Workflow Engine returns a Workflow Execution Result.
 
 ## Future Documentation Update Workflow
 
@@ -131,6 +150,70 @@ Responsibilities:
 - Exclude unsupported, generated, and hidden content.
 - Return structured repository results and errors.
 
+## Knowledge Service
+
+Coordinates deterministic repository knowledge retrieval.
+
+Responsibilities:
+
+- Discover repository Markdown documentation.
+- Parse repository documents.
+- Build the in-memory document index.
+- Invoke deterministic document selection.
+- Coordinate context formatting.
+- Preserve parsing and selection warnings.
+- Return structured Knowledge Results.
+
+## Document Parser
+
+Parses Markdown documentation into structured repository models.
+
+Responsibilities:
+
+- Parse Markdown documents.
+- Extract document metadata.
+- Extract headings.
+- Extract document links.
+- Preserve repository paths.
+- Return immutable Document Records.
+
+## Document Index
+
+Provides deterministic indexing of parsed repository documentation.
+
+Responsibilities:
+
+- Index parsed documents.
+- Retrieve documents by repository path.
+- Maintain deterministic document ordering.
+- Detect duplicate document paths.
+
+## Document Selector
+
+Selects repository documentation relevant to a Knowledge Request.
+
+Responsibilities:
+
+- Evaluate explicit document requests.
+- Match deterministic search terms.
+- Apply required tag filtering.
+- Apply changed-path matching.
+- Include baseline project documentation when requested.
+- Rank matching documents.
+- Preserve deterministic ordering.
+- Return Document Selections.
+
+## Context Formatter
+
+Formats selected repository documents into deterministic context.
+
+Responsibilities:
+
+- Format selected repository documents.
+- Preserve document ordering.
+- Produce deterministic prompt context.
+- Avoid modification of repository content.
+
 ## Context Builder
 
 Builds workflow-specific repository context.
@@ -179,6 +262,7 @@ Implemented interfaces:
 - Workflow Interface
 - Workflow Event Publisher Interface
 - Context Builder Interface
+- Knowledge Interface
 
 Interfaces allow components to depend on required capabilities rather than concrete implementations.
 
@@ -192,6 +276,13 @@ Implemented model groups:
 - Context requests
 - Context documents
 - Context packages
+- Knowledge requests
+- Document records
+- Document headings
+- Document links
+- Document selections
+- Document references
+- Knowledge results
 - Workflow and task statuses
 - Workflow tasks
 - Task execution results
@@ -267,7 +358,9 @@ Future versions may introduce:
 - Final Git diff generation
 - Multi-agent collaboration
 - Repository event monitoring
-- Incremental indexing
+- Semantic document retrieval
+- Embedding generation
+- Vector-based repository search
 - Semantic repository services
 - Additional AI providers
 - Additional validation services

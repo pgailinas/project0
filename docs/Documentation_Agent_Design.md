@@ -44,12 +44,19 @@ The implemented platform foundation consists of the following primary components
 * Context Builder
 * Context Rule Registry
 * Context Filter
+* Knowledge Service
+* Document Parser
+* Document Index
+* Document Selector
+* Context Formatter
 * Shared Interfaces
 * Shared Data Models
 
 The Platform Dispatcher provides the platform-level entry point. It creates workflow tasks and submits them to the Workflow Engine. The Workflow Engine executes those tasks and returns structured workflow results.
 
-The Context Builder assembles workflow-specific repository knowledge. It obtains selection criteria from the Context Rule Registry, applies those criteria through the Context Filter, and reads selected documentation through the Repository Interface.
+The Context Builder assembles workflow-specific repository context for deterministic workflow execution.
+
+The Knowledge Service provides deterministic repository knowledge retrieval. It coordinates repository document parsing, indexing, document selection, and context formatting while preserving structured warnings and metadata.
 
 The Validation Engine and Reasoning Service remain planned components for future implementation phases.
 
@@ -109,6 +116,7 @@ Provide the platform-level entry point for assembling services and dispatching w
 
 * Repository Interface
 * Context Builder Interface
+* Knowledge Interface
 * Workflow Interface
 
 ### Future Considerations
@@ -311,7 +319,7 @@ Assemble workflow-specific repository documentation into a structured Context Pa
 * Semantic retrieval
 * Relevance ranking
 * Context-size limits
-* Incremental indexing
+* Integration with semantic repository search
 
 ---
 
@@ -419,6 +427,180 @@ Apply deterministic file-selection criteria to discovered repository files.
 
 ---
 
+## Knowledge Service
+
+### Purpose
+
+Coordinate deterministic repository knowledge retrieval.
+
+### Responsibilities
+
+* Discover repository Markdown documentation.
+* Parse repository documents.
+* Build the in-memory document index.
+* Select repository documents relevant to a Knowledge Request.
+* Delegate context formatting.
+* Preserve structured warnings.
+* Return immutable Knowledge Results.
+
+### Interfaces
+
+#### Provides
+
+* Build repository knowledge.
+
+#### Consumes
+
+* Document Parser.
+* Document Index.
+* Document Selector.
+* Context Formatter.
+* Knowledge models.
+
+### Design Notes
+
+* Coordinates knowledge components without implementing their internal behavior.
+* Uses dependency injection for parser, index, selector, and formatter.
+* Performs deterministic processing only.
+* Returns immutable Knowledge Results.
+
+### Inputs
+
+* Knowledge Request
+
+### Outputs
+
+* Knowledge Result
+
+### Required Services
+
+* Document Parser
+* Document Index
+* Document Selector
+* Context Formatter
+
+### Future Considerations
+
+* Semantic retrieval
+* Embedding generation
+* Vector search
+
+---
+
+## Document Parser
+
+### Purpose
+
+Parse Markdown documentation into structured repository models.
+
+### Responsibilities
+
+* Parse Markdown documents.
+* Extract document metadata.
+* Extract headings.
+* Extract document links.
+* Preserve repository paths.
+* Return immutable Document Records.
+
+### Interfaces
+
+#### Provides
+
+* Parse repository document.
+
+#### Consumes
+
+* Repository Markdown.
+
+### Design Notes
+
+* Performs deterministic parsing.
+* Does not perform document selection.
+* Does not perform semantic analysis.
+
+---
+
+## Document Index
+
+### Purpose
+
+Maintain deterministic access to parsed repository documents.
+
+### Responsibilities
+
+* Build the document index.
+* Retrieve documents by repository path.
+* Preserve deterministic ordering.
+* Detect duplicate repository paths.
+
+### Interfaces
+
+#### Provides
+
+* Build document index.
+* Retrieve indexed documents.
+* Retrieve document by path.
+
+#### Consumes
+
+* Parsed Document Records.
+
+---
+
+## Document Selector
+
+### Purpose
+
+Select repository documentation relevant to a Knowledge Request.
+
+### Responsibilities
+
+* Match explicit repository paths.
+* Match deterministic search terms.
+* Match required tags.
+* Match changed repository paths.
+* Include baseline project documentation.
+* Rank selected documents.
+* Preserve deterministic ordering.
+
+### Interfaces
+
+#### Provides
+
+* Select repository documents.
+
+#### Consumes
+
+* Knowledge Request.
+* Document Records.
+
+---
+
+## Context Formatter
+
+### Purpose
+
+Format selected repository documents into deterministic context.
+
+### Responsibilities
+
+* Format repository documents.
+* Preserve supplied document ordering.
+* Produce deterministic context.
+* Preserve repository content.
+
+### Interfaces
+
+#### Provides
+
+* Format repository context.
+
+#### Consumes
+
+* Selected Document Records.
+
+---
+
 ## Shared Interfaces
 
 ### Purpose
@@ -431,6 +613,7 @@ Define stable public contracts between Project0 components.
 * Workflow Interface
 * Workflow Event Publisher Interface
 * Context Builder Interface
+* Knowledge Interface
 
 ### Design Notes
 
@@ -454,6 +637,16 @@ Define immutable information exchanged between Project0 components.
 * Context Request
 * Context Document
 * Context Package
+
+### Knowledge Models
+
+* Knowledge Request
+* Document Heading
+* Document Link
+* Document Record
+* Document Reference
+* Document Selection
+* Knowledge Result
 
 ### Workflow Models
 
@@ -627,8 +820,13 @@ The implemented context workflow follows this sequence:
 7. The Context Builder reads selected files through the Repository Interface.
 8. The Repository Service returns structured file results.
 9. The Context Builder creates a Context Package.
-10. The Workflow Engine wraps the Context Package in a Task Execution Result.
-11. The Workflow Engine returns a Workflow Execution Result to the Platform Dispatcher.
+10. The Workflow Engine invokes the Knowledge Service when structured repository knowledge is required.
+11. The Knowledge Service parses repository documents.
+12. Parsed documents are indexed.
+13. The Document Selector identifies the relevant repository documents.
+14. The Context Formatter produces deterministic repository context.
+15. The Knowledge Service returns a Knowledge Result.
+16. The Workflow Engine returns a Workflow Execution Result.
 
 Future phases will extend this interaction model with reasoning, validation, individual change review, approved repository modification, and final validation.
 
