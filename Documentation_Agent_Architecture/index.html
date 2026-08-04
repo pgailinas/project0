@@ -754,9 +754,9 @@
 
 
 <h1 id="documentation-agent-architecture">Documentation Agent Architecture</h1>
-<p><strong>Version:</strong> 0.2<br />
+<p><strong>Version:</strong> 0.3<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-01</p>
+<strong>Last Updated:</strong> 2026-08-04</p>
 <hr />
 <h1 id="1-purpose">1. Purpose</h1>
 <h2 id="objective">Objective</h2>
@@ -772,84 +772,149 @@ intentionally excluded.</p>
 <ul>
 <li>Modular component design.</li>
 <li>Single responsibility for each component.</li>
-<li>Deterministic components shall perform repository, workflow, and validation tasks whenever AI reasoning is not required.</li>
+<li>Deterministic components shall perform repository, workflow, context, and validation tasks whenever AI reasoning is not required.</li>
 <li>Repository content is the authoritative source of project knowledge.</li>
 <li>Human approval is required before documentation changes are applied.</li>
-<li>Components communicate through well-defined interfaces.</li>
+<li>Components communicate through well-defined typed interfaces.</li>
+<li>Shared data models define information exchanged between components.</li>
+<li>Platform components depend on interfaces rather than concrete implementations.</li>
 <li>Implementation technologies may change without affecting the architecture.</li>
 </ul>
 <hr />
 <h1 id="3-architectural-workflow">3. Architectural Workflow</h1>
+<p>The implemented Phase 2 platform provides the foundation for future Documentation Agent workflows.</p>
 <pre class="mermaid"><code>flowchart TD
-    A[User Request]
-    B["Workflow Engine&lt;br/&gt;&lt;small&gt;(Process Request)&lt;/small&gt;"]
-    C["Repository Tools&lt;br/&gt;&lt;small&gt;(Inspect Repository Changes)&lt;/small&gt;"]
-    D["Knowledge Service&lt;br/&gt;&lt;small&gt;(Retrieve Repository Context)&lt;/small&gt;"]
-    E["Reasoning Service&lt;br/&gt;&lt;small&gt;(Analyze Impact)&lt;br/&gt;(Generate Proposed Updates)&lt;/small&gt;"]
-    F["Validation Engine&lt;br/&gt;&lt;small&gt;(Validate Proposed Updates)&lt;/small&gt;"]
-    G["Workflow Engine&lt;br/&gt;&lt;small&gt;(Select Next Proposed Change)&lt;/small&gt;"]
-    H["User Review&lt;br/&gt;&lt;small&gt;(Approve / Revise / Reject / Skip)&lt;/small&gt;"]
-    I{"Review Outcome"}
-    J["Workflow Engine&lt;br/&gt;&lt;small&gt;(Apply Approved Change)&lt;/small&gt;"]
-    K{"More Proposed Changes?"}
-    L["Validation Engine&lt;br/&gt;&lt;small&gt;(Perform Final Validation)&lt;/small&gt;"]
-    M["Repository Tools&lt;br/&gt;&lt;small&gt;(Generate Final Git Diff)&lt;/small&gt;"]
-    N["Workflow Engine&lt;br/&gt;&lt;small&gt;(Present Completion Summary)&lt;/small&gt;"]
+    A["Application Entry Point&lt;br/&gt;&lt;small&gt;main.py&lt;/small&gt;"]
+    B["Platform Dispatcher&lt;br/&gt;&lt;small&gt;Dispatch Platform Workflow&lt;/small&gt;"]
+    C["Workflow Engine&lt;br/&gt;&lt;small&gt;Execute Workflow Tasks&lt;/small&gt;"]
+    D["Context Builder&lt;br/&gt;&lt;small&gt;Build Workflow-Specific Context&lt;/small&gt;"]
+    E["Context Rule Registry&lt;br/&gt;&lt;small&gt;Select Context Rules&lt;/small&gt;"]
+    F["Context Filter&lt;br/&gt;&lt;small&gt;Apply Selection Criteria&lt;/small&gt;"]
+    G["Repository Service&lt;br/&gt;&lt;small&gt;Discover and Read Files&lt;/small&gt;"]
+    H["Local Repository&lt;br/&gt;&lt;small&gt;Authoritative Project Content&lt;/small&gt;"]
+    I["Context Package&lt;br/&gt;&lt;small&gt;Selected Repository Knowledge&lt;/small&gt;"]
+    J["Workflow Execution Result&lt;br/&gt;&lt;small&gt;Task Output and Status&lt;/small&gt;"]
 
-    A --&gt; B --&gt; C --&gt; D --&gt; E --&gt; F --&gt; G --&gt; H --&gt; I
-
-    I --&gt;|Approve| J
-    I --&gt;|Revise| E
-    I --&gt;|Reject| K
-    I --&gt;|Skip| K
-
-    J --&gt; K
-
-    K --&gt;|Yes| G
-    K --&gt;|No| L
-
-    L --&gt; M --&gt; N</code></pre>
-<h2 id="review-outcomes">Review Outcomes</h2>
-<p>Each proposed documentation change is reviewed individually.</p>
+    A --&gt; B
+    B --&gt; C
+    C --&gt; D
+    D --&gt; E
+    E --&gt; F
+    F --&gt; G
+    G --&gt; H
+    G --&gt; D
+    D --&gt; I
+    I --&gt; C
+    C --&gt; J</code></pre>
+<h2 id="implemented-runtime-flow">Implemented Runtime Flow</h2>
+<ol>
+<li><code>main.py</code> creates the Platform Dispatcher.</li>
+<li>The Platform Dispatcher creates a workflow task.</li>
+<li>The Workflow Engine executes the task.</li>
+<li>The Context Builder requests workflow-specific selection criteria.</li>
+<li>The Context Rule Registry supplies the applicable context rule.</li>
+<li>The Context Filter selects eligible repository documents.</li>
+<li>The Repository Service reads the selected files.</li>
+<li>The Context Builder creates a Context Package.</li>
+<li>The Workflow Engine returns a Workflow Execution Result.</li>
+</ol>
+<h2 id="future-documentation-update-workflow">Future Documentation Update Workflow</h2>
+<p>Future phases will extend the implemented platform with AI reasoning, validation, individual change review, approved repository updates, final validation, and completion reporting.</p>
+<p>Each proposed documentation change will support the following review outcomes:</p>
 <ul>
 <li><strong>Approve</strong> — Apply the proposed change and continue to the next proposed change.</li>
-<li><strong>Revise</strong> — Return the proposed change to the Reasoning Service for regeneration and subsequent validation.</li>
+<li><strong>Revise</strong> — Return the proposed change for regeneration and subsequent validation.</li>
 <li><strong>Reject</strong> — Discard the proposed change and continue to the next proposed change.</li>
-<li><strong>Skip</strong> — Defer the proposed change without applying or rejecting it and continue to the next proposed change.</li>
+<li><strong>Skip</strong> — Defer the proposed change and continue to the next proposed change.</li>
 </ul>
 <hr />
 <h1 id="4-architectural-components">4. Architectural Components</h1>
+<h2 id="platform-dispatcher">Platform Dispatcher</h2>
+<p>Provides the platform-level entry point for executing workflows.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>Assemble the default platform services.</li>
+<li>Dispatch platform workflows.</li>
+<li>Create workflow tasks.</li>
+<li>Submit tasks to the Workflow Engine.</li>
+<li>Return structured workflow execution results.</li>
+</ul>
 <h2 id="workflow-engine">Workflow Engine</h2>
-<p>Coordinates the overall documentation update workflow.</p>
+<p>Coordinates synchronous workflow task execution.</p>
 <p>Responsibilities:</p>
 <ul>
-<li>Process user requests.</li>
-<li>Coordinate component interactions.</li>
-<li>Maintain workflow state.</li>
-<li>Manage the review sequence for individual proposed changes.</li>
-<li>Apply approved documentation changes.</li>
-<li>Continue processing until all proposed changes have been reviewed.</li>
-<li>Manage revision workflows.</li>
-<li>Present proposed updates, validation results, and completion summaries.</li>
+<li>Execute workflow tasks in sequence.</li>
+<li>Maintain workflow and task identifiers.</li>
+<li>Capture task outputs and failures.</li>
+<li>Stop workflow execution after the first failed task.</li>
+<li>Publish workflow and task events through an abstract interface.</li>
+<li>Return structured workflow execution results.</li>
 </ul>
-<h2 id="repository-tools">Repository Tools</h2>
-<p>Provide deterministic access to the local Git repository.</p>
+<h2 id="repository-service">Repository Service</h2>
+<p>Provides deterministic, read-only access to the local repository.</p>
 <p>Responsibilities:</p>
 <ul>
-<li>Inspect repository status.</li>
-<li>Retrieve repository changes.</li>
-<li>Read Markdown documents.</li>
-<li>Search repository content.</li>
-<li>Generate Git diffs.</li>
+<li>Discover supported repository files.</li>
+<li>Discover Markdown documentation.</li>
+<li>Read individual repository files.</li>
+<li>Read multiple repository files.</li>
+<li>Exclude unsupported, generated, and hidden content.</li>
+<li>Return structured repository results and errors.</li>
 </ul>
-<h2 id="knowledge-service">Knowledge Service</h2>
-<p>Provides repository knowledge required during analysis.</p>
+<h2 id="context-builder">Context Builder</h2>
+<p>Builds workflow-specific repository context.</p>
 <p>Responsibilities:</p>
 <ul>
-<li>Retrieve relevant repository documentation.</li>
-<li>Retrieve authoritative project information.</li>
-<li>Assemble repository context.</li>
-<li>Supply context to the Workflow Engine.</li>
+<li>Discover available documentation through the Repository Interface.</li>
+<li>Request context criteria from the Context Rule Registry.</li>
+<li>Apply deterministic context filtering.</li>
+<li>Read selected repository documents.</li>
+<li>Preserve repository file metadata.</li>
+<li>Produce structured Context Packages.</li>
+<li>Preserve partial results and report read warnings.</li>
+</ul>
+<h2 id="context-rule-registry">Context Rule Registry</h2>
+<p>Defines document-selection policies for supported workflow types.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>Maintain workflow-specific Context Rules.</li>
+<li>Resolve rules by workflow type.</li>
+<li>Convert Context Rules into Context Filter criteria.</li>
+<li>Provide default rules for general documentation, documentation updates, component implementation, and documentation validation.</li>
+</ul>
+<h2 id="context-filter">Context Filter</h2>
+<p>Applies deterministic file-selection criteria.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>Filter by documentation status.</li>
+<li>Filter by file extension.</li>
+<li>Apply included and excluded paths.</li>
+<li>Apply included and excluded filename patterns.</li>
+<li>Normalize repository paths.</li>
+<li>Return files in deterministic order.</li>
+</ul>
+<h2 id="shared-interfaces">Shared Interfaces</h2>
+<p>Define stable contracts between platform components.</p>
+<p>Implemented interfaces:</p>
+<ul>
+<li>Repository Interface</li>
+<li>Workflow Interface</li>
+<li>Workflow Event Publisher Interface</li>
+<li>Context Builder Interface</li>
+</ul>
+<p>Interfaces allow components to depend on required capabilities rather than concrete implementations.</p>
+<h2 id="shared-data-models">Shared Data Models</h2>
+<p>Define immutable data exchanged between platform components.</p>
+<p>Implemented model groups:</p>
+<ul>
+<li>Context workflow types</li>
+<li>Context requests</li>
+<li>Context documents</li>
+<li>Context packages</li>
+<li>Workflow and task statuses</li>
+<li>Workflow tasks</li>
+<li>Task execution results</li>
+<li>Workflow execution results</li>
 </ul>
 <h2 id="validation-engine">Validation Engine</h2>
 <p>Verifies documentation quality before and after proposed updates.</p>
@@ -858,17 +923,19 @@ intentionally excluded.</p>
 <li>Validate Markdown.</li>
 <li>Validate documentation consistency.</li>
 <li>Validate links and referenced files.</li>
-<li>Validate MkDocs build.</li>
+<li>Validate MkDocs builds.</li>
 <li>Produce validation reports.</li>
 </ul>
+<p>The Validation Engine is planned for a future implementation phase.</p>
 <h2 id="reasoning-service">Reasoning Service</h2>
-<p>Provides AI reasoning capabilities through an abstract provider interface.</p>
+<p>Provides AI reasoning through an abstract provider interface.</p>
 <p>Responsibilities:</p>
 <ul>
 <li>Analyze repository changes and documentation impact.</li>
 <li>Generate proposed documentation updates.</li>
 <li>Explain proposed documentation changes.</li>
 </ul>
+<p>The Reasoning Service is planned for a future implementation phase.</p>
 <hr />
 <h1 id="5-external-dependencies">5. External Dependencies</h1>
 <p>The Documentation Agent interacts with:</p>
@@ -877,6 +944,8 @@ intentionally excluded.</p>
 <li>Markdown documentation</li>
 <li>Documentation standards</li>
 <li>MkDocs configuration</li>
+<li>Python runtime environment</li>
+<li>pytest test framework</li>
 <li>Validation tools</li>
 <li>AI reasoning provider</li>
 </ul>
@@ -885,23 +954,32 @@ intentionally excluded.</p>
 <ul>
 <li>Markdown is the authoritative documentation format.</li>
 <li>Repository documentation is the source of truth.</li>
+<li>Platform components shall communicate through typed interfaces.</li>
+<li>Shared data models shall define information exchanged between components.</li>
+<li>Platform components shall depend on interfaces rather than concrete implementations where practical.</li>
 <li>Documentation updates require individual approval.</li>
 <li>Proposed documentation updates shall remain non-authoritative until approved.</li>
 <li>Proposed documentation updates shall be validated before user approval.</li>
 <li>Applied documentation changes shall undergo final validation.</li>
-<li>Source code modification is outside the architectural scope.</li>
+<li>Current repository operations are read-only.</li>
+<li>Source code modification by the Documentation Agent is outside the current architectural scope.</li>
 </ul>
 <hr />
 <h1 id="7-future-architectural-expansion">7. Future Architectural Expansion</h1>
 <p>Future versions may introduce:</p>
 <ul>
-<li>Dispatcher</li>
+<li>Documentation Agent reasoning</li>
+<li>Validation Engine implementation</li>
+<li>User review and approval workflow</li>
+<li>Controlled repository modification</li>
+<li>Final Git diff generation</li>
 <li>Multi-agent collaboration</li>
 <li>Repository event monitoring</li>
 <li>Incremental indexing</li>
 <li>Semantic repository services</li>
-<li>Additional LLM providers</li>
+<li>Additional AI providers</li>
 <li>Additional validation services</li>
+<li>Asynchronous workflow execution</li>
 </ul>
 <hr />
 <h1 id="8-related-documents">8. Related Documents</h1>
@@ -909,7 +987,12 @@ intentionally excluded.</p>
 <li>Project Charter</li>
 <li>Documentation Standards</li>
 <li>Documentation Agent Functional Specification</li>
+<li>Documentation Agent Design</li>
+<li>Component Communication Design</li>
+<li>Shared Data Models and Error Contracts</li>
 <li>Implementation Roadmap</li>
+<li>Implementation Status</li>
+<li>Project Directory Structure</li>
 </ul>
 
 

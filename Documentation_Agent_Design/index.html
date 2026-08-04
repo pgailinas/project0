@@ -752,9 +752,9 @@
 
 
 <h1 id="documentation-agent-component-design">Documentation Agent Component Design</h1>
-<p><strong>Version:</strong> 0.3<br />
+<p><strong>Version:</strong> 0.4<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-03</p>
+<strong>Last Updated:</strong> 2026-08-04</p>
 <hr />
 <h1 id="1-purpose">1. Purpose</h1>
 <h2 id="objective">Objective</h2>
@@ -768,7 +768,9 @@ Implementation details are intentionally excluded.</p>
 <h1 id="2-component-design-principles">2. Component Design Principles</h1>
 <ul>
 <li>Each component has a single responsibility.</li>
-<li>Components communicate through well-defined interfaces.</li>
+<li>Components communicate through well-defined typed interfaces.</li>
+<li>Shared immutable data models define information exchanged between components.</li>
+<li>Components depend on interfaces rather than concrete implementations where practical.</li>
 <li>Deterministic processing shall be used whenever AI reasoning is not required.</li>
 <li>Components shall be independently testable.</li>
 <li>Minimize coupling between components.</li>
@@ -776,219 +778,436 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <hr />
 <h1 id="3-component-overview">3. Component Overview</h1>
-<p>The Documentation Agent consists of five primary components:</p>
+<p>The implemented platform foundation consists of the following primary components:</p>
 <ul>
+<li>Platform Dispatcher</li>
 <li>Workflow Engine</li>
-<li>Repository Tools</li>
-<li>Knowledge Service</li>
-<li>Validation Engine</li>
-<li>Reasoning Service</li>
+<li>Repository Service</li>
+<li>Context Builder</li>
+<li>Context Rule Registry</li>
+<li>Context Filter</li>
+<li>Shared Interfaces</li>
+<li>Shared Data Models</li>
 </ul>
-<p>These components interact through the Workflow Engine using well-defined interfaces. Individual components do not directly manipulate the internal state of other components. Each component exposes a stable public interface while encapsulating its internal implementation.</p>
+<p>The Platform Dispatcher provides the platform-level entry point. It creates workflow tasks and submits them to the Workflow Engine. The Workflow Engine executes those tasks and returns structured workflow results.</p>
+<p>The Context Builder assembles workflow-specific repository knowledge. It obtains selection criteria from the Context Rule Registry, applies those criteria through the Context Filter, and reads selected documentation through the Repository Interface.</p>
+<p>The Validation Engine and Reasoning Service remain planned components for future implementation phases.</p>
 <hr />
 <h1 id="4-component-specifications">4. Component Specifications</h1>
-<h2 id="workflow-engine">Workflow Engine</h2>
+<h2 id="platform-dispatcher">Platform Dispatcher</h2>
 <h3 id="purpose">Purpose</h3>
-<p>Coordinate the end-to-end documentation workflow.</p>
+<p>Provide the platform-level entry point for assembling services and dispatching workflows.</p>
 <h3 id="responsibilities">Responsibilities</h3>
 <ul>
-<li>Process user requests.</li>
-<li>Coordinate component interactions.</li>
-<li>Maintain workflow state.</li>
-<li>Manage the review sequence for individual proposed changes.</li>
-<li>Apply approved documentation changes.</li>
-<li>Continue processing until all proposed changes have been reviewed.</li>
-<li>Manage revision workflows.</li>
-<li>Present proposed updates, validation results, and completion summaries.</li>
+<li>Validate platform startup through the configured settings.</li>
+<li>Assemble the default Repository Service, Context Builder, and Workflow Engine.</li>
+<li>Create workflow tasks.</li>
+<li>Dispatch tasks to the Workflow Engine.</li>
+<li>Return structured workflow execution results.</li>
 </ul>
 <h3 id="interfaces">Interfaces</h3>
 <h4 id="provides">Provides</h4>
 <ul>
-<li>Start workflow.</li>
-<li>Continue workflow.</li>
-<li>Request user review.</li>
-<li>Apply approved changes.</li>
-<li>Complete workflow.</li>
+<li>Create default platform dispatcher.</li>
+<li>Run context workflow.</li>
 </ul>
 <h4 id="consumes">Consumes</h4>
 <ul>
-<li>Repository Tools interface.</li>
-<li>Knowledge Service interface.</li>
-<li>Validation Engine interface.</li>
-<li>Reasoning Service interface.</li>
+<li>Repository Interface.</li>
+<li>Context Builder Interface.</li>
+<li>Workflow Interface.</li>
+<li>Context workflow models.</li>
+<li>Workflow task and result models.</li>
 </ul>
 <h3 id="design-notes">Design Notes</h3>
 <ul>
-<li>Serves as the sole orchestrator.</li>
-<li>Does not directly manipulate repository content.</li>
-<li>Delegates deterministic repository operations to Repository Tools.</li>
-<li>Delegates AI-assisted analysis to the Reasoning Service.</li>
-<li>Routes proposed changes through user review before application.</li>
+<li>Coordinates platform services without implementing their internal behavior.</li>
+<li>Depends on typed interfaces for injected services.</li>
+<li>Uses concrete implementations only in the default factory.</li>
+<li>Current workflows are read-only.</li>
+<li>Does not perform reasoning, validation, review, or repository modification.</li>
 </ul>
 <h3 id="inputs">Inputs</h3>
 <ul>
-<li>User requests</li>
-<li>Repository status</li>
-<li>Component responses</li>
-<li>Validation results</li>
+<li>Context identifier</li>
+<li>Context workflow type</li>
+<li>Optional workflow name</li>
+<li>Optional workflow identifier</li>
 </ul>
 <h3 id="outputs">Outputs</h3>
 <ul>
-<li>Workflow decisions</li>
-<li>User review requests</li>
-<li>Component requests</li>
-<li>Completion status</li>
+<li>Workflow Execution Result</li>
 </ul>
 <h3 id="required-services">Required Services</h3>
 <ul>
-<li>Repository Tools</li>
-<li>Knowledge Service</li>
-<li>Validation Engine</li>
-<li>Reasoning Service</li>
+<li>Repository Interface</li>
+<li>Context Builder Interface</li>
+<li>Workflow Interface</li>
 </ul>
 <h3 id="future-considerations">Future Considerations</h3>
 <ul>
-<li>Dispatcher integration</li>
-<li>Multi-agent orchestration</li>
+<li>Documentation Agent dispatch</li>
+<li>Validation workflow dispatch</li>
+<li>User review workflow dispatch</li>
+<li>Additional agent and service routing</li>
 </ul>
 <hr />
-<h2 id="repository-tools">Repository Tools</h2>
+<h2 id="workflow-engine">Workflow Engine</h2>
 <h3 id="purpose_1">Purpose</h3>
-<p>Provide deterministic access to repository content.</p>
+<p>Execute Project0 workflow tasks sequentially and return structured execution results.</p>
 <h3 id="responsibilities_1">Responsibilities</h3>
 <ul>
-<li>Inspect repository status.</li>
-<li>Inspect repository changes.</li>
-<li>Read and write Markdown files.</li>
-<li>Generate Git diffs.</li>
+<li>Validate workflow requests.</li>
+<li>Assign or preserve workflow identifiers.</li>
+<li>Execute workflow tasks in supplied order.</li>
+<li>Capture task outputs.</li>
+<li>Convert task exceptions into failed task results.</li>
+<li>Stop execution after the first failed task.</li>
+<li>Publish workflow and task lifecycle events when an event publisher is configured.</li>
+<li>Return a structured Workflow Execution Result.</li>
 </ul>
 <h3 id="interfaces_1">Interfaces</h3>
 <h4 id="provides_1">Provides</h4>
 <ul>
-<li>Inspect repository status.</li>
-<li>Read repository content.</li>
-<li>Write approved documentation changes.</li>
-<li>Generate repository diffs.</li>
+<li>Execute workflow.</li>
+<li>Return workflow status.</li>
+<li>Return task execution results.</li>
+<li>Publish workflow and task events.</li>
 </ul>
 <h4 id="consumes_1">Consumes</h4>
 <ul>
-<li>Local Git repository.</li>
-<li>Local file system.</li>
+<li>Workflow Task models.</li>
+<li>Workflow Event Publisher Interface.</li>
 </ul>
 <h3 id="design-notes_1">Design Notes</h3>
 <ul>
-<li>Performs deterministic repository operations only.</li>
-<li>Does not make documentation decisions.</li>
-<li>Does not apply changes without Workflow Engine authorization.</li>
-<li>Encapsulates Git and file-system access from other components.</li>
+<li>Uses synchronous, in-process execution.</li>
+<li>Does not directly access repository content.</li>
+<li>Does not perform context selection.</li>
+<li>Stops workflow execution after the first task failure.</li>
+<li>Returns immutable workflow and task result models.</li>
+<li>Supports an optional event publisher through a typed interface.</li>
 </ul>
 <h3 id="inputs_1">Inputs</h3>
 <ul>
-<li>Local Git repository</li>
-<li>Markdown files</li>
+<li>Workflow name</li>
+<li>Workflow tasks</li>
+<li>Optional workflow identifier</li>
 </ul>
 <h3 id="outputs_1">Outputs</h3>
 <ul>
-<li>Repository metadata</li>
-<li>Repository change information</li>
-<li>Document content</li>
+<li>Workflow Execution Result</li>
+<li>Task Execution Results</li>
+<li>Workflow and task lifecycle events</li>
 </ul>
-<h3 id="external-dependencies">External Dependencies</h3>
+<h3 id="required-services_1">Required Services</h3>
 <ul>
-<li>Git</li>
-<li>Local file system</li>
+<li>None</li>
 </ul>
 <h3 id="future-considerations_1">Future Considerations</h3>
 <ul>
-<li>Repository abstraction layer</li>
-<li>Additional version-control systems</li>
+<li>Conditional workflow paths</li>
+<li>Retry policies</li>
+<li>Persistent workflow state</li>
+<li>Asynchronous execution</li>
+<li>User review workflows</li>
 </ul>
 <hr />
-<h2 id="knowledge-service">Knowledge Service</h2>
+<h2 id="repository-service">Repository Service</h2>
 <h3 id="purpose_2">Purpose</h3>
-<p>Provide repository knowledge required during documentation analysis.</p>
+<p>Provide deterministic, read-only access to repository content.</p>
 <h3 id="responsibilities_2">Responsibilities</h3>
 <ul>
-<li>Retrieve relevant repository documentation.</li>
-<li>Retrieve authoritative project information.</li>
-<li>Assemble repository context.</li>
-<li>Supply context to the Workflow Engine.</li>
+<li>Discover supported repository files.</li>
+<li>Discover Markdown documentation files.</li>
+<li>Read individual repository files.</li>
+<li>Read multiple repository files.</li>
+<li>Exclude generated, hidden, unsupported, and backup content.</li>
+<li>Preserve repository file metadata.</li>
+<li>Return structured repository results and errors.</li>
 </ul>
 <h3 id="interfaces_2">Interfaces</h3>
 <h4 id="provides_2">Provides</h4>
 <ul>
-<li>Retrieve relevant documentation.</li>
-<li>Retrieve authoritative project information.</li>
-<li>Assemble repository context.</li>
+<li>List repository files.</li>
+<li>List documentation files.</li>
+<li>Read one repository file.</li>
+<li>Read multiple repository files.</li>
 </ul>
 <h4 id="consumes_2">Consumes</h4>
 <ul>
-<li>Repository Tools interface.</li>
-<li>Documentation standards.</li>
+<li>Local repository.</li>
+<li>Local file system.</li>
 </ul>
 <h3 id="design-notes_2">Design Notes</h3>
 <ul>
-<li>Supplies grounded repository context.</li>
-<li>Does not generate documentation changes.</li>
-<li>Uses authoritative project documentation as the primary source of truth.</li>
-<li>Returns context in a form suitable for workflow and reasoning operations.</li>
+<li>Performs deterministic repository operations only.</li>
+<li>Does not make documentation decisions.</li>
+<li>Does not modify repository content.</li>
+<li>Normalizes and validates repository-relative paths.</li>
+<li>Prevents access outside the configured repository root.</li>
+<li>Returns partial batch results when some files cannot be read.</li>
+<li>Implements the Repository Interface structurally.</li>
 </ul>
 <h3 id="inputs_2">Inputs</h3>
 <ul>
-<li>Repository content</li>
-<li>Documentation standards</li>
+<li>Repository-relative paths</li>
+<li>Optional extension filters</li>
+<li>Repository query criteria</li>
 </ul>
 <h3 id="outputs_2">Outputs</h3>
 <ul>
-<li>Repository context</li>
-<li>Repository knowledge</li>
+<li>Repository file metadata</li>
+<li>Repository list results</li>
+<li>File read results</li>
+<li>Batch file results</li>
+<li>Structured repository errors</li>
 </ul>
-<h3 id="required-services_1">Required Services</h3>
+<h3 id="external-dependencies">External Dependencies</h3>
 <ul>
-<li>Repository Tools</li>
+<li>Local file system</li>
 </ul>
 <h3 id="future-considerations_2">Future Considerations</h3>
 <ul>
+<li>Controlled repository writes</li>
+<li>Git status inspection</li>
+<li>Git diff generation</li>
+<li>Additional version-control systems</li>
+</ul>
+<hr />
+<h2 id="context-builder">Context Builder</h2>
+<h3 id="purpose_3">Purpose</h3>
+<p>Assemble workflow-specific repository documentation into a structured Context Package.</p>
+<h3 id="responsibilities_3">Responsibilities</h3>
+<ul>
+<li>Discover available documentation through the Repository Interface.</li>
+<li>Obtain workflow-specific criteria from the Context Rule Registry.</li>
+<li>Apply deterministic document selection through the Context Filter.</li>
+<li>Read selected repository documents.</li>
+<li>Preserve repository file metadata.</li>
+<li>Package documents into an immutable Context Package.</li>
+<li>Preserve successful partial reads.</li>
+<li>Convert repository read errors into context warnings.</li>
+</ul>
+<h3 id="interfaces_3">Interfaces</h3>
+<h4 id="provides_3">Provides</h4>
+<ul>
+<li>Build documentation context.</li>
+</ul>
+<h4 id="consumes_3">Consumes</h4>
+<ul>
+<li>Repository Interface.</li>
+<li>Context Rule Registry.</li>
+<li>Context Filter.</li>
+<li>Context and workflow models.</li>
+</ul>
+<h3 id="design-notes_3">Design Notes</h3>
+<ul>
+<li>Depends on the Repository Interface rather than Repository Service directly.</li>
+<li>Does not perform semantic ranking.</li>
+<li>Does not generate documentation changes.</li>
+<li>Uses deterministic workflow-specific selection.</li>
+<li>Returns failed context packages when repository discovery fails.</li>
+<li>Returns completed-with-warning packages for empty selections or partial reads.</li>
+</ul>
+<h3 id="inputs_3">Inputs</h3>
+<ul>
+<li>Context identifier</li>
+<li>Context workflow type</li>
+</ul>
+<h3 id="outputs_3">Outputs</h3>
+<ul>
+<li>Context Package</li>
+</ul>
+<h3 id="required-services_2">Required Services</h3>
+<ul>
+<li>Repository Interface</li>
+<li>Context Rule Registry</li>
+</ul>
+<h3 id="future-considerations_3">Future Considerations</h3>
+<ul>
 <li>Semantic retrieval</li>
+<li>Relevance ranking</li>
+<li>Context-size limits</li>
 <li>Incremental indexing</li>
 </ul>
 <hr />
+<h2 id="context-rule-registry">Context Rule Registry</h2>
+<h3 id="purpose_4">Purpose</h3>
+<p>Define and resolve workflow-specific document-selection policies.</p>
+<h3 id="responsibilities_4">Responsibilities</h3>
+<ul>
+<li>Maintain Context Rules by workflow type.</li>
+<li>Resolve a Context Rule for a requested workflow.</li>
+<li>Convert Context Rules into Context Filter criteria.</li>
+<li>Provide default rules for supported workflow types.</li>
+<li>Report requests for unregistered workflow types.</li>
+</ul>
+<h3 id="interfaces_4">Interfaces</h3>
+<h4 id="provides_4">Provides</h4>
+<ul>
+<li>Retrieve Context Rule.</li>
+<li>Retrieve Context Filter criteria.</li>
+</ul>
+<h4 id="consumes_4">Consumes</h4>
+<ul>
+<li>Context workflow type.</li>
+<li>Context Rule definitions.</li>
+</ul>
+<h3 id="design-notes_4">Design Notes</h3>
+<ul>
+<li>Uses deterministic rules.</li>
+<li>Separates context policy from context assembly.</li>
+<li>Preserves the order of required and optional patterns.</li>
+<li>Returns copied default-rule dictionaries to prevent accidental global modification.</li>
+</ul>
+<h3 id="inputs_4">Inputs</h3>
+<ul>
+<li>Context workflow type</li>
+</ul>
+<h3 id="outputs_4">Outputs</h3>
+<ul>
+<li>Context Rule</li>
+<li>Context Filter criteria</li>
+</ul>
+<h3 id="future-considerations_4">Future Considerations</h3>
+<ul>
+<li>Project-specific rule configuration</li>
+<li>User-defined workflow rules</li>
+<li>Rule versioning</li>
+<li>Rule validation</li>
+</ul>
+<hr />
+<h2 id="context-filter">Context Filter</h2>
+<h3 id="purpose_5">Purpose</h3>
+<p>Apply deterministic file-selection criteria to discovered repository files.</p>
+<h3 id="responsibilities_5">Responsibilities</h3>
+<ul>
+<li>Filter documentation and non-documentation files.</li>
+<li>Filter by extension.</li>
+<li>Apply included and excluded paths.</li>
+<li>Apply included and excluded patterns.</li>
+<li>Normalize slash and backslash path formats.</li>
+<li>Return selected files in deterministic order.</li>
+</ul>
+<h3 id="interfaces_5">Interfaces</h3>
+<h4 id="provides_5">Provides</h4>
+<ul>
+<li>Match one repository file.</li>
+<li>Apply criteria to repository files.</li>
+<li>Return filtered repository files.</li>
+</ul>
+<h4 id="consumes_5">Consumes</h4>
+<ul>
+<li>Repository file metadata.</li>
+<li>Context Filter criteria.</li>
+</ul>
+<h3 id="design-notes_5">Design Notes</h3>
+<ul>
+<li>Does not read repository files.</li>
+<li>Does not determine workflow policy.</li>
+<li>Applies criteria supplied by the Context Rule Registry.</li>
+<li>Produces deterministic ordering for repeatable context packages.</li>
+</ul>
+<h3 id="inputs_5">Inputs</h3>
+<ul>
+<li>Repository files</li>
+<li>Context Filter criteria</li>
+</ul>
+<h3 id="outputs_5">Outputs</h3>
+<ul>
+<li>Selected repository files</li>
+</ul>
+<h3 id="future-considerations_5">Future Considerations</h3>
+<ul>
+<li>File-size criteria</li>
+<li>Modified-date criteria</li>
+<li>Metadata-based selection</li>
+<li>Relevance scoring</li>
+</ul>
+<hr />
+<h2 id="shared-interfaces">Shared Interfaces</h2>
+<h3 id="purpose_6">Purpose</h3>
+<p>Define stable public contracts between Project0 components.</p>
+<h3 id="implemented-interfaces">Implemented Interfaces</h3>
+<ul>
+<li>Repository Interface</li>
+<li>Workflow Interface</li>
+<li>Workflow Event Publisher Interface</li>
+<li>Context Builder Interface</li>
+</ul>
+<h3 id="design-notes_6">Design Notes</h3>
+<ul>
+<li>Interfaces use Python structural protocols.</li>
+<li>Concrete implementations do not require explicit inheritance.</li>
+<li>Components depend on required capabilities rather than specific implementations.</li>
+<li>Interfaces improve test isolation and future implementation replacement.</li>
+</ul>
+<hr />
+<h2 id="shared-data-models">Shared Data Models</h2>
+<h3 id="purpose_7">Purpose</h3>
+<p>Define immutable information exchanged between Project0 components.</p>
+<h3 id="context-models">Context Models</h3>
+<ul>
+<li>Context Workflow Type</li>
+<li>Context Build Status</li>
+<li>Context Request</li>
+<li>Context Document</li>
+<li>Context Package</li>
+</ul>
+<h3 id="workflow-models">Workflow Models</h3>
+<ul>
+<li>Workflow Status</li>
+<li>Task Status</li>
+<li>Workflow Task</li>
+<li>Task Execution Result</li>
+<li>Workflow Execution Result</li>
+</ul>
+<h3 id="design-notes_7">Design Notes</h3>
+<ul>
+<li>Models use immutable dataclasses where practical.</li>
+<li>Status values use string enumerations.</li>
+<li>Timestamps are timezone-aware.</li>
+<li>Result models preserve structured outputs, warnings, and errors.</li>
+<li>Shared models prevent component-specific communication formats.</li>
+</ul>
+<hr />
 <h2 id="validation-engine">Validation Engine</h2>
-<h3 id="purpose_3">Purpose</h3>
+<h3 id="purpose_8">Purpose</h3>
 <p>Verify documentation quality before and after approved documentation changes.</p>
-<h3 id="responsibilities_3">Responsibilities</h3>
+<h3 id="responsibilities_6">Responsibilities</h3>
 <ul>
 <li>Validate Markdown.</li>
 <li>Validate documentation consistency.</li>
 <li>Validate MkDocs build.</li>
 <li>Produce validation reports.</li>
 </ul>
-<h3 id="interfaces_3">Interfaces</h3>
-<h4 id="provides_3">Provides</h4>
+<h3 id="interfaces_6">Interfaces</h3>
+<h4 id="provides_6">Provides</h4>
 <ul>
 <li>Validate proposed documentation updates.</li>
 <li>Validate applied documentation changes.</li>
 <li>Produce validation reports.</li>
 </ul>
-<h4 id="consumes_3">Consumes</h4>
+<h4 id="consumes_6">Consumes</h4>
 <ul>
 <li>Proposed documentation updates.</li>
 <li>Applied documentation changes.</li>
 <li>Documentation standards.</li>
 </ul>
-<h3 id="design-notes_3">Design Notes</h3>
+<h3 id="design-notes_8">Design Notes</h3>
 <ul>
 <li>Performs deterministic validation whenever practical.</li>
 <li>Reports validation failures without modifying content.</li>
 <li>Supports validation before and after approved changes are applied.</li>
 <li>Returns structured validation results to the Workflow Engine.</li>
 </ul>
-<h3 id="inputs_3">Inputs</h3>
+<h3 id="inputs_6">Inputs</h3>
 <ul>
 <li>Proposed documentation updates</li>
 <li>Applied documentation changes</li>
 </ul>
-<h3 id="outputs_3">Outputs</h3>
+<h3 id="outputs_6">Outputs</h3>
 <ul>
 <li>Validation reports</li>
 <li>Validation results</li>
@@ -998,51 +1217,56 @@ Implementation details are intentionally excluded.</p>
 <li>Markdown validation tools</li>
 <li>MkDocs</li>
 </ul>
-<h3 id="future-considerations_3">Future Considerations</h3>
+<h3 id="implementation-status">Implementation Status</h3>
+<p>Planned for a future implementation phase.</p>
+<h3 id="future-considerations_6">Future Considerations</h3>
 <ul>
 <li>Additional validation services</li>
+<li>Structured validation models</li>
+<li>Validation interface</li>
+<li>Automated Markdown and MkDocs validation</li>
 </ul>
 <hr />
 <h2 id="reasoning-service">Reasoning Service</h2>
-<h3 id="purpose_4">Purpose</h3>
+<h3 id="purpose_9">Purpose</h3>
 <p>Perform AI-assisted documentation reasoning.</p>
-<h3 id="responsibilities_4">Responsibilities</h3>
+<h3 id="responsibilities_7">Responsibilities</h3>
 <ul>
 <li>Analyze repository changes and documentation impact.</li>
 <li>Generate proposed documentation updates.</li>
 <li>Explain proposed documentation changes.</li>
 </ul>
-<h3 id="interfaces_4">Interfaces</h3>
-<h4 id="provides_4">Provides</h4>
+<h3 id="interfaces_7">Interfaces</h3>
+<h4 id="provides_7">Provides</h4>
 <ul>
 <li>Analyze documentation impact.</li>
 <li>Generate proposed documentation updates.</li>
 <li>Explain proposed documentation changes.</li>
 </ul>
-<h4 id="consumes_4">Consumes</h4>
+<h4 id="consumes_7">Consumes</h4>
 <ul>
 <li>Repository context.</li>
 <li>User requests.</li>
 <li>Documentation standards.</li>
 </ul>
-<h3 id="design-notes_4">Design Notes</h3>
+<h3 id="design-notes_9">Design Notes</h3>
 <ul>
 <li>Performs only tasks requiring AI-assisted reasoning.</li>
 <li>Does not directly read or write repository files.</li>
 <li>Produces proposed changes for validation and user review.</li>
 <li>Uses repository context supplied by the Knowledge Service.</li>
 </ul>
-<h3 id="inputs_4">Inputs</h3>
+<h3 id="inputs_7">Inputs</h3>
 <ul>
 <li>Repository context</li>
 <li>User requests</li>
 </ul>
-<h3 id="outputs_4">Outputs</h3>
+<h3 id="outputs_7">Outputs</h3>
 <ul>
 <li>Proposed documentation updates</li>
 <li>Documentation impact explanations</li>
 </ul>
-<h3 id="required-services_2">Required Services</h3>
+<h3 id="required-services_3">Required Services</h3>
 <ul>
 <li>Knowledge Service</li>
 </ul>
@@ -1050,23 +1274,45 @@ Implementation details are intentionally excluded.</p>
 <ul>
 <li>AI reasoning provider</li>
 </ul>
-<h3 id="future-considerations_4">Future Considerations</h3>
+<h3 id="implementation-status_1">Implementation Status</h3>
+<p>Planned for a future implementation phase.</p>
+<h3 id="future-considerations_7">Future Considerations</h3>
 <ul>
 <li>Multiple reasoning providers</li>
 <li>Model routing</li>
+<li>Structured reasoning requests and results</li>
+<li>Context-size management</li>
 </ul>
 <hr />
 <h1 id="5-interface-design-principles">5. Interface Design Principles</h1>
 <ul>
 <li>Interfaces shall remain technology independent.</li>
-<li>Components communicate only through public interfaces.</li>
+<li>Components communicate only through public typed interfaces.</li>
 <li>Components shall not directly access another component's internal state.</li>
+<li>Components shall depend on interfaces rather than concrete implementations where practical.</li>
 <li>Interface contracts shall remain backward compatible whenever practical.</li>
-<li>Shared data models and error contracts shall be defined separately.</li>
+<li>Shared data models shall define information exchanged between components.</li>
+<li>Concrete implementations may satisfy interfaces through structural typing.</li>
+<li>Interfaces shall remain small and aligned with implemented component capabilities.</li>
 </ul>
 <hr />
 <h1 id="6-component-interactions">6. Component Interactions</h1>
-<p>The Workflow Engine coordinates all component interactions. Components communicate through well-defined interfaces and do not directly manipulate the internal state of other components. Proposed documentation changes are processed individually through the review workflow until all proposed changes have been reviewed. All proposed documentation changes requiring user approval are routed through the User Review process before application.</p>
+<p>The Platform Dispatcher provides the platform-level entry point and submits workflow tasks to the Workflow Engine.</p>
+<p>The implemented context workflow follows this sequence:</p>
+<ol>
+<li>The Platform Dispatcher creates a Workflow Task.</li>
+<li>The Workflow Engine begins workflow execution.</li>
+<li>The task invokes the Context Builder through the Context Builder Interface.</li>
+<li>The Context Builder requests criteria from the Context Rule Registry.</li>
+<li>The Context Rule Registry converts the applicable Context Rule into Context Filter criteria.</li>
+<li>The Context Filter selects eligible repository files.</li>
+<li>The Context Builder reads selected files through the Repository Interface.</li>
+<li>The Repository Service returns structured file results.</li>
+<li>The Context Builder creates a Context Package.</li>
+<li>The Workflow Engine wraps the Context Package in a Task Execution Result.</li>
+<li>The Workflow Engine returns a Workflow Execution Result to the Platform Dispatcher.</li>
+</ol>
+<p>Future phases will extend this interaction model with reasoning, validation, individual change review, approved repository modification, and final validation.</p>
 <hr />
 <h1 id="7-design-constraints">7. Design Constraints</h1>
 <ul>
@@ -1074,8 +1320,13 @@ Implementation details are intentionally excluded.</p>
 <li>Use deterministic processing whenever AI reasoning is not required.</li>
 <li>Maintain vendor neutrality.</li>
 <li>Support future extensibility.</li>
-<li>Preserve human approval before applying documentation changes.</li>
-<li>Process proposed documentation changes individually through the review workflow.</li>
+<li>Use typed interfaces between platform components.</li>
+<li>Use shared immutable models for component communication.</li>
+<li>Depend on interfaces rather than concrete implementations where practical.</li>
+<li>Preserve deterministic ordering of selected repository content.</li>
+<li>Keep current repository operations read-only.</li>
+<li>Preserve human approval before future documentation changes are applied.</li>
+<li>Process future proposed documentation changes individually through the review workflow.</li>
 </ul>
 <hr />
 <h1 id="8-related-documents">8. Related Documents</h1>
@@ -1084,7 +1335,11 @@ Implementation details are intentionally excluded.</p>
 <li>Documentation Standards</li>
 <li>Documentation Agent Functional Specification</li>
 <li>Documentation Agent Architecture</li>
+<li>Component Communication Design</li>
+<li>Shared Data Models and Error Contracts</li>
 <li>Implementation Roadmap</li>
+<li>Implementation Status</li>
+<li>Project Directory Structure</li>
 </ul>
 
 
