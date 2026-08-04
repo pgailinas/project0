@@ -17,10 +17,10 @@ The PDF is intended for convenient viewing in a web browser. The ODS file is the
 
 ## Current Phase
 
-Phase 2 – Core Infrastructure
+Phase 2 – Core Platform Services
 
 ## Overall Status
 
-Phase 1 – Completed
+Phase 1 – Foundation Completed
 Phase 2 – In Progress
 

@@ -48,6 +48,7 @@ nav:
       - Document Standards: Documentation_Standards.md
       - Project Directory Structure: Project_Directory_Structure.md
       - Shared Data Models and Error Contracts: Shared_Data_Models_and_Error_Contracts.md
+      - Component Communication Design: Component_Communication_Design.md
       - Implementation Roadmap: Implementation_Roadmap.md
       - Implementation Status: Implementation_Status.md
   - Documentation AI Agent:

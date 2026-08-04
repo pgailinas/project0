@@ -37,3 +37,26 @@
 # Spreadsheet Companion Documents
 
 When project tracking or structured data is better represented in a spreadsheet, a companion OpenDocument Spreadsheet (.ods) may accompany a Markdown document. The Markdown document remains the narrative description, while the spreadsheet serves as the authoritative structured data source. Companion documents shall share the same numeric document identifier.
+
+### Python Source File Header Standard
+
+All Python source files shall begin with the standard Project0 file header.
+
+The header shall identify the owning platform component or AI agent, the source filename, and a concise statement describing the file's primary responsibility.
+
+Standard format:
+
+```python
+# ============================================================
+# Project0 - <Platform Component or AI Agent>
+#
+# File: <filename>.py
+#
+# Purpose:
+#     <Brief description of the file's primary responsibility.>
+#
+# ============================================================
+```
+
+
+
