@@ -37,21 +37,6 @@ def load_settings() -> ProjectSettings:
         log_level="INFO",
     )
 
-
-def load_settings() -> ProjectSettings:
-    """Create the shared Project0 configuration."""
-
-    project_root = Path(__file__).resolve().parents[3]
-
-    return ProjectSettings(
-        project_root=project_root,
-        docs_dir=project_root / "docs",
-        source_dir=project_root / "src",
-        tests_dir=project_root / "tests",
-        log_level="INFO",
-    )
-
-
 SETTINGS = load_settings()
 
 
