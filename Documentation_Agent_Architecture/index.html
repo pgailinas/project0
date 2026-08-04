@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -761,8 +761,7 @@
 <h1 id="1-purpose">1. Purpose</h1>
 <h2 id="objective">Objective</h2>
 <p>Define the high-level architecture of the Documentation Agent and the
-major functional components required to satisfy the Documentation Agent
-Functional Specification.</p>
+major functional components required to satisfy the Documentation Agent Functional Specification.</p>
 <h2 id="scope">Scope</h2>
 <p>Describe the architectural organization of the Documentation Agent.
 Implementation details, algorithms, and technology selections are
@@ -782,40 +781,60 @@ intentionally excluded.</p>
 </ul>
 <hr />
 <h1 id="3-architectural-workflow">3. Architectural Workflow</h1>
-<p>The implemented Phase 2 platform provides the foundation for future Documentation Agent workflows.</p>
+<p>The implemented Phase 3 platform provides the deterministic repository knowledge foundation for future Documentation Agent workflows.</p>
 <pre class="mermaid"><code>flowchart TD
     A["Application Entry Point&lt;br/&gt;&lt;small&gt;main.py&lt;/small&gt;"]
     B["Platform Dispatcher&lt;br/&gt;&lt;small&gt;Dispatch Platform Workflow&lt;/small&gt;"]
     C["Workflow Engine&lt;br/&gt;&lt;small&gt;Execute Workflow Tasks&lt;/small&gt;"]
+
     D["Context Builder&lt;br/&gt;&lt;small&gt;Build Workflow-Specific Context&lt;/small&gt;"]
-    E["Context Rule Registry&lt;br/&gt;&lt;small&gt;Select Context Rules&lt;/small&gt;"]
-    F["Context Filter&lt;br/&gt;&lt;small&gt;Apply Selection Criteria&lt;/small&gt;"]
-    G["Repository Service&lt;br/&gt;&lt;small&gt;Discover and Read Files&lt;/small&gt;"]
-    H["Local Repository&lt;br/&gt;&lt;small&gt;Authoritative Project Content&lt;/small&gt;"]
-    I["Context Package&lt;br/&gt;&lt;small&gt;Selected Repository Knowledge&lt;/small&gt;"]
-    J["Workflow Execution Result&lt;br/&gt;&lt;small&gt;Task Output and Status&lt;/small&gt;"]
+    E["Repository Service&lt;br/&gt;&lt;small&gt;Discover and Read Files&lt;/small&gt;"]
+    F["Context Package&lt;br/&gt;&lt;small&gt;Workflow Context&lt;/small&gt;"]
+
+    G["Knowledge Service&lt;br/&gt;&lt;small&gt;Repository Knowledge Pipeline&lt;/small&gt;"]
+    H["Document Parser"]
+    I["Document Index"]
+    J["Document Selector"]
+    K["Context Formatter"]
+    L["Knowledge Result"]
+
+    M["Workflow Execution Result&lt;br/&gt;&lt;small&gt;Task Output and Status&lt;/small&gt;"]
+
+    N["Local Repository&lt;br/&gt;&lt;small&gt;Authoritative Project Content&lt;/small&gt;"]
 
     A --&gt; B
     B --&gt; C
+
     C --&gt; D
     D --&gt; E
-    E --&gt; F
-    F --&gt; G
+    E --&gt; N
+    E --&gt; D
+    D --&gt; F
+    F --&gt; C
+
+    C --&gt; G
     G --&gt; H
-    G --&gt; D
-    D --&gt; I
-    I --&gt; C
-    C --&gt; J</code></pre>
+    H --&gt; I
+    I --&gt; J
+    J --&gt; K
+    K --&gt; L
+    L --&gt; C
+
+    C --&gt; M</code></pre>
 <h2 id="implemented-runtime-flow">Implemented Runtime Flow</h2>
 <ol>
 <li><code>main.py</code> creates the Platform Dispatcher.</li>
 <li>The Platform Dispatcher creates a workflow task.</li>
 <li>The Workflow Engine executes the task.</li>
-<li>The Context Builder requests workflow-specific selection criteria.</li>
-<li>The Context Rule Registry supplies the applicable context rule.</li>
-<li>The Context Filter selects eligible repository documents.</li>
-<li>The Repository Service reads the selected files.</li>
-<li>The Context Builder creates a Context Package.</li>
+<li>The Context Builder constructs workflow-specific repository context.</li>
+<li>The Repository Service discovers and reads repository content.</li>
+<li>The Context Builder returns a Context Package.</li>
+<li>The Workflow Engine invokes the Knowledge Service when structured repository knowledge is required.</li>
+<li>The Knowledge Service parses repository documents.</li>
+<li>Parsed documents are indexed.</li>
+<li>The Document Selector identifies the most relevant repository documents.</li>
+<li>The Context Formatter produces deterministic formatted context.</li>
+<li>The Knowledge Service returns a Knowledge Result.</li>
 <li>The Workflow Engine returns a Workflow Execution Result.</li>
 </ol>
 <h2 id="future-documentation-update-workflow">Future Documentation Update Workflow</h2>
@@ -861,6 +880,60 @@ intentionally excluded.</p>
 <li>Exclude unsupported, generated, and hidden content.</li>
 <li>Return structured repository results and errors.</li>
 </ul>
+<h2 id="knowledge-service">Knowledge Service</h2>
+<p>Coordinates deterministic repository knowledge retrieval.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>Discover repository Markdown documentation.</li>
+<li>Parse repository documents.</li>
+<li>Build the in-memory document index.</li>
+<li>Invoke deterministic document selection.</li>
+<li>Coordinate context formatting.</li>
+<li>Preserve parsing and selection warnings.</li>
+<li>Return structured Knowledge Results.</li>
+</ul>
+<h2 id="document-parser">Document Parser</h2>
+<p>Parses Markdown documentation into structured repository models.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>Parse Markdown documents.</li>
+<li>Extract document metadata.</li>
+<li>Extract headings.</li>
+<li>Extract document links.</li>
+<li>Preserve repository paths.</li>
+<li>Return immutable Document Records.</li>
+</ul>
+<h2 id="document-index">Document Index</h2>
+<p>Provides deterministic indexing of parsed repository documentation.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>Index parsed documents.</li>
+<li>Retrieve documents by repository path.</li>
+<li>Maintain deterministic document ordering.</li>
+<li>Detect duplicate document paths.</li>
+</ul>
+<h2 id="document-selector">Document Selector</h2>
+<p>Selects repository documentation relevant to a Knowledge Request.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>Evaluate explicit document requests.</li>
+<li>Match deterministic search terms.</li>
+<li>Apply required tag filtering.</li>
+<li>Apply changed-path matching.</li>
+<li>Include baseline project documentation when requested.</li>
+<li>Rank matching documents.</li>
+<li>Preserve deterministic ordering.</li>
+<li>Return Document Selections.</li>
+</ul>
+<h2 id="context-formatter">Context Formatter</h2>
+<p>Formats selected repository documents into deterministic context.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>Format selected repository documents.</li>
+<li>Preserve document ordering.</li>
+<li>Produce deterministic prompt context.</li>
+<li>Avoid modification of repository content.</li>
+</ul>
 <h2 id="context-builder">Context Builder</h2>
 <p>Builds workflow-specific repository context.</p>
 <p>Responsibilities:</p>
@@ -901,6 +974,7 @@ intentionally excluded.</p>
 <li>Workflow Interface</li>
 <li>Workflow Event Publisher Interface</li>
 <li>Context Builder Interface</li>
+<li>Knowledge Interface</li>
 </ul>
 <p>Interfaces allow components to depend on required capabilities rather than concrete implementations.</p>
 <h2 id="shared-data-models">Shared Data Models</h2>
@@ -911,6 +985,13 @@ intentionally excluded.</p>
 <li>Context requests</li>
 <li>Context documents</li>
 <li>Context packages</li>
+<li>Knowledge requests</li>
+<li>Document records</li>
+<li>Document headings</li>
+<li>Document links</li>
+<li>Document selections</li>
+<li>Document references</li>
+<li>Knowledge results</li>
 <li>Workflow and task statuses</li>
 <li>Workflow tasks</li>
 <li>Task execution results</li>
@@ -975,7 +1056,9 @@ intentionally excluded.</p>
 <li>Final Git diff generation</li>
 <li>Multi-agent collaboration</li>
 <li>Repository event monitoring</li>
-<li>Incremental indexing</li>
+<li>Semantic document retrieval</li>
+<li>Embedding generation</li>
+<li>Vector-based repository search</li>
 <li>Semantic repository services</li>
 <li>Additional AI providers</li>
 <li>Additional validation services</li>
@@ -1052,7 +1135,7 @@ intentionally excluded.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.expand", "content.action.edit"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
       
         <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
       

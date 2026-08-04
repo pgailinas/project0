@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
@@ -29,7 +29,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -786,11 +786,17 @@ Implementation details are intentionally excluded.</p>
 <li>Context Builder</li>
 <li>Context Rule Registry</li>
 <li>Context Filter</li>
+<li>Knowledge Service</li>
+<li>Document Parser</li>
+<li>Document Index</li>
+<li>Document Selector</li>
+<li>Context Formatter</li>
 <li>Shared Interfaces</li>
 <li>Shared Data Models</li>
 </ul>
 <p>The Platform Dispatcher provides the platform-level entry point. It creates workflow tasks and submits them to the Workflow Engine. The Workflow Engine executes those tasks and returns structured workflow results.</p>
-<p>The Context Builder assembles workflow-specific repository knowledge. It obtains selection criteria from the Context Rule Registry, applies those criteria through the Context Filter, and reads selected documentation through the Repository Interface.</p>
+<p>The Context Builder assembles workflow-specific repository context for deterministic workflow execution.</p>
+<p>The Knowledge Service provides deterministic repository knowledge retrieval. It coordinates repository document parsing, indexing, document selection, and context formatting while preserving structured warnings and metadata.</p>
 <p>The Validation Engine and Reasoning Service remain planned components for future implementation phases.</p>
 <hr />
 <h1 id="4-component-specifications">4. Component Specifications</h1>
@@ -842,6 +848,7 @@ Implementation details are intentionally excluded.</p>
 <ul>
 <li>Repository Interface</li>
 <li>Context Builder Interface</li>
+<li>Knowledge Interface</li>
 <li>Workflow Interface</li>
 </ul>
 <h3 id="future-considerations">Future Considerations</h3>
@@ -1029,7 +1036,7 @@ Implementation details are intentionally excluded.</p>
 <li>Semantic retrieval</li>
 <li>Relevance ranking</li>
 <li>Context-size limits</li>
-<li>Incremental indexing</li>
+<li>Integration with semantic repository search</li>
 </ul>
 <hr />
 <h2 id="context-rule-registry">Context Rule Registry</h2>
@@ -1126,8 +1133,157 @@ Implementation details are intentionally excluded.</p>
 <li>Relevance scoring</li>
 </ul>
 <hr />
-<h2 id="shared-interfaces">Shared Interfaces</h2>
+<h2 id="knowledge-service">Knowledge Service</h2>
 <h3 id="purpose_6">Purpose</h3>
+<p>Coordinate deterministic repository knowledge retrieval.</p>
+<h3 id="responsibilities_6">Responsibilities</h3>
+<ul>
+<li>Discover repository Markdown documentation.</li>
+<li>Parse repository documents.</li>
+<li>Build the in-memory document index.</li>
+<li>Select repository documents relevant to a Knowledge Request.</li>
+<li>Delegate context formatting.</li>
+<li>Preserve structured warnings.</li>
+<li>Return immutable Knowledge Results.</li>
+</ul>
+<h3 id="interfaces_6">Interfaces</h3>
+<h4 id="provides_6">Provides</h4>
+<ul>
+<li>Build repository knowledge.</li>
+</ul>
+<h4 id="consumes_6">Consumes</h4>
+<ul>
+<li>Document Parser.</li>
+<li>Document Index.</li>
+<li>Document Selector.</li>
+<li>Context Formatter.</li>
+<li>Knowledge models.</li>
+</ul>
+<h3 id="design-notes_6">Design Notes</h3>
+<ul>
+<li>Coordinates knowledge components without implementing their internal behavior.</li>
+<li>Uses dependency injection for parser, index, selector, and formatter.</li>
+<li>Performs deterministic processing only.</li>
+<li>Returns immutable Knowledge Results.</li>
+</ul>
+<h3 id="inputs_6">Inputs</h3>
+<ul>
+<li>Knowledge Request</li>
+</ul>
+<h3 id="outputs_6">Outputs</h3>
+<ul>
+<li>Knowledge Result</li>
+</ul>
+<h3 id="required-services_3">Required Services</h3>
+<ul>
+<li>Document Parser</li>
+<li>Document Index</li>
+<li>Document Selector</li>
+<li>Context Formatter</li>
+</ul>
+<h3 id="future-considerations_6">Future Considerations</h3>
+<ul>
+<li>Semantic retrieval</li>
+<li>Embedding generation</li>
+<li>Vector search</li>
+</ul>
+<hr />
+<h2 id="document-parser">Document Parser</h2>
+<h3 id="purpose_7">Purpose</h3>
+<p>Parse Markdown documentation into structured repository models.</p>
+<h3 id="responsibilities_7">Responsibilities</h3>
+<ul>
+<li>Parse Markdown documents.</li>
+<li>Extract document metadata.</li>
+<li>Extract headings.</li>
+<li>Extract document links.</li>
+<li>Preserve repository paths.</li>
+<li>Return immutable Document Records.</li>
+</ul>
+<h3 id="interfaces_7">Interfaces</h3>
+<h4 id="provides_7">Provides</h4>
+<ul>
+<li>Parse repository document.</li>
+</ul>
+<h4 id="consumes_7">Consumes</h4>
+<ul>
+<li>Repository Markdown.</li>
+</ul>
+<h3 id="design-notes_7">Design Notes</h3>
+<ul>
+<li>Performs deterministic parsing.</li>
+<li>Does not perform document selection.</li>
+<li>Does not perform semantic analysis.</li>
+</ul>
+<hr />
+<h2 id="document-index">Document Index</h2>
+<h3 id="purpose_8">Purpose</h3>
+<p>Maintain deterministic access to parsed repository documents.</p>
+<h3 id="responsibilities_8">Responsibilities</h3>
+<ul>
+<li>Build the document index.</li>
+<li>Retrieve documents by repository path.</li>
+<li>Preserve deterministic ordering.</li>
+<li>Detect duplicate repository paths.</li>
+</ul>
+<h3 id="interfaces_8">Interfaces</h3>
+<h4 id="provides_8">Provides</h4>
+<ul>
+<li>Build document index.</li>
+<li>Retrieve indexed documents.</li>
+<li>Retrieve document by path.</li>
+</ul>
+<h4 id="consumes_8">Consumes</h4>
+<ul>
+<li>Parsed Document Records.</li>
+</ul>
+<hr />
+<h2 id="document-selector">Document Selector</h2>
+<h3 id="purpose_9">Purpose</h3>
+<p>Select repository documentation relevant to a Knowledge Request.</p>
+<h3 id="responsibilities_9">Responsibilities</h3>
+<ul>
+<li>Match explicit repository paths.</li>
+<li>Match deterministic search terms.</li>
+<li>Match required tags.</li>
+<li>Match changed repository paths.</li>
+<li>Include baseline project documentation.</li>
+<li>Rank selected documents.</li>
+<li>Preserve deterministic ordering.</li>
+</ul>
+<h3 id="interfaces_9">Interfaces</h3>
+<h4 id="provides_9">Provides</h4>
+<ul>
+<li>Select repository documents.</li>
+</ul>
+<h4 id="consumes_9">Consumes</h4>
+<ul>
+<li>Knowledge Request.</li>
+<li>Document Records.</li>
+</ul>
+<hr />
+<h2 id="context-formatter">Context Formatter</h2>
+<h3 id="purpose_10">Purpose</h3>
+<p>Format selected repository documents into deterministic context.</p>
+<h3 id="responsibilities_10">Responsibilities</h3>
+<ul>
+<li>Format repository documents.</li>
+<li>Preserve supplied document ordering.</li>
+<li>Produce deterministic context.</li>
+<li>Preserve repository content.</li>
+</ul>
+<h3 id="interfaces_10">Interfaces</h3>
+<h4 id="provides_10">Provides</h4>
+<ul>
+<li>Format repository context.</li>
+</ul>
+<h4 id="consumes_10">Consumes</h4>
+<ul>
+<li>Selected Document Records.</li>
+</ul>
+<hr />
+<h2 id="shared-interfaces">Shared Interfaces</h2>
+<h3 id="purpose_11">Purpose</h3>
 <p>Define stable public contracts between Project0 components.</p>
 <h3 id="implemented-interfaces">Implemented Interfaces</h3>
 <ul>
@@ -1135,8 +1291,9 @@ Implementation details are intentionally excluded.</p>
 <li>Workflow Interface</li>
 <li>Workflow Event Publisher Interface</li>
 <li>Context Builder Interface</li>
+<li>Knowledge Interface</li>
 </ul>
-<h3 id="design-notes_6">Design Notes</h3>
+<h3 id="design-notes_8">Design Notes</h3>
 <ul>
 <li>Interfaces use Python structural protocols.</li>
 <li>Concrete implementations do not require explicit inheritance.</li>
@@ -1145,7 +1302,7 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <hr />
 <h2 id="shared-data-models">Shared Data Models</h2>
-<h3 id="purpose_7">Purpose</h3>
+<h3 id="purpose_12">Purpose</h3>
 <p>Define immutable information exchanged between Project0 components.</p>
 <h3 id="context-models">Context Models</h3>
 <ul>
@@ -1155,6 +1312,16 @@ Implementation details are intentionally excluded.</p>
 <li>Context Document</li>
 <li>Context Package</li>
 </ul>
+<h3 id="knowledge-models">Knowledge Models</h3>
+<ul>
+<li>Knowledge Request</li>
+<li>Document Heading</li>
+<li>Document Link</li>
+<li>Document Record</li>
+<li>Document Reference</li>
+<li>Document Selection</li>
+<li>Knowledge Result</li>
+</ul>
 <h3 id="workflow-models">Workflow Models</h3>
 <ul>
 <li>Workflow Status</li>
@@ -1163,7 +1330,7 @@ Implementation details are intentionally excluded.</p>
 <li>Task Execution Result</li>
 <li>Workflow Execution Result</li>
 </ul>
-<h3 id="design-notes_7">Design Notes</h3>
+<h3 id="design-notes_9">Design Notes</h3>
 <ul>
 <li>Models use immutable dataclasses where practical.</li>
 <li>Status values use string enumerations.</li>
@@ -1173,41 +1340,41 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <hr />
 <h2 id="validation-engine">Validation Engine</h2>
-<h3 id="purpose_8">Purpose</h3>
+<h3 id="purpose_13">Purpose</h3>
 <p>Verify documentation quality before and after approved documentation changes.</p>
-<h3 id="responsibilities_6">Responsibilities</h3>
+<h3 id="responsibilities_11">Responsibilities</h3>
 <ul>
 <li>Validate Markdown.</li>
 <li>Validate documentation consistency.</li>
 <li>Validate MkDocs build.</li>
 <li>Produce validation reports.</li>
 </ul>
-<h3 id="interfaces_6">Interfaces</h3>
-<h4 id="provides_6">Provides</h4>
+<h3 id="interfaces_11">Interfaces</h3>
+<h4 id="provides_11">Provides</h4>
 <ul>
 <li>Validate proposed documentation updates.</li>
 <li>Validate applied documentation changes.</li>
 <li>Produce validation reports.</li>
 </ul>
-<h4 id="consumes_6">Consumes</h4>
+<h4 id="consumes_11">Consumes</h4>
 <ul>
 <li>Proposed documentation updates.</li>
 <li>Applied documentation changes.</li>
 <li>Documentation standards.</li>
 </ul>
-<h3 id="design-notes_8">Design Notes</h3>
+<h3 id="design-notes_10">Design Notes</h3>
 <ul>
 <li>Performs deterministic validation whenever practical.</li>
 <li>Reports validation failures without modifying content.</li>
 <li>Supports validation before and after approved changes are applied.</li>
 <li>Returns structured validation results to the Workflow Engine.</li>
 </ul>
-<h3 id="inputs_6">Inputs</h3>
+<h3 id="inputs_7">Inputs</h3>
 <ul>
 <li>Proposed documentation updates</li>
 <li>Applied documentation changes</li>
 </ul>
-<h3 id="outputs_6">Outputs</h3>
+<h3 id="outputs_7">Outputs</h3>
 <ul>
 <li>Validation reports</li>
 <li>Validation results</li>
@@ -1219,7 +1386,7 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <h3 id="implementation-status">Implementation Status</h3>
 <p>Planned for a future implementation phase.</p>
-<h3 id="future-considerations_6">Future Considerations</h3>
+<h3 id="future-considerations_7">Future Considerations</h3>
 <ul>
 <li>Additional validation services</li>
 <li>Structured validation models</li>
@@ -1228,45 +1395,45 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <hr />
 <h2 id="reasoning-service">Reasoning Service</h2>
-<h3 id="purpose_9">Purpose</h3>
+<h3 id="purpose_14">Purpose</h3>
 <p>Perform AI-assisted documentation reasoning.</p>
-<h3 id="responsibilities_7">Responsibilities</h3>
+<h3 id="responsibilities_12">Responsibilities</h3>
 <ul>
 <li>Analyze repository changes and documentation impact.</li>
 <li>Generate proposed documentation updates.</li>
 <li>Explain proposed documentation changes.</li>
 </ul>
-<h3 id="interfaces_7">Interfaces</h3>
-<h4 id="provides_7">Provides</h4>
+<h3 id="interfaces_12">Interfaces</h3>
+<h4 id="provides_12">Provides</h4>
 <ul>
 <li>Analyze documentation impact.</li>
 <li>Generate proposed documentation updates.</li>
 <li>Explain proposed documentation changes.</li>
 </ul>
-<h4 id="consumes_7">Consumes</h4>
+<h4 id="consumes_12">Consumes</h4>
 <ul>
 <li>Repository context.</li>
 <li>User requests.</li>
 <li>Documentation standards.</li>
 </ul>
-<h3 id="design-notes_9">Design Notes</h3>
+<h3 id="design-notes_11">Design Notes</h3>
 <ul>
 <li>Performs only tasks requiring AI-assisted reasoning.</li>
 <li>Does not directly read or write repository files.</li>
 <li>Produces proposed changes for validation and user review.</li>
 <li>Uses repository context supplied by the Knowledge Service.</li>
 </ul>
-<h3 id="inputs_7">Inputs</h3>
+<h3 id="inputs_8">Inputs</h3>
 <ul>
 <li>Repository context</li>
 <li>User requests</li>
 </ul>
-<h3 id="outputs_7">Outputs</h3>
+<h3 id="outputs_8">Outputs</h3>
 <ul>
 <li>Proposed documentation updates</li>
 <li>Documentation impact explanations</li>
 </ul>
-<h3 id="required-services_3">Required Services</h3>
+<h3 id="required-services_4">Required Services</h3>
 <ul>
 <li>Knowledge Service</li>
 </ul>
@@ -1276,7 +1443,7 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <h3 id="implementation-status_1">Implementation Status</h3>
 <p>Planned for a future implementation phase.</p>
-<h3 id="future-considerations_7">Future Considerations</h3>
+<h3 id="future-considerations_8">Future Considerations</h3>
 <ul>
 <li>Multiple reasoning providers</li>
 <li>Model routing</li>
@@ -1309,8 +1476,13 @@ Implementation details are intentionally excluded.</p>
 <li>The Context Builder reads selected files through the Repository Interface.</li>
 <li>The Repository Service returns structured file results.</li>
 <li>The Context Builder creates a Context Package.</li>
-<li>The Workflow Engine wraps the Context Package in a Task Execution Result.</li>
-<li>The Workflow Engine returns a Workflow Execution Result to the Platform Dispatcher.</li>
+<li>The Workflow Engine invokes the Knowledge Service when structured repository knowledge is required.</li>
+<li>The Knowledge Service parses repository documents.</li>
+<li>Parsed documents are indexed.</li>
+<li>The Document Selector identifies the relevant repository documents.</li>
+<li>The Context Formatter produces deterministic repository context.</li>
+<li>The Knowledge Service returns a Knowledge Result.</li>
+<li>The Workflow Engine returns a Workflow Execution Result.</li>
 </ol>
 <p>Future phases will extend this interaction model with reasoning, validation, individual change review, approved repository modification, and final validation.</p>
 <hr />
@@ -1399,7 +1571,7 @@ Implementation details are intentionally excluded.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.expand", "content.action.edit"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
       
         <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
       
