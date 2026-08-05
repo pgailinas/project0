@@ -865,75 +865,52 @@ intentionally excluded.</p>
 </ul>
 <hr />
 <h1 id="3-architectural-workflow">3. Architectural Workflow</h1>
-<p>The implemented Phase 5 platform provides deterministic repository knowledge, AI reasoning integration, and comprehensive validation services that together form the foundation for future Documentation Agent workflows.</p>
+<p>The implemented Phase 6 platform provides an end-to-end documentation workflow that integrates deterministic repository knowledge, AI reasoning, validation, user review, approved repository updates, and Git diff generation through the Platform Dispatcher.</p>
 <pre class="mermaid"><code>flowchart TD
     A["Application Entry Point&lt;br/&gt;&lt;small&gt;main.py&lt;/small&gt;"]
-    B["Platform Dispatcher&lt;br/&gt;&lt;small&gt;Dispatch Platform Workflow&lt;/small&gt;"]
-    C["Workflow Engine&lt;br/&gt;&lt;small&gt;Execute Workflow Tasks&lt;/small&gt;"]
+    B["Platform Dispatcher"]
+    C["Documentation Workflow"]
 
-    D["Context Builder&lt;br/&gt;&lt;small&gt;Build Workflow-Specific Context&lt;/small&gt;"]
-    E["Repository Service&lt;br/&gt;&lt;small&gt;Discover and Read Files&lt;/small&gt;"]
-    F["Context Package&lt;br/&gt;&lt;small&gt;Workflow Context&lt;/small&gt;"]
+    D["Knowledge Service"]
+    E["Reasoning Service"]
+    F["Validation Service"]
 
-    G["Knowledge Service&lt;br/&gt;&lt;small&gt;Repository Knowledge Pipeline&lt;/small&gt;"]
-    H["Document Parser"]
-    I["Document Index"]
-    J["Document Selector"]
-    K["Context Formatter"]
-    L["Knowledge Result"]
+    G["Review Coordinator"]
+    H["Repository Update Service"]
+    I["Git Diff Service"]
 
-    M["Workflow Execution Result&lt;br/&gt;&lt;small&gt;Task Output and Status&lt;/small&gt;"]
-
-    N["Local Repository&lt;br/&gt;&lt;small&gt;Authoritative Project Content&lt;/small&gt;"]
+    J["Workflow Result"]
 
     A --&gt; B
     B --&gt; C
 
     C --&gt; D
     D --&gt; E
-    E --&gt; N
-    E --&gt; D
-    D --&gt; F
-    F --&gt; C
+    E --&gt; F
+    F --&gt; G
 
-    C --&gt; G
-    G --&gt; H
-    H --&gt; I
-    I --&gt; J
-    J --&gt; K
-    K --&gt; L
-    L --&gt; C
+    G --&gt;|Approved| H
+    G --&gt;|Rejected / Skipped| J
+    G --&gt;|Revise| E
 
-    C --&gt; M</code></pre>
+    H --&gt; F
+    F --&gt; I
+    I --&gt; J</code></pre>
 <h2 id="implemented-runtime-flow">Implemented Runtime Flow</h2>
 <ol>
 <li><code>main.py</code> creates the Platform Dispatcher.</li>
-<li>The Platform Dispatcher creates a workflow task.</li>
-<li>The Workflow Engine executes the task.</li>
-<li>The Context Builder constructs workflow-specific repository context.</li>
-<li>The Repository Service discovers and reads repository content.</li>
-<li>The Context Builder returns a Context Package.</li>
-<li>The Workflow Engine invokes the Knowledge Service when structured repository knowledge is required.</li>
-<li>The Knowledge Service parses repository documents.</li>
-<li>Parsed documents are indexed.</li>
-<li>The Document Selector identifies the most relevant repository documents.</li>
-<li>The Context Formatter produces deterministic formatted context.</li>
-<li>The Knowledge Service returns a Knowledge Result.</li>
-<li>The Workflow Engine invokes the Validation Service when repository validation is requested.</li>
-<li>The Validation Service coordinates the configured validators.</li>
-<li>Individual validators perform deterministic validation of Markdown structure, links, MkDocs builds, and cross-document consistency.</li>
-<li>The Validation Service aggregates validator results into a single Validation Result.</li>
-<li>The Workflow Engine returns a Workflow Execution Result.</li>
+<li>The Platform Dispatcher dispatches the requested Documentation Workflow.</li>
+<li>The Knowledge Service builds structured repository knowledge.</li>
+<li>The Reasoning Service generates proposed documentation changes.</li>
+<li>The Validation Service validates all proposed documentation changes.</li>
+<li>The Review Coordinator processes each proposed change individually.</li>
+<li>Approved changes are applied through the Repository Update Service.</li>
+<li>Rejected and skipped changes continue without repository modification.</li>
+<li>Revised changes return to the Reasoning Service for regeneration.</li>
+<li>Approved repository updates undergo final validation.</li>
+<li>The Git Diff Service generates a summary of applied repository changes.</li>
+<li>The Documentation Workflow returns a structured Documentation Workflow Result.</li>
 </ol>
-<h2 id="future-documentation-update-workflow">Future Documentation Update Workflow</h2>
-<p>Future phases will extend the implemented platform with user review, approved repository updates, controlled repository modification, final validation, and completion reporting. AI reasoning and deterministic validation services are now implemented platform capabilities.</p>
-<p>Each proposed documentation change will support the following review outcomes:</p>
-<ul>
-<li><strong>Approve</strong> — Apply the proposed change and continue to the next proposed change.</li>
-<li><strong>Revise</strong> — Return the proposed change for regeneration and subsequent validation.</li>
-<li><strong>Reject</strong> — Discard the proposed change and continue to the next proposed change.</li>
-<li><strong>Skip</strong> — Defer the proposed change and continue to the next proposed change.</li>
-</ul>
 <hr />
 <h1 id="4-architectural-components">4. Architectural Components</h1>
 <h2 id="platform-dispatcher">Platform Dispatcher</h2>
@@ -945,6 +922,8 @@ intentionally excluded.</p>
 <li>Create workflow tasks.</li>
 <li>Submit tasks to the Workflow Engine.</li>
 <li>Return structured workflow execution results.</li>
+<li>Dispatch Documentation Workflows.</li>
+<li>Assemble Documentation Workflow dependencies.</li>
 </ul>
 <h2 id="workflow-engine">Workflow Engine</h2>
 <p>Coordinates synchronous workflow task execution.</p>
@@ -1065,6 +1044,10 @@ intentionally excluded.</p>
 <li>Knowledge Interface</li>
 <li>Validation Interface</li>
 <li>Validator Interface</li>
+<li>Documentation Workflow Interface</li>
+<li>Review Coordinator Interface</li>
+<li>Repository Update Interface</li>
+<li>Git Diff Interface</li>
 </ul>
 <p>Interfaces allow components to depend on required capabilities rather than concrete implementations.</p>
 <h2 id="shared-data-models">Shared Data Models</h2>
@@ -1090,6 +1073,12 @@ intentionally excluded.</p>
 <li>Workflow tasks</li>
 <li>Task execution results</li>
 <li>Workflow execution results</li>
+<li>Documentation workflow requests</li>
+<li>Documentation workflow results</li>
+<li>Documentation change proposals</li>
+<li>Documentation reviews</li>
+<li>Applied documentation changes</li>
+<li>Documentation workflow summaries</li>
 </ul>
 <h2 id="validation-service">Validation Service</h2>
 <p>Coordinates deterministic repository validation.</p>
@@ -1117,7 +1106,45 @@ intentionally excluded.</p>
 <li>Generate proposed documentation updates.</li>
 <li>Explain proposed documentation changes.</li>
 </ul>
-<p>The Reasoning Service is planned for a future implementation phase.</p>
+<p>The Reasoning Service is implemented and integrated into the Documentation Workflow through an abstract provider interface.</p>
+<hr />
+<h2 id="review-coordinator">Review Coordinator</h2>
+<p>Coordinates user review of individual proposed documentation changes.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>Present individual proposed documentation changes.</li>
+<li>Process Approve, Revise, Reject, and Skip decisions.</li>
+<li>Return immutable review results.</li>
+</ul>
+<hr />
+<h2 id="repository-update-service">Repository Update Service</h2>
+<p>Applies approved documentation changes.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>Apply approved Markdown updates.</li>
+<li>Preserve repository integrity.</li>
+<li>Report update results.</li>
+<li>Produce immutable application results.</li>
+</ul>
+<hr />
+<h2 id="git-diff-service">Git Diff Service</h2>
+<p>Produces Git-based summaries of approved repository changes.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>Generate repository diffs.</li>
+<li>Restrict diffs to affected files.</li>
+<li>Report Git execution failures.</li>
+<li>Preserve deterministic output.</li>
+</ul>
+<hr />
+<h2 id="documentation-workflow">Documentation Workflow</h2>
+<p>Coordinates the complete Documentation Agent execution pipeline.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>Coordinate Knowledge, Reasoning, Validation, Review, Repository Update, and Git Diff services.</li>
+<li>Preserve workflow state.</li>
+<li>Produce immutable Documentation Workflow Results.</li>
+</ul>
 <hr />
 <h1 id="5-external-dependencies">5. External Dependencies</h1>
 <p>The Documentation Agent interacts with:</p>
@@ -1151,9 +1178,6 @@ intentionally excluded.</p>
 <p>Future versions may introduce:</p>
 <ul>
 <li>Documentation Agent reasoning</li>
-<li>User review and approval workflow</li>
-<li>Controlled repository modification</li>
-<li>Final Git diff generation</li>
 <li>Multi-agent collaboration</li>
 <li>Repository event monitoring</li>
 <li>Semantic document retrieval</li>

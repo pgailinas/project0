@@ -805,7 +805,51 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Validation Service">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#review-coordinator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Review Coordinator
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repository-update-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repository Update Service
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#git-diff-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Git Diff Service
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation Workflow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Documentation Workflow">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1458,7 +1502,51 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Validation Service">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#review-coordinator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Review Coordinator
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repository-update-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repository Update Service
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#git-diff-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Git Diff Service
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation Workflow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Documentation Workflow">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1733,17 +1821,16 @@
 <li>Shared Context Models</li>
 <li>Shared Workflow Models</li>
 </ul>
-<p>It also provides the communication foundation for these planned components:</p>
+<p>It also includes the following implemented components:</p>
 <ul>
 <li>Reasoning Service</li>
-<li>Documentation Agent</li>
-<li>User Review</li>
-<li>Future AI agents</li>
-</ul>
-<p>The following component is now implemented:</p>
-<ul>
 <li>Validation Service</li>
+<li>Review Coordinator</li>
+<li>Repository Update Service</li>
+<li>Git Diff Service</li>
+<li>Documentation Workflow</li>
 </ul>
+<p>The communication architecture provides the foundation for future AI agents.</p>
 <h2 id="3-design-objectives">3. Design Objectives</h2>
 <p>The communication architecture shall:</p>
 <ul>
@@ -1753,7 +1840,7 @@
 <li>Maximize reuse across future AI agents.</li>
 <li>Provide workflow and task traceability.</li>
 <li>Preserve deterministic behavior where AI reasoning is not required.</li>
-<li>Support human approval before future repository changes are applied.</li>
+<li>Support human approval before repository changes are applied.</li>
 <li>Allow future distributed and asynchronous execution.</li>
 </ul>
 <h2 id="4-communication-principles">4. Communication Principles</h2>
@@ -1764,8 +1851,8 @@
 <li>Shared data models are the authoritative communication objects.</li>
 <li>Components do not directly access another component's internal state.</li>
 <li>The Context Builder coordinates context selection through the Context Rule Registry, Context Filter, and Repository Interface.</li>
-<li>Current repository communication is read-only.</li>
-<li>Repository modifications shall occur only after successful validation and explicit user approval.</li>
+<li>Repository discovery operations are read-only.</li>
+<li>Repository modifications shall occur only through the Repository Update Service after successful validation and explicit user approval.</li>
 <li>Significant workflow and task state changes may generate events.</li>
 <li>Components shall not bypass the Workflow Engine for workflow execution control.</li>
 </ol>
@@ -1794,54 +1881,50 @@
 <li><code>TaskCompleted</code></li>
 <li><code>TaskFailed</code></li>
 </ul>
-<p>Validation processing is now implemented through the Validation Service. Validation lifecycle events remain planned for a future phase together with artifact and approval events.</p>
+<p>Validation processing is implemented through the Validation Service. Documentation review, repository updates, and Git diff generation are implemented through the Documentation Workflow. Validation lifecycle events and audit events remain future enhancements.</p>
 <h2 id="6-implemented-communication-flow">6. Implemented Communication Flow</h2>
 <pre class="mermaid"><code>flowchart TD
     A["Application Entry Point&lt;br/&gt;&lt;small&gt;main.py&lt;/small&gt;"]
-    B["Platform Dispatcher&lt;br/&gt;&lt;small&gt;Dispatch Context Workflow&lt;/small&gt;"]
-    C["Workflow Engine&lt;br/&gt;&lt;small&gt;Execute Workflow Task&lt;/small&gt;"]
-    D["Context Builder&lt;br/&gt;&lt;small&gt;Assemble Context Package&lt;/small&gt;"]
-    E["Context Rule Registry&lt;br/&gt;&lt;small&gt;Resolve Workflow Rule&lt;/small&gt;"]
-    F["Context Filter&lt;br/&gt;&lt;small&gt;Select Repository Files&lt;/small&gt;"]
-    G["Repository Service&lt;br/&gt;&lt;small&gt;Discover and Read Files&lt;/small&gt;"]
-    H["Local Repository&lt;br/&gt;&lt;small&gt;Authoritative Content&lt;/small&gt;"]
-    I["Context Package"]
-    J["Task Execution Result"]
-    K["Workflow Execution Result"]
+    B["Platform Dispatcher"]
+    C["Documentation Workflow"]
+
+    D["Knowledge Service"]
+    E["Reasoning Service"]
+    F["Validation Service"]
+    G["Review Coordinator"]
+    H["Repository Update Service"]
+    I["Git Diff Service"]
+    J["Documentation Workflow Result"]
 
     A --&gt; B
     B --&gt; C
     C --&gt; D
     D --&gt; E
-    E --&gt; D
-    D --&gt; F
-    F --&gt; D
-    D --&gt; G
-    G --&gt; H
-    G --&gt; D
-    D --&gt; I
-    I --&gt; J
-    J --&gt; K
-    K --&gt; B</code></pre>
+    E --&gt; F
+    F --&gt; G
+
+    G --&gt;|Approve| H
+    G --&gt;|Reject / Skip| J
+    G --&gt;|Revise| E
+
+    H --&gt; F
+    F --&gt; I
+    I --&gt; J</code></pre>
 <p>The implemented sequence is:</p>
 <ol>
 <li><code>main.py</code> creates the Platform Dispatcher.</li>
-<li>The Platform Dispatcher creates a Workflow Task.</li>
-<li>The Platform Dispatcher submits the task to the Workflow Engine.</li>
-<li>The Workflow Engine begins workflow and task execution.</li>
-<li>The task invokes the Context Builder through the Context Builder Interface.</li>
-<li>The Context Builder requests criteria from the Context Rule Registry.</li>
-<li>The Context Rule Registry returns workflow-specific Context Filter criteria.</li>
-<li>The Context Filter selects eligible repository files.</li>
-<li>The Context Builder requests selected files through the Repository Interface.</li>
-<li>The Repository Service returns structured file results.</li>
-<li>The Context Builder produces a Context Package.</li>
-<li>The Workflow Engine invokes the Knowledge Service when structured repository knowledge is required.</li>
-<li>The Knowledge Service parses, indexes, selects, and formats repository documentation.</li>
-<li>The Workflow Engine invokes the Validation Service when validation is requested.</li>
-<li>The Validation Service coordinates the configured validators.</li>
-<li>Validator Results are aggregated into a Validation Result.</li>
-<li>The Workflow Engine returns Task and Workflow Execution Results.</li>
+<li>The Platform Dispatcher dispatches the Documentation Workflow.</li>
+<li>The Documentation Workflow requests repository knowledge from the Knowledge Service.</li>
+<li>The Knowledge Service returns structured repository context.</li>
+<li>The Reasoning Service generates proposed documentation changes.</li>
+<li>The Validation Service validates proposed documentation changes.</li>
+<li>The Review Coordinator processes each proposal individually.</li>
+<li>Approved changes are applied by the Repository Update Service.</li>
+<li>Revised changes return to the Reasoning Service.</li>
+<li>Rejected and skipped changes continue without repository modification.</li>
+<li>Approved repository updates undergo final validation.</li>
+<li>The Git Diff Service generates a repository diff.</li>
+<li>The Documentation Workflow returns a Documentation Workflow Result.</li>
 </ol>
 <h2 id="7-platform-responsibilities">7. Platform Responsibilities</h2>
 <h3 id="platform-dispatcher">Platform Dispatcher</h3>
@@ -1852,6 +1935,8 @@
 <li>Preserve supplied workflow identifiers or generate new identifiers.</li>
 <li>Return Workflow Execution Results.</li>
 <li>Avoid implementing repository, context, or workflow behavior directly.</li>
+<li>Dispatch Documentation Workflows.</li>
+<li>Return Documentation Workflow Results.</li>
 </ul>
 <h3 id="workflow-engine">Workflow Engine</h3>
 <ul>
@@ -1904,10 +1989,33 @@
 <li>Isolate validator execution failures.</li>
 <li>Support dependency injection for validator implementations.</li>
 </ul>
+<h2 id="review-coordinator">Review Coordinator</h2>
+<ul>
+<li>Coordinate user review.</li>
+<li>Process Approve, Revise, Reject, and Skip decisions.</li>
+<li>Produce immutable review results.</li>
+</ul>
+<h2 id="repository-update-service">Repository Update Service</h2>
+<ul>
+<li>Apply approved documentation changes.</li>
+<li>Preserve repository integrity.</li>
+<li>Produce immutable application results.</li>
+</ul>
+<h2 id="git-diff-service">Git Diff Service</h2>
+<ul>
+<li>Generate Git diffs for approved repository updates.</li>
+<li>Restrict diffs to modified files.</li>
+<li>Report Git execution failures.</li>
+</ul>
+<h2 id="documentation-workflow">Documentation Workflow</h2>
+<ul>
+<li>Coordinate Knowledge, Reasoning, Validation, Review, Repository Update, and Git Diff services.</li>
+<li>Return immutable Documentation Workflow Results.</li>
+</ul>
 <h3 id="shared-interfaces">Shared Interfaces</h3>
 <ul>
 <li>Define stable component contracts.</li>
-<li>Include Repository, Workflow, Context Builder, Knowledge, Validation, and Validator interfaces.</li>
+<li>Include Repository, Workflow, Context Builder, Knowledge, Validation, Validator, Documentation Workflow, Review Coordinator, Repository Update, and Git Diff interfaces.</li>
 <li>Allow structural conformance without explicit inheritance.</li>
 <li>Support dependency injection and isolated testing.</li>
 <li>Allow alternate implementations without changing consumers.</li>
@@ -1916,17 +2024,16 @@
 <ul>
 <li>Define immutable communication objects.</li>
 <li>Provide shared workflow and task statuses.</li>
-<li>Provide Context Packages, Knowledge Results, Validation Results, Validator Results, and Workflow Execution Results.</li>
+<li>Provide Context Packages, Knowledge Results, Validation Results, Validator Results, Workflow Execution Results, Documentation Workflow Results, Documentation Reviews, Documentation Change Proposals, and Applied Documentation Changes.</li>
 <li>Preserve identifiers, timestamps, outputs, warnings, and errors.</li>
 </ul>
 <h3 id="planned-components">Planned Components</h3>
 <p>The following responsibilities remain planned:</p>
 <ul>
-<li>AI-assisted reasoning</li>
-<li>User review and approval</li>
-<li>Controlled repository modification</li>
-<li>Git diff and commit generation</li>
 <li>Dashboard and audit storage</li>
+<li>Persistent workflow history</li>
+<li>Distributed communication</li>
+<li>Additional AI agents</li>
 </ul>
 <h2 id="8-communication-contracts">8. Communication Contracts</h2>
 <p>Implemented communication objects include:</p>
@@ -2023,7 +2130,7 @@
 </ul>
 <p>Persistent audit storage is not part of the current implementation.</p>
 <h2 id="12-initial-implementation">12. Initial Implementation</h2>
-<p>The implemented Phase 5 communication foundation uses:</p>
+<p>The implemented Phase 6 communication foundation uses:</p>
 <ul>
 <li>Python structural <code>Protocol</code> interfaces</li>
 <li>Python immutable dataclasses</li>
@@ -2033,6 +2140,9 @@
 <li>Structured application logging</li>
 <li>Repository-relative file access</li>
 <li>pytest unit and integration testing</li>
+<li>End-to-end Documentation Workflow orchestration</li>
+<li>Repository update coordination</li>
+<li>Git diff generation</li>
 </ul>
 <p>The current implementation does not yet use:</p>
 <ul>
@@ -2045,12 +2155,7 @@
 <h2 id="13-future-evolution">13. Future Evolution</h2>
 <p>The communication architecture is designed to support future enhancements including:</p>
 <ul>
-<li>Documentation Agent execution</li>
-<li>Reasoning Service integration</li>
 <li>Additional validation services</li>
-<li>Human review and approval</li>
-<li>Controlled repository writes</li>
-<li>Git diff and commit operations</li>
 <li>Persistent workflow state</li>
 <li>Persistent audit storage</li>
 <li>Distributed agents</li>
@@ -2085,18 +2190,19 @@
 </table>
 <p>Communication payloads shall conform to the shared models defined in the companion document or to implemented subsystem result contracts.</p>
 <h2 id="15-implementation-status">15. Implementation Status</h2>
-<p>The Phase 5 communication foundation has been implemented and validated through unit and integration testing.</p>
+<p>The Phase 6 communication architecture has been implemented and validated through comprehensive unit and integration testing.</p>
 <p>The validated end-to-end communication flow includes:</p>
 <ol>
 <li>Platform Dispatcher</li>
 <li>Workflow Engine</li>
-<li>Context Builder</li>
-<li>Context Rule Registry</li>
-<li>Context Filter</li>
-<li>Repository Service</li>
 <li>Knowledge Service</li>
+<li>Reasoning Service</li>
 <li>Validation Service</li>
-<li>Workflow Execution Results</li>
+<li>Review Coordinator</li>
+<li>Repository Update Service</li>
+<li>Git Diff Service</li>
+<li>Documentation Workflow</li>
+<li>Documentation Workflow Results</li>
 </ol>
 <p>The implemented Validation Service coordinates:</p>
 <ul>
@@ -2105,7 +2211,7 @@
 <li>MkDocs Validator</li>
 <li>Documentation Consistency Validator</li>
 </ul>
-<p>The next implementation phase will extend this communication foundation with AI reasoning, user review, controlled repository modification, and additional workflow capabilities.</p>
+<p>The next implementation phase will extend this communication foundation with semantic retrieval, embedding generation, vector search, and additional AI agent capabilities.</p>
 
 
 

@@ -881,7 +881,7 @@ Implementation details are intentionally excluded.</p>
 <p>The Platform Dispatcher provides the platform-level entry point. It creates workflow tasks and submits them to the Workflow Engine. The Workflow Engine executes those tasks and returns structured workflow results.</p>
 <p>The Context Builder assembles workflow-specific repository context for deterministic workflow execution.</p>
 <p>The Knowledge Service provides deterministic repository knowledge retrieval. It coordinates repository document parsing, indexing, document selection, and context formatting while preserving structured warnings and metadata.</p>
-<p>The Validation Service is now an implemented platform component that coordinates deterministic repository validation. The Reasoning Service remains planned for a future implementation phase.</p>
+<p>The Validation Service, Reasoning Service, Review Coordinator, Repository Update Service, Git Diff Service, and Documentation Workflow are implemented platform components. Together they provide an end-to-end documentation update workflow coordinated through the Platform Dispatcher.</p>
 <hr />
 <h1 id="4-component-specifications">4. Component Specifications</h1>
 <h2 id="platform-dispatcher">Platform Dispatcher</h2>
@@ -894,12 +894,15 @@ Implementation details are intentionally excluded.</p>
 <li>Create workflow tasks.</li>
 <li>Dispatch tasks to the Workflow Engine.</li>
 <li>Return structured workflow execution results.</li>
+<li>Assemble the Documentation Workflow.</li>
+<li>Dispatch Documentation Workflows.</li>
 </ul>
 <h3 id="interfaces">Interfaces</h3>
 <h4 id="provides">Provides</h4>
 <ul>
 <li>Create default platform dispatcher.</li>
 <li>Run context workflow.</li>
+<li>Run documentation workflow.</li>
 </ul>
 <h4 id="consumes">Consumes</h4>
 <ul>
@@ -914,8 +917,9 @@ Implementation details are intentionally excluded.</p>
 <li>Coordinates platform services without implementing their internal behavior.</li>
 <li>Depends on typed interfaces for injected services.</li>
 <li>Uses concrete implementations only in the default factory.</li>
-<li>Current workflows are read-only.</li>
-<li>Does not perform reasoning, validation, review, or repository modification.</li>
+<li>Startup workflows remain read-only.</li>
+<li>Documentation workflows coordinate reasoning, validation, review, repository updates, and Git diff generation through dedicated services.</li>
+<li>Does not implement component behavior directly.</li>
 </ul>
 <h3 id="inputs">Inputs</h3>
 <ul>
@@ -923,10 +927,12 @@ Implementation details are intentionally excluded.</p>
 <li>Context workflow type</li>
 <li>Optional workflow name</li>
 <li>Optional workflow identifier</li>
+<li>Documentation workflow request</li>
 </ul>
 <h3 id="outputs">Outputs</h3>
 <ul>
 <li>Workflow Execution Result</li>
+<li>Documentation Workflow Result</li>
 </ul>
 <h3 id="required-services">Required Services</h3>
 <ul>
@@ -937,8 +943,7 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <h3 id="future-considerations">Future Considerations</h3>
 <ul>
-<li>Documentation Agent dispatch</li>
-<li>User review workflow dispatch</li>
+<li>Additional workflow dispatch</li>
 <li>Additional agent and service routing</li>
 <li>Multi-agent workflow coordination</li>
 </ul>
@@ -1060,9 +1065,7 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <h3 id="future-considerations_2">Future Considerations</h3>
 <ul>
-<li>Controlled repository writes</li>
 <li>Git status inspection</li>
-<li>Git diff generation</li>
 <li>Additional version-control systems</li>
 </ul>
 <hr />
@@ -1378,6 +1381,10 @@ Implementation details are intentionally excluded.</p>
 <li>Knowledge Interface</li>
 <li>Validation Interface</li>
 <li>Validator Interface</li>
+<li>Documentation Workflow Interface</li>
+<li>Review Coordinator Interface</li>
+<li>Repository Update Interface</li>
+<li>Git Diff Interface</li>
 </ul>
 <h3 id="design-notes_8">Design Notes</h3>
 <ul>
@@ -1424,6 +1431,16 @@ Implementation details are intentionally excluded.</p>
 <li>Workflow Task</li>
 <li>Task Execution Result</li>
 <li>Workflow Execution Result</li>
+</ul>
+<h3 id="documentation-workflow-models">Documentation Workflow Models</h3>
+<ul>
+<li>Documentation Workflow Request</li>
+<li>Documentation Workflow Result</li>
+<li>Documentation Workflow Status</li>
+<li>Documentation Workflow Summary</li>
+<li>Documentation Change Proposal</li>
+<li>Documentation Review</li>
+<li>Applied Documentation Change</li>
 </ul>
 <h3 id="design-notes_9">Design Notes</h3>
 <ul>
@@ -1534,19 +1551,67 @@ Implementation details are intentionally excluded.</p>
 <h3 id="required-services_5">Required Services</h3>
 <ul>
 <li>Knowledge Service</li>
+<li>AI Reasoning Provider</li>
 </ul>
 <h3 id="external-dependencies_1">External Dependencies</h3>
 <ul>
 <li>AI reasoning provider</li>
 </ul>
 <h3 id="implementation-status_1">Implementation Status</h3>
-<p>Planned for a future implementation phase.</p>
+<p>Implemented in Phase 4 and integrated into the Documentation Workflow in Phase 6.</p>
 <h3 id="future-considerations_8">Future Considerations</h3>
 <ul>
 <li>Multiple reasoning providers</li>
 <li>Model routing</li>
-<li>Structured reasoning requests and results</li>
 <li>Context-size management</li>
+</ul>
+<hr />
+<h2 id="review-coordinator">Review Coordinator</h2>
+<h3 id="purpose_15">Purpose</h3>
+<p>Coordinate user review of individual documentation changes.</p>
+<h3 id="responsibilities_13">Responsibilities</h3>
+<ul>
+<li>Process Approve, Revise, Reject, and Skip decisions.</li>
+<li>Produce immutable review results.</li>
+</ul>
+<h3 id="interfaces_13">Interfaces</h3>
+<h4 id="provides_13">Provides</h4>
+<ul>
+<li>Review documentation proposal.</li>
+</ul>
+<h4 id="consumes_13">Consumes</h4>
+<ul>
+<li>Documentation Workflow models.</li>
+</ul>
+<hr />
+<h2 id="repository-update-service">Repository Update Service</h2>
+<h3 id="purpose_16">Purpose</h3>
+<p>Apply approved documentation changes.</p>
+<h3 id="responsibilities_14">Responsibilities</h3>
+<ul>
+<li>Apply approved Markdown updates.</li>
+<li>Preserve repository integrity.</li>
+<li>Return immutable application results.</li>
+</ul>
+<hr />
+<h2 id="git-diff-service">Git Diff Service</h2>
+<h3 id="purpose_17">Purpose</h3>
+<p>Generate Git diffs for approved documentation updates.</p>
+<h3 id="responsibilities_15">Responsibilities</h3>
+<ul>
+<li>Generate repository diffs.</li>
+<li>Restrict output to modified files.</li>
+<li>Report Git execution failures.</li>
+</ul>
+<hr />
+<h2 id="documentation-workflow">Documentation Workflow</h2>
+<h3 id="purpose_18">Purpose</h3>
+<p>Coordinate the complete Documentation Agent execution pipeline.</p>
+<h3 id="responsibilities_16">Responsibilities</h3>
+<ul>
+<li>Coordinate Knowledge, Reasoning, Validation, Review, Repository Update, and Git Diff services.</li>
+<li>Preserve workflow state.</li>
+<li>Produce immutable Documentation Workflow Results.</li>
 </ul>
 <hr />
 <h1 id="5-interface-design-principles">5. Interface Design Principles</h1>
@@ -1586,7 +1651,7 @@ Implementation details are intentionally excluded.</p>
 <li>The Validation Service aggregates Validator Results into a Validation Result.</li>
 <li>The Workflow Engine returns a Workflow Execution Result.</li>
 </ol>
-<p>Future phases will extend this interaction model with AI reasoning, individual change review, approved repository modification, final validation after documentation updates, and controlled repository write operations.</p>
+<p>The Documentation Workflow extends this interaction model by coordinating the Knowledge Service, Reasoning Service, Validation Service, Review Coordinator, Repository Update Service, and Git Diff Service into a complete documentation update pipeline.</p>
 <hr />
 <h1 id="7-design-constraints">7. Design Constraints</h1>
 <ul>
@@ -1598,9 +1663,11 @@ Implementation details are intentionally excluded.</p>
 <li>Use shared immutable models for component communication.</li>
 <li>Depend on interfaces rather than concrete implementations where practical.</li>
 <li>Preserve deterministic ordering of selected repository content.</li>
-<li>Keep current repository operations read-only.</li>
-<li>Preserve human approval before future documentation changes are applied.</li>
-<li>Process future proposed documentation changes individually through the review workflow.</li>
+<li>Repository discovery remains read-only.</li>
+<li>Documentation modifications shall occur only through the Repository Update Service.</li>
+<li>Human approval is required before documentation changes are applied.</li>
+<li>Proposed documentation changes shall be processed individually through the review workflow.</li>
+<li>Approved documentation changes shall undergo final validation before completion.</li>
 </ul>
 <hr />
 <h1 id="8-related-documents">8. Related Documents</h1>
