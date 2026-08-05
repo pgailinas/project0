@@ -17,7 +17,7 @@ The project emphasizes:
 
 ## Documentation
 
-Project0 documentation is organized into the following primary documents.
+Project0 documentation is organized into the following categories.
 
 ### Core Project Documentation
 
@@ -25,14 +25,20 @@ Project0 documentation is organized into the following primary documents.
 | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | [**Project Charter**](Project_Charter.md)               | Defines the project vision, objectives, scope, deliverables, and success criteria.                                                      |
 | [**Development Environment**](Development_Environment.md)       | Defines the standard Project0 development environment, installation, configuration, development workflow, and troubleshooting guidance. |
+| [**Testing Guide**](Testing_Guide.md) | Describes the Project0 testing strategy, test organization, execution procedures, naming conventions, and automated validation workflow for unit and integration testing. |
 | [**Document Standards**](Documentation_Standards.md)              | Establishes project documentation conventions, organization, formatting, and maintenance standards.                                     |
 | [**Project Directory Structure**](Project_Directory_Structure.md) | Defines the standard Project0 repository organization, directory layout, and purpose of each major project component. |
+
+### Platform Design
+
+| Document                                                   | Description                                                                                                           |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | [**Shared Data Models and Error Contracts**](Shared_Data_Models_and_Error_Contracts.md) | Defines the shared information models and standard error contracts used for communication between Project0 platform components and future AI agents. |
 | [**Component Communication Design**](Component_Communication_Design.md) | Defines the communication patterns, orchestration rules, message flow, event handling, error propagation, and interaction requirements used by Project0 platform components and AI agents. |
 | [**Implementation Roadmap**](Implementation_Roadmap.md) | Defines the planned implementation sequence, development phases, dependencies, deliverables, validation strategy, and success criteria. |
 | [**Implementation Status**](Implementation_Status.md)   | Summarizes current implementation progress and provides access to the authoritative implementation status tracker.                      |
 
-### Documentation AI Agent
+### Documentation Agent
 
 | Document                                                   | Description                                                                                                           |
 | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
@@ -83,6 +89,6 @@ Project0 serves as the foundation for a broader AI software development platform
 
 ## Getting Started
 
-Begin with the [**Project Charter**](Project_Charter.md) to understand the overall vision and objectives. Next, review the [**Development Environment**](Development_Environment.md) to configure a standard Project0 development workstation. Then continue through the remaining project documentation and the Document AI Agent documents to understand the approved architecture, implementation roadmap, and planned capabilities.
+Begin with the [**Project Charter**](Project_Charter.md) to understand the overall vision and objectives. Next, review the [**Development Environment**](Development_Environment.md) to configure a standard Project0 development workstation. After the environment is configured, review the [**Testing Guide**](Testing_Guide.md) to understand the Project0 testing strategy and validation workflow. Then continue through the remaining project documentation and the Documentation AI Agent documents to understand the approved architecture, implementation roadmap, and platform capabilities.
 
 
