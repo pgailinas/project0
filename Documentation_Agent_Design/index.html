@@ -797,7 +797,7 @@ Implementation details are intentionally excluded.</p>
 <p>The Platform Dispatcher provides the platform-level entry point. It creates workflow tasks and submits them to the Workflow Engine. The Workflow Engine executes those tasks and returns structured workflow results.</p>
 <p>The Context Builder assembles workflow-specific repository context for deterministic workflow execution.</p>
 <p>The Knowledge Service provides deterministic repository knowledge retrieval. It coordinates repository document parsing, indexing, document selection, and context formatting while preserving structured warnings and metadata.</p>
-<p>The Validation Engine and Reasoning Service remain planned components for future implementation phases.</p>
+<p>The Validation Service is now an implemented platform component that coordinates deterministic repository validation. The Reasoning Service remains planned for a future implementation phase.</p>
 <hr />
 <h1 id="4-component-specifications">4. Component Specifications</h1>
 <h2 id="platform-dispatcher">Platform Dispatcher</h2>
@@ -854,9 +854,9 @@ Implementation details are intentionally excluded.</p>
 <h3 id="future-considerations">Future Considerations</h3>
 <ul>
 <li>Documentation Agent dispatch</li>
-<li>Validation workflow dispatch</li>
 <li>User review workflow dispatch</li>
 <li>Additional agent and service routing</li>
+<li>Multi-agent workflow coordination</li>
 </ul>
 <hr />
 <h2 id="workflow-engine">Workflow Engine</h2>
@@ -1292,6 +1292,8 @@ Implementation details are intentionally excluded.</p>
 <li>Workflow Event Publisher Interface</li>
 <li>Context Builder Interface</li>
 <li>Knowledge Interface</li>
+<li>Validation Interface</li>
+<li>Validator Interface</li>
 </ul>
 <h3 id="design-notes_8">Design Notes</h3>
 <ul>
@@ -1322,6 +1324,15 @@ Implementation details are intentionally excluded.</p>
 <li>Document Selection</li>
 <li>Knowledge Result</li>
 </ul>
+<h3 id="validation-models">Validation Models</h3>
+<ul>
+<li>Validation Request</li>
+<li>Validation Issue</li>
+<li>Validator Result</li>
+<li>Validation Result</li>
+<li>Validation Status</li>
+<li>Validation Severity</li>
+</ul>
 <h3 id="workflow-models">Workflow Models</h3>
 <ul>
 <li>Workflow Status</li>
@@ -1339,59 +1350,62 @@ Implementation details are intentionally excluded.</p>
 <li>Shared models prevent component-specific communication formats.</li>
 </ul>
 <hr />
-<h2 id="validation-engine">Validation Engine</h2>
+<h2 id="validation-service">Validation Service</h2>
 <h3 id="purpose_13">Purpose</h3>
-<p>Verify documentation quality before and after approved documentation changes.</p>
+<p>Coordinate deterministic repository validation through independently testable validators.</p>
 <h3 id="responsibilities_11">Responsibilities</h3>
 <ul>
-<li>Validate Markdown.</li>
-<li>Validate documentation consistency.</li>
-<li>Validate MkDocs build.</li>
-<li>Produce validation reports.</li>
+<li>Coordinate configured validators.</li>
+<li>Aggregate validator results.</li>
+<li>Preserve validator execution order.</li>
+<li>Isolate validator execution failures.</li>
+<li>Return immutable Validation Results.</li>
 </ul>
 <h3 id="interfaces_11">Interfaces</h3>
 <h4 id="provides_11">Provides</h4>
 <ul>
-<li>Validate proposed documentation updates.</li>
-<li>Validate applied documentation changes.</li>
-<li>Produce validation reports.</li>
+<li>Execute repository validation.</li>
+<li>Aggregate validator results.</li>
+<li>Return Validation Results.</li>
 </ul>
 <h4 id="consumes_11">Consumes</h4>
 <ul>
-<li>Proposed documentation updates.</li>
-<li>Applied documentation changes.</li>
-<li>Documentation standards.</li>
+<li>Validation Interface.</li>
+<li>Validator Interface.</li>
+<li>Validation models.</li>
 </ul>
 <h3 id="design-notes_10">Design Notes</h3>
 <ul>
-<li>Performs deterministic validation whenever practical.</li>
-<li>Reports validation failures without modifying content.</li>
-<li>Supports validation before and after approved changes are applied.</li>
-<li>Returns structured validation results to the Workflow Engine.</li>
+<li>Coordinates validation components without implementing validation logic.</li>
+<li>Uses dependency injection for configured validators.</li>
+<li>Continues validation even if an individual validator fails unexpectedly.</li>
+<li>Returns immutable Validation Results and Validator Results.</li>
+<li>Supports future validator expansion without modifying service logic.</li>
 </ul>
 <h3 id="inputs_7">Inputs</h3>
 <ul>
-<li>Proposed documentation updates</li>
-<li>Applied documentation changes</li>
+<li>Validation Request</li>
 </ul>
 <h3 id="outputs_7">Outputs</h3>
 <ul>
-<li>Validation reports</li>
-<li>Validation results</li>
+<li>Validation Result</li>
 </ul>
-<h3 id="external-dependencies_1">External Dependencies</h3>
+<h3 id="required-services_4">Required Services</h3>
 <ul>
-<li>Markdown validation tools</li>
-<li>MkDocs</li>
+<li>Markdown Validator</li>
+<li>Link Validator</li>
+<li>MkDocs Validator</li>
+<li>Documentation Consistency Validator</li>
 </ul>
 <h3 id="implementation-status">Implementation Status</h3>
-<p>Planned for a future implementation phase.</p>
+<p>Implemented in Phase 5.</p>
 <h3 id="future-considerations_7">Future Considerations</h3>
 <ul>
-<li>Additional validation services</li>
-<li>Structured validation models</li>
-<li>Validation interface</li>
-<li>Automated Markdown and MkDocs validation</li>
+<li>Semantic Validator</li>
+<li>Repository Structure Validator</li>
+<li>Git Validator</li>
+<li>Style Guide Validator</li>
+<li>Additional deterministic validators</li>
 </ul>
 <hr />
 <h2 id="reasoning-service">Reasoning Service</h2>
@@ -1433,11 +1447,11 @@ Implementation details are intentionally excluded.</p>
 <li>Proposed documentation updates</li>
 <li>Documentation impact explanations</li>
 </ul>
-<h3 id="required-services_4">Required Services</h3>
+<h3 id="required-services_5">Required Services</h3>
 <ul>
 <li>Knowledge Service</li>
 </ul>
-<h3 id="external-dependencies_2">External Dependencies</h3>
+<h3 id="external-dependencies_1">External Dependencies</h3>
 <ul>
 <li>AI reasoning provider</li>
 </ul>
@@ -1482,9 +1496,13 @@ Implementation details are intentionally excluded.</p>
 <li>The Document Selector identifies the relevant repository documents.</li>
 <li>The Context Formatter produces deterministic repository context.</li>
 <li>The Knowledge Service returns a Knowledge Result.</li>
+<li>The Workflow Engine invokes the Validation Service when repository validation is requested.</li>
+<li>The Validation Service coordinates the configured validators.</li>
+<li>Individual validators perform deterministic validation.</li>
+<li>The Validation Service aggregates Validator Results into a Validation Result.</li>
 <li>The Workflow Engine returns a Workflow Execution Result.</li>
 </ol>
-<p>Future phases will extend this interaction model with reasoning, validation, individual change review, approved repository modification, and final validation.</p>
+<p>Future phases will extend this interaction model with AI reasoning, individual change review, approved repository modification, final validation after documentation updates, and controlled repository write operations.</p>
 <hr />
 <h1 id="7-design-constraints">7. Design Constraints</h1>
 <ul>

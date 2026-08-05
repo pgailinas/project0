@@ -781,7 +781,7 @@ intentionally excluded.</p>
 </ul>
 <hr />
 <h1 id="3-architectural-workflow">3. Architectural Workflow</h1>
-<p>The implemented Phase 3 platform provides the deterministic repository knowledge foundation for future Documentation Agent workflows.</p>
+<p>The implemented Phase 5 platform provides deterministic repository knowledge, AI reasoning integration, and comprehensive validation services that together form the foundation for future Documentation Agent workflows.</p>
 <pre class="mermaid"><code>flowchart TD
     A["Application Entry Point&lt;br/&gt;&lt;small&gt;main.py&lt;/small&gt;"]
     B["Platform Dispatcher&lt;br/&gt;&lt;small&gt;Dispatch Platform Workflow&lt;/small&gt;"]
@@ -835,10 +835,14 @@ intentionally excluded.</p>
 <li>The Document Selector identifies the most relevant repository documents.</li>
 <li>The Context Formatter produces deterministic formatted context.</li>
 <li>The Knowledge Service returns a Knowledge Result.</li>
+<li>The Workflow Engine invokes the Validation Service when repository validation is requested.</li>
+<li>The Validation Service coordinates the configured validators.</li>
+<li>Individual validators perform deterministic validation of Markdown structure, links, MkDocs builds, and cross-document consistency.</li>
+<li>The Validation Service aggregates validator results into a single Validation Result.</li>
 <li>The Workflow Engine returns a Workflow Execution Result.</li>
 </ol>
 <h2 id="future-documentation-update-workflow">Future Documentation Update Workflow</h2>
-<p>Future phases will extend the implemented platform with AI reasoning, validation, individual change review, approved repository updates, final validation, and completion reporting.</p>
+<p>Future phases will extend the implemented platform with user review, approved repository updates, controlled repository modification, final validation, and completion reporting. AI reasoning and deterministic validation services are now implemented platform capabilities.</p>
 <p>Each proposed documentation change will support the following review outcomes:</p>
 <ul>
 <li><strong>Approve</strong> — Apply the proposed change and continue to the next proposed change.</li>
@@ -975,6 +979,8 @@ intentionally excluded.</p>
 <li>Workflow Event Publisher Interface</li>
 <li>Context Builder Interface</li>
 <li>Knowledge Interface</li>
+<li>Validation Interface</li>
+<li>Validator Interface</li>
 </ul>
 <p>Interfaces allow components to depend on required capabilities rather than concrete implementations.</p>
 <h2 id="shared-data-models">Shared Data Models</h2>
@@ -992,22 +998,33 @@ intentionally excluded.</p>
 <li>Document selections</li>
 <li>Document references</li>
 <li>Knowledge results</li>
+<li>Validation requests</li>
+<li>Validation issues</li>
+<li>Validator results</li>
+<li>Validation results</li>
 <li>Workflow and task statuses</li>
 <li>Workflow tasks</li>
 <li>Task execution results</li>
 <li>Workflow execution results</li>
 </ul>
-<h2 id="validation-engine">Validation Engine</h2>
-<p>Verifies documentation quality before and after proposed updates.</p>
+<h2 id="validation-service">Validation Service</h2>
+<p>Coordinates deterministic repository validation.</p>
 <p>Responsibilities:</p>
 <ul>
-<li>Validate Markdown.</li>
-<li>Validate documentation consistency.</li>
-<li>Validate links and referenced files.</li>
-<li>Validate MkDocs builds.</li>
-<li>Produce validation reports.</li>
+<li>Coordinate all configured validators.</li>
+<li>Aggregate validator results.</li>
+<li>Preserve validator execution order.</li>
+<li>Isolate validator execution failures.</li>
+<li>Produce immutable Validation Results.</li>
 </ul>
-<p>The Validation Engine is planned for a future implementation phase.</p>
+<p>Implemented validators:</p>
+<ul>
+<li>Markdown Validator</li>
+<li>Link Validator</li>
+<li>MkDocs Validator</li>
+<li>Documentation Consistency Validator</li>
+</ul>
+<p>Validation components communicate through the Validation Interface and exchange immutable Validation Models.</p>
 <h2 id="reasoning-service">Reasoning Service</h2>
 <p>Provides AI reasoning through an abstract provider interface.</p>
 <p>Responsibilities:</p>
@@ -1050,7 +1067,6 @@ intentionally excluded.</p>
 <p>Future versions may introduce:</p>
 <ul>
 <li>Documentation Agent reasoning</li>
-<li>Validation Engine implementation</li>
 <li>User review and approval workflow</li>
 <li>Controlled repository modification</li>
 <li>Final Git diff generation</li>

@@ -754,9 +754,9 @@
 
 
 <h1 id="documentation-agent-functional-specification">Documentation Agent Functional Specification</h1>
-<p><strong>Version:</strong> 0.2<br />
+<p><strong>Version:</strong> 0.3<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-07-31</p>
+<strong>Last Updated:</strong> 2026-08-05</p>
 <hr />
 <h1 id="1-purpose">1. Purpose</h1>
 <h2 id="mission">Mission</h2>
@@ -835,21 +835,25 @@
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>      ↓
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Git Repository Analysis
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>      ↓
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>Documentation Impact Analysis
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>Context Construction
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>      ↓
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Affected Document Identification
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Repository Knowledge Retrieval
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>      ↓
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>File-by-File Update Proposal
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>Documentation Impact Analysis
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>      ↓
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>Preliminary Validation
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>Affected Document Identification
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>      ↓
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>Individual User Review
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>File-by-File Update Proposal
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>      ↓
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>Apply Approved Changes
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>Validation Service
 </span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>      ↓
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>Final Validation
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>Individual User Review
 </span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>      ↓
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>Final Git Diff
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>Apply Approved Changes
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>      ↓
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>Final Validation
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>      ↓
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>Final Git Diff
 </span></code></pre></div>
 <hr />
 <h1 id="8-user-interaction">8. User Interaction</h1>
@@ -865,10 +869,11 @@
 <hr />
 <h1 id="9-validation-requirements">9. Validation Requirements</h1>
 <ul>
-<li>Markdown lint validation</li>
-<li>MkDocs strict-build validation</li>
+<li>Markdown structure validation</li>
 <li>Internal link validation</li>
 <li>Referenced file validation</li>
+<li>MkDocs strict-build validation</li>
+<li>Cross-document consistency validation</li>
 <li>MkDocs navigation validation</li>
 <li>Search for stale names, paths, and terminology</li>
 <li>Verification that only approved files changed</li>
@@ -889,13 +894,11 @@
 <h1 id="11-future-enhancements">11. Future Enhancements</h1>
 <p>Not included in Version 1:</p>
 <ul>
-<li>Dispatcher integration</li>
 <li>Multi-agent collaboration</li>
 <li>Automatic pull requests</li>
 <li>Source code documentation generation</li>
 <li>Scheduled execution</li>
 <li>Semantic repository search</li>
-<li>Incremental documentation indexing</li>
 <li>Automatic change monitoring</li>
 <li>Git commit and pull-request support</li>
 </ul>
