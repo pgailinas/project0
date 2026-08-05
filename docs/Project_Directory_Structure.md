@@ -1,8 +1,8 @@
 # Project Directory Structure
 
-**Version:** 0.2  
+**Version:** 0.3  
 **Owner:** Project0  
-**Last Updated:** 2026-08-04
+**Last Updated:** 2026-08-05
 
 ---
 # Overview
@@ -17,7 +17,7 @@ artifacts, and supporting resources required to develop and maintain the
 Documentation Agent.
 
 The repository serves as the authoritative source for all project
-documentation, implementation, and supporting artifacts.
+documentation, implementation, automated testing, and supporting artifacts.
 
 ---
 # Repository Structure
@@ -35,6 +35,7 @@ project0/
 │   ├── 06_Implementation_Roadmap.md
 │   ├── 07_Implementation_Status.md
 │   ├── 07_Implementation_Status.ods
+│   ├── Testing_Guide.md
 │   ├── images/
 │   ├── assets/
 │   └── javascripts/
@@ -44,15 +45,35 @@ project0/
 │       ├── common/
 │       ├── config/
 │       ├── interfaces/
+│       │   ├── documentation_workflow_interfaces.py
+│       │   └── validation_interfaces.py
 │       ├── knowledge/
 │       ├── models/
+│       │   ├── documentation_workflow_models.py
+│       │   └── validation_models.py
 │       ├── platform/
 │       ├── reasoning/
+│       ├── repository/
+│       │   ├── git_diff_service.py
+│       │   └── repository_update_service.py
 │       ├── validation/
-│       ├── workflow/
-│       └── main.py
+│       │   ├── documentation_consistency_validator.py
+│       │   ├── link_validator.py
+│       │   ├── markdown_validator.py
+│       │   ├── mkdocs_validator.py
+│       │   └── validation_service.py
+│       └── workflow/
+│           ├── documentation_workflow.py
+│           └── review_coordinator.py
 ├── tests/
 │   ├── integration/
+│   │   ├── test_context_builder_flow.py
+│   │   ├── test_core_platform_flow.py
+│   │   ├── test_documentation_workflow_flow.py
+│   │   ├── test_knowledge_service_flow.py
+│   │   ├── test_platform_dispatcher_flow.py
+│   │   ├── test_reasoning_service_flow.py
+│   │   └── test_validation_service_flow.py
 │   └── unit/
 │       ├── common/
 │       ├── config/
@@ -60,6 +81,7 @@ project0/
 │       ├── models/
 │       ├── platform/
 │       ├── reasoning/
+│       ├── repository/
 │       ├── validation/
 │       └── workflow/
 ├── scripts/
@@ -76,8 +98,8 @@ project0/
 | Directory | Purpose |
 |-----------|---------|
 | `docs/` | Project documentation, GitHub Pages source, implementation roadmap, implementation status, supporting assets, and companion spreadsheets. |
-| `src/` | Python implementation of the Documentation Agent organized by architectural component. |
-| `tests/` | Unit, integration, and end-to-end testing. |
+| `src/` | Python implementation of the Project0 platform organized into reusable architectural services, interfaces, workflows, models, validation, repository, and AI components. |
+| `tests/` | Unit and integration tests organized by architectural component and workflow validation. |
 | `scripts/` | Development and automation scripts. |
 | `README.md` | GitHub repository landing page. |
 | `mkdocs.yml` | Material for MkDocs configuration. |

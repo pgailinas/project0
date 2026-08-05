@@ -37,80 +37,55 @@ intentionally excluded.
 
 # 3. Architectural Workflow
 
-The implemented Phase 5 platform provides deterministic repository knowledge, AI reasoning integration, and comprehensive validation services that together form the foundation for future Documentation Agent workflows.
+The implemented Phase 6 platform provides an end-to-end documentation workflow that integrates deterministic repository knowledge, AI reasoning, validation, user review, approved repository updates, and Git diff generation through the Platform Dispatcher.
 
 ```mermaid
 flowchart TD
     A["Application Entry Point<br/><small>main.py</small>"]
-    B["Platform Dispatcher<br/><small>Dispatch Platform Workflow</small>"]
-    C["Workflow Engine<br/><small>Execute Workflow Tasks</small>"]
+    B["Platform Dispatcher"]
+    C["Documentation Workflow"]
 
-    D["Context Builder<br/><small>Build Workflow-Specific Context</small>"]
-    E["Repository Service<br/><small>Discover and Read Files</small>"]
-    F["Context Package<br/><small>Workflow Context</small>"]
+    D["Knowledge Service"]
+    E["Reasoning Service"]
+    F["Validation Service"]
 
-    G["Knowledge Service<br/><small>Repository Knowledge Pipeline</small>"]
-    H["Document Parser"]
-    I["Document Index"]
-    J["Document Selector"]
-    K["Context Formatter"]
-    L["Knowledge Result"]
+    G["Review Coordinator"]
+    H["Repository Update Service"]
+    I["Git Diff Service"]
 
-    M["Workflow Execution Result<br/><small>Task Output and Status</small>"]
-
-    N["Local Repository<br/><small>Authoritative Project Content</small>"]
+    J["Workflow Result"]
 
     A --> B
     B --> C
 
     C --> D
     D --> E
-    E --> N
-    E --> D
-    D --> F
-    F --> C
+    E --> F
+    F --> G
 
-    C --> G
-    G --> H
-    H --> I
+    G -->|Approved| H
+    G -->|Rejected / Skipped| J
+    G -->|Revise| E
+
+    H --> F
+    F --> I
     I --> J
-    J --> K
-    K --> L
-    L --> C
-
-    C --> M
 ```
 
 ## Implemented Runtime Flow
 
 1. `main.py` creates the Platform Dispatcher.
-2. The Platform Dispatcher creates a workflow task.
-3. The Workflow Engine executes the task.
-4. The Context Builder constructs workflow-specific repository context.
-5. The Repository Service discovers and reads repository content.
-6. The Context Builder returns a Context Package.
-7. The Workflow Engine invokes the Knowledge Service when structured repository knowledge is required.
-8. The Knowledge Service parses repository documents.
-9. Parsed documents are indexed.
-10. The Document Selector identifies the most relevant repository documents.
-11. The Context Formatter produces deterministic formatted context.
-12. The Knowledge Service returns a Knowledge Result.
-13. The Workflow Engine invokes the Validation Service when repository validation is requested.
-14. The Validation Service coordinates the configured validators.
-15. Individual validators perform deterministic validation of Markdown structure, links, MkDocs builds, and cross-document consistency.
-16. The Validation Service aggregates validator results into a single Validation Result.
-17. The Workflow Engine returns a Workflow Execution Result.
-
-## Future Documentation Update Workflow
-
-Future phases will extend the implemented platform with user review, approved repository updates, controlled repository modification, final validation, and completion reporting. AI reasoning and deterministic validation services are now implemented platform capabilities.
-
-Each proposed documentation change will support the following review outcomes:
-
-* **Approve** — Apply the proposed change and continue to the next proposed change.
-* **Revise** — Return the proposed change for regeneration and subsequent validation.
-* **Reject** — Discard the proposed change and continue to the next proposed change.
-* **Skip** — Defer the proposed change and continue to the next proposed change.
+2. The Platform Dispatcher dispatches the requested Documentation Workflow.
+3. The Knowledge Service builds structured repository knowledge.
+4. The Reasoning Service generates proposed documentation changes.
+5. The Validation Service validates all proposed documentation changes.
+6. The Review Coordinator processes each proposed change individually.
+7. Approved changes are applied through the Repository Update Service.
+8. Rejected and skipped changes continue without repository modification.
+9. Revised changes return to the Reasoning Service for regeneration.
+10. Approved repository updates undergo final validation.
+11. The Git Diff Service generates a summary of applied repository changes.
+12. The Documentation Workflow returns a structured Documentation Workflow Result.
 
 ---
 
@@ -127,6 +102,8 @@ Responsibilities:
 - Create workflow tasks.
 - Submit tasks to the Workflow Engine.
 - Return structured workflow execution results.
+- Dispatch Documentation Workflows.
+- Assemble Documentation Workflow dependencies.
 
 ## Workflow Engine
 
@@ -269,6 +246,10 @@ Implemented interfaces:
 - Knowledge Interface
 - Validation Interface
 - Validator Interface
+- Documentation Workflow Interface
+- Review Coordinator Interface
+- Repository Update Interface
+- Git Diff Interface
 
 Interfaces allow components to depend on required capabilities rather than concrete implementations.
 
@@ -297,6 +278,12 @@ Implemented model groups:
 - Workflow tasks
 - Task execution results
 - Workflow execution results
+- Documentation workflow requests
+- Documentation workflow results
+- Documentation change proposals
+- Documentation reviews
+- Applied documentation changes
+- Documentation workflow summaries
 
 ## Validation Service
 
@@ -329,7 +316,57 @@ Responsibilities:
 - Generate proposed documentation updates.
 - Explain proposed documentation changes.
 
-The Reasoning Service is planned for a future implementation phase.
+The Reasoning Service is implemented and integrated into the Documentation Workflow through an abstract provider interface.
+
+---
+
+## Review Coordinator
+
+Coordinates user review of individual proposed documentation changes.
+
+Responsibilities:
+
+- Present individual proposed documentation changes.
+- Process Approve, Revise, Reject, and Skip decisions.
+- Return immutable review results.
+
+---
+
+## Repository Update Service
+
+Applies approved documentation changes.
+
+Responsibilities:
+
+- Apply approved Markdown updates.
+- Preserve repository integrity.
+- Report update results.
+- Produce immutable application results.
+
+---
+
+## Git Diff Service
+
+Produces Git-based summaries of approved repository changes.
+
+Responsibilities:
+
+- Generate repository diffs.
+- Restrict diffs to affected files.
+- Report Git execution failures.
+- Preserve deterministic output.
+
+---
+
+## Documentation Workflow
+
+Coordinates the complete Documentation Agent execution pipeline.
+
+Responsibilities:
+
+- Coordinate Knowledge, Reasoning, Validation, Review, Repository Update, and Git Diff services.
+- Preserve workflow state.
+- Produce immutable Documentation Workflow Results.
 
 ---
 
@@ -369,9 +406,6 @@ The Documentation Agent interacts with:
 Future versions may introduce:
 
 - Documentation Agent reasoning
-- User review and approval workflow
-- Controlled repository modification
-- Final Git diff generation
 - Multi-agent collaboration
 - Repository event monitoring
 - Semantic document retrieval

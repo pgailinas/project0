@@ -24,7 +24,16 @@ LOGGER = logging.getLogger(__name__)
 
 
 def main() -> int:
-    """Initialize Project0 and execute a platform context workflow."""
+    """Initialize Project0 and execute the startup platform workflow.
+
+    The Platform Dispatcher now supports both:
+
+    * Startup context workflows
+    * Documentation workflows (when configured)
+
+    Startup continues to execute only the context workflow. Future
+    command-line options will select additional workflows.
+    """
 
     configure_logging()
 
@@ -33,6 +42,10 @@ def main() -> int:
     try:
         dispatcher = create_platform_dispatcher()
 
+        #
+        # Phase 6:
+        # Execute the startup context workflow.
+        #
         workflow_result = dispatcher.run_context_workflow(
             context_id="project0-startup-context",
             workflow_type=(
@@ -40,6 +53,16 @@ def main() -> int:
             ),
             workflow_name="Project0 Startup Context",
         )
+
+        #
+        # Future:
+        #
+        # dispatcher.run_documentation_workflow(...)
+        #
+        # Command-line arguments (or another entry point) will
+        # determine which platform workflow is executed.
+        #
+
     except StartupValidationError as exc:
         LOGGER.error("Project0 startup validation failed: %s", exc)
         return 1

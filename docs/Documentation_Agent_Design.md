@@ -58,7 +58,7 @@ The Context Builder assembles workflow-specific repository context for determini
 
 The Knowledge Service provides deterministic repository knowledge retrieval. It coordinates repository document parsing, indexing, document selection, and context formatting while preserving structured warnings and metadata.
 
-The Validation Service is now an implemented platform component that coordinates deterministic repository validation. The Reasoning Service remains planned for a future implementation phase.
+The Validation Service, Reasoning Service, Review Coordinator, Repository Update Service, Git Diff Service, and Documentation Workflow are implemented platform components. Together they provide an end-to-end documentation update workflow coordinated through the Platform Dispatcher.
 
 ---
 
@@ -77,6 +77,8 @@ Provide the platform-level entry point for assembling services and dispatching w
 * Create workflow tasks.
 * Dispatch tasks to the Workflow Engine.
 * Return structured workflow execution results.
+* Assemble the Documentation Workflow.
+* Dispatch Documentation Workflows.
 
 ### Interfaces
 
@@ -84,6 +86,7 @@ Provide the platform-level entry point for assembling services and dispatching w
 
 * Create default platform dispatcher.
 * Run context workflow.
+* Run documentation workflow.
 
 #### Consumes
 
@@ -98,8 +101,9 @@ Provide the platform-level entry point for assembling services and dispatching w
 * Coordinates platform services without implementing their internal behavior.
 * Depends on typed interfaces for injected services.
 * Uses concrete implementations only in the default factory.
-* Current workflows are read-only.
-* Does not perform reasoning, validation, review, or repository modification.
+* Startup workflows remain read-only.
+* Documentation workflows coordinate reasoning, validation, review, repository updates, and Git diff generation through dedicated services.
+* Does not implement component behavior directly.
 
 ### Inputs
 
@@ -107,10 +111,12 @@ Provide the platform-level entry point for assembling services and dispatching w
 * Context workflow type
 * Optional workflow name
 * Optional workflow identifier
+* Documentation workflow request
 
 ### Outputs
 
 * Workflow Execution Result
+* Documentation Workflow Result
 
 ### Required Services
 
@@ -121,8 +127,7 @@ Provide the platform-level entry point for assembling services and dispatching w
 
 ### Future Considerations
 
-* Documentation Agent dispatch
-* User review workflow dispatch
+* Additional workflow dispatch
 * Additional agent and service routing
 * Multi-agent workflow coordination
 
@@ -254,9 +259,7 @@ Provide deterministic, read-only access to repository content.
 
 ### Future Considerations
 
-* Controlled repository writes
 * Git status inspection
-* Git diff generation
 * Additional version-control systems
 
 ---
@@ -616,6 +619,10 @@ Define stable public contracts between Project0 components.
 * Knowledge Interface
 * Validation Interface
 * Validator Interface
+* Documentation Workflow Interface
+* Review Coordinator Interface
+* Repository Update Interface
+* Git Diff Interface
 
 ### Design Notes
 
@@ -666,6 +673,16 @@ Define immutable information exchanged between Project0 components.
 * Workflow Task
 * Task Execution Result
 * Workflow Execution Result
+
+### Documentation Workflow Models
+
+* Documentation Workflow Request
+* Documentation Workflow Result
+* Documentation Workflow Status
+* Documentation Workflow Summary
+* Documentation Change Proposal
+* Documentation Review
+* Applied Documentation Change
 
 ### Design Notes
 
@@ -788,6 +805,7 @@ Perform AI-assisted documentation reasoning.
 ### Required Services
 
 - Knowledge Service
+- AI Reasoning Provider
 
 ### External Dependencies
 
@@ -795,14 +813,78 @@ Perform AI-assisted documentation reasoning.
 
 ### Implementation Status
 
-Planned for a future implementation phase.
+Implemented in Phase 4 and integrated into the Documentation Workflow in Phase 6.
 
 ### Future Considerations
 
 - Multiple reasoning providers
 - Model routing
-- Structured reasoning requests and results
 - Context-size management
+
+---
+
+## Review Coordinator
+
+### Purpose
+
+Coordinate user review of individual documentation changes.
+
+### Responsibilities
+
+* Process Approve, Revise, Reject, and Skip decisions.
+* Produce immutable review results.
+
+### Interfaces
+
+#### Provides
+
+* Review documentation proposal.
+
+#### Consumes
+
+* Documentation Workflow models.
+
+---
+
+## Repository Update Service
+
+### Purpose
+
+Apply approved documentation changes.
+
+### Responsibilities
+
+* Apply approved Markdown updates.
+* Preserve repository integrity.
+* Return immutable application results.
+
+---
+
+## Git Diff Service
+
+### Purpose
+
+Generate Git diffs for approved documentation updates.
+
+### Responsibilities
+
+* Generate repository diffs.
+* Restrict output to modified files.
+* Report Git execution failures.
+
+---
+
+## Documentation Workflow
+
+### Purpose
+
+Coordinate the complete Documentation Agent execution pipeline.
+
+### Responsibilities
+
+* Coordinate Knowledge, Reasoning, Validation, Review, Repository Update, and Git Diff services.
+* Preserve workflow state.
+* Produce immutable Documentation Workflow Results.
 
 ---
 
@@ -846,7 +928,7 @@ The implemented context workflow follows this sequence:
 19. The Validation Service aggregates Validator Results into a Validation Result.
 20. The Workflow Engine returns a Workflow Execution Result.
 
-Future phases will extend this interaction model with AI reasoning, individual change review, approved repository modification, final validation after documentation updates, and controlled repository write operations.
+The Documentation Workflow extends this interaction model by coordinating the Knowledge Service, Reasoning Service, Validation Service, Review Coordinator, Repository Update Service, and Git Diff Service into a complete documentation update pipeline.
 
 ---
 
@@ -860,9 +942,11 @@ Future phases will extend this interaction model with AI reasoning, individual c
 * Use shared immutable models for component communication.
 * Depend on interfaces rather than concrete implementations where practical.
 * Preserve deterministic ordering of selected repository content.
-* Keep current repository operations read-only.
-* Preserve human approval before future documentation changes are applied.
-* Process future proposed documentation changes individually through the review workflow.
+* Repository discovery remains read-only.
+* Documentation modifications shall occur only through the Repository Update Service.
+* Human approval is required before documentation changes are applied.
+* Proposed documentation changes shall be processed individually through the review workflow.
+* Approved documentation changes shall undergo final validation before completion.
 
 ---
 

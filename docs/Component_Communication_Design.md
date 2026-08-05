@@ -26,16 +26,16 @@ This document applies to the following implemented components:
 * Shared Context Models
 * Shared Workflow Models
 
-It also provides the communication foundation for these planned components:
+It also includes the following implemented components:
 
 * Reasoning Service
-* Documentation Agent
-* User Review
-* Future AI agents
-
-The following component is now implemented:
-
 * Validation Service
+* Review Coordinator
+* Repository Update Service
+* Git Diff Service
+* Documentation Workflow
+
+The communication architecture provides the foundation for future AI agents.
 
 ## 3. Design Objectives
 
@@ -47,7 +47,7 @@ The communication architecture shall:
 * Maximize reuse across future AI agents.
 * Provide workflow and task traceability.
 * Preserve deterministic behavior where AI reasoning is not required.
-* Support human approval before future repository changes are applied.
+* Support human approval before repository changes are applied.
 * Allow future distributed and asynchronous execution.
 
 ## 4. Communication Principles
@@ -58,8 +58,8 @@ The communication architecture shall:
 4. Shared data models are the authoritative communication objects.
 5. Components do not directly access another component's internal state.
 6. The Context Builder coordinates context selection through the Context Rule Registry, Context Filter, and Repository Interface.
-7. Current repository communication is read-only.
-8. Repository modifications shall occur only after successful validation and explicit user approval.
+7. Repository discovery operations are read-only.
+8. Repository modifications shall occur only through the Repository Update Service after successful validation and explicit user approval.
 9. Significant workflow and task state changes may generate events.
 10. Components shall not bypass the Workflow Engine for workflow execution control.
 
@@ -94,59 +94,55 @@ Implemented events:
 * `TaskCompleted`
 * `TaskFailed`
 
-Validation processing is now implemented through the Validation Service. Validation lifecycle events remain planned for a future phase together with artifact and approval events.
+Validation processing is implemented through the Validation Service. Documentation review, repository updates, and Git diff generation are implemented through the Documentation Workflow. Validation lifecycle events and audit events remain future enhancements.
 
 ## 6. Implemented Communication Flow
 
 ```mermaid
 flowchart TD
     A["Application Entry Point<br/><small>main.py</small>"]
-    B["Platform Dispatcher<br/><small>Dispatch Context Workflow</small>"]
-    C["Workflow Engine<br/><small>Execute Workflow Task</small>"]
-    D["Context Builder<br/><small>Assemble Context Package</small>"]
-    E["Context Rule Registry<br/><small>Resolve Workflow Rule</small>"]
-    F["Context Filter<br/><small>Select Repository Files</small>"]
-    G["Repository Service<br/><small>Discover and Read Files</small>"]
-    H["Local Repository<br/><small>Authoritative Content</small>"]
-    I["Context Package"]
-    J["Task Execution Result"]
-    K["Workflow Execution Result"]
+    B["Platform Dispatcher"]
+    C["Documentation Workflow"]
+
+    D["Knowledge Service"]
+    E["Reasoning Service"]
+    F["Validation Service"]
+    G["Review Coordinator"]
+    H["Repository Update Service"]
+    I["Git Diff Service"]
+    J["Documentation Workflow Result"]
 
     A --> B
     B --> C
     C --> D
     D --> E
-    E --> D
-    D --> F
-    F --> D
-    D --> G
-    G --> H
-    G --> D
-    D --> I
+    E --> F
+    F --> G
+
+    G -->|Approve| H
+    G -->|Reject / Skip| J
+    G -->|Revise| E
+
+    H --> F
+    F --> I
     I --> J
-    J --> K
-    K --> B
 ```
 
 The implemented sequence is:
 
 1. `main.py` creates the Platform Dispatcher.
-2. The Platform Dispatcher creates a Workflow Task.
-3. The Platform Dispatcher submits the task to the Workflow Engine.
-4. The Workflow Engine begins workflow and task execution.
-5. The task invokes the Context Builder through the Context Builder Interface.
-6. The Context Builder requests criteria from the Context Rule Registry.
-7. The Context Rule Registry returns workflow-specific Context Filter criteria.
-8. The Context Filter selects eligible repository files.
-9. The Context Builder requests selected files through the Repository Interface.
-10. The Repository Service returns structured file results.
-11. The Context Builder produces a Context Package.
-12. The Workflow Engine invokes the Knowledge Service when structured repository knowledge is required.
-13. The Knowledge Service parses, indexes, selects, and formats repository documentation.
-14. The Workflow Engine invokes the Validation Service when validation is requested.
-15. The Validation Service coordinates the configured validators.
-16. Validator Results are aggregated into a Validation Result.
-17. The Workflow Engine returns Task and Workflow Execution Results.
+2. The Platform Dispatcher dispatches the Documentation Workflow.
+3. The Documentation Workflow requests repository knowledge from the Knowledge Service.
+4. The Knowledge Service returns structured repository context.
+5. The Reasoning Service generates proposed documentation changes.
+6. The Validation Service validates proposed documentation changes.
+7. The Review Coordinator processes each proposal individually.
+8. Approved changes are applied by the Repository Update Service.
+9. Revised changes return to the Reasoning Service.
+10. Rejected and skipped changes continue without repository modification.
+11. Approved repository updates undergo final validation.
+12. The Git Diff Service generates a repository diff.
+13. The Documentation Workflow returns a Documentation Workflow Result.
 
 ## 7. Platform Responsibilities
 
@@ -158,6 +154,8 @@ The implemented sequence is:
 * Preserve supplied workflow identifiers or generate new identifiers.
 * Return Workflow Execution Results.
 * Avoid implementing repository, context, or workflow behavior directly.
+* Dispatch Documentation Workflows.
+* Return Documentation Workflow Results.
 
 ### Workflow Engine
 
@@ -210,10 +208,33 @@ The implemented sequence is:
 * Isolate validator execution failures.
 * Support dependency injection for validator implementations.
 
+## Review Coordinator
+
+* Coordinate user review.
+* Process Approve, Revise, Reject, and Skip decisions.
+* Produce immutable review results.
+
+## Repository Update Service
+
+* Apply approved documentation changes.
+* Preserve repository integrity.
+* Produce immutable application results.
+
+## Git Diff Service
+
+* Generate Git diffs for approved repository updates.
+* Restrict diffs to modified files.
+* Report Git execution failures.
+
+## Documentation Workflow
+
+* Coordinate Knowledge, Reasoning, Validation, Review, Repository Update, and Git Diff services.
+* Return immutable Documentation Workflow Results.
+
 ### Shared Interfaces
 
 * Define stable component contracts.
-* Include Repository, Workflow, Context Builder, Knowledge, Validation, and Validator interfaces.
+* Include Repository, Workflow, Context Builder, Knowledge, Validation, Validator, Documentation Workflow, Review Coordinator, Repository Update, and Git Diff interfaces.
 * Allow structural conformance without explicit inheritance.
 * Support dependency injection and isolated testing.
 * Allow alternate implementations without changing consumers.
@@ -222,18 +243,17 @@ The implemented sequence is:
 
 * Define immutable communication objects.
 * Provide shared workflow and task statuses.
-* Provide Context Packages, Knowledge Results, Validation Results, Validator Results, and Workflow Execution Results.
+* Provide Context Packages, Knowledge Results, Validation Results, Validator Results, Workflow Execution Results, Documentation Workflow Results, Documentation Reviews, Documentation Change Proposals, and Applied Documentation Changes.
 * Preserve identifiers, timestamps, outputs, warnings, and errors.
 
 ### Planned Components
 
 The following responsibilities remain planned:
 
-* AI-assisted reasoning
-* User review and approval
-* Controlled repository modification
-* Git diff and commit generation
 * Dashboard and audit storage
+* Persistent workflow history
+* Distributed communication
+* Additional AI agents
 
 ## 8. Communication Contracts
 
@@ -339,7 +359,7 @@ Persistent audit storage is not part of the current implementation.
 
 ## 12. Initial Implementation
 
-The implemented Phase 5 communication foundation uses:
+The implemented Phase 6 communication foundation uses:
 
 * Python structural `Protocol` interfaces
 * Python immutable dataclasses
@@ -349,6 +369,9 @@ The implemented Phase 5 communication foundation uses:
 * Structured application logging
 * Repository-relative file access
 * pytest unit and integration testing
+* End-to-end Documentation Workflow orchestration
+* Repository update coordination
+* Git diff generation
 
 The current implementation does not yet use:
 
@@ -362,12 +385,7 @@ The current implementation does not yet use:
 
 The communication architecture is designed to support future enhancements including:
 
-* Documentation Agent execution
-* Reasoning Service integration
 * Additional validation services
-* Human review and approval
-* Controlled repository writes
-* Git diff and commit operations
 * Persistent workflow state
 * Persistent audit storage
 * Distributed agents
@@ -395,19 +413,20 @@ Communication payloads shall conform to the shared models defined in the compani
 
 ## 15. Implementation Status
 
-The Phase 5 communication foundation has been implemented and validated through unit and integration testing.
+The Phase 6 communication architecture has been implemented and validated through comprehensive unit and integration testing.
 
 The validated end-to-end communication flow includes:
 
 1. Platform Dispatcher
 2. Workflow Engine
-3. Context Builder
-4. Context Rule Registry
-5. Context Filter
-6. Repository Service
-7. Knowledge Service
-8. Validation Service
-9. Workflow Execution Results
+3. Knowledge Service
+4. Reasoning Service
+5. Validation Service
+6. Review Coordinator
+7. Repository Update Service
+8. Git Diff Service
+9. Documentation Workflow
+10. Documentation Workflow Results
 
 The implemented Validation Service coordinates:
 
@@ -416,6 +435,6 @@ The implemented Validation Service coordinates:
 * MkDocs Validator
 * Documentation Consistency Validator
 
-The next implementation phase will extend this communication foundation with AI reasoning, user review, controlled repository modification, and additional workflow capabilities.
+The next implementation phase will extend this communication foundation with semantic retrieval, embedding generation, vector search, and additional AI agent capabilities.
 
 
