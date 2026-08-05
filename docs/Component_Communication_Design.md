@@ -1,8 +1,8 @@
 # Component Communication Design
 
-**Version:** 0.2  
+**Version:** 0.3  
 **Owner:** Project0  
-**Last Updated:** 2026-08-04  
+**Last Updated:** 2026-08-05  
 
 ---
 
@@ -28,11 +28,14 @@ This document applies to the following implemented components:
 
 It also provides the communication foundation for these planned components:
 
-* Validation Engine
 * Reasoning Service
 * Documentation Agent
 * User Review
 * Future AI agents
+
+The following component is now implemented:
+
+* Validation Service
 
 ## 3. Design Objectives
 
@@ -56,7 +59,7 @@ The communication architecture shall:
 5. Components do not directly access another component's internal state.
 6. The Context Builder coordinates context selection through the Context Rule Registry, Context Filter, and Repository Interface.
 7. Current repository communication is read-only.
-8. Future repository writes shall occur only after validation and approval.
+8. Repository modifications shall occur only after successful validation and explicit user approval.
 9. Significant workflow and task state changes may generate events.
 10. Components shall not bypass the Workflow Engine for workflow execution control.
 
@@ -91,7 +94,7 @@ Implemented events:
 * `TaskCompleted`
 * `TaskFailed`
 
-Additional validation, artifact, and approval events are planned for future phases.
+Validation processing is now implemented through the Validation Service. Validation lifecycle events remain planned for a future phase together with artifact and approval events.
 
 ## 6. Implemented Communication Flow
 
@@ -138,7 +141,12 @@ The implemented sequence is:
 9. The Context Builder requests selected files through the Repository Interface.
 10. The Repository Service returns structured file results.
 11. The Context Builder produces a Context Package.
-12. The Workflow Engine returns Task and Workflow Execution Results.
+12. The Workflow Engine invokes the Knowledge Service when structured repository knowledge is required.
+13. The Knowledge Service parses, indexes, selects, and formats repository documentation.
+14. The Workflow Engine invokes the Validation Service when validation is requested.
+15. The Validation Service coordinates the configured validators.
+16. Validator Results are aggregated into a Validation Result.
+17. The Workflow Engine returns Task and Workflow Execution Results.
 
 ## 7. Platform Responsibilities
 
@@ -193,9 +201,19 @@ The implemented sequence is:
 * Prevent access outside the repository root.
 * Return structured repository results and errors.
 
+## Validation Service
+
+* Coordinate configured validators.
+* Execute validators through the Validation Interface.
+* Aggregate Validator Results.
+* Return immutable Validation Results.
+* Isolate validator execution failures.
+* Support dependency injection for validator implementations.
+
 ### Shared Interfaces
 
 * Define stable component contracts.
+* Include Repository, Workflow, Context Builder, Knowledge, Validation, and Validator interfaces.
 * Allow structural conformance without explicit inheritance.
 * Support dependency injection and isolated testing.
 * Allow alternate implementations without changing consumers.
@@ -204,7 +222,7 @@ The implemented sequence is:
 
 * Define immutable communication objects.
 * Provide shared workflow and task statuses.
-* Provide Context Packages and Workflow Execution Results.
+* Provide Context Packages, Knowledge Results, Validation Results, Validator Results, and Workflow Execution Results.
 * Preserve identifiers, timestamps, outputs, warnings, and errors.
 
 ### Planned Components
@@ -212,7 +230,6 @@ The implemented sequence is:
 The following responsibilities remain planned:
 
 * AI-assisted reasoning
-* Validation of proposed updates
 * User review and approval
 * Controlled repository modification
 * Git diff and commit generation
@@ -246,7 +263,7 @@ Implemented communication objects include:
 * Batch file results
 * Structured repository errors
 
-Additional validation, approval, artifact, and agent communication objects remain defined or planned in **Shared_Data_Models_and_Error_Contracts.md**.
+Implemented validation communication objects include Validation Requests, Validation Results, Validator Results, Validation Issues, Validation Status, and Validation Severity. Additional approval, artifact, and agent communication objects remain planned in **Shared_Data_Models_and_Error_Contracts.md**.
 
 ## 9. Event Categories
 
@@ -262,7 +279,7 @@ Additional validation, approval, artifact, and agent communication objects remai
 * `TaskCompleted`
 * `TaskFailed`
 
-### Planned Validation Events
+### Future Validation Events
 
 * `ValidationStarted`
 * `ValidationCompleted`
@@ -322,7 +339,7 @@ Persistent audit storage is not part of the current implementation.
 
 ## 12. Initial Implementation
 
-The implemented Phase 2 communication foundation uses:
+The implemented Phase 5 communication foundation uses:
 
 * Python structural `Protocol` interfaces
 * Python immutable dataclasses
@@ -347,7 +364,7 @@ The communication architecture is designed to support future enhancements includ
 
 * Documentation Agent execution
 * Reasoning Service integration
-* Validation Engine integration
+* Additional validation services
 * Human review and approval
 * Controlled repository writes
 * Git diff and commit operations
@@ -378,21 +395,27 @@ Communication payloads shall conform to the shared models defined in the compani
 
 ## 15. Implementation Status
 
-The Phase 2 communication foundation has been implemented and validated through unit and integration testing.
+The Phase 5 communication foundation has been implemented and validated through unit and integration testing.
 
-The validated end-to-end flow includes:
+The validated end-to-end communication flow includes:
 
-1. Create the Platform Dispatcher.
-2. Validate Project0 startup.
-3. Create a context Workflow Task.
-4. Execute the task through the Workflow Engine.
-5. Build workflow-specific repository context.
-6. Resolve Context Rules.
-7. Apply deterministic Context Filters.
-8. Read real repository documentation.
-9. Return a Context Package.
-10. Return Task and Workflow Execution Results.
+1. Platform Dispatcher
+2. Workflow Engine
+3. Context Builder
+4. Context Rule Registry
+5. Context Filter
+6. Repository Service
+7. Knowledge Service
+8. Validation Service
+9. Workflow Execution Results
 
-The next implementation phase will extend this communication foundation with AI reasoning, validation, user review, and controlled repository modification.
+The implemented Validation Service coordinates:
+
+* Markdown Validator
+* Link Validator
+* MkDocs Validator
+* Documentation Consistency Validator
+
+The next implementation phase will extend this communication foundation with AI reasoning, user review, controlled repository modification, and additional workflow capabilities.
 
 

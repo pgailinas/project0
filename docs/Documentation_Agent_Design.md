@@ -58,7 +58,7 @@ The Context Builder assembles workflow-specific repository context for determini
 
 The Knowledge Service provides deterministic repository knowledge retrieval. It coordinates repository document parsing, indexing, document selection, and context formatting while preserving structured warnings and metadata.
 
-The Validation Engine and Reasoning Service remain planned components for future implementation phases.
+The Validation Service is now an implemented platform component that coordinates deterministic repository validation. The Reasoning Service remains planned for a future implementation phase.
 
 ---
 
@@ -122,9 +122,9 @@ Provide the platform-level entry point for assembling services and dispatching w
 ### Future Considerations
 
 * Documentation Agent dispatch
-* Validation workflow dispatch
 * User review workflow dispatch
 * Additional agent and service routing
+* Multi-agent workflow coordination
 
 ---
 
@@ -614,6 +614,8 @@ Define stable public contracts between Project0 components.
 * Workflow Event Publisher Interface
 * Context Builder Interface
 * Knowledge Interface
+* Validation Interface
+* Validator Interface
 
 ### Design Notes
 
@@ -648,6 +650,15 @@ Define immutable information exchanged between Project0 components.
 * Document Selection
 * Knowledge Result
 
+### Validation Models
+
+* Validation Request
+* Validation Issue
+* Validator Result
+* Validation Result
+* Validation Status
+* Validation Severity
+
 ### Workflow Models
 
 * Workflow Status
@@ -666,65 +677,68 @@ Define immutable information exchanged between Project0 components.
 
 ---
 
-## Validation Engine
+## Validation Service
 
 ### Purpose
 
-Verify documentation quality before and after approved documentation changes.
+Coordinate deterministic repository validation through independently testable validators.
 
 ### Responsibilities
 
-- Validate Markdown.
-- Validate documentation consistency.
-- Validate MkDocs build.
-- Produce validation reports.
+* Coordinate configured validators.
+* Aggregate validator results.
+* Preserve validator execution order.
+* Isolate validator execution failures.
+* Return immutable Validation Results.
 
 ### Interfaces
 
 #### Provides
 
-- Validate proposed documentation updates.
-- Validate applied documentation changes.
-- Produce validation reports.
+* Execute repository validation.
+* Aggregate validator results.
+* Return Validation Results.
 
 #### Consumes
 
-- Proposed documentation updates.
-- Applied documentation changes.
-- Documentation standards.
+* Validation Interface.
+* Validator Interface.
+* Validation models.
 
 ### Design Notes
 
-- Performs deterministic validation whenever practical.
-- Reports validation failures without modifying content.
-- Supports validation before and after approved changes are applied.
-- Returns structured validation results to the Workflow Engine.
+* Coordinates validation components without implementing validation logic.
+* Uses dependency injection for configured validators.
+* Continues validation even if an individual validator fails unexpectedly.
+* Returns immutable Validation Results and Validator Results.
+* Supports future validator expansion without modifying service logic.
 
 ### Inputs
 
-- Proposed documentation updates
-- Applied documentation changes
+* Validation Request
 
 ### Outputs
 
-- Validation reports
-- Validation results
+* Validation Result
 
-### External Dependencies
+### Required Services
 
-- Markdown validation tools
-- MkDocs
+* Markdown Validator
+* Link Validator
+* MkDocs Validator
+* Documentation Consistency Validator
 
 ### Implementation Status
 
-Planned for a future implementation phase.
+Implemented in Phase 5.
 
 ### Future Considerations
 
-- Additional validation services
-- Structured validation models
-- Validation interface
-- Automated Markdown and MkDocs validation
+* Semantic Validator
+* Repository Structure Validator
+* Git Validator
+* Style Guide Validator
+* Additional deterministic validators
 
 ---
 
@@ -826,9 +840,13 @@ The implemented context workflow follows this sequence:
 13. The Document Selector identifies the relevant repository documents.
 14. The Context Formatter produces deterministic repository context.
 15. The Knowledge Service returns a Knowledge Result.
-16. The Workflow Engine returns a Workflow Execution Result.
+16. The Workflow Engine invokes the Validation Service when repository validation is requested.
+17. The Validation Service coordinates the configured validators.
+18. Individual validators perform deterministic validation.
+19. The Validation Service aggregates Validator Results into a Validation Result.
+20. The Workflow Engine returns a Workflow Execution Result.
 
-Future phases will extend this interaction model with reasoning, validation, individual change review, approved repository modification, and final validation.
+Future phases will extend this interaction model with AI reasoning, individual change review, approved repository modification, final validation after documentation updates, and controlled repository write operations.
 
 ---
 

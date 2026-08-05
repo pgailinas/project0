@@ -1,8 +1,8 @@
 # Documentation Agent Functional Specification
 
-**Version:** 0.2  
+**Version:** 0.3  
 **Owner:** Project0  
-**Last Updated:** 2026-07-31
+**Last Updated:** 2026-08-05
 
 ------------------------------------------------------------------------
 
@@ -98,13 +98,17 @@ User Request
       ↓
 Git Repository Analysis
       ↓
+Context Construction
+      ↓
+Repository Knowledge Retrieval
+      ↓
 Documentation Impact Analysis
       ↓
 Affected Document Identification
       ↓
 File-by-File Update Proposal
       ↓
-Preliminary Validation
+Validation Service
       ↓
 Individual User Review
       ↓
@@ -133,10 +137,11 @@ The agent shall not apply a proposed file change until that file has been indivi
 
 # 9. Validation Requirements
 
-- Markdown lint validation
-- MkDocs strict-build validation
+- Markdown structure validation
 - Internal link validation
 - Referenced file validation
+- MkDocs strict-build validation
+- Cross-document consistency validation
 - MkDocs navigation validation
 - Search for stale names, paths, and terminology
 - Verification that only approved files changed
@@ -161,12 +166,10 @@ The Documentation Agent is successful when it:
 
 Not included in Version 1:
 
-- Dispatcher integration
 - Multi-agent collaboration
 - Automatic pull requests
 - Source code documentation generation
 - Scheduled execution
 - Semantic repository search
-- Incremental documentation indexing
 - Automatic change monitoring
 - Git commit and pull-request support

@@ -37,7 +37,7 @@ intentionally excluded.
 
 # 3. Architectural Workflow
 
-The implemented Phase 3 platform provides the deterministic repository knowledge foundation for future Documentation Agent workflows.
+The implemented Phase 5 platform provides deterministic repository knowledge, AI reasoning integration, and comprehensive validation services that together form the foundation for future Documentation Agent workflows.
 
 ```mermaid
 flowchart TD
@@ -95,11 +95,15 @@ flowchart TD
 10. The Document Selector identifies the most relevant repository documents.
 11. The Context Formatter produces deterministic formatted context.
 12. The Knowledge Service returns a Knowledge Result.
-13. The Workflow Engine returns a Workflow Execution Result.
+13. The Workflow Engine invokes the Validation Service when repository validation is requested.
+14. The Validation Service coordinates the configured validators.
+15. Individual validators perform deterministic validation of Markdown structure, links, MkDocs builds, and cross-document consistency.
+16. The Validation Service aggregates validator results into a single Validation Result.
+17. The Workflow Engine returns a Workflow Execution Result.
 
 ## Future Documentation Update Workflow
 
-Future phases will extend the implemented platform with AI reasoning, validation, individual change review, approved repository updates, final validation, and completion reporting.
+Future phases will extend the implemented platform with user review, approved repository updates, controlled repository modification, final validation, and completion reporting. AI reasoning and deterministic validation services are now implemented platform capabilities.
 
 Each proposed documentation change will support the following review outcomes:
 
@@ -263,6 +267,8 @@ Implemented interfaces:
 - Workflow Event Publisher Interface
 - Context Builder Interface
 - Knowledge Interface
+- Validation Interface
+- Validator Interface
 
 Interfaces allow components to depend on required capabilities rather than concrete implementations.
 
@@ -283,24 +289,35 @@ Implemented model groups:
 - Document selections
 - Document references
 - Knowledge results
+- Validation requests
+- Validation issues
+- Validator results
+- Validation results
 - Workflow and task statuses
 - Workflow tasks
 - Task execution results
 - Workflow execution results
 
-## Validation Engine
+## Validation Service
 
-Verifies documentation quality before and after proposed updates.
+Coordinates deterministic repository validation.
 
 Responsibilities:
 
-- Validate Markdown.
-- Validate documentation consistency.
-- Validate links and referenced files.
-- Validate MkDocs builds.
-- Produce validation reports.
+- Coordinate all configured validators.
+- Aggregate validator results.
+- Preserve validator execution order.
+- Isolate validator execution failures.
+- Produce immutable Validation Results.
 
-The Validation Engine is planned for a future implementation phase.
+Implemented validators:
+
+- Markdown Validator
+- Link Validator
+- MkDocs Validator
+- Documentation Consistency Validator
+
+Validation components communicate through the Validation Interface and exchange immutable Validation Models.
 
 ## Reasoning Service
 
@@ -352,7 +369,6 @@ The Documentation Agent interacts with:
 Future versions may introduce:
 
 - Documentation Agent reasoning
-- Validation Engine implementation
 - User review and approval workflow
 - Controlled repository modification
 - Final Git diff generation
