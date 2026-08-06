@@ -31,6 +31,47 @@ def create_dashboard_router(
         directory=templates_directory
     )
 
+    agents = (
+        {
+            "identifier": "documentation",
+            "name": "Documentation Agent",
+            "available": False,
+        },
+        {
+            "identifier": "research",
+            "name": "Research Agent",
+            "available": False,
+        },
+    )
+
+    def build_dashboard_context(
+        request: Request,
+        active_page: str,
+    ) -> dict[str, object]:
+        """Build shared context for Dashboard Framework pages."""
+
+        return {
+            "request": request,
+            "project_name": "Project0",
+            "repository_name": "project0",
+            "project_root": project_root,
+            "documentation_url": "/documentation",
+            "active_page": active_page,
+            "git_branch": "Unknown",
+            "git_status": "Unavailable",
+            "git_status_class": "status-value--muted",
+            "current_phase": "Phase 7 – Dashboard Framework",
+            "documentation_count": "Unknown",
+            "test_status": "All tests passing",
+            "test_status_class": "status-value--success",
+            "validation_status": "Not run",
+            "validation_status_class": "status-value--muted",
+            "llm_status": "Not configured",
+            "workflow_status": "Idle",
+            "platform_version": "0.1.0",
+            "agents": agents,
+        }
+
     @router.get(
         "/",
         response_class=HTMLResponse,
@@ -41,28 +82,15 @@ def create_dashboard_router(
     ) -> HTMLResponse:
         """Render the Project0 Dashboard home page."""
 
-        context = {
-            "request": request,
-            "project_name": "Project0",
-            "project_root": project_root,
-            "documentation_url": "/documentation",
-            "agents": (
-                {
-                    "identifier": "documentation",
-                    "name": "Documentation Agent",
-                    "available": False,
-                },
-                {
-                    "identifier": "research",
-                    "name": "Research Agent",
-                    "available": False,
-                },
-            ),
-        }
+        context = build_dashboard_context(
+            request=request,
+            active_page="dashboard",
+        )
+        context["recent_activity"] = ()
 
         return templates.TemplateResponse(
             request=request,
-            name="dashboard.html",
+            name="dashboard_home.html",
             context=context,
         )
 
@@ -101,12 +129,16 @@ def create_dashboard_router(
             normalized_identifier.replace("-", " ").title(),
         )
 
-        context = {
-            "request": request,
-            "project_name": "Project0",
-            "agent_identifier": normalized_identifier,
-            "agent_name": agent_name,
-        }
+        context = build_dashboard_context(
+            request=request,
+            active_page=f"agent:{normalized_identifier}",
+        )
+        context.update(
+            {
+                "agent_identifier": normalized_identifier,
+                "agent_name": agent_name,
+            }
+        )
 
         return templates.TemplateResponse(
             request=request,

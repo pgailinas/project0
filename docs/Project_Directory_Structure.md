@@ -50,8 +50,8 @@ project0/
 │       │   ├── dashboard_app.py
 │       │   └── dashboard_routes.py
 │       │   └── templates/
-│       │       ├── base.html
-│       │       └── dashboard.html
+│       │       ├── dashboard.html
+│       │       └── dashboard_home.html
 │       ├── interfaces/
 │       │   ├── documentation_workflow_interfaces.py
 │       │   └── validation_interfaces.py

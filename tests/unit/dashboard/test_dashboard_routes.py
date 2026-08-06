@@ -34,27 +34,61 @@ def _create_test_client(
     (
         templates_directory / "dashboard.html"
     ).write_text(
-        (
-            "<html><body>"
-            "<h1>{{ project_name }}</h1>"
-            "<p>{{ project_root }}</p>"
-            "{% for agent in agents %}"
-            "<span>{{ agent.name }}</span>"
-            "{% endfor %}"
-            "</body></html>"
-        ),
+        """
+        <!DOCTYPE html>
+        <html lang="en">
+        <body>
+            <aside>
+                <span>{{ repository_name }}</span>
+                <span>{{ git_branch }}</span>
+                <span>{{ current_phase }}</span>
+                <span>{{ test_status }}</span>
+                <span>{{ validation_status }}</span>
+                <span>{{ llm_status }}</span>
+                <span>{{ workflow_status }}</span>
+
+                {% for agent in agents %}
+                    <a href="/agents/{{ agent.identifier }}">
+                        {{ agent.name }}
+                    </a>
+                {% endfor %}
+            </aside>
+
+            {% block work_area %}{% endblock %}
+        </body>
+        </html>
+        """,
+        encoding="utf-8",
+    )
+
+    (
+        templates_directory / "dashboard_home.html"
+    ).write_text(
+        """
+        {% extends "dashboard.html" %}
+
+        {% block work_area %}
+            <h1>{{ project_name }}</h1>
+            <p>{{ project_root }}</p>
+            <p>{{ active_page }}</p>
+            <p>{{ platform_version }}</p>
+        {% endblock %}
+        """,
         encoding="utf-8",
     )
 
     (
         templates_directory / "agent_placeholder.html"
     ).write_text(
-        (
-            "<html><body>"
-            "<h1>{{ agent_name }}</h1>"
-            "<p>{{ agent_identifier }}</p>"
-            "</body></html>"
-        ),
+        """
+        {% extends "dashboard.html" %}
+
+        {% block work_area %}
+            <h1>{{ agent_name }}</h1>
+            <p>{{ agent_identifier }}</p>
+            <p>{{ active_page }}</p>
+        {% endblock %}
+        """,
         encoding="utf-8",
     )
 
@@ -87,14 +121,34 @@ def test_dashboard_home_returns_success(
 def test_dashboard_home_displays_project_information(
     tmp_path: Path,
 ) -> None:
-    """Dashboard home includes the project name and root."""
+    """Dashboard home includes project and repository information."""
 
     client, project_root = _create_test_client(tmp_path)
 
     response = client.get("/")
 
     assert "Project0" in response.text
+    assert "project0" in response.text
     assert str(project_root) in response.text
+    assert "0.1.0" in response.text
+
+
+def test_dashboard_home_displays_shared_status_context(
+    tmp_path: Path,
+) -> None:
+    """Dashboard home receives shared Dashboard shell status."""
+
+    client, _ = _create_test_client(tmp_path)
+
+    response = client.get("/")
+
+    assert "Unknown" in response.text
+    assert "Phase 7 – Dashboard Framework" in response.text
+    assert "All tests passing" in response.text
+    assert "Not run" in response.text
+    assert "Not configured" in response.text
+    assert "Idle" in response.text
+    assert "dashboard" in response.text
 
 
 def test_dashboard_home_displays_registered_agents(
@@ -108,6 +162,8 @@ def test_dashboard_home_displays_registered_agents(
 
     assert "Documentation Agent" in response.text
     assert "Research Agent" in response.text
+    assert 'href="/agents/documentation"' in response.text
+    assert 'href="/agents/research"' in response.text
 
 
 def test_documentation_route_redirects_to_local_mkdocs(
@@ -131,7 +187,7 @@ def test_documentation_route_redirects_to_local_mkdocs(
 def test_known_agent_route_renders_placeholder(
     tmp_path: Path,
 ) -> None:
-    """Known agents render the generic placeholder page."""
+    """Known agents render within the shared Dashboard shell."""
 
     client, _ = _create_test_client(tmp_path)
 
@@ -140,6 +196,9 @@ def test_known_agent_route_renders_placeholder(
     assert response.status_code == 200
     assert "Documentation Agent" in response.text
     assert "documentation" in response.text
+    assert "agent:documentation" in response.text
+    assert "Phase 7 – Dashboard Framework" in response.text
+    assert "All tests passing" in response.text
 
 
 def test_research_agent_route_renders_placeholder(
@@ -154,6 +213,7 @@ def test_research_agent_route_renders_placeholder(
     assert response.status_code == 200
     assert "Research Agent" in response.text
     assert "research" in response.text
+    assert "agent:research" in response.text
 
 
 def test_unknown_agent_name_is_formatted(
@@ -168,6 +228,7 @@ def test_unknown_agent_name_is_formatted(
     assert response.status_code == 200
     assert "Code Review" in response.text
     assert "code-review" in response.text
+    assert "agent:code-review" in response.text
 
 
 def test_agent_identifier_is_normalized(
@@ -182,6 +243,7 @@ def test_agent_identifier_is_normalized(
     assert response.status_code == 200
     assert "Documentation Agent" in response.text
     assert "documentation" in response.text
+    assert "agent:documentation" in response.text
 
 
 def test_dashboard_status_returns_expected_json(

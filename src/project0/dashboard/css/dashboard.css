@@ -1,0 +1,1262 @@
+/*=============================================================
+Project0 - Dashboard Framework
+
+File: dashboard.css
+
+Purpose:
+    Define the visual appearance of the Project0 Dashboard
+    Framework.
+
+Notes:
+    This stylesheet applies to the Dashboard Framework only.
+    Individual AI Agents should inherit these styles and avoid
+    defining their own visual themes whenever possible.
+
+Table of Contents:
+    1. Theme Variables
+    2. Global
+    3. Typography and Links
+    4. Dashboard Shell
+    5. Header
+    6. Breadcrumb
+    7. Dashboard Body
+    8. Sidebar
+    9. Project Status Panel
+   10. Agent Navigation
+   11. Workspace Navigation
+   12. Dashboard Workspace
+   13. Context Toolbar
+   14. Work Area
+   15. Footer
+   16. Buttons and Links
+   17. Dashboard Home Components
+   18. Status Indicators
+   19. Forms
+   20. Tables
+   21. Notifications
+   22. Responsive Layout
+
+=============================================================*/
+
+
+/*=============================================================
+1. Theme Variables
+=============================================================*/
+
+:root {
+
+    /* General Colors */
+
+    --background:                    #f4f6f8;
+    --surface:                       #ffffff;
+    --border:                        #d9e0e7;
+    --border-light:                  #e5e9ee;
+    --text:                          #1f2933;
+    --text-secondary:                #33404d;
+    --text-muted:                    #617080;
+    --text-subtle:                   #8a98a6;
+
+    /* Header */
+
+    --header-background:             #1f4f73;
+    --header-border:                 #173b56;
+    --header-text:                   #ffffff;
+    --header-text-muted:             #d7e5ef;
+
+    /* Breadcrumb */
+
+    --breadcrumb-background:         #dbeeff;
+    --breadcrumb-border:             #a9cce8;
+    --breadcrumb-text:               #264b6d;
+    --breadcrumb-separator:          #6888a3;
+
+    /* Sidebar */
+
+    --sidebar-background:            #ffffff;
+    --sidebar-border:                #d9e0e7;
+
+    /* Project Status */
+
+    --status-background:             #dff6dd;
+    --status-border:                 #9ccc9c;
+    --status-title:                  #2e7d32;
+    --status-text:                   #254f2b;
+
+    /* Agents */
+
+    --agents-background:             #fff7d6;
+    --agents-border:                 #e0c060;
+    --agents-title:                  #9c6b00;
+    --agents-text:                   #5e4700;
+
+    /* Workspace */
+
+    --workspace-background:          #ffe9d6;
+    --workspace-border:              #e8a060;
+    --workspace-title:               #d35400;
+    --workspace-text:                #713000;
+
+    /* Context Toolbar */
+
+    --toolbar-background:            #ebe3ff;
+    --toolbar-border:                #c8b8ff;
+    --toolbar-text:                  #463d63;
+
+    /* Work Area */
+
+    --workarea-background:           #ffffff;
+    --workarea-border:               #d9e0e7;
+
+    /* Footer */
+
+    --footer-background:             #eceff1;
+    --footer-border:                 #cfd8dc;
+    --footer-text:                   #617080;
+
+    /* Action Colors */
+
+    --primary:                       #2f6f9f;
+    --primary-hover:                 #275f88;
+    --primary-text:                  #ffffff;
+
+    --success:                       #2d6a3f;
+    --success-background:            #eaf4ec;
+
+    --warning:                       #8a5a00;
+    --warning-background:            #fff4d6;
+
+    --danger:                        #a13d3d;
+    --danger-background:             #fbeaea;
+
+    --disabled:                      #7d8995;
+    --disabled-background:           #f1f3f5;
+
+    /* Spacing */
+
+    --spacing-xs:                    0.25rem;
+    --spacing-sm:                    0.5rem;
+    --spacing-md:                    1rem;
+    --spacing-lg:                    1.5rem;
+    --spacing-xl:                    2rem;
+
+    /* Layout */
+
+    --sidebar-width:                 18rem;
+    --toolbar-min-height:            3.3rem;
+    --header-min-height:             4rem;
+    --breadcrumb-min-height:         2.8rem;
+
+    /* Radius */
+
+    --radius-small:                  0.4rem;
+    --radius-medium:                 0.55rem;
+    --radius-large:                  0.75rem;
+    --radius-pill:                   999px;
+
+    /* Shadows */
+
+    --shadow-light:
+        0 1px 3px rgba(31, 41, 51, 0.10);
+
+    --shadow-medium:
+        0 3px 8px rgba(31, 41, 51, 0.14);
+
+    /* Transitions */
+
+    --transition-fast:               0.15s ease;
+    --transition-normal:             0.25s ease;
+
+}
+
+
+/*=============================================================
+2. Global
+=============================================================*/
+
+* {
+
+    box-sizing: border-box;
+
+}
+
+html {
+
+    min-height: 100%;
+
+}
+
+body {
+
+    margin: 0;
+
+    min-height: 100vh;
+
+    font-family:
+        "Segoe UI",
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    background: var(--background);
+
+    color: var(--text);
+
+}
+
+button,
+input,
+select,
+textarea {
+
+    font: inherit;
+
+}
+
+
+/*=============================================================
+3. Typography and Links
+=============================================================*/
+
+h1,
+h2,
+h3,
+h4,
+p {
+
+    margin-top: 0;
+
+}
+
+a {
+
+    color: inherit;
+
+    text-decoration: none;
+
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+
+    outline:
+        3px solid rgba(47, 111, 159, 0.35);
+
+    outline-offset: 2px;
+
+}
+
+
+/*=============================================================
+4. Dashboard Shell
+=============================================================*/
+
+.dashboard-shell {
+
+    min-height: 100vh;
+
+    display: grid;
+
+    grid-template-rows:
+        auto
+        auto
+        minmax(0, 1fr)
+        auto;
+
+}
+
+
+/*=============================================================
+5. Header
+=============================================================*/
+
+.dashboard-header {
+
+    min-height: var(--header-min-height);
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: var(--spacing-md);
+
+    padding:
+        0.9rem
+        1.25rem;
+
+    background: var(--header-background);
+
+    color: var(--header-text);
+
+    border-bottom:
+        1px solid var(--header-border);
+
+}
+
+.dashboard-brand {
+
+    min-width: 0;
+
+}
+
+.dashboard-brand__title {
+
+    margin: 0;
+
+    font-size: 1.25rem;
+
+    font-weight: 700;
+
+}
+
+.dashboard-brand__subtitle {
+
+    margin:
+        0.15rem
+        0
+        0;
+
+    color: var(--header-text-muted);
+
+    font-size: 0.88rem;
+
+}
+
+.dashboard-header__actions {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 0.75rem;
+
+}
+
+
+/*=============================================================
+6. Breadcrumb
+=============================================================*/
+
+.dashboard-breadcrumb {
+
+    min-height: var(--breadcrumb-min-height);
+
+    display: flex;
+
+    align-items: center;
+
+    padding:
+        0.65rem
+        1.25rem;
+
+    background: var(--breadcrumb-background);
+
+    color: var(--breadcrumb-text);
+
+    border-bottom:
+        1px solid var(--breadcrumb-border);
+
+    font-size: 0.92rem;
+
+}
+
+.breadcrumb-list {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    align-items: center;
+
+    gap: 0.45rem;
+
+    margin: 0;
+
+    padding: 0;
+
+    list-style: none;
+
+}
+
+.breadcrumb-item {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 0.45rem;
+
+}
+
+.breadcrumb-item:not(:last-child)::after {
+
+    content: ">";
+
+    color: var(--breadcrumb-separator);
+
+}
+
+.breadcrumb-current {
+
+    color: var(--text);
+
+    font-weight: 600;
+
+}
+
+
+/*=============================================================
+7. Dashboard Body
+=============================================================*/
+
+.dashboard-body {
+
+    min-height: 0;
+
+    display: grid;
+
+    grid-template-columns:
+        var(--sidebar-width)
+        minmax(0, 1fr);
+
+}
+
+
+/*=============================================================
+8. Sidebar
+=============================================================*/
+
+.dashboard-sidebar {
+
+    min-height: 0;
+
+    overflow-y: auto;
+
+    background: var(--sidebar-background);
+
+    border-right:
+        1px solid var(--sidebar-border);
+
+}
+
+.sidebar-section {
+
+    padding: var(--spacing-md);
+
+    border-bottom:
+        1px solid var(--border-light);
+
+}
+
+.sidebar-section__title {
+
+    margin:
+        0
+        0
+        0.75rem;
+
+    font-size: 0.78rem;
+
+    font-weight: 700;
+
+    letter-spacing: 0.08em;
+
+    text-transform: uppercase;
+
+}
+
+
+/*=============================================================
+9. Project Status Panel
+=============================================================*/
+
+.status-panel,
+.dashboard-sidebar .sidebar-section:nth-of-type(1) {
+
+    background: var(--status-background);
+
+    color: var(--status-text);
+
+    border-bottom-color: var(--status-border);
+
+}
+
+.status-panel .sidebar-section__title,
+.dashboard-sidebar
+.sidebar-section:nth-of-type(1)
+.sidebar-section__title {
+
+    color: var(--status-title);
+
+}
+
+.status-list {
+
+    display: grid;
+
+    gap: 0.55rem;
+
+    margin: 0;
+
+}
+
+.status-row {
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        auto;
+
+    gap: 0.75rem;
+
+    align-items: start;
+
+}
+
+.status-row dt {
+
+    color: inherit;
+
+    opacity: 0.78;
+
+}
+
+.status-row dd {
+
+    margin: 0;
+
+    max-width: 10rem;
+
+    text-align: right;
+
+    font-weight: 600;
+
+    overflow-wrap: anywhere;
+
+}
+
+
+/*=============================================================
+10. Agent Navigation
+=============================================================*/
+
+.agent-panel,
+.dashboard-sidebar .sidebar-section:nth-of-type(2) {
+
+    background: var(--agents-background);
+
+    color: var(--agents-text);
+
+    border-bottom-color: var(--agents-border);
+
+}
+
+.agent-panel .sidebar-section__title,
+.dashboard-sidebar
+.sidebar-section:nth-of-type(2)
+.sidebar-section__title {
+
+    color: var(--agents-title);
+
+}
+
+
+/*=============================================================
+11. Workspace Navigation
+=============================================================*/
+
+.workspace-panel,
+.dashboard-sidebar .sidebar-section:nth-of-type(3) {
+
+    background: var(--workspace-background);
+
+    color: var(--workspace-text);
+
+    border-bottom-color: var(--workspace-border);
+
+}
+
+.workspace-panel .sidebar-section__title,
+.dashboard-sidebar
+.sidebar-section:nth-of-type(3)
+.sidebar-section__title {
+
+    color: var(--workspace-title);
+
+}
+
+.sidebar-navigation {
+
+    display: grid;
+
+    gap: 0.35rem;
+
+    margin: 0;
+
+    padding: 0;
+
+    list-style: none;
+
+}
+
+.sidebar-link {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 0.75rem;
+
+    padding:
+        0.65rem
+        0.75rem;
+
+    border-radius: var(--radius-small);
+
+    color: inherit;
+
+    transition:
+        background var(--transition-fast),
+        color var(--transition-fast);
+
+}
+
+.sidebar-link:hover,
+.sidebar-link:focus {
+
+    background:
+        rgba(255, 255, 255, 0.58);
+
+}
+
+.sidebar-link[aria-current="page"] {
+
+    background:
+        rgba(255, 255, 255, 0.82);
+
+    color: var(--primary);
+
+    font-weight: 600;
+
+    box-shadow: var(--shadow-light);
+
+}
+
+.sidebar-badge {
+
+    padding:
+        0.18rem
+        0.45rem;
+
+    border-radius: var(--radius-pill);
+
+    background: var(--disabled-background);
+
+    color: var(--disabled);
+
+    font-size: 0.75rem;
+
+    font-weight: 600;
+
+}
+
+
+/*=============================================================
+12. Dashboard Workspace
+=============================================================*/
+
+.dashboard-workspace {
+
+    min-width: 0;
+
+    min-height: 0;
+
+    display: grid;
+
+    grid-template-rows:
+        auto
+        minmax(0, 1fr);
+
+    background: var(--background);
+
+}
+
+
+/*=============================================================
+13. Context Toolbar
+=============================================================*/
+
+.context-toolbar {
+
+    min-height: var(--toolbar-min-height);
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 0.55rem;
+
+    padding:
+        0.65rem
+        var(--spacing-md);
+
+    background: var(--toolbar-background);
+
+    color: var(--toolbar-text);
+
+    border-bottom:
+        1px solid var(--toolbar-border);
+
+}
+
+.context-toolbar:empty::before {
+
+    content: "No page actions";
+
+    color: var(--text-subtle);
+
+    font-size: 0.88rem;
+
+}
+
+
+/*=============================================================
+14. Work Area
+=============================================================*/
+
+.work-area {
+
+    min-width: 0;
+
+    min-height: 0;
+
+    overflow: auto;
+
+    padding: var(--spacing-lg);
+
+    background: var(--workarea-background);
+
+    border-left:
+        1px solid var(--workarea-border);
+
+}
+
+
+/*=============================================================
+15. Footer
+=============================================================*/
+
+.dashboard-footer {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    gap: var(--spacing-md);
+
+    padding:
+        0.75rem
+        1.25rem;
+
+    background: var(--footer-background);
+
+    color: var(--footer-text);
+
+    border-top:
+        1px solid var(--footer-border);
+
+    font-size: 0.82rem;
+
+}
+
+
+/*=============================================================
+16. Buttons and Links
+=============================================================*/
+
+.toolbar-button,
+.toolbar-link,
+.home-action {
+
+    min-height: 2.25rem;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding:
+        0.5rem
+        0.75rem;
+
+    border:
+        1px solid
+        #b9c5d1;
+
+    border-radius: var(--radius-small);
+
+    background: var(--surface);
+
+    color: var(--text-secondary);
+
+    cursor: pointer;
+
+    font-weight: 600;
+
+    transition:
+        background var(--transition-fast),
+        border-color var(--transition-fast),
+        color var(--transition-fast);
+
+}
+
+.toolbar-button:hover,
+.toolbar-button:focus,
+.toolbar-link:hover,
+.toolbar-link:focus,
+.home-action:hover,
+.home-action:focus {
+
+    background: #eef2f6;
+
+}
+
+.toolbar-button--primary,
+.toolbar-link--primary {
+
+    border-color: var(--primary);
+
+    background: var(--primary);
+
+    color: var(--primary-text);
+
+}
+
+.toolbar-button--primary:hover,
+.toolbar-button--primary:focus,
+.toolbar-link--primary:hover,
+.toolbar-link--primary:focus {
+
+    background: var(--primary-hover);
+
+}
+
+.home-action--disabled {
+
+    border-color: var(--border);
+
+    background: var(--disabled-background);
+
+    color: var(--disabled);
+
+    cursor: default;
+
+}
+
+
+/*=============================================================
+17. Dashboard Home Components
+=============================================================*/
+
+.home-header {
+
+    margin-bottom: 1.25rem;
+
+}
+
+.home-title {
+
+    margin: 0;
+
+    font-size: 1.75rem;
+
+}
+
+.home-description {
+
+    margin:
+        0.4rem
+        0
+        0;
+
+    color: var(--text-muted);
+
+    line-height: 1.5;
+
+}
+
+.home-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(17rem, 1fr)
+        );
+
+    gap: var(--spacing-md);
+
+}
+
+.home-card {
+
+    padding: var(--spacing-md);
+
+    background: var(--surface);
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius: var(--radius-medium);
+
+    box-shadow: var(--shadow-light);
+
+}
+
+.home-card--wide {
+
+    grid-column: 1 / -1;
+
+}
+
+.home-card__title {
+
+    margin: 0;
+
+    font-size: 1.05rem;
+
+}
+
+.home-card__description {
+
+    margin:
+        0.45rem
+        0
+        0;
+
+    color: var(--text-muted);
+
+    line-height: 1.5;
+
+}
+
+.summary-list {
+
+    display: grid;
+
+    gap: 0.65rem;
+
+    margin:
+        var(--spacing-md)
+        0
+        0;
+
+}
+
+.summary-row {
+
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: space-between;
+
+    gap: var(--spacing-md);
+
+    padding-top: 0.65rem;
+
+    border-top:
+        1px solid
+        var(--border-light);
+
+}
+
+.summary-row:first-child {
+
+    padding-top: 0;
+
+    border-top: 0;
+
+}
+
+.summary-label {
+
+    color: var(--text-muted);
+
+}
+
+.summary-value {
+
+    max-width: 65%;
+
+    text-align: right;
+
+    font-weight: 600;
+
+    overflow-wrap: anywhere;
+
+}
+
+.agent-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(14rem, 1fr)
+        );
+
+    gap: 0.75rem;
+
+    margin-top: var(--spacing-md);
+
+}
+
+.agent-card {
+
+    min-height: 8rem;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 0.65rem;
+
+    padding: 0.85rem;
+
+    background: var(--agents-background);
+
+    border:
+        1px solid
+        var(--agents-border);
+
+    border-radius: var(--radius-small);
+
+}
+
+.agent-card__name {
+
+    margin: 0;
+
+    font-size: 1rem;
+
+}
+
+.agent-card__status {
+
+    margin: 0;
+
+    color: var(--agents-text);
+
+    font-size: 0.9rem;
+
+}
+
+.agent-card__action {
+
+    margin-top: auto;
+
+}
+
+.activity-list {
+
+    display: grid;
+
+    gap: 0.7rem;
+
+    margin:
+        var(--spacing-md)
+        0
+        0;
+
+    padding: 0;
+
+    list-style: none;
+
+}
+
+.activity-item {
+
+    padding: 0.75rem;
+
+    background: #f7f9fb;
+
+    border-left:
+        0.25rem solid
+        var(--primary);
+
+}
+
+.activity-item__title {
+
+    display: block;
+
+    font-weight: 600;
+
+}
+
+.activity-item__details {
+
+    display: block;
+
+    margin-top: 0.2rem;
+
+    color: var(--text-muted);
+
+    font-size: 0.9rem;
+
+}
+
+
+/*=============================================================
+18. Status Indicators
+=============================================================*/
+
+.status-value--success {
+
+    color: var(--success);
+
+}
+
+.status-value--warning {
+
+    color: var(--warning);
+
+}
+
+.status-value--danger {
+
+    color: var(--danger);
+
+}
+
+.status-value--muted {
+
+    color: var(--text-muted);
+
+}
+
+
+/*=============================================================
+19. Forms
+=============================================================*/
+
+/*
+    Shared form styles will be added when platform and agent
+    input forms are implemented.
+*/
+
+
+/*=============================================================
+20. Tables
+=============================================================*/
+
+/*
+    Shared table styles will be added when platform and agent
+    data tables are implemented.
+*/
+
+
+/*=============================================================
+21. Notifications
+=============================================================*/
+
+/*
+    Shared notification styles will be added when platform
+    notifications are implemented.
+*/
+
+
+/*=============================================================
+22. Responsive Layout
+=============================================================*/
+
+@media (max-width: 900px) {
+
+    .dashboard-body {
+
+        grid-template-columns: 1fr;
+
+    }
+
+    .dashboard-sidebar {
+
+        border-right: 0;
+
+        border-bottom:
+            1px solid
+            var(--sidebar-border);
+
+    }
+
+    .work-area {
+
+        border-left: 0;
+
+    }
+
+}
+
+@media (max-width: 640px) {
+
+    .dashboard-header,
+    .dashboard-footer {
+
+        align-items: flex-start;
+
+        flex-direction: column;
+
+    }
+
+    .context-toolbar {
+
+        flex-wrap: wrap;
+
+    }
+
+    .status-row {
+
+        grid-template-columns: 1fr;
+
+        gap: 0.15rem;
+
+    }
+
+    .status-row dd {
+
+        max-width: none;
+
+        text-align: left;
+
+    }
+
+    .summary-row {
+
+        align-items: flex-start;
+
+        flex-direction: column;
+
+        gap: var(--spacing-xs);
+
+    }
+
+    .summary-value {
+
+        max-width: none;
+
+        text-align: left;
+
+    }
+
+}

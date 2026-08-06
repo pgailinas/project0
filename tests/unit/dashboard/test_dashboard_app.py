@@ -123,21 +123,19 @@ def test_dashboard_api_documentation_route_is_registered(
     assert application.redoc_url is None
 
 
-def test_static_files_are_not_mounted_when_directory_missing(
+def test_css_directory_is_mounted_when_present(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
-    """Static files are optional during initial dashboard setup."""
+    """Dashboard CSS is mounted when the CSS directory exists."""
 
-    fake_dashboard_root = tmp_path / "dashboard"
-    fake_dashboard_root.mkdir()
+    dashboard_root = tmp_path / "dashboard"
+    css_directory = dashboard_root / "css"
+    css_directory.mkdir(parents=True)
 
     monkeypatch.setattr(
-        "project0.dashboard.dashboard_app.Path",
-        lambda value: _FakeModulePath(
-            value=value,
-            dashboard_root=fake_dashboard_root,
-        ),
+        "project0.dashboard.dashboard_app.__file__",
+        str(dashboard_root / "dashboard_app.py"),
     )
 
     application = create_dashboard_app(
@@ -150,7 +148,34 @@ def test_static_files_are_not_mounted_when_directory_missing(
         if isinstance(route, Mount)
     }
 
-    assert "/static" not in mount_paths
+    assert "/css" in mount_paths
+
+
+def test_css_directory_is_not_mounted_when_missing(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    """Dashboard CSS remains optional when its directory is absent."""
+
+    dashboard_root = tmp_path / "dashboard"
+    dashboard_root.mkdir()
+
+    monkeypatch.setattr(
+        "project0.dashboard.dashboard_app.__file__",
+        str(dashboard_root / "dashboard_app.py"),
+    )
+
+    application = create_dashboard_app(
+        project_root=tmp_path
+    )
+
+    mount_paths = {
+        route.path
+        for route in application.routes
+        if isinstance(route, Mount)
+    }
+
+    assert "/css" not in mount_paths
 
 
 def test_dashboard_applications_are_independent(
@@ -170,26 +195,3 @@ def test_dashboard_applications_are_independent(
         first_application.state.project_root
         != second_application.state.project_root
     )
-
-
-class _FakeModulePath:
-    """Minimal Path replacement used to control dashboard resources."""
-
-    def __init__(
-        self,
-        value,
-        dashboard_root: Path,
-    ) -> None:
-        self._value = value
-        self._dashboard_root = dashboard_root
-
-    def resolve(self) -> Path:
-        """Return the configured path for project-root values."""
-
-        return Path(self._value).resolve()
-
-    @property
-    def parent(self) -> Path:
-        """Return the configured dashboard root."""
-
-        return self._dashboard_root

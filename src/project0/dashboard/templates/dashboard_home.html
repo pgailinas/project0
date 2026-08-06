@@ -1,0 +1,228 @@
+{% extends "dashboard.html" %}
+
+{% block title %}
+Project0 Dashboard
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <span class="breadcrumb-current">
+        Dashboard
+    </span>
+</li>
+{% endblock %}
+
+{% block context_toolbar %}
+<a
+    class="toolbar-link toolbar-link--primary"
+    href="/"
+>
+    Refresh Status
+</a>
+
+<a
+    class="toolbar-link"
+    href="/documentation"
+>
+    Open Documentation
+</a>
+
+<a
+    class="toolbar-link"
+    href="/activity"
+>
+    View Activity
+</a>
+{% endblock %}
+
+{% block work_area %}
+<section class="home-header">
+    <h2 class="home-title">
+        Project Overview
+    </h2>
+    <p class="home-description">
+        Current Project0 status, registered agents, and recent
+        platform activity.
+    </p>
+</section>
+
+<section
+    class="home-grid"
+    aria-label="Project0 dashboard home"
+>
+    <article class="home-card">
+        <h3 class="home-card__title">
+            Project Summary
+        </h3>
+        <p class="home-card__description">
+            Active repository and implementation information.
+        </p>
+
+        <div class="summary-list">
+            <div class="summary-row">
+                <span class="summary-label">
+                    Project
+                </span>
+                <span class="summary-value">
+                    {{ project_name | default("Project0") }}
+                </span>
+            </div>
+
+            <div class="summary-row">
+                <span class="summary-label">
+                    Repository Root
+                </span>
+                <span class="summary-value">
+                    {{ project_root | default("Unavailable") }}
+                </span>
+            </div>
+
+            <div class="summary-row">
+                <span class="summary-label">
+                    Current Phase
+                </span>
+                <span class="summary-value">
+                    {{ current_phase | default("Unknown") }}
+                </span>
+            </div>
+
+            <div class="summary-row">
+                <span class="summary-label">
+                    Platform Version
+                </span>
+                <span class="summary-value">
+                    {{ platform_version | default("0.1.0") }}
+                </span>
+            </div>
+        </div>
+    </article>
+
+    <article class="home-card">
+        <h3 class="home-card__title">
+            Platform Health
+        </h3>
+        <p class="home-card__description">
+            Summary of the most recent Project0 checks.
+        </p>
+
+        <div class="summary-list">
+            <div class="summary-row">
+                <span class="summary-label">
+                    Tests
+                </span>
+                <span class="summary-value">
+                    {{ test_status | default("Not run") }}
+                </span>
+            </div>
+
+            <div class="summary-row">
+                <span class="summary-label">
+                    Validation
+                </span>
+                <span class="summary-value">
+                    {{ validation_status | default("Not run") }}
+                </span>
+            </div>
+
+            <div class="summary-row">
+                <span class="summary-label">
+                    Git Status
+                </span>
+                <span class="summary-value">
+                    {{ git_status | default("Unavailable") }}
+                </span>
+            </div>
+
+            <div class="summary-row">
+                <span class="summary-label">
+                    LLM
+                </span>
+                <span class="summary-value">
+                    {{ llm_status | default("Not configured") }}
+                </span>
+            </div>
+        </div>
+    </article>
+
+    <article class="home-card home-card--wide">
+        <h3 class="home-card__title">
+            Registered Agents
+        </h3>
+        <p class="home-card__description">
+            Agent interfaces available through the Project0
+            Dashboard Framework.
+        </p>
+
+        <div class="agent-grid">
+            {% for agent in agents | default([]) %}
+            <section class="agent-card">
+                <h4 class="agent-card__name">
+                    {{ agent.name }}
+                </h4>
+
+                <p class="agent-card__status">
+                    {% if agent.available %}
+                    Interface available.
+                    {% else %}
+                    Interface planned.
+                    {% endif %}
+                </p>
+
+                <div class="agent-card__action">
+                    {% if agent.available %}
+                    <a
+                        class="home-action"
+                        href="/agents/{{ agent.identifier }}"
+                    >
+                        Open Agent
+                    </a>
+                    {% else %}
+                    <span
+                        class="home-action home-action--disabled"
+                        aria-disabled="true"
+                    >
+                        Planned
+                    </span>
+                    {% endif %}
+                </div>
+            </section>
+            {% else %}
+            <p>
+                No agents are currently registered.
+            </p>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="home-card home-card--wide">
+        <h3 class="home-card__title">
+            Recent Activity
+        </h3>
+        <p class="home-card__description">
+            Most recent Project0 platform events.
+        </p>
+
+        <ul class="activity-list">
+            {% for activity in recent_activity | default([]) %}
+            <li class="activity-item">
+                <span class="activity-item__title">
+                    {{ activity.title }}
+                </span>
+                <span class="activity-item__details">
+                    {{ activity.details }}
+                </span>
+            </li>
+            {% else %}
+            <li class="activity-item">
+                <span class="activity-item__title">
+                    No recent activity
+                </span>
+                <span class="activity-item__details">
+                    Platform activity will appear here when available.
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+    </article>
+</section>
+{% endblock %}

@@ -28,7 +28,24 @@ def _write_dashboard_templates(
         templates_directory / "dashboard.html"
     ).write_text(
         (
-            "<html><body>"
+            "<!DOCTYPE html>"
+            "<html lang=\"en\">"
+            "<body>"
+            "{% block breadcrumb %}{% endblock %}"
+            "{% block context_toolbar %}{% endblock %}"
+            "{% block work_area %}{% endblock %}"
+            "</body>"
+            "</html>"
+        ),
+        encoding="utf-8",
+    )
+
+    (
+        templates_directory / "dashboard_home.html"
+    ).write_text(
+        (
+            "{% extends \"dashboard.html\" %}"
+            "{% block work_area %}"
             "<h1>{{ project_name }}</h1>"
             "<p id=\"project-root\">{{ project_root }}</p>"
             "<a href=\"{{ documentation_url }}\">Documentation</a>"
@@ -37,7 +54,7 @@ def _write_dashboard_templates(
             "{{ agent.name }}"
             "</a>"
             "{% endfor %}"
-            "</body></html>"
+            "{% endblock %}"
         ),
         encoding="utf-8",
     )

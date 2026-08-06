@@ -1,6 +1,6 @@
 # Dashboard Design
 
-**Version:** 0.1  
+**Version:** 0.2  
 **Owner:** Project0  
 **Last Updated:** 2026-08-05
 
@@ -57,53 +57,187 @@ FastAPI is the selected application framework for the Project0 Dashboard. Jinja2
 
 # 4. Navigation Model
 
+The Dashboard Framework provides persistent application navigation while the active page is displayed in the Work Area.
+
+## Header
+
+The Header is always visible and provides:
+
+* Project0 Dashboard title
+* User information (future)
+* Help
+* Logout (future)
+
+## Breadcrumb Navigation
+
+A horizontal breadcrumb is displayed directly beneath the Header.
+
+Examples:
+
+```
+Dashboard
+
+Dashboard > Documentation
+
+Dashboard > Documentation Agent
+
+Dashboard > Documentation Agent > Review Changes
+
+Dashboard > Research Agent > Daily Opportunities
+```
+
+The Breadcrumb identifies the user's current location within the Dashboard Framework and updates automatically as navigation changes.
+
+## Sidebar Navigation
+
+The left sidebar contains three permanent sections.
+
+### Project Status
+
+Displays live Project0 status information.
+
+### Agents
+
+Provides navigation to registered AI Agents.
+
+### Workspace
+
+Provides navigation to platform-level pages including:
+
 * Dashboard
 * Documentation
-* Agents
-  * Documentation Agent
-  * Research Agent (future)
-  * Additional Agents (future)
-* Development
-  * Validation
-  * Git Diff
-  * Testing
+* Activity
 * Settings
 
-The Dashboard provides navigation to registered agents but does not define or implement their internal user interfaces.
+The Dashboard Framework owns all navigation while individual agents own their internal pages.
 
 ---
 
 # 5. Dashboard Layout
 
+The Dashboard uses a persistent application shell.
+
+```
+Header
+
+Breadcrumb Navigation
+
+---------------------------------------------------------------
+
+Sidebar                        Work Area
+                               ┌─────────────────────────────┐
+Project Status                 │ Context Toolbar             │
+                               ├─────────────────────────────┤
+Agents                         │                             │
+                               │                             │
+Workspace                      │         Work Area           │
+                               │                             │
+                               │                             │
+                               └─────────────────────────────┘
+```
+
 ## Header
-* Project title
-* Version
-* Repository
 
-## Navigation
-Persistent navigation.
+Displays platform identity and future user controls.
 
-## Main Workspace
-Displays the selected page or agent.
+## Breadcrumb Navigation
 
-## Status Panel
-Displays platform health and workflow status.
+Displays the current navigation path.
 
-## Footer
-Version and diagnostics.
+## Sidebar
+
+The Sidebar contains three permanent sections:
+
+* Project Status
+* Agents
+* Workspace
+
+The Sidebar remains visible while navigating the application.
+
+## Context Toolbar
+
+The Context Toolbar is displayed directly above the Work Area.
+
+Its width matches the Work Area only.
+
+The toolbar changes according to the currently selected page.
+
+The Dashboard Framework provides the toolbar region while the active page supplies its commands.
+
+## Work Area
+
+Displays the currently selected Dashboard page or Agent Interface.
+
+Only the Work Area changes during navigation.
 
 ---
 
-# 6. Dashboard Widgets
+# 6. Dashboard Components
 
-* Platform Status
-* Repository Status
-* Documentation Status
-* Test Status
-* LLM Status
-* Workflow Status
-* Recent Activity
-* Quick Actions
+## Project Status Panel
+
+Displays continuously updated platform information including:
+
+* Repository
+* Git branch
+* Git status
+* Current implementation phase
+* Documentation count
+* Test status
+* Validation status
+* LLM status
+* Active workflow
+
+The Status Panel contains information only and does not contain workflow controls.
+
+## Agent Navigation
+
+Displays all registered AI Agents.
+
+Only implemented or registered agents appear.
+
+## Workspace Navigation
+
+Provides navigation to platform-level pages.
+
+## Context Toolbar
+
+Displays actions appropriate to the active page.
+
+Examples:
+
+Dashboard
+
+* Refresh Status
+* Open Documentation
+
+Documentation Agent
+
+* New Request
+* Analyze
+* Validate
+
+Review Changes
+
+* Approve
+* Revise
+* Reject
+* Skip
+
+The Dashboard Framework does not define toolbar commands.
+
+Each page defines its own toolbar actions.
+
+## Work Area
+
+Displays all interactive content including:
+
+* Agent pages
+* Reports
+* Review screens
+* Forms
+* Results
+* Settings
 
 ---
 
@@ -158,17 +292,29 @@ The Dashboard hosts agents while existing platform services perform the work. Ag
 
 # 10. Platform Status
 
-Display:
+The Project Status panel provides continuously updated platform information.
+
+Initial information includes:
 
 * Repository
-* Git branch
+* Repository path
+* Current Git branch
+* Git working tree status
+* Current implementation phase
 * Documentation count
-* Validation status
 * Automated test status
-* LLM provider status
-* Embedding status (future)
-* Vector store status (future)
+* Validation status
 * Platform version
+* LLM provider
+* Active workflow
+
+Future additions may include:
+
+* Embedding service status
+* Vector database status
+* Active model information
+* Memory usage
+* Background task status
 
 ---
 
@@ -184,7 +330,24 @@ Display:
 
 ---
 
-# 12. Initial Implementation Scope
+# 12. Page Responsibilities
+
+Every Dashboard page provides four elements:
+
+* Page Title
+* Breadcrumb location
+* Context Toolbar
+* Work Area content
+
+The Dashboard Framework supplies the surrounding application shell.
+
+Individual platform pages and AI Agents supply their own content and toolbar actions.
+
+This separation allows new agents to integrate into the Dashboard without modifying the Dashboard Framework.
+
+---
+
+# 13. Initial Implementation Scope
 
 The first Dashboard Framework implementation includes:
 
@@ -207,7 +370,7 @@ The initial implementation excludes:
 
 ---
 
-# 13. Future Expansion
+# 14. Future Expansion
 
 * Dark mode
 * Authentication
@@ -219,7 +382,7 @@ The initial implementation excludes:
 
 ---
 
-# 14. Relationship to Agent Interface Documents
+# 15. Relationship to Agent Interface Documents
 
 This document defines the Project0 platform user experience.
 
@@ -227,7 +390,7 @@ Each AI agent shall provide its own Interface Design document describing agent-s
 
 ---
 
-# 15. Related Documents
+# 16. Related Documents
 
 * Project Charter
 * Documentation Standards

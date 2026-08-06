@@ -35,7 +35,7 @@ def create_dashboard_app(
     )
 
     dashboard_root = Path(__file__).resolve().parent
-    static_directory = dashboard_root / "static"
+    static_directory = dashboard_root / "css"
 
     application = FastAPI(
         title="Project0 Dashboard",
@@ -60,7 +60,7 @@ def create_dashboard_app(
 
     if static_directory.is_dir():
         application.mount(
-            "/static",
+            "/css",
             StaticFiles(directory=static_directory),
             name="static",
         )
@@ -70,8 +70,9 @@ def create_dashboard_app(
 
 app = create_dashboard_app()
 
+
 def main() -> None:
-    """Run the Project0 Dashboard locally."""
+    """Run the Project0 Dashboard locally on port 8001."""
 
     import uvicorn
 
@@ -86,4 +87,4 @@ def main() -> None:
 if __name__ == "__main__":
     main()
     
-    
+
