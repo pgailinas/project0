@@ -37,10 +37,17 @@ intentionally excluded.
 
 # 3. Architectural Workflow
 
-The implemented Phase 6 platform provides an end-to-end documentation workflow that integrates deterministic repository knowledge, AI reasoning, validation, user review, approved repository updates, and Git diff generation through the Platform Dispatcher.
+The implemented Phase 7 platform provides an end-to-end documentation
+workflow. The Documentation Agent is accessed through the reusable
+Dashboard Framework, which provides the browser interface but is
+architecturally separate from the Documentation Agent services. that
+integrates deterministic repository knowledge, AI reasoning, validation,
+user review, approved repository updates, and Git diff generation
+through the Platform Dispatcher.
 
 ```mermaid
 flowchart TD
+    UI["Dashboard Framework"]
     A["Application Entry Point<br/><small>main.py</small>"]
     B["Platform Dispatcher"]
     C["Documentation Workflow"]
@@ -55,6 +62,7 @@ flowchart TD
 
     J["Workflow Result"]
 
+    UI --> A
     A --> B
     B --> C
 
@@ -382,6 +390,7 @@ The Documentation Agent interacts with:
 - pytest test framework
 - Validation tools
 - AI reasoning provider
+- Dashboard Framework (FastAPI, Jinja2 templates, shared dashboard resources)
 
 ---
 
@@ -398,6 +407,7 @@ The Documentation Agent interacts with:
 - Applied documentation changes shall undergo final validation.
 - Current repository operations are read-only.
 - Source code modification by the Documentation Agent is outside the current architectural scope.
+- The Dashboard Framework shall remain a reusable platform interface and shall not contain Documentation Agent business logic.
 
 ---
 

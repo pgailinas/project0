@@ -2,7 +2,7 @@
 
 **Version:** 0.2  
 **Owner:** Project0  
-**Last Updated:** 2026-08-03
+**Last Updated:** 2026-08-06
 
 ---
 
@@ -55,8 +55,8 @@ The Documentation Agent uses the following shared models:
 | Purpose | Represents a documentation request submitted by the user. |
 | Required Fields | Request ID, description, timestamp |
 | Optional Fields | Target files, user constraints |
-| Produced By | User Interface |
-| Consumed By | Workflow Engine, Knowledge Service, Reasoning Service |
+| Produced By | Dashboard Framework |
+| Consumed By | Platform Dispatcher, Workflow Engine, Knowledge Service, Reasoning Service |
 
 ---
 
@@ -91,8 +91,8 @@ The Documentation Agent uses the following shared models:
 
 ## Component Result
 
-| Property | Description |
-|-----------|-------------|
+| Property | Description|
+|-----------|------------|
 | Purpose | Represents a standard component response. |
 | Required Fields | Request ID, workflow ID, source component, status, payload |
 | Optional Fields | Warnings, error detail |
@@ -106,7 +106,6 @@ The Documentation Agent uses the following shared models:
 ## Repository Context
 
 | Property | Description |
-|-----------|-------------|
 | Purpose | Represents repository information required for analysis. |
 | Required Fields | Repository ID, root, relevant files, retrieved content, repository status |
 | Optional Fields | Changed files, Git diff |
@@ -230,8 +229,8 @@ The Documentation Agent uses the following shared models:
 5. Reasoning Service produces Proposed Documentation Changes.
 6. Validation Engine produces Validation Results.
 7. User Review produces User Review Decisions.
-8. Repository Tools apply approved changes.
-9. Workflow Engine produces the Completion Summary.
+8. Repository Update Service applies approved changes.
+9. Documentation Workflow produces the Completion Summary.
 10. Any component may return an Error Detail.
 
 ---
@@ -248,6 +247,7 @@ The Documentation Agent uses the following shared models:
 
 # 11. Future Considerations
 
+- Dashboard-aware request models
 - Python data classes
 - Enumerations
 - Schema validation

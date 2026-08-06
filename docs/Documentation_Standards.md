@@ -34,6 +34,10 @@
 
 13. Design documents should define contracts, responsibilities, and interactions, but should not prescribe implementation details.
 
+14. Platform framework documents shall describe implemented platform capabilities without prescribing future functionality. Dashboard framework documentation shall distinguish reusable platform infrastructure from AI agent implementations.
+
+15. Reusable user interface frameworks, shared stylesheets, and template layouts shall be documented once in their authoritative design document and referenced elsewhere rather than duplicated.
+
 # Spreadsheet Companion Documents
 
 When project tracking or structured data is better represented in a spreadsheet, a companion OpenDocument Spreadsheet (.ods) may accompany a Markdown document. The Markdown document remains the narrative description, while the spreadsheet serves as the authoritative structured data source. Companion documents shall share the same numeric document identifier.
@@ -57,6 +61,3 @@ Standard format:
 #
 # ============================================================
 ```
-
-
-

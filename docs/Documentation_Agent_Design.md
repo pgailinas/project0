@@ -36,21 +36,25 @@ Implementation details are intentionally excluded.
 
 # 3. Component Overview
 
-The implemented platform foundation consists of the following primary components:
+The implemented Phase 7 platform foundation consists of the following
+primary components. The Documentation Agent is hosted within the
+reusable Dashboard Framework, which provides the browser interface while
+remaining architecturally separate from the agent services:
 
-* Platform Dispatcher
-* Workflow Engine
-* Repository Service
-* Context Builder
-* Context Rule Registry
-* Context Filter
-* Knowledge Service
-* Document Parser
-* Document Index
-* Document Selector
-* Context Formatter
-* Shared Interfaces
-* Shared Data Models
+- Dashboard Framework
+- Platform Dispatcher
+- Workflow Engine
+- Repository Service
+- Context Builder
+- Context Rule Registry
+- Context Filter
+- Knowledge Service
+- Document Parser
+- Document Index
+- Document Selector
+- Context Formatter
+- Shared Interfaces
+- Shared Data Models
 
 The Platform Dispatcher provides the platform-level entry point. It creates workflow tasks and submits them to the Workflow Engine. The Workflow Engine executes those tasks and returns structured workflow results.
 
@@ -130,6 +134,28 @@ Provide the platform-level entry point for assembling services and dispatching w
 * Additional workflow dispatch
 * Additional agent and service routing
 * Multi-agent workflow coordination
+
+---
+
+## Dashboard Framework
+
+### Purpose
+
+Provide the reusable browser-based user interface for Project0 services
+and AI agents.
+
+### Responsibilities
+
+- Provide the common dashboard layout.
+- Host Documentation Agent pages within the shared framework.
+- Render reusable templates.
+- Provide shared navigation, sidebar, context toolbar, and work area.
+- Remain independent of Documentation Agent business logic.
+
+### Design Notes
+
+- Implemented using FastAPI and Jinja2 templates.
+- Serves as reusable platform infrastructure for future AI agents.
 
 ---
 

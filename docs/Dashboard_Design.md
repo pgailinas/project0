@@ -1,8 +1,8 @@
 # Dashboard Design
 
-**Version:** 0.2  
+**Version:** 0.3  
 **Owner:** Project0  
-**Last Updated:** 2026-08-05
+**Last Updated:** 2026-08-06
 
 ---
 
@@ -353,8 +353,11 @@ The first Dashboard Framework implementation includes:
 
 * FastAPI application creation
 * Platform-level dashboard routes
-* Shared base template
+* Shared base template (dashboard.html)
+* Dashboard home page template (dashboard_home.html)
+* Agent placeholder template (agent_placeholder.html)
 * Dashboard home page
+* Shared dashboard stylesheet (css/dashboard.css)
 * Documentation redirect
 * Generic agent placeholders
 * Basic status endpoint

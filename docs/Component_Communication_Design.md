@@ -1,8 +1,8 @@
 # Component Communication Design
 
-**Version:** 0.3  
+**Version:** 0.4  
 **Owner:** Project0  
-**Last Updated:** 2026-08-05  
+**Last Updated:** 2026-08-06  
 
 ---
 
@@ -100,6 +100,7 @@ Validation processing is implemented through the Validation Service. Documentati
 
 ```mermaid
 flowchart TD
+    UI["Dashboard Framework"]
     A["Application Entry Point<br/><small>main.py</small>"]
     B["Platform Dispatcher"]
     C["Documentation Workflow"]
@@ -112,6 +113,7 @@ flowchart TD
     I["Git Diff Service"]
     J["Documentation Workflow Result"]
 
+    UI --> A
     A --> B
     B --> C
     C --> D
@@ -359,7 +361,7 @@ Persistent audit storage is not part of the current implementation.
 
 ## 12. Initial Implementation
 
-The implemented Phase 6 communication foundation uses:
+The implemented Phase 7 communication foundation uses:
 
 * Python structural `Protocol` interfaces
 * Python immutable dataclasses
@@ -404,16 +406,23 @@ The companion document **Shared_Data_Models_and_Error_Contracts.md** defines **w
 
 The two documents are intended to be used together:
 
-| Document                               | Responsibility                                                                          |
-| -------------------------------------- | --------------------------------------------------------------------------------------- |
-| Shared Data Models and Error Contracts | Defines shared model structures, identifiers, statuses, results, and error contracts.   |
-| Component Communication Design         | Defines communication patterns, execution flow, events, and component responsibilities. |
+  -----------------------------------------------------------------------
+  Document              Responsibility
+  --------------------- -------------------------------------------------
+  Shared Data Models    Defines shared model structures, identifiers,
+  and Error Contracts   statuses, results, and error contracts.
 
-Communication payloads shall conform to the shared models defined in the companion document or to implemented subsystem result contracts.
+  Component             Defines communication patterns, execution flow,
+  Communication Design  events, and component responsibilities.
+  -----------------------------------------------------------------------
+
+Communication payloads shall conform to the shared models defined in the
+companion document or to implemented subsystem result contracts.
 
 ## 15. Implementation Status
 
-The Phase 6 communication architecture has been implemented and validated through comprehensive unit and integration testing.
+The Phase 7 communication architecture has been implemented and
+validated through comprehensive unit and integration testing.
 
 The validated end-to-end communication flow includes:
 

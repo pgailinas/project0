@@ -1,8 +1,8 @@
 # Testing Guide
 
-**Version:** 0.1  
+**Version:** 0.2  
 **Owner:** Project0  
-**Last Updated:** 2026-08-05
+**Last Updated:** 2026-08-06
 
 ---
 
@@ -85,17 +85,18 @@ Typical characteristics include:
 
 Current test categories include:
 
-* Common
-* Configuration
-* Platform Dispatcher
-* Workflow Engine
-* Repository Services
-* Knowledge Services
-* Reasoning Services
-* Validation Services
-* Documentation Workflow Services
-* Shared Models
-* Integration Workflows
+- Common
+- Configuration
+- Platform Dispatcher
+- Workflow Engine
+- Repository Services
+- Knowledge Services
+- Reasoning Services
+- Validation Services
+- Documentation Workflow Services
+- Shared Models
+- Dashboard Framework
+- Integration Workflows
 
 As additional platform services are implemented, corresponding test suites should be added.
 
@@ -157,6 +158,13 @@ python -m pytest tests/unit/knowledge/test_context_formatter.py -v
 python -m pytest tests/unit/platform/test_platform_dispatcher.py -v
 ```
 
+### Dashboard
+
+```bash
+python -m pytest tests/unit/dashboard/test_dashboard_app.py -v
+python -m pytest tests/unit/dashboard/test_dashboard_routes.py -v
+```
+
 ### Models
 
 ```bash
@@ -198,6 +206,7 @@ python -m pytest tests/integration/test_knowledge_service_flow.py -v
 python -m pytest tests/integration/test_reasoning_service_flow.py -v
 python -m pytest tests/integration/test_validation_service_flow.py -v
 python -m pytest tests/integration/test_documentation_workflow_flow.py -v
+python -m pytest tests/integration/test_dashboard_flow.py -v
 ```
 
 ---
@@ -258,9 +267,10 @@ Successful execution should report all tests passing with no unexpected warnings
 
 Current validated implementation:
 
-* 524 automated tests passing
-* Comprehensive unit test coverage
-* End-to-end integration workflow validation
+- Dashboard Framework unit and integration tests passing
+- 524 automated tests passing
+- Comprehensive unit test coverage
+- End-to-end integration workflow validation
 
 As Project0 evolves, the total number of tests will continue to increase. Documentation should be updated periodically to reflect significant testing milestones.
 

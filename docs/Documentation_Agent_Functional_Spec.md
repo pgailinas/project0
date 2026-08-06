@@ -4,7 +4,7 @@
 **Owner:** Project0  
 **Last Updated:** 2026-08-05
 
-------------------------------------------------------------------------
+---
 
 # 1. Purpose
 
@@ -14,9 +14,14 @@ Maintain synchronization between the software repository and its documentation w
 
 ## Scope
 
-Define the Version 1 behavior of a standalone agent that analyzes Git repository changes, identifies affected Markdown documentation, proposes coordinated updates, validates those updates, and applies only individually approved changes.
+Define the Version 1 behavior of a standalone agent that analyzes Git
+repository changes, identifies affected Markdown documentation, proposes
+coordinated updates, validates those updates, and applies only
+individually approved changes. The Documentation Agent is presented
+through the Project0 Dashboard Framework but remains independent of the
+dashboard infrastructure.
 
-------------------------------------------------------------------------
+---
 
 # 2. Design Principles
 
@@ -29,7 +34,7 @@ Define the Version 1 behavior of a standalone agent that analyzes Git repository
 - Maintain a vendor-neutral architecture.
 - Documentation is maintained as living project knowledge and shall remain synchronized with the current repository state.
 
-------------------------------------------------------------------------
+---
 
 # 3. Responsibilities
 
@@ -46,7 +51,7 @@ The Documentation Agent shall:
 - Validate the accepted documentation changes.
 - Present a final Git diff and validation report.
 
-------------------------------------------------------------------------
+---
 
 # 4. Out of Scope
 
@@ -63,7 +68,7 @@ The Documentation Agent shall **not**:
 - Treat retrieved excerpts or model memory as authoritative.
 - Operate continuously or automatically monitor the repository.
 
-------------------------------------------------------------------------
+---
 
 # 5. Inputs
 
@@ -75,8 +80,9 @@ The Documentation Agent shall **not**:
 - MkDocs configuration
 - Documentation standards
 - Project terminology and source-of-truth documentation
+- Dashboard Framework templates and shared documentation when affected by repository changes
 
-------------------------------------------------------------------------
+---
 
 # 6. Outputs
 
@@ -88,13 +94,16 @@ The Documentation Agent shall **not**:
 - Validation report
 - Final Git diff
 - Activity log
+- Dashboard-aware documentation updates that preserve the shared Dashboard Framework architecture
 
-------------------------------------------------------------------------
+---
 
 # 7. Functional Workflow
 
 ``` text
 User Request
+      ↓
+Dashboard Framework (User Interface)
       ↓
 Git Repository Analysis
       ↓
@@ -119,7 +128,7 @@ Final Validation
 Final Git Diff
 ```
 
-------------------------------------------------------------------------
+---
 
 # 8. User Interaction
 
@@ -133,7 +142,7 @@ For each proposed document update, the user may:
 
 The agent shall not apply a proposed file change until that file has been individually approved.
 
-------------------------------------------------------------------------
+---
 
 # 9. Validation Requirements
 
@@ -146,7 +155,7 @@ The agent shall not apply a proposed file change until that file has been indivi
 - Search for stale names, paths, and terminology
 - Verification that only approved files changed
 
-------------------------------------------------------------------------
+---
 
 # 10. Success Criteria
 
@@ -160,7 +169,7 @@ The Documentation Agent is successful when it:
 - Passes all required validation checks.
 - Produces a complete final Git diff for human review.
 
-------------------------------------------------------------------------
+---
 
 # 11. Future Enhancements
 
@@ -173,3 +182,4 @@ Not included in Version 1:
 - Semantic repository search
 - Automatic change monitoring
 - Git commit and pull-request support
+- Interactive dashboard visualizations for documentation review workflows

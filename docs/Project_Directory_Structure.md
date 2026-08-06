@@ -2,7 +2,7 @@
 
 **Version:** 0.3  
 **Owner:** Project0  
-**Last Updated:** 2026-08-05
+**Last Updated:** 2026-08-06
 
 ---
 # Overview
@@ -50,8 +50,10 @@ project0/
 │       │   ├── dashboard_app.py
 │       │   └── dashboard_routes.py
 │       │   └── templates/
-│       │       ├── dashboard.html
-│       │       └── dashboard_home.html
+│       │   │   ├── dashboard.html
+│       │   │   └── dashboard_home.html
+│       │   └── css/
+│       │       └── dashboard.css
 │       ├── interfaces/
 │       │   ├── documentation_workflow_interfaces.py
 │       │   └── validation_interfaces.py
@@ -108,7 +110,7 @@ project0/
 | Directory | Purpose |
 |-----------|---------|
 | `docs/` | Project documentation, GitHub Pages source, implementation roadmap, implementation status, supporting assets, and companion spreadsheets. |
-| `src/` | Python implementation of the Project0 platform organized into reusable architectural services, Dashboard Framework, interfaces, workflows, models, validation, repository, and AI components. |
+| `src/` | Python implementation of the Project0 platform organized into reusable architectural services, the Dashboard Framework, platform services, interfaces, workflows, models, repository services, validation services, reasoning services, and future AI agents. |
 | `tests/` | Unit and integration tests organized by architectural component and workflow validation. |
 | `scripts/` | Development and automation scripts. |
 | `README.md` | GitHub repository landing page. |
@@ -120,6 +122,8 @@ project0/
 
 Implementation within `src/` follows the project architecture. Material for MkDocs generates the GitHub Pages website directly from the Markdown documents stored in `docs/`. The generated HTML is a published representation of the documentation and is not the authoritative source.
 
+The Dashboard Framework is implemented within the `src/project0/dashboard/` package and provides the reusable browser-based user interface used by Project0 services and future AI agents.
+
 ---
 
 # Important Notes
@@ -128,5 +132,5 @@ Implementation within `src/` follows the project architecture. Material for MkDo
 - Markdown (`.md`) is the authoritative documentation format.
 - Companion OpenDocument Spreadsheet (`.ods`) files provide structured project tracking.
 - GitHub Pages documentation is generated from the `docs/` directory using Material for MkDocs.
-- The Project0 Dashboard Framework provides the browser-based user interface for the platform while remaining independent of individual AI agent user interfaces.
-- Agent-specific interfaces are implemented separately and integrate with the Dashboard through defined extension points.
+- The Project0 Dashboard Framework provides the reusable browser-based user interface for the Project0 platform.
+- Individual AI agents inherit the Dashboard Framework while implementing their own pages, workflows, and business logic independently.
