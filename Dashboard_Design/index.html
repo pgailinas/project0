@@ -894,7 +894,7 @@
 
 
 <h1 id="dashboard-design">Dashboard Design</h1>
-<p><strong>Version:</strong> 0.3<br />
+<p><strong>Version:</strong> 0.4<br />
 <strong>Owner:</strong> Project0<br />
 <strong>Last Updated:</strong> 2026-08-06</p>
 <hr />
@@ -914,7 +914,8 @@
 <li>Cross-platform operation.</li>
 <li>Reuse existing platform services through the Platform Dispatcher.</li>
 <li>Keep presentation separate from business logic.</li>
-<li>The Dashboard Framework owns only platform-wide navigation, layout, status presentation, and agent extension points.</li>
+<li>The Dashboard Framework owns only platform-wide navigation, layout, shared status presentation, and agent extension points.</li>
+<li>Platform and agent status are displayed in the Work Area for the currently selected context.</li>
 <li>Individual AI agents own their agent-specific pages, workflows, controls, and results.</li>
 </ul>
 <hr />
@@ -960,19 +961,18 @@
 </span></code></pre></div>
 <p>The Breadcrumb identifies the user's current location within the Dashboard Framework and updates automatically as navigation changes.</p>
 <h2 id="sidebar-navigation">Sidebar Navigation</h2>
-<p>The left sidebar contains three permanent sections.</p>
-<h3 id="project-status">Project Status</h3>
-<p>Displays live Project0 status information.</p>
+<p>The left sidebar contains two permanent navigation sections.</p>
 <h3 id="agents">Agents</h3>
 <p>Provides navigation to registered AI Agents.</p>
 <h3 id="workspace">Workspace</h3>
 <p>Provides navigation to platform-level pages including:</p>
 <ul>
-<li>Dashboard</li>
+<li>Project Overview</li>
 <li>Documentation</li>
 <li>Activity</li>
 <li>Settings</li>
 </ul>
+<p>Project0 status is displayed in the Project Overview Work Area rather than persistently in the Sidebar.</p>
 <p>The Dashboard Framework owns all navigation while individual agents own their internal pages.</p>
 <hr />
 <h1 id="5-dashboard-layout">5. Dashboard Layout</h1>
@@ -985,27 +985,25 @@
 </span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
 </span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>Sidebar                        Work Area
 </span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>                               ┌─────────────────────────────┐
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>Project Status                 │ Context Toolbar             │
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>Agents                         │ Context Toolbar             │
 </span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>                               ├─────────────────────────────┤
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>Agents                         │                             │
-</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>                               │                             │
-</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>Workspace                      │         Work Area           │
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>Workspace                      │                             │
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>                               │         Work Area           │
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>                               │                             │
 </span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>                               │                             │
-</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>                               │                             │
-</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>                               └─────────────────────────────┘
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>                               └─────────────────────────────┘
 </span></code></pre></div>
 <h2 id="header_1">Header</h2>
 <p>Displays platform identity and future user controls.</p>
 <h2 id="breadcrumb-navigation_1">Breadcrumb Navigation</h2>
 <p>Displays the current navigation path.</p>
 <h2 id="sidebar">Sidebar</h2>
-<p>The Sidebar contains three permanent sections:</p>
+<p>The Sidebar contains two permanent navigation sections:</p>
 <ul>
-<li>Project Status</li>
 <li>Agents</li>
 <li>Workspace</li>
 </ul>
-<p>The Sidebar remains visible while navigating the application.</p>
+<p>The Sidebar remains visible while navigating the application. Status information is displayed in the Work Area for the selected platform page or agent.</p>
 <h2 id="context-toolbar">Context Toolbar</h2>
 <p>The Context Toolbar is displayed directly above the Work Area.</p>
 <p>Its width matches the Work Area only.</p>
@@ -1016,20 +1014,23 @@
 <p>Only the Work Area changes during navigation.</p>
 <hr />
 <h1 id="6-dashboard-components">6. Dashboard Components</h1>
-<h2 id="project-status-panel">Project Status Panel</h2>
-<p>Displays continuously updated platform information including:</p>
+<h2 id="project-overview">Project Overview</h2>
+<p>The Project Overview is the default Dashboard Work Area.</p>
+<p>It displays Project0 overview and status information including:</p>
 <ul>
 <li>Repository</li>
+<li>Repository path</li>
 <li>Git branch</li>
 <li>Git status</li>
 <li>Current implementation phase</li>
 <li>Documentation count</li>
+<li>Platform version</li>
 <li>Test status</li>
 <li>Validation status</li>
 <li>LLM status</li>
 <li>Active workflow</li>
 </ul>
-<p>The Status Panel contains information only and does not contain workflow controls.</p>
+<p>Project0 status is shown only when the Project Overview is selected. It is not displayed persistently in the Sidebar.</p>
 <h2 id="agent-navigation">Agent Navigation</h2>
 <p>Displays all registered AI Agents.</p>
 <p>Only implemented or registered agents appear.</p>
@@ -1038,7 +1039,7 @@
 <h2 id="context-toolbar_1">Context Toolbar</h2>
 <p>Displays actions appropriate to the active page.</p>
 <p>Examples:</p>
-<p>Dashboard</p>
+<p>Project Overview</p>
 <ul>
 <li>Refresh Status</li>
 <li>Open Documentation</li>
@@ -1061,7 +1062,8 @@
 <h2 id="work-area_1">Work Area</h2>
 <p>Displays all interactive content including:</p>
 <ul>
-<li>Agent pages</li>
+<li>Project Overview and platform status</li>
+<li>Agent pages and agent status</li>
 <li>Reports</li>
 <li>Review screens</li>
 <li>Forms</li>
@@ -1107,7 +1109,7 @@
 </ol>
 <hr />
 <h1 id="10-platform-status">10. Platform Status</h1>
-<p>The Project Status panel provides continuously updated platform information.</p>
+<p>Platform status is displayed in the Project Overview Work Area rather than as a persistent Sidebar panel.</p>
 <p>Initial information includes:</p>
 <ul>
 <li>Repository</li>
@@ -1122,6 +1124,7 @@
 <li>LLM provider</li>
 <li>Active workflow</li>
 </ul>
+<p>The same Work Area model applies to AI agents: when an agent is selected, its status, controls, and content are displayed in the Work Area for that agent.</p>
 <p>Future additions may include:</p>
 <ul>
 <li>Embedding service status</li>
@@ -1151,7 +1154,8 @@
 <li>Work Area content</li>
 </ul>
 <p>The Dashboard Framework supplies the surrounding application shell.</p>
-<p>Individual platform pages and AI Agents supply their own content and toolbar actions.</p>
+<p>Individual platform pages and AI Agents supply their own status, content, and toolbar actions.</p>
+<p>The Sidebar selects the active platform or agent context. The Context Toolbar and Work Area then present the actions and content for that context.</p>
 <p>This separation allows new agents to integrate into the Dashboard without modifying the Dashboard Framework.</p>
 <hr />
 <h1 id="13-initial-implementation-scope">13. Initial Implementation Scope</h1>
@@ -1162,7 +1166,7 @@
 <li>Shared base template (dashboard.html)</li>
 <li>Dashboard home page template (dashboard_home.html)</li>
 <li>Agent placeholder template (agent_placeholder.html)</li>
-<li>Dashboard home page</li>
+<li>Project Overview home page</li>
 <li>Shared dashboard stylesheet (css/dashboard.css)</li>
 <li>Documentation redirect</li>
 <li>Generic agent placeholders</li>
