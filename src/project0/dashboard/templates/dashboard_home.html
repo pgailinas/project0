@@ -7,7 +7,7 @@ Project0 Dashboard
 {% block breadcrumb %}
 <li class="breadcrumb-item">
     <span class="breadcrumb-current">
-        Dashboard
+        Project Overview
     </span>
 </li>
 {% endblock %}
@@ -88,6 +88,33 @@ Project0 Dashboard
 
             <div class="summary-row">
                 <span class="summary-label">
+                    Repository
+                </span>
+                <span class="summary-value">
+                    {{ repository_name | default(project_name) }}
+                </span>
+            </div>
+
+            <div class="summary-row">
+                <span class="summary-label">
+                    Branch
+                </span>
+                <span class="summary-value">
+                    {{ git_branch | default("Unknown") }}
+                </span>
+            </div>
+
+            <div class="summary-row">
+                <span class="summary-label">
+                    Documentation
+                </span>
+                <span class="summary-value">
+                    {{ documentation_count | default("Unknown") }}
+                </span>
+            </div>
+
+            <div class="summary-row">
+                <span class="summary-label">
                     Platform Version
                 </span>
                 <span class="summary-value">
@@ -139,6 +166,15 @@ Project0 Dashboard
                 </span>
                 <span class="summary-value">
                     {{ llm_status | default("Not configured") }}
+                </span>
+            </div>
+
+            <div class="summary-row">
+                <span class="summary-label">
+                    Workflow
+                </span>
+                <span class="summary-value">
+                    {{ workflow_status | default("Idle") }}
                 </span>
             </div>
         </div>

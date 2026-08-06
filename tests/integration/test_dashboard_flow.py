@@ -31,9 +31,18 @@ def _write_dashboard_templates(
             "<!DOCTYPE html>"
             "<html lang=\"en\">"
             "<body>"
+            "<aside>"
+            "<a href=\"/\">Project Overview</a>"
+            "<a href=\"/documentation\">Documentation</a>"
+            "{% for agent in agents %}"
+            "<a href=\"/agents/{{ agent.identifier }}\">"
+            "{{ agent.name }}"
+            "</a>"
+            "{% endfor %}"
+            "</aside>"
             "{% block breadcrumb %}{% endblock %}"
             "{% block context_toolbar %}{% endblock %}"
-            "{% block work_area %}{% endblock %}"
+            "<main>{% block work_area %}{% endblock %}</main>"
             "</body>"
             "</html>"
         ),
@@ -46,14 +55,19 @@ def _write_dashboard_templates(
         (
             "{% extends \"dashboard.html\" %}"
             "{% block work_area %}"
-            "<h1>{{ project_name }}</h1>"
+            "<h1>Project Overview</h1>"
+            "<p>{{ project_name }}</p>"
             "<p id=\"project-root\">{{ project_root }}</p>"
+            "<p>{{ repository_name }}</p>"
+            "<p>{{ git_branch }}</p>"
+            "<p>{{ current_phase }}</p>"
+            "<p>{{ documentation_count }}</p>"
+            "<p>{{ test_status }}</p>"
+            "<p>{{ validation_status }}</p>"
+            "<p>{{ git_status }}</p>"
+            "<p>{{ llm_status }}</p>"
+            "<p>{{ workflow_status }}</p>"
             "<a href=\"{{ documentation_url }}\">Documentation</a>"
-            "{% for agent in agents %}"
-            "<a href=\"/agents/{{ agent.identifier }}\">"
-            "{{ agent.name }}"
-            "</a>"
-            "{% endfor %}"
             "{% endblock %}"
         ),
         encoding="utf-8",
@@ -63,11 +77,12 @@ def _write_dashboard_templates(
         templates_directory / "agent_placeholder.html"
     ).write_text(
         (
-            "<html><body>"
+            "{% extends \"dashboard.html\" %}"
+            "{% block work_area %}"
             "<h1>{{ agent_name }}</h1>"
             "<p>{{ agent_identifier }}</p>"
-            "<a href=\"/\">Dashboard</a>"
-            "</body></html>"
+            "<p>{{ active_page }}</p>"
+            "{% endblock %}"
         ),
         encoding="utf-8",
     )
@@ -111,8 +126,11 @@ def test_dashboard_home_flow(
     response = client.get("/")
 
     assert response.status_code == 200
+    assert "Project Overview" in response.text
     assert "Project0" in response.text
     assert str(project_root) in response.text
+    assert "Phase 7 – Dashboard Framework" in response.text
+    assert "All tests passing" in response.text
     assert "Documentation Agent" in response.text
     assert "Research Agent" in response.text
 
@@ -166,8 +184,19 @@ def test_dashboard_agent_navigation_flow(
 
     assert documentation_response.status_code == 200
     assert "Documentation Agent" in documentation_response.text
+    assert "Project Overview" in documentation_response.text
+    assert "Phase 7 – Dashboard Framework" not in (
+        documentation_response.text
+    )
+    assert "All tests passing" not in documentation_response.text
+
     assert research_response.status_code == 200
     assert "Research Agent" in research_response.text
+    assert "Project Overview" in research_response.text
+    assert "Phase 7 – Dashboard Framework" not in (
+        research_response.text
+    )
+    assert "All tests passing" not in research_response.text
 
 
 def test_dashboard_status_flow(

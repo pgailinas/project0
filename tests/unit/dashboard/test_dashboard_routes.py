@@ -39,22 +39,19 @@ def _create_test_client(
         <html lang="en">
         <body>
             <aside>
-                <span>{{ repository_name }}</span>
-                <span>{{ git_branch }}</span>
-                <span>{{ current_phase }}</span>
-                <span>{{ test_status }}</span>
-                <span>{{ validation_status }}</span>
-                <span>{{ llm_status }}</span>
-                <span>{{ workflow_status }}</span>
-
                 {% for agent in agents %}
                     <a href="/agents/{{ agent.identifier }}">
                         {{ agent.name }}
                     </a>
                 {% endfor %}
+
+                <a href="/">Project Overview</a>
+                <a href="/documentation">Documentation</a>
             </aside>
 
-            {% block work_area %}{% endblock %}
+            <main>
+                {% block work_area %}{% endblock %}
+            </main>
         </body>
         </html>
         """,
@@ -68,10 +65,20 @@ def _create_test_client(
         {% extends "dashboard.html" %}
 
         {% block work_area %}
-            <h1>{{ project_name }}</h1>
+            <h1>Project Overview</h1>
+            <p>{{ project_name }}</p>
             <p>{{ project_root }}</p>
             <p>{{ active_page }}</p>
             <p>{{ platform_version }}</p>
+            <p>{{ repository_name }}</p>
+            <p>{{ git_branch }}</p>
+            <p>{{ current_phase }}</p>
+            <p>{{ documentation_count }}</p>
+            <p>{{ test_status }}</p>
+            <p>{{ validation_status }}</p>
+            <p>{{ git_status }}</p>
+            <p>{{ llm_status }}</p>
+            <p>{{ workflow_status }}</p>
         {% endblock %}
         """,
         encoding="utf-8",
@@ -133,15 +140,16 @@ def test_dashboard_home_displays_project_information(
     assert "0.1.0" in response.text
 
 
-def test_dashboard_home_displays_shared_status_context(
+def test_dashboard_home_displays_project_status_in_work_area(
     tmp_path: Path,
 ) -> None:
-    """Dashboard home receives shared Dashboard shell status."""
+    """Project Overview renders Project0 status in the Work Area."""
 
     client, _ = _create_test_client(tmp_path)
 
     response = client.get("/")
 
+    assert "Project Overview" in response.text
     assert "Unknown" in response.text
     assert "Phase 7 – Dashboard Framework" in response.text
     assert "All tests passing" in response.text
@@ -197,8 +205,9 @@ def test_known_agent_route_renders_placeholder(
     assert "Documentation Agent" in response.text
     assert "documentation" in response.text
     assert "agent:documentation" in response.text
-    assert "Phase 7 – Dashboard Framework" in response.text
-    assert "All tests passing" in response.text
+    assert "Project Overview" in response.text
+    assert "Phase 7 – Dashboard Framework" not in response.text
+    assert "All tests passing" not in response.text
 
 
 def test_research_agent_route_renders_placeholder(

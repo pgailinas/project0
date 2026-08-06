@@ -21,7 +21,7 @@ Table of Contents:
     6. Breadcrumb
     7. Dashboard Body
     8. Sidebar
-    9. Project Status Panel
+    9. Project Status Components
    10. Agent Navigation
    11. Workspace Navigation
    12. Dashboard Workspace
@@ -471,24 +471,24 @@ textarea:focus-visible {
 
 
 /*=============================================================
-9. Project Status Panel
+9. Project Status Components
 =============================================================*/
 
-.status-panel,
-.dashboard-sidebar .sidebar-section:nth-of-type(1) {
+.status-panel {
 
     background: var(--status-background);
 
     color: var(--status-text);
 
-    border-bottom-color: var(--status-border);
+    border:
+        1px solid
+        var(--status-border);
+
+    border-radius: var(--radius-medium);
 
 }
 
-.status-panel .sidebar-section__title,
-.dashboard-sidebar
-.sidebar-section:nth-of-type(1)
-.sidebar-section__title {
+.status-panel .sidebar-section__title {
 
     color: var(--status-title);
 
@@ -546,7 +546,7 @@ textarea:focus-visible {
 =============================================================*/
 
 .agent-panel,
-.dashboard-sidebar .sidebar-section:nth-of-type(2) {
+.dashboard-sidebar .sidebar-section:nth-of-type(1) {
 
     background: var(--agents-background);
 
@@ -558,7 +558,7 @@ textarea:focus-visible {
 
 .agent-panel .sidebar-section__title,
 .dashboard-sidebar
-.sidebar-section:nth-of-type(2)
+.sidebar-section:nth-of-type(1)
 .sidebar-section__title {
 
     color: var(--agents-title);
@@ -571,7 +571,7 @@ textarea:focus-visible {
 =============================================================*/
 
 .workspace-panel,
-.dashboard-sidebar .sidebar-section:nth-of-type(3) {
+.dashboard-sidebar .sidebar-section:nth-of-type(2) {
 
     background: var(--workspace-background);
 
@@ -583,7 +583,7 @@ textarea:focus-visible {
 
 .workspace-panel .sidebar-section__title,
 .dashboard-sidebar
-.sidebar-section:nth-of-type(3)
+.sidebar-section:nth-of-type(2)
 .sidebar-section__title {
 
     color: var(--workspace-title);

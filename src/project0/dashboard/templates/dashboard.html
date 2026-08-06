@@ -38,55 +38,6 @@
         <div class="dashboard-body">
             <aside class="dashboard-sidebar">
                 <section class="sidebar-section">
-                    <h2 class="sidebar-section__title">Project Status</h2>
-
-                    <dl class="status-list">
-                        <div class="status-row">
-                            <dt>Repository</dt>
-                            <dd>{{ repository_name | default(project_name) }}</dd>
-                        </div>
-                        <div class="status-row">
-                            <dt>Branch</dt>
-                            <dd>{{ git_branch | default("Unknown") }}</dd>
-                        </div>
-                        <div class="status-row">
-                            <dt>Git</dt>
-                            <dd class="{{ git_status_class | default('status-value--muted') }}">
-                                {{ git_status | default("Unavailable") }}
-                            </dd>
-                        </div>
-                        <div class="status-row">
-                            <dt>Phase</dt>
-                            <dd>{{ current_phase | default("Unknown") }}</dd>
-                        </div>
-                        <div class="status-row">
-                            <dt>Documentation</dt>
-                            <dd>{{ documentation_count | default("Unknown") }}</dd>
-                        </div>
-                        <div class="status-row">
-                            <dt>Tests</dt>
-                            <dd class="{{ test_status_class | default('status-value--muted') }}">
-                                {{ test_status | default("Not run") }}
-                            </dd>
-                        </div>
-                        <div class="status-row">
-                            <dt>Validation</dt>
-                            <dd class="{{ validation_status_class | default('status-value--muted') }}">
-                                {{ validation_status | default("Not run") }}
-                            </dd>
-                        </div>
-                        <div class="status-row">
-                            <dt>LLM</dt>
-                            <dd>{{ llm_status | default("Not configured") }}</dd>
-                        </div>
-                        <div class="status-row">
-                            <dt>Workflow</dt>
-                            <dd>{{ workflow_status | default("Idle") }}</dd>
-                        </div>
-                    </dl>
-                </section>
-
-                <section class="sidebar-section">
                     <h2 class="sidebar-section__title">Agents</h2>
                     <ul class="sidebar-navigation">
                         {% block agent_navigation %}
@@ -112,7 +63,7 @@
                                {% if active_page | default("dashboard") == "dashboard" %}
                                aria-current="page"
                                {% endif %}>
-                                Dashboard
+                                Project Overview
                             </a>
                         </li>
                         <li><a class="sidebar-link" href="/documentation">Documentation</a></li>

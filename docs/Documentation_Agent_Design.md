@@ -2,7 +2,7 @@
 
 **Version:** 0.4  
 **Owner:** Project0  
-**Last Updated:** 2026-08-04
+**Last Updated:** 2026-08-06
 
 ---
 
@@ -150,11 +150,17 @@ and AI agents.
 - Host Documentation Agent pages within the shared framework.
 - Render reusable templates.
 - Provide shared navigation, sidebar, context toolbar, and work area.
+- Keep the Sidebar focused on Agent and Workspace navigation.
+- Display Project0 status in the Project Overview Work Area.
+- Allow agent status, controls, and content to be displayed in the Work Area for the selected agent.
 - Remain independent of Documentation Agent business logic.
 
 ### Design Notes
 
 - Implemented using FastAPI and Jinja2 templates.
+- The Project Overview is the default platform-level Work Area and contains Project0 status information.
+- The Context Toolbar and Work Area reflect the currently selected platform or agent context.
+- Project0 status is not displayed persistently in the Sidebar.
 - Serves as reusable platform infrastructure for future AI agents.
 
 ---

@@ -1,6 +1,6 @@
 # Dashboard Design
 
-**Version:** 0.3  
+**Version:** 0.4  
 **Owner:** Project0  
 **Last Updated:** 2026-08-06
 
@@ -28,7 +28,8 @@ Describe the dashboard architecture, navigation, layout, user interaction model,
 * Cross-platform operation.
 * Reuse existing platform services through the Platform Dispatcher.
 * Keep presentation separate from business logic.
-* The Dashboard Framework owns only platform-wide navigation, layout, status presentation, and agent extension points.
+* The Dashboard Framework owns only platform-wide navigation, layout, shared status presentation, and agent extension points.
+* Platform and agent status are displayed in the Work Area for the currently selected context.
 * Individual AI agents own their agent-specific pages, workflows, controls, and results.
 
 ---
@@ -90,11 +91,7 @@ The Breadcrumb identifies the user's current location within the Dashboard Frame
 
 ## Sidebar Navigation
 
-The left sidebar contains three permanent sections.
-
-### Project Status
-
-Displays live Project0 status information.
+The left sidebar contains two permanent navigation sections.
 
 ### Agents
 
@@ -104,10 +101,12 @@ Provides navigation to registered AI Agents.
 
 Provides navigation to platform-level pages including:
 
-* Dashboard
+* Project Overview
 * Documentation
 * Activity
 * Settings
+
+Project0 status is displayed in the Project Overview Work Area rather than persistently in the Sidebar.
 
 The Dashboard Framework owns all navigation while individual agents own their internal pages.
 
@@ -126,11 +125,10 @@ Breadcrumb Navigation
 
 Sidebar                        Work Area
                                ┌─────────────────────────────┐
-Project Status                 │ Context Toolbar             │
+Agents                         │ Context Toolbar             │
                                ├─────────────────────────────┤
-Agents                         │                             │
-                               │                             │
-Workspace                      │         Work Area           │
+Workspace                      │                             │
+                               │         Work Area           │
                                │                             │
                                │                             │
                                └─────────────────────────────┘
@@ -146,13 +144,12 @@ Displays the current navigation path.
 
 ## Sidebar
 
-The Sidebar contains three permanent sections:
+The Sidebar contains two permanent navigation sections:
 
-* Project Status
 * Agents
 * Workspace
 
-The Sidebar remains visible while navigating the application.
+The Sidebar remains visible while navigating the application. Status information is displayed in the Work Area for the selected platform page or agent.
 
 ## Context Toolbar
 
@@ -174,21 +171,25 @@ Only the Work Area changes during navigation.
 
 # 6. Dashboard Components
 
-## Project Status Panel
+## Project Overview
 
-Displays continuously updated platform information including:
+The Project Overview is the default Dashboard Work Area.
+
+It displays Project0 overview and status information including:
 
 * Repository
+* Repository path
 * Git branch
 * Git status
 * Current implementation phase
 * Documentation count
+* Platform version
 * Test status
 * Validation status
 * LLM status
 * Active workflow
 
-The Status Panel contains information only and does not contain workflow controls.
+Project0 status is shown only when the Project Overview is selected. It is not displayed persistently in the Sidebar.
 
 ## Agent Navigation
 
@@ -206,7 +207,7 @@ Displays actions appropriate to the active page.
 
 Examples:
 
-Dashboard
+Project Overview
 
 * Refresh Status
 * Open Documentation
@@ -232,7 +233,8 @@ Each page defines its own toolbar actions.
 
 Displays all interactive content including:
 
-* Agent pages
+* Project Overview and platform status
+* Agent pages and agent status
 * Reports
 * Review screens
 * Forms
@@ -292,7 +294,7 @@ The Dashboard hosts agents while existing platform services perform the work. Ag
 
 # 10. Platform Status
 
-The Project Status panel provides continuously updated platform information.
+Platform status is displayed in the Project Overview Work Area rather than as a persistent Sidebar panel.
 
 Initial information includes:
 
@@ -307,6 +309,8 @@ Initial information includes:
 * Platform version
 * LLM provider
 * Active workflow
+
+The same Work Area model applies to AI agents: when an agent is selected, its status, controls, and content are displayed in the Work Area for that agent.
 
 Future additions may include:
 
@@ -341,7 +345,9 @@ Every Dashboard page provides four elements:
 
 The Dashboard Framework supplies the surrounding application shell.
 
-Individual platform pages and AI Agents supply their own content and toolbar actions.
+Individual platform pages and AI Agents supply their own status, content, and toolbar actions.
+
+The Sidebar selects the active platform or agent context. The Context Toolbar and Work Area then present the actions and content for that context.
 
 This separation allows new agents to integrate into the Dashboard without modifying the Dashboard Framework.
 
@@ -356,7 +362,7 @@ The first Dashboard Framework implementation includes:
 * Shared base template (dashboard.html)
 * Dashboard home page template (dashboard_home.html)
 * Agent placeholder template (agent_placeholder.html)
-* Dashboard home page
+* Project Overview home page
 * Shared dashboard stylesheet (css/dashboard.css)
 * Documentation redirect
 * Generic agent placeholders
