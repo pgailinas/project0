@@ -26,6 +26,7 @@ Project0 documentation is organized into the following categories.
 | [**Project Charter**](Project_Charter.md)               | Defines the project vision, objectives, scope, deliverables, and success criteria.                                                      |
 | [**Development Environment**](Development_Environment.md)       | Defines the standard Project0 development environment, installation, configuration, development workflow, and troubleshooting guidance. |
 | [**Testing Guide**](Testing_Guide.md) | Describes the Project0 testing strategy, test organization, execution procedures, naming conventions, and automated validation workflow for unit and integration testing. |
+| [**Dashboard Design**](Dashboard_Design.md) | Defines the Project0 dashboard architecture, navigation, user experience, platform layout, dashboard widgets, and integration of AI agents into the Project0 user interface. |
 | [**Document Standards**](Documentation_Standards.md)              | Establishes project documentation conventions, organization, formatting, and maintenance standards.                                     |
 | [**Project Directory Structure**](Project_Directory_Structure.md) | Defines the standard Project0 repository organization, directory layout, and purpose of each major project component. |
 
@@ -45,6 +46,7 @@ Project0 documentation is organized into the following categories.
 | [**Documentation Agent Functional Spec**](Documentation_Agent_Functional_Spec.md)     | Defines the required capabilities and behavior of the Document AI Agent.                                              |
 | [**Documentation Agent Architecture**](Documentation_Agent_Architecture.md) | Describes the high-level architecture, workflow, and major system components.                                         |
 | [**Documentation Agent Design**](Documentation_Agent_Design.md)             | Defines the detailed responsibilities, interfaces, inputs, outputs, and dependencies of each architectural component. |
+| [**Documentation Agent Interface Design**](Documentation_Agent_Interface_Design.md) | Defines the user interface, workflow screens, review interactions, validation presentation, and user experience for the Documentation Agent within the Project0 Dashboard. |
 
 ---
 
@@ -58,6 +60,7 @@ Project0 aims to create an extensible AI development platform that:
 * Preserves human review and approval for all documentation changes.
 * Provides a reusable foundation for future AI software engineering agents.
 * Provides an end-to-end documentation workflow integrating knowledge retrieval, AI reasoning, validation, human review, repository updates, and Git diff generation.
+* Provides a unified browser-based dashboard for interacting with Project0 platform services and AI agents.
 
 ---
 
@@ -71,6 +74,8 @@ Project0 follows several core principles:
 * Deterministic processing is preferred whenever AI reasoning is unnecessary.
 * Human approval is required before documentation changes are applied.
 * Components communicate through clearly defined interfaces.
+* The Project0 Dashboard provides a consistent user experience across all platform capabilities.
+* Individual AI agents integrate into the Dashboard while maintaining consistent interface conventions.
 
 ---
 
@@ -85,6 +90,8 @@ Project0 now provides the completed foundation for AI-assisted documentation wor
 * Testing and Validation
 * Code Review
 * Project Management
+* Browser-based Project0 Dashboard
+* Multi-agent workspace
 
 ---
 
@@ -101,12 +108,11 @@ The core Project0 platform has completed its initial implementation foundation, 
 * Git Diff Service
 * Comprehensive automated unit and integration testing (524 passing tests)
 
-Future development will focus on semantic retrieval (RAG), embedding services, vector search, and additional reusable AI agents.
+Future development will focus on the Project0 Dashboard, semantic retrieval (RAG), embedding services, vector search, and additional reusable AI agents.
 
 ---
 
 ## Getting Started
 
-Begin with the [**Project Charter**](Project_Charter.md) to understand the overall vision and objectives. Next, review the [**Development Environment**](Development_Environment.md) to configure a standard Project0 development workstation. After the environment is configured, review the [**Testing Guide**](Testing_Guide.md) to understand the Project0 testing strategy and validation workflow. Then continue through the remaining project documentation and the Documentation AI Agent documents to understand the approved architecture, implementation roadmap, and platform capabilities.
-
+Begin with the [**Project Charter**](Project_Charter.md) to understand the overall vision and objectives. Next, review the [**Development Environment**](Development_Environment.md) to configure a standard Project0 development workstation. After the environment is configured, review the [**Testing Guide**](Testing_Guide.md) to understand the Project0 testing strategy and validation workflow. Then continue through the remaining project documentation, beginning with the Dashboard Design, followed by the Documentation Agent documents to understand the approved architecture, user experience, implementation roadmap, and platform capabilities.
 

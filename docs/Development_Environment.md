@@ -27,8 +27,9 @@ The initial Project0 development environment is based on Ubuntu Linux.
 | Version Control     | Git                            |
 | Remote Repository   | GitHub                         |
 | Documentation       | Markdown + Material for MkDocs |
+| Dashboard Framework | FastAPI (planned)              |
 
-Future support for Windows and macOS may be added as the project matures.
+The Project0 Dashboard Framework will use FastAPI as the browser application framework. FastAPI has been selected because it provides a typed, testable, cross-platform foundation that integrates naturally with the existing Project0 architecture. Dashboard-specific implementation will remain independent of individual AI agent user interfaces.
 
 ---
 
@@ -86,13 +87,36 @@ From the repository root:
 python -m pip install -e .
 ```
 
-Editable installation allows source code changes to become immediately available without reinstalling the package after every modification.
+As Project0 evolves, all required runtime dependencies (for example, FastAPI, Jinja2, and future AI frameworks) will be declared in `pyproject.toml`.
+
+Developers should install Project0 from the repository configuration rather than installing individual packages manually. This ensures that every development environment is created from the same authoritative dependency definition.
 
 Verify installation:
 
 ```bash
 python -m pip show project0
 ```
+
+---
+
+# Environment Reproducibility
+
+Project0 emphasizes deterministic environment creation.
+
+Whenever significant runtime dependencies are added, the development environment should be validated by creating a completely new Conda environment and installing Project0 solely from the repository configuration.
+
+Example:
+
+```bash
+conda create -n project0-clean python=3.12
+conda activate project0-clean
+
+python -m pip install -e .
+```
+
+Successful installation should require no additional manual package installation.
+
+This procedure verifies that `pyproject.toml` remains the authoritative definition of the Project0 development environment.
 
 ---
 
@@ -227,6 +251,14 @@ python -m project0.main
 
 Expected output should confirm successful startup and display the detected project root.
 
+When the Dashboard Framework becomes available:
+
+```bash
+python -m project0.dashboard.dashboard_app
+```
+
+The dashboard should start successfully and be accessible through a local web browser.
+
 ---
 
 # Troubleshooting
@@ -280,6 +312,7 @@ As Project0 evolves, this document will be expanded to include:
 
 * Automated environment creation.
 * Dependency locking.
+* Dashboard Framework installation.
 * Testing framework configuration.
 * Code formatting and linting standards.
 * Continuous Integration (CI).

@@ -46,6 +46,7 @@ nav:
       - Project Charter: Project_Charter.md
       - Development Environment: Development_Environment.md
       - Testing Guide: Testing_Guide.md
+      - Dashboard Design: Dashboard_Design.md
       - Document Standards: Documentation_Standards.md
       - Project Directory Structure: Project_Directory_Structure.md
   - Platform Design:
@@ -57,7 +58,7 @@ nav:
       - Documentation Agent Functional Spec: Documentation_Agent_Functional_Spec.md
       - Documentation Agent Architecture: Documentation_Agent_Architecture.md
       - Documentation Agent Design: Documentation_Agent_Design.md
-
+      - Documentation Agent Interface Design: Documentation_Agent_Interface_Design.md
 
 markdown_extensions:
   - attr_list

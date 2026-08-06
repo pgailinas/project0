@@ -17,7 +17,7 @@ The PDF is intended for convenient viewing in a web browser. The ODS file is the
 
 ## Current Phase
 
-Phase 7 – Testing and Verification (Ready to Begin)
+Phase 7 – Dashboard Framework (Ready to Begin)
 
 ## Overall Status
 

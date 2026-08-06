@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+    <title>
+        {% block title %}Project0 Dashboard{% endblock %}
+    </title>
+
+    {% block styles %}
+    <style>
+        :root {
+            color-scheme: light;
+            font-family:
+                Inter,
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+            background: #f4f6f8;
+            color: #1f2933;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #f4f6f8;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .app-shell {
+            min-height: 100vh;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+        }
+
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            background: #ffffff;
+            border-bottom: 1px solid #d9e0e7;
+        }
+
+        .app-brand {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+        }
+
+        .app-brand__title {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .app-brand__subtitle {
+            margin: 0;
+            color: #617080;
+            font-size: 0.9rem;
+        }
+
+        .app-layout {
+            display: grid;
+            grid-template-columns: 15rem minmax(0, 1fr);
+            min-height: 0;
+        }
+
+        .app-navigation {
+            padding: 1rem;
+            background: #ffffff;
+            border-right: 1px solid #d9e0e7;
+        }
+
+        .navigation-list {
+            display: grid;
+            gap: 0.4rem;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .navigation-link {
+            display: block;
+            padding: 0.7rem 0.8rem;
+            border-radius: 0.45rem;
+            color: #33404d;
+        }
+
+        .navigation-link:hover,
+        .navigation-link:focus {
+            background: #eef2f6;
+        }
+
+        .app-main {
+            min-width: 0;
+            padding: 1.5rem;
+        }
+
+        .page-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .page-title {
+            margin: 0;
+            font-size: 1.75rem;
+        }
+
+        .page-description {
+            margin: 0.4rem 0 0;
+            color: #617080;
+        }
+
+        .status-region {
+            margin-bottom: 1rem;
+        }
+
+        .status-message {
+            padding: 0.8rem 1rem;
+            border: 1px solid #cdd6df;
+            border-radius: 0.45rem;
+            background: #ffffff;
+        }
+
+        .app-footer {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0.9rem 1.5rem;
+            background: #ffffff;
+            border-top: 1px solid #d9e0e7;
+            color: #617080;
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 800px) {
+            .app-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .app-navigation {
+                border-right: 0;
+                border-bottom: 1px solid #d9e0e7;
+            }
+
+            .navigation-list {
+                grid-template-columns:
+                    repeat(auto-fit, minmax(9rem, 1fr));
+            }
+
+            .app-footer {
+                flex-direction: column;
+            }
+        }
+    </style>
+    {% endblock %}
+</head>
+<body>
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="app-brand">
+                <h1 class="app-brand__title">
+                    {{ project_name | default("Project0") }}
+                </h1>
+                <p class="app-brand__subtitle">
+                    AI-Native Software Development Platform
+                </p>
+            </div>
+
+            {% block header_actions %}{% endblock %}
+        </header>
+
+        <div class="app-layout">
+            <nav
+                class="app-navigation"
+                aria-label="Primary navigation"
+            >
+                <ul class="navigation-list">
+                    <li>
+                        <a
+                            class="navigation-link"
+                            href="/"
+                        >
+                            Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            class="navigation-link"
+                            href="/documentation"
+                        >
+                            Documentation
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            class="navigation-link"
+                            href="/agents/documentation"
+                        >
+                            Documentation Agent
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            class="navigation-link"
+                            href="/agents/research"
+                        >
+                            Research Agent
+                        </a>
+                    </li>
+                    {% block navigation_items %}{% endblock %}
+                </ul>
+            </nav>
+
+            <main class="app-main">
+                {% block page_header %}
+                <section class="page-header">
+                    <h2 class="page-title">
+                        {% block page_title %}
+                        Project0 Dashboard
+                        {% endblock %}
+                    </h2>
+                    {% block page_description %}{% endblock %}
+                </section>
+                {% endblock %}
+
+                <section
+                    class="status-region"
+                    aria-live="polite"
+                >
+                    {% block status %}{% endblock %}
+                </section>
+
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+
+        <footer class="app-footer">
+            <span>
+                Project0 Dashboard Framework
+            </span>
+            <span>
+                {% block footer_details %}
+                Local-first development interface
+                {% endblock %}
+            </span>
+        </footer>
+    </div>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

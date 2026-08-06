@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+
+{% block title %}
+Project0 Dashboard
+{% endblock %}
+
+{% block page_title %}
+Project0 Dashboard
+{% endblock %}
+
+{% block page_description %}
+<p class="page-description">
+    Shared access point for Project0 platform services,
+    documentation, and registered AI agents.
+</p>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns:
+            repeat(auto-fit, minmax(16rem, 1fr));
+        gap: 1rem;
+    }
+
+    .dashboard-card {
+        padding: 1rem;
+        background: #ffffff;
+        border: 1px solid #d9e0e7;
+        border-radius: 0.6rem;
+    }
+
+    .dashboard-card__title {
+        margin: 0;
+        font-size: 1.05rem;
+    }
+
+    .dashboard-card__description {
+        margin: 0.5rem 0 0;
+        color: #617080;
+        line-height: 1.5;
+    }
+
+    .dashboard-card__details {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 0;
+    }
+
+    .dashboard-detail {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid #e5e9ee;
+    }
+
+    .dashboard-detail:first-child {
+        padding-top: 0;
+        border-top: 0;
+    }
+
+    .dashboard-detail__label {
+        color: #617080;
+    }
+
+    .dashboard-detail__value {
+        text-align: right;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+    }
+
+    .dashboard-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        margin-top: 1rem;
+    }
+
+    .dashboard-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 2.5rem;
+        padding: 0.65rem 0.9rem;
+        border: 1px solid #b9c5d1;
+        border-radius: 0.45rem;
+        background: #ffffff;
+        font-weight: 600;
+    }
+
+    .dashboard-action:hover,
+    .dashboard-action:focus {
+        background: #eef2f6;
+    }
+
+    .dashboard-action--primary {
+        border-color: #2f6f9f;
+        background: #2f6f9f;
+        color: #ffffff;
+    }
+
+    .dashboard-action--primary:hover,
+    .dashboard-action--primary:focus {
+        background: #275f88;
+    }
+
+    .agent-list {
+        display: grid;
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+
+    .agent-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.8rem;
+        border: 1px solid #e1e7ed;
+        border-radius: 0.45rem;
+    }
+
+    .agent-item__name {
+        font-weight: 600;
+    }
+
+    .agent-item__status {
+        color: #617080;
+        font-size: 0.9rem;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.3rem 0.55rem;
+        border-radius: 999px;
+        background: #eaf4ec;
+        color: #2d6a3f;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .status-badge--planned {
+        background: #f1f3f5;
+        color: #5f6b76;
+    }
+</style>
+{% endblock %}
+
+{% block status %}
+<div class="status-message">
+    Dashboard Framework available.
+</div>
+{% endblock %}
+
+{% block content %}
+<section
+    class="dashboard-grid"
+    aria-label="Project0 dashboard overview"
+>
+    <article class="dashboard-card">
+        <h3 class="dashboard-card__title">
+            Platform Status
+        </h3>
+        <p class="dashboard-card__description">
+            Current status of the shared Project0 Dashboard Framework.
+        </p>
+
+        <div class="dashboard-card__details">
+            <div class="dashboard-detail">
+                <span class="dashboard-detail__label">
+                    Application
+                </span>
+                <span class="dashboard-detail__value">
+                    Project0 Dashboard
+                </span>
+            </div>
+            <div class="dashboard-detail">
+                <span class="dashboard-detail__label">
+                    Status
+                </span>
+                <span class="dashboard-detail__value">
+                    <span class="status-badge">
+                        Available
+                    </span>
+                </span>
+            </div>
+            <div class="dashboard-detail">
+                <span class="dashboard-detail__label">
+                    Framework
+                </span>
+                <span class="dashboard-detail__value">
+                    FastAPI
+                </span>
+            </div>
+        </div>
+    </article>
+
+    <article class="dashboard-card">
+        <h3 class="dashboard-card__title">
+            Repository
+        </h3>
+        <p class="dashboard-card__description">
+            Active repository used by the Project0 platform.
+        </p>
+
+        <div class="dashboard-card__details">
+            <div class="dashboard-detail">
+                <span class="dashboard-detail__label">
+                    Project
+                </span>
+                <span class="dashboard-detail__value">
+                    {{ project_name }}
+                </span>
+            </div>
+            <div class="dashboard-detail">
+                <span class="dashboard-detail__label">
+                    Root
+                </span>
+                <span class="dashboard-detail__value">
+                    {{ project_root }}
+                </span>
+            </div>
+        </div>
+    </article>
+
+    <article class="dashboard-card">
+        <h3 class="dashboard-card__title">
+            Documentation
+        </h3>
+        <p class="dashboard-card__description">
+            Open the locally served Project0 development
+            documentation.
+        </p>
+
+        <div class="dashboard-actions">
+            <a
+                class="dashboard-action dashboard-action--primary"
+                href="{{ documentation_url }}"
+            >
+                View Documentation
+            </a>
+        </div>
+    </article>
+
+    <article class="dashboard-card">
+        <h3 class="dashboard-card__title">
+            Registered Agents
+        </h3>
+        <p class="dashboard-card__description">
+            Launch registered Project0 agents through shared
+            dashboard extension points.
+        </p>
+
+        <div class="agent-list">
+            {% for agent in agents %}
+            <div class="agent-item">
+                <div>
+                    <div class="agent-item__name">
+                        {{ agent.name }}
+                    </div>
+                    <div class="agent-item__status">
+                        {% if agent.available %}
+                        Available
+                        {% else %}
+                        Interface planned
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if agent.available %}
+                <a
+                    class="dashboard-action"
+                    href="/agents/{{ agent.identifier }}"
+                >
+                    Open
+                </a>
+                {% else %}
+                <span class="status-badge status-badge--planned">
+                    Planned
+                </span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </article>
+</section>
+{% endblock %}
