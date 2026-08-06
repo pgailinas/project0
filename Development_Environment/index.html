@@ -430,6 +430,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../Dashboard_Design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dashboard Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../Documentation_Standards/" class="md-nav__link">
         
   
@@ -787,6 +815,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Documentation_Agent_Interface_Design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Agent Interface Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -884,9 +940,13 @@
 <td>Documentation</td>
 <td>Markdown + Material for MkDocs</td>
 </tr>
+<tr>
+<td>Dashboard Framework</td>
+<td>FastAPI (planned)</td>
+</tr>
 </tbody>
 </table>
-<p>Future support for Windows and macOS may be added as the project matures.</p>
+<p>The Project0 Dashboard Framework will use FastAPI as the browser application framework. FastAPI has been selected because it provides a typed, testable, cross-platform foundation that integrates naturally with the existing Project0 architecture. Dashboard-specific implementation will remain independent of individual AI agent user interfaces.</p>
 <hr />
 <h1 id="repository-layout">Repository Layout</h1>
 <p>Project0 follows the standard Python <strong>src layout</strong>.</p>
@@ -920,22 +980,35 @@
 <p>From the repository root:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
 </span></code></pre></div>
-<p>Editable installation allows source code changes to become immediately available without reinstalling the package after every modification.</p>
+<p>As Project0 evolves, all required runtime dependencies (for example, FastAPI, Jinja2, and future AI frameworks) will be declared in <code>pyproject.toml</code>.</p>
+<p>Developers should install Project0 from the repository configuration rather than installing individual packages manually. This ensures that every development environment is created from the same authoritative dependency definition.</p>
 <p>Verify installation:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>show<span class="w"> </span>project0
 </span></code></pre></div>
 <hr />
+<h1 id="environment-reproducibility">Environment Reproducibility</h1>
+<p>Project0 emphasizes deterministic environment creation.</p>
+<p>Whenever significant runtime dependencies are added, the development environment should be validated by creating a completely new Conda environment and installing Project0 solely from the repository configuration.</p>
+<p>Example:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>project0-clean<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.12
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>conda<span class="w"> </span>activate<span class="w"> </span>project0-clean
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</span></code></pre></div>
+<p>Successful installation should require no additional manual package installation.</p>
+<p>This procedure verifies that <code>pyproject.toml</code> remains the authoritative definition of the Project0 development environment.</p>
+<hr />
 <h1 id="running-project0">Running Project0</h1>
 <p>Always execute Project0 as an installed package.</p>
 <p>Preferred:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>-m<span class="w"> </span>project0.main
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python<span class="w"> </span>-m<span class="w"> </span>project0.main
 </span></code></pre></div>
 <p>Avoid executing source files directly.</p>
 <p>Do <strong>not</strong> use:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python<span class="w"> </span>src/project0/main.py
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>python<span class="w"> </span>src/project0/main.py
 </span></code></pre></div>
 <p>or</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>/usr/bin/python3<span class="w"> </span>src/project0/main.py
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>/usr/bin/python3<span class="w"> </span>src/project0/main.py
 </span></code></pre></div>
 <p>Executing individual source files bypasses the package installation and may cause module import failures.</p>
 <hr />
@@ -950,30 +1023,30 @@
 <li>Launch Project0 as a Python module rather than an individual file.</li>
 </ul>
 <p>Repository-specific VS Code settings should reside in:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>project0/.vscode/
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>project0/.vscode/
 </span></code></pre></div>
 <p>VS Code configuration is not currently committed to the repository.</p>
 <hr />
 <h1 id="documentation-environment">Documentation Environment</h1>
 <p>Documentation is generated using MkDocs with the Material theme.</p>
 <p>Local preview:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>mkdocs<span class="w"> </span>serve
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>mkdocs<span class="w"> </span>serve
 </span></code></pre></div>
 <p>Build static documentation:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>mkdocs<span class="w"> </span>build
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>mkdocs<span class="w"> </span>build
 </span></code></pre></div>
 <p>The documentation source is maintained in the <code>docs/</code> directory.</p>
 <hr />
 <h1 id="git-workflow">Git Workflow</h1>
 <p>Typical development workflow:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>git<span class="w"> </span>pull
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="c1"># Modify source code</span>
-</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>
-</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>git<span class="w"> </span>status
-</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>git<span class="w"> </span>add<span class="w"> </span>.
-</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Meaningful commit message&quot;</span>
-</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>git<span class="w"> </span>push
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>git<span class="w"> </span>pull
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="c1"># Modify source code</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>git<span class="w"> </span>status
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>git<span class="w"> </span>add<span class="w"> </span>.
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Meaningful commit message&quot;</span>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>git<span class="w"> </span>push
 </span></code></pre></div>
 <p>Developers should maintain a clean working tree before beginning new work.</p>
 <hr />
@@ -994,15 +1067,19 @@
 <h1 id="development-verification">Development Verification</h1>
 <p>A correctly configured development environment should satisfy the following checks.</p>
 <p>Verify package installation:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>show<span class="w"> </span>project0
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>show<span class="w"> </span>project0
 </span></code></pre></div>
 <p>Verify package import:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import project0; print(project0.__file__)&quot;</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import project0; print(project0.__file__)&quot;</span>
 </span></code></pre></div>
 <p>Run Project0:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>python<span class="w"> </span>-m<span class="w"> </span>project0.main
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>python<span class="w"> </span>-m<span class="w"> </span>project0.main
 </span></code></pre></div>
 <p>Expected output should confirm successful startup and display the detected project root.</p>
+<p>When the Dashboard Framework becomes available:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>python<span class="w"> </span>-m<span class="w"> </span>project0.dashboard.dashboard_app
+</span></code></pre></div>
+<p>The dashboard should start successfully and be accessible through a local web browser.</p>
 <hr />
 <h1 id="troubleshooting">Troubleshooting</h1>
 <h2 id="modulenotfounderror">ModuleNotFoundError</h2>
@@ -1014,20 +1091,20 @@
 <li>Conda environment not activated.</li>
 </ul>
 <p>Recommended solution:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>conda<span class="w"> </span>activate<span class="w"> </span>project0
-</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
-</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>python<span class="w"> </span>-m<span class="w"> </span>project0.main
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>conda<span class="w"> </span>activate<span class="w"> </span>project0
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>python<span class="w"> </span>-m<span class="w"> </span>project0.main
 </span></code></pre></div>
 <hr />
 <h2 id="incorrect-python-interpreter">Incorrect Python Interpreter</h2>
 <p>Verify:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>which<span class="w"> </span>python
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>which<span class="w"> </span>python
 </span></code></pre></div>
 <p>The interpreter should point to the active Conda environment rather than <code>/usr/bin/python3</code>.</p>
 <hr />
 <h2 id="git-reports-unexpected-files">Git Reports Unexpected Files</h2>
 <p>Review:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>git<span class="w"> </span>status
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>git<span class="w"> </span>status
 </span></code></pre></div>
 <p>If generated files appear, update <code>.gitignore</code> rather than committing environment-specific artifacts.</p>
 <hr />
@@ -1036,6 +1113,7 @@
 <ul>
 <li>Automated environment creation.</li>
 <li>Dependency locking.</li>
+<li>Dashboard Framework installation.</li>
 <li>Testing framework configuration.</li>
 <li>Code formatting and linting standards.</li>
 <li>Continuous Integration (CI).</li>

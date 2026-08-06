@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://pgailinas.github.io/project0/Project_Charter/">
+        <link rel="canonical" href="https://pgailinas.github.io/project0/Dashboard_Design/">
       
       
-        <link rel="prev" href="..">
+        <link rel="prev" href="../Testing_Guide/">
       
       
-        <link rel="next" href="../Development_Environment/">
+        <link rel="next" href="../Documentation_Standards/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Project Charter - Project0</title>
+        <title>Dashboard Design - Project0</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#project-charter" class="md-skip">
+        <a href="#dashboard-design" class="md-skip">
           Skip to content
         </a>
       
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Project Charter
+              Dashboard Design
             
           </span>
         </div>
@@ -333,19 +333,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../Project_Charter/" class="md-nav__link">
         
   
   
@@ -361,7 +352,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -427,10 +417,19 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../Dashboard_Design/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -446,6 +445,7 @@
   
 
       </a>
+      
     </li>
   
 
@@ -885,7 +885,7 @@
 
 
   
-    <a href="https://github.com/pgailinas/project0/edit/main/docs/Project_Charter.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/pgailinas/project0/edit/main/docs/Dashboard_Design.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -893,155 +893,202 @@
   
 
 
-<h1 id="project-charter">Project Charter</h1>
-<p><strong>Version:</strong> 0.2<br />
+<h1 id="dashboard-design">Dashboard Design</h1>
+<p><strong>Version:</strong> 0.1<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-07-31</p>
+<strong>Last Updated:</strong> 2026-08-05</p>
 <hr />
-<h1 id="1-project-overview">1. Project Overview</h1>
-<p>Project0 is an AI-first software development framework intended to enable individuals and small startup teams to rapidly design, build, validate, deploy, and maintain software products using coordinated AI agents working alongside human oversight.</p>
-<p>Rather than replacing developers, Project0 treats AI as a specialized engineering team whose members each perform well-defined responsibilities within a structured development workflow.</p>
-<p>The objective is to dramatically reduce development cost and time while maintaining professional software engineering quality.</p>
-<p>Secondary Objective: Use Project0 as a vehicle for adopting and applying modern AI-assisted software development practices, tools, and workflows while building a production-quality software platform.</p>
+<h1 id="1-purpose">1. Purpose</h1>
+<h2 id="objective">Objective</h2>
+<p>Define the design of the Project0 Dashboard, which serves as the primary user interface for the Project0 platform.</p>
+<h2 id="scope">Scope</h2>
+<p>Describe the dashboard architecture, navigation, layout, user interaction model, dashboard widgets, integration with Project0 services, and future expansion. This document defines the platform user experience rather than implementation details.</p>
 <hr />
-<h1 id="2-vision">2. Vision</h1>
-<p>Create a reusable AI-powered development platform capable of taking an idea from concept through production using structured workflows, autonomous AI specialists, continuous validation, and human approval checkpoints.</p>
-<hr />
-<h1 id="3-mission">3. Mission</h1>
-<p>Develop an open, modular, AI-native framework that enables new software projects to be initialized in less than one hour using proven industry-standard templates, automation, and reusable components.</p>
-<hr />
-<h1 id="4-project-objectives">4. Project Objectives</h1>
+<h1 id="2-design-philosophy">2. Design Philosophy</h1>
 <ul>
-<li>Define an AI-first development lifecycle.</li>
-<li>Utilize specialized AI agents for distinct engineering disciplines.</li>
-<li>Integrate automated testing and validation throughout development.</li>
-<li>Preserve human decision authority for architecture and release decisions.</li>
-<li>Encourage reuse of mature open-source tools rather than creating replacements.</li>
-<li>Support iterative development from prototype through production.</li>
-<li>Serve as a reusable foundation for future software projects.</li>
+<li>Browser-based, local-first operation.</li>
+<li>Dashboard represents the Project0 platform rather than a single AI agent.</li>
+<li>Human-in-the-loop workflows.</li>
+<li>Documentation-first development.</li>
+<li>Consistent user experience across all agents.</li>
+<li>Cross-platform operation.</li>
+<li>Reuse existing platform services through the Platform Dispatcher.</li>
+<li>Keep presentation separate from business logic.</li>
+<li>The Dashboard Framework owns only platform-wide navigation, layout, status presentation, and agent extension points.</li>
+<li>Individual AI agents own their agent-specific pages, workflows, controls, and results.</li>
 </ul>
 <hr />
-<h1 id="5-scope">5. Scope</h1>
-<h2 id="included">Included</h2>
+<h1 id="3-dashboard-architecture">3. Dashboard Architecture</h1>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Browser
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    │
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    ▼
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>FastAPI Dashboard Framework
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    │
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    ▼
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Dashboard Routes
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    │
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    ▼
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>Platform Dispatcher
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    │
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    ▼
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>Project0 Platform Services
+</span></code></pre></div>
+<p>FastAPI is the selected application framework for the Project0 Dashboard. Jinja2 templates will provide the initial browser interface, and Uvicorn will host the local ASGI application.</p>
+<hr />
+<h1 id="4-navigation-model">4. Navigation Model</h1>
 <ul>
-<li>Requirements engineering</li>
-<li>System architecture</li>
-<li>UI/UX planning</li>
-<li>Software implementation</li>
-<li>Documentation generation</li>
-<li>Automated testing</li>
-<li>Code review</li>
-<li>CI/CD support</li>
-<li>Deployment guidance</li>
-<li>Project management assistance</li>
-<li>Technical decision tracking</li>
+<li>Dashboard</li>
+<li>Documentation</li>
+<li>Agents</li>
+<li>Documentation Agent</li>
+<li>Research Agent (future)</li>
+<li>Additional Agents (future)</li>
+<li>Development</li>
+<li>Validation</li>
+<li>Git Diff</li>
+<li>Testing</li>
+<li>Settings</li>
 </ul>
-<h2 id="excluded-initial-release">Excluded (Initial Release)</h2>
+<p>The Dashboard provides navigation to registered agents but does not define or implement their internal user interfaces.</p>
+<hr />
+<h1 id="5-dashboard-layout">5. Dashboard Layout</h1>
+<h2 id="header">Header</h2>
 <ul>
-<li>Custom LLM development</li>
-<li>Training foundation models</li>
-<li>Proprietary cloud infrastructure</li>
-<li>Enterprise governance features</li>
-<li>Commercial licensing</li>
+<li>Project title</li>
+<li>Version</li>
+<li>Repository</li>
 </ul>
+<h2 id="navigation">Navigation</h2>
+<p>Persistent navigation.</p>
+<h2 id="main-workspace">Main Workspace</h2>
+<p>Displays the selected page or agent.</p>
+<h2 id="status-panel">Status Panel</h2>
+<p>Displays platform health and workflow status.</p>
+<h2 id="footer">Footer</h2>
+<p>Version and diagnostics.</p>
 <hr />
-<h1 id="6-guiding-principles">6. Guiding Principles</h1>
+<h1 id="6-dashboard-widgets">6. Dashboard Widgets</h1>
 <ul>
-<li>AI-First</li>
-<li>Human-in-the-Loop</li>
-<li>Modular Architecture</li>
-<li>Reuse Before Build</li>
-<li>Continuous Validation</li>
-<li>Documentation by Default</li>
-</ul>
-<hr />
-<h1 id="7-high-level-workflow">7. High-Level Workflow</h1>
-<p>Idea → Requirements → Architecture → Implementation → Testing →
-Validation → Deployment → Maintenance</p>
-<hr />
-<h1 id="8-initial-ai-agent-roles">8. Initial AI Agent Roles</h1>
-<ul>
-<li>Project Manager</li>
-<li>Product Owner</li>
-<li>Business Analyst</li>
-<li>System Architect</li>
-<li>Software Engineer</li>
-<li>Front-End Engineer</li>
-<li>Back-End Engineer</li>
-<li>DevOps Engineer</li>
-<li>QA/Test Engineer</li>
-<li>Security Reviewer</li>
-<li>Documentation Engineer</li>
-<li>Release Manager</li>
-</ul>
-<hr />
-<h1 id="9-validation-strategy">9. Validation Strategy</h1>
-<p>Validation includes requirements consistency, architecture compliance, coding standards, unit testing, integration testing, security analysis, performance evaluation, documentation completeness, and release readiness. No project phase advances until defined validation criteria are satisfied.</p>
-<hr />
-<h1 id="10-success-criteria">10. Success Criteria</h1>
-<ul>
-<li>Guide development from concept to deployment.</li>
-<li>Coordinate specialized AI roles effectively.</li>
-<li>Produce software with minimal manual coding.</li>
-<li>Automatically generate project documentation.</li>
-<li>Detect defects early through continuous validation.</li>
-<li>Support reuse across multiple future software projects.</li>
+<li>Platform Status</li>
+<li>Repository Status</li>
+<li>Documentation Status</li>
+<li>Test Status</li>
+<li>LLM Status</li>
+<li>Workflow Status</li>
+<li>Recent Activity</li>
+<li>Quick Actions</li>
 </ul>
 <hr />
-<h1 id="11-major-deliverables">11. Major Deliverables</h1>
-<h2 id="phase-1">Phase 1</h2>
+<h1 id="7-documentation-integration">7. Documentation Integration</h1>
+<p>The Dashboard provides access to Project0 documentation without replacing MkDocs.</p>
+<p>During initial development:</p>
+<ul>
+<li><code>http://127.0.0.1:8000</code> hosts the local MkDocs documentation.</li>
+<li><code>http://127.0.0.1:8001</code> hosts the Project0 Dashboard.</li>
+</ul>
+<p>The Dashboard Documentation link redirects to the MkDocs site.</p>
+<p>Development:
+* Local MkDocs site
+* GitHub Pages documentation</p>
+<p>Future:
+* Dashboard-served documentation.</p>
+<hr />
+<h1 id="8-agent-integration">8. Agent Integration</h1>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Dashboard
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    │
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    ▼
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>Agent Launcher
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    ├── Documentation Agent
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    ├── Research Agent
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    └── Future Agents
+</span></code></pre></div>
+<p>The Dashboard hosts agents while existing platform services perform the work. Agent-specific features such as documentation review, validation presentation, repository updates, and Git diff display are outside the Dashboard Framework and belong in the applicable Agent Interface Design document.</p>
+<hr />
+<h1 id="9-workflow-interaction">9. Workflow Interaction</h1>
+<ol>
+<li>Start</li>
+<li>Analyze</li>
+<li>Progress</li>
+<li>User Review</li>
+<li>Validation</li>
+<li>Apply Changes</li>
+<li>Completion</li>
+<li>History (future)</li>
+</ol>
+<hr />
+<h1 id="10-platform-status">10. Platform Status</h1>
+<p>Display:</p>
+<ul>
+<li>Repository</li>
+<li>Git branch</li>
+<li>Documentation count</li>
+<li>Validation status</li>
+<li>Automated test status</li>
+<li>LLM provider status</li>
+<li>Embedding status (future)</li>
+<li>Vector store status (future)</li>
+<li>Platform version</li>
+</ul>
+<hr />
+<h1 id="11-user-interface-standards">11. User Interface Standards</h1>
+<ul>
+<li>Consistent navigation</li>
+<li>Reusable cards and panels</li>
+<li>Standard status indicators</li>
+<li>Shared approval workflow controls</li>
+<li>Responsive browser layout</li>
+<li>Shared UI standards shall remain independent of any single agent.</li>
+<li>Agent-specific controls shall not be added to the Dashboard Framework solely for one agent.</li>
+</ul>
+<hr />
+<h1 id="12-initial-implementation-scope">12. Initial Implementation Scope</h1>
+<p>The first Dashboard Framework implementation includes:</p>
+<ul>
+<li>FastAPI application creation</li>
+<li>Platform-level dashboard routes</li>
+<li>Shared base template</li>
+<li>Dashboard home page</li>
+<li>Documentation redirect</li>
+<li>Generic agent placeholders</li>
+<li>Basic status endpoint</li>
+<li>Unit and integration tests</li>
+</ul>
+<p>The initial implementation excludes:</p>
+<ul>
+<li>Documentation Agent request forms</li>
+<li>Documentation review controls</li>
+<li>Git diff presentation</li>
+<li>Validation-result presentation</li>
+<li>Agent-specific workflow state</li>
+</ul>
+<hr />
+<h1 id="13-future-expansion">13. Future Expansion</h1>
+<ul>
+<li>Dark mode</li>
+<li>Authentication</li>
+<li>Multi-user support</li>
+<li>Remote repositories</li>
+<li>Cloud deployment</li>
+<li>Plugin architecture</li>
+<li>Additional AI agents</li>
+</ul>
+<hr />
+<h1 id="14-relationship-to-agent-interface-documents">14. Relationship to Agent Interface Documents</h1>
+<p>This document defines the Project0 platform user experience.</p>
+<p>Each AI agent shall provide its own Interface Design document describing agent-specific pages and interactions while conforming to the Dashboard Design.</p>
+<hr />
+<h1 id="15-related-documents">15. Related Documents</h1>
 <ul>
 <li>Project Charter</li>
-<li>Roadmap</li>
-<li>Requirements Specification</li>
-<li>Technology Survey &amp; Evaluation</li>
-<li>Architecture Document</li>
+<li>Documentation Standards</li>
+<li>Documentation Agent Functional Specification</li>
+<li>Documentation Agent Architecture</li>
+<li>Documentation Agent Design</li>
+<li>Component Communication Design</li>
+<li>Testing Guide</li>
+<li>Project Directory Structure</li>
+<li>Documentation Agent Interface Design (future)</li>
 </ul>
-<h2 id="phase-2">Phase 2</h2>
-<ul>
-<li>AI Agent Specifications</li>
-<li>Workflow Definitions</li>
-<li>Validation Framework</li>
-<li>Repository Template</li>
-<li>Reference Implementation</li>
-</ul>
-<h2 id="phase-3">Phase 3</h2>
-<ul>
-<li>MVP Development</li>
-<li>End-to-End Demonstration</li>
-<li>Documentation</li>
-<li>Lessons Learned</li>
-</ul>
-<hr />
-<h1 id="12-risks">12. Risks</h1>
-<p>AI hallucinations, tool instability, rapid technology changes, over-automation, and scope growth will be mitigated through modular architecture, validation, phased delivery, and human approval gates.</p>
-<hr />
-<h1 id="13-assumptions">13. Assumptions</h1>
-<p>Modern LLMs continue improving, open-source AI tooling remains available, AI orchestration frameworks mature, and AI-assisted software engineering becomes increasingly common.</p>
-<hr />
-<h1 id="14-expected-outcome">14. Expected Outcome</h1>
-<p>Project0 establishes a repeatable AI-native software engineering methodology that can be reused for future software projects, enabling small teams to deliver professional-quality software through coordinated AI-assisted development.</p>
-<hr />
-<h1 id="15-suggested-success-metrics-kpis">15. Suggested Success Metrics (KPIs)</h1>
-<ul>
-<li>Time to MVP</li>
-<li>Human hours per feature</li>
-<li>AI-generated code acceptance rate</li>
-<li>Automated test pass rate</li>
-<li>Defect escape rate</li>
-<li>Documentation coverage</li>
-<li>Cost per completed feature</li>
-</ul>
-<hr />
-<h1 id="16-documentation-philosophy">16. Documentation Philosophy</h1>
-<p>Project0 documentation shall remain intentionally concise. Each document has a single purpose, avoids duplication, references authoritative sources instead of repeating content, and captures decisions rather than lengthy discussion. The framework and reusable assets are the primary product; documentation exists only to explain and support their use.</p>
-<hr />
-<h1 id="17-framework-principle">17. Framework Principle</h1>
-<p>Project0 shall adopt established industry terminology, standards, templates, and open-source components whenever practical. Reinvention is
-avoided unless it provides clear value.</p>
-<hr />
-<h1 id="18-primary-success-objective">18. Primary Success Objective</h1>
-<p>A new software project should be capable of being initialized in less than one hour by instantiating the Project0 framework using a standard project template and automation.</p>
 
 
 

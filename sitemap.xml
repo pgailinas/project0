@@ -2,54 +2,62 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://pgailinas.github.io/project0/</loc>
-         <lastmod>2026-08-05</lastmod>
+         <lastmod>2026-08-06</lastmod>
     </url>
     <url>
          <loc>https://pgailinas.github.io/project0/Component_Communication_Design/</loc>
-         <lastmod>2026-08-05</lastmod>
+         <lastmod>2026-08-06</lastmod>
+    </url>
+    <url>
+         <loc>https://pgailinas.github.io/project0/Dashboard_Design/</loc>
+         <lastmod>2026-08-06</lastmod>
     </url>
     <url>
          <loc>https://pgailinas.github.io/project0/Development_Environment/</loc>
-         <lastmod>2026-08-05</lastmod>
+         <lastmod>2026-08-06</lastmod>
     </url>
     <url>
          <loc>https://pgailinas.github.io/project0/Documentation_Agent_Architecture/</loc>
-         <lastmod>2026-08-05</lastmod>
+         <lastmod>2026-08-06</lastmod>
     </url>
     <url>
          <loc>https://pgailinas.github.io/project0/Documentation_Agent_Design/</loc>
-         <lastmod>2026-08-05</lastmod>
+         <lastmod>2026-08-06</lastmod>
     </url>
     <url>
          <loc>https://pgailinas.github.io/project0/Documentation_Agent_Functional_Spec/</loc>
-         <lastmod>2026-08-05</lastmod>
+         <lastmod>2026-08-06</lastmod>
+    </url>
+    <url>
+         <loc>https://pgailinas.github.io/project0/Documentation_Agent_Interface_Design/</loc>
+         <lastmod>2026-08-06</lastmod>
     </url>
     <url>
          <loc>https://pgailinas.github.io/project0/Documentation_Standards/</loc>
-         <lastmod>2026-08-05</lastmod>
+         <lastmod>2026-08-06</lastmod>
     </url>
     <url>
          <loc>https://pgailinas.github.io/project0/Implementation_Roadmap/</loc>
-         <lastmod>2026-08-05</lastmod>
+         <lastmod>2026-08-06</lastmod>
     </url>
     <url>
          <loc>https://pgailinas.github.io/project0/Implementation_Status/</loc>
-         <lastmod>2026-08-05</lastmod>
+         <lastmod>2026-08-06</lastmod>
     </url>
     <url>
          <loc>https://pgailinas.github.io/project0/Project_Charter/</loc>
-         <lastmod>2026-08-05</lastmod>
+         <lastmod>2026-08-06</lastmod>
     </url>
     <url>
          <loc>https://pgailinas.github.io/project0/Project_Directory_Structure/</loc>
-         <lastmod>2026-08-05</lastmod>
+         <lastmod>2026-08-06</lastmod>
     </url>
     <url>
          <loc>https://pgailinas.github.io/project0/Shared_Data_Models_and_Error_Contracts/</loc>
-         <lastmod>2026-08-05</lastmod>
+         <lastmod>2026-08-06</lastmod>
     </url>
     <url>
          <loc>https://pgailinas.github.io/project0/Testing_Guide/</loc>
-         <lastmod>2026-08-05</lastmod>
+         <lastmod>2026-08-06</lastmod>
     </url>
 </urlset>
