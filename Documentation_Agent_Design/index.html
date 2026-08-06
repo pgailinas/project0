@@ -920,8 +920,12 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <hr />
 <h1 id="3-component-overview">3. Component Overview</h1>
-<p>The implemented platform foundation consists of the following primary components:</p>
+<p>The implemented Phase 7 platform foundation consists of the following
+primary components. The Documentation Agent is hosted within the
+reusable Dashboard Framework, which provides the browser interface while
+remaining architecturally separate from the agent services:</p>
 <ul>
+<li>Dashboard Framework</li>
 <li>Platform Dispatcher</li>
 <li>Workflow Engine</li>
 <li>Repository Service</li>
@@ -1006,10 +1010,28 @@ Implementation details are intentionally excluded.</p>
 <li>Multi-agent workflow coordination</li>
 </ul>
 <hr />
-<h2 id="workflow-engine">Workflow Engine</h2>
+<h2 id="dashboard-framework">Dashboard Framework</h2>
 <h3 id="purpose_1">Purpose</h3>
-<p>Execute Project0 workflow tasks sequentially and return structured execution results.</p>
+<p>Provide the reusable browser-based user interface for Project0 services
+and AI agents.</p>
 <h3 id="responsibilities_1">Responsibilities</h3>
+<ul>
+<li>Provide the common dashboard layout.</li>
+<li>Host Documentation Agent pages within the shared framework.</li>
+<li>Render reusable templates.</li>
+<li>Provide shared navigation, sidebar, context toolbar, and work area.</li>
+<li>Remain independent of Documentation Agent business logic.</li>
+</ul>
+<h3 id="design-notes_1">Design Notes</h3>
+<ul>
+<li>Implemented using FastAPI and Jinja2 templates.</li>
+<li>Serves as reusable platform infrastructure for future AI agents.</li>
+</ul>
+<hr />
+<h2 id="workflow-engine">Workflow Engine</h2>
+<h3 id="purpose_2">Purpose</h3>
+<p>Execute Project0 workflow tasks sequentially and return structured execution results.</p>
+<h3 id="responsibilities_2">Responsibilities</h3>
 <ul>
 <li>Validate workflow requests.</li>
 <li>Assign or preserve workflow identifiers.</li>
@@ -1033,7 +1055,7 @@ Implementation details are intentionally excluded.</p>
 <li>Workflow Task models.</li>
 <li>Workflow Event Publisher Interface.</li>
 </ul>
-<h3 id="design-notes_1">Design Notes</h3>
+<h3 id="design-notes_2">Design Notes</h3>
 <ul>
 <li>Uses synchronous, in-process execution.</li>
 <li>Does not directly access repository content.</li>
@@ -1068,9 +1090,9 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <hr />
 <h2 id="repository-service">Repository Service</h2>
-<h3 id="purpose_2">Purpose</h3>
+<h3 id="purpose_3">Purpose</h3>
 <p>Provide deterministic, read-only access to repository content.</p>
-<h3 id="responsibilities_2">Responsibilities</h3>
+<h3 id="responsibilities_3">Responsibilities</h3>
 <ul>
 <li>Discover supported repository files.</li>
 <li>Discover Markdown documentation files.</li>
@@ -1093,7 +1115,7 @@ Implementation details are intentionally excluded.</p>
 <li>Local repository.</li>
 <li>Local file system.</li>
 </ul>
-<h3 id="design-notes_2">Design Notes</h3>
+<h3 id="design-notes_3">Design Notes</h3>
 <ul>
 <li>Performs deterministic repository operations only.</li>
 <li>Does not make documentation decisions.</li>
@@ -1128,9 +1150,9 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <hr />
 <h2 id="context-builder">Context Builder</h2>
-<h3 id="purpose_3">Purpose</h3>
+<h3 id="purpose_4">Purpose</h3>
 <p>Assemble workflow-specific repository documentation into a structured Context Package.</p>
-<h3 id="responsibilities_3">Responsibilities</h3>
+<h3 id="responsibilities_4">Responsibilities</h3>
 <ul>
 <li>Discover available documentation through the Repository Interface.</li>
 <li>Obtain workflow-specific criteria from the Context Rule Registry.</li>
@@ -1153,7 +1175,7 @@ Implementation details are intentionally excluded.</p>
 <li>Context Filter.</li>
 <li>Context and workflow models.</li>
 </ul>
-<h3 id="design-notes_3">Design Notes</h3>
+<h3 id="design-notes_4">Design Notes</h3>
 <ul>
 <li>Depends on the Repository Interface rather than Repository Service directly.</li>
 <li>Does not perform semantic ranking.</li>
@@ -1185,9 +1207,9 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <hr />
 <h2 id="context-rule-registry">Context Rule Registry</h2>
-<h3 id="purpose_4">Purpose</h3>
+<h3 id="purpose_5">Purpose</h3>
 <p>Define and resolve workflow-specific document-selection policies.</p>
-<h3 id="responsibilities_4">Responsibilities</h3>
+<h3 id="responsibilities_5">Responsibilities</h3>
 <ul>
 <li>Maintain Context Rules by workflow type.</li>
 <li>Resolve a Context Rule for a requested workflow.</li>
@@ -1206,7 +1228,7 @@ Implementation details are intentionally excluded.</p>
 <li>Context workflow type.</li>
 <li>Context Rule definitions.</li>
 </ul>
-<h3 id="design-notes_4">Design Notes</h3>
+<h3 id="design-notes_5">Design Notes</h3>
 <ul>
 <li>Uses deterministic rules.</li>
 <li>Separates context policy from context assembly.</li>
@@ -1231,9 +1253,9 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <hr />
 <h2 id="context-filter">Context Filter</h2>
-<h3 id="purpose_5">Purpose</h3>
+<h3 id="purpose_6">Purpose</h3>
 <p>Apply deterministic file-selection criteria to discovered repository files.</p>
-<h3 id="responsibilities_5">Responsibilities</h3>
+<h3 id="responsibilities_6">Responsibilities</h3>
 <ul>
 <li>Filter documentation and non-documentation files.</li>
 <li>Filter by extension.</li>
@@ -1254,7 +1276,7 @@ Implementation details are intentionally excluded.</p>
 <li>Repository file metadata.</li>
 <li>Context Filter criteria.</li>
 </ul>
-<h3 id="design-notes_5">Design Notes</h3>
+<h3 id="design-notes_6">Design Notes</h3>
 <ul>
 <li>Does not read repository files.</li>
 <li>Does not determine workflow policy.</li>
@@ -1279,9 +1301,9 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <hr />
 <h2 id="knowledge-service">Knowledge Service</h2>
-<h3 id="purpose_6">Purpose</h3>
+<h3 id="purpose_7">Purpose</h3>
 <p>Coordinate deterministic repository knowledge retrieval.</p>
-<h3 id="responsibilities_6">Responsibilities</h3>
+<h3 id="responsibilities_7">Responsibilities</h3>
 <ul>
 <li>Discover repository Markdown documentation.</li>
 <li>Parse repository documents.</li>
@@ -1304,7 +1326,7 @@ Implementation details are intentionally excluded.</p>
 <li>Context Formatter.</li>
 <li>Knowledge models.</li>
 </ul>
-<h3 id="design-notes_6">Design Notes</h3>
+<h3 id="design-notes_7">Design Notes</h3>
 <ul>
 <li>Coordinates knowledge components without implementing their internal behavior.</li>
 <li>Uses dependency injection for parser, index, selector, and formatter.</li>
@@ -1334,9 +1356,9 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <hr />
 <h2 id="document-parser">Document Parser</h2>
-<h3 id="purpose_7">Purpose</h3>
+<h3 id="purpose_8">Purpose</h3>
 <p>Parse Markdown documentation into structured repository models.</p>
-<h3 id="responsibilities_7">Responsibilities</h3>
+<h3 id="responsibilities_8">Responsibilities</h3>
 <ul>
 <li>Parse Markdown documents.</li>
 <li>Extract document metadata.</li>
@@ -1354,7 +1376,7 @@ Implementation details are intentionally excluded.</p>
 <ul>
 <li>Repository Markdown.</li>
 </ul>
-<h3 id="design-notes_7">Design Notes</h3>
+<h3 id="design-notes_8">Design Notes</h3>
 <ul>
 <li>Performs deterministic parsing.</li>
 <li>Does not perform document selection.</li>
@@ -1362,9 +1384,9 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <hr />
 <h2 id="document-index">Document Index</h2>
-<h3 id="purpose_8">Purpose</h3>
+<h3 id="purpose_9">Purpose</h3>
 <p>Maintain deterministic access to parsed repository documents.</p>
-<h3 id="responsibilities_8">Responsibilities</h3>
+<h3 id="responsibilities_9">Responsibilities</h3>
 <ul>
 <li>Build the document index.</li>
 <li>Retrieve documents by repository path.</li>
@@ -1384,9 +1406,9 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <hr />
 <h2 id="document-selector">Document Selector</h2>
-<h3 id="purpose_9">Purpose</h3>
+<h3 id="purpose_10">Purpose</h3>
 <p>Select repository documentation relevant to a Knowledge Request.</p>
-<h3 id="responsibilities_9">Responsibilities</h3>
+<h3 id="responsibilities_10">Responsibilities</h3>
 <ul>
 <li>Match explicit repository paths.</li>
 <li>Match deterministic search terms.</li>
@@ -1408,9 +1430,9 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <hr />
 <h2 id="context-formatter">Context Formatter</h2>
-<h3 id="purpose_10">Purpose</h3>
+<h3 id="purpose_11">Purpose</h3>
 <p>Format selected repository documents into deterministic context.</p>
-<h3 id="responsibilities_10">Responsibilities</h3>
+<h3 id="responsibilities_11">Responsibilities</h3>
 <ul>
 <li>Format repository documents.</li>
 <li>Preserve supplied document ordering.</li>
@@ -1428,7 +1450,7 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <hr />
 <h2 id="shared-interfaces">Shared Interfaces</h2>
-<h3 id="purpose_11">Purpose</h3>
+<h3 id="purpose_12">Purpose</h3>
 <p>Define stable public contracts between Project0 components.</p>
 <h3 id="implemented-interfaces">Implemented Interfaces</h3>
 <ul>
@@ -1444,7 +1466,7 @@ Implementation details are intentionally excluded.</p>
 <li>Repository Update Interface</li>
 <li>Git Diff Interface</li>
 </ul>
-<h3 id="design-notes_8">Design Notes</h3>
+<h3 id="design-notes_9">Design Notes</h3>
 <ul>
 <li>Interfaces use Python structural protocols.</li>
 <li>Concrete implementations do not require explicit inheritance.</li>
@@ -1453,7 +1475,7 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <hr />
 <h2 id="shared-data-models">Shared Data Models</h2>
-<h3 id="purpose_12">Purpose</h3>
+<h3 id="purpose_13">Purpose</h3>
 <p>Define immutable information exchanged between Project0 components.</p>
 <h3 id="context-models">Context Models</h3>
 <ul>
@@ -1500,7 +1522,7 @@ Implementation details are intentionally excluded.</p>
 <li>Documentation Review</li>
 <li>Applied Documentation Change</li>
 </ul>
-<h3 id="design-notes_9">Design Notes</h3>
+<h3 id="design-notes_10">Design Notes</h3>
 <ul>
 <li>Models use immutable dataclasses where practical.</li>
 <li>Status values use string enumerations.</li>
@@ -1510,9 +1532,9 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <hr />
 <h2 id="validation-service">Validation Service</h2>
-<h3 id="purpose_13">Purpose</h3>
+<h3 id="purpose_14">Purpose</h3>
 <p>Coordinate deterministic repository validation through independently testable validators.</p>
-<h3 id="responsibilities_11">Responsibilities</h3>
+<h3 id="responsibilities_12">Responsibilities</h3>
 <ul>
 <li>Coordinate configured validators.</li>
 <li>Aggregate validator results.</li>
@@ -1533,7 +1555,7 @@ Implementation details are intentionally excluded.</p>
 <li>Validator Interface.</li>
 <li>Validation models.</li>
 </ul>
-<h3 id="design-notes_10">Design Notes</h3>
+<h3 id="design-notes_11">Design Notes</h3>
 <ul>
 <li>Coordinates validation components without implementing validation logic.</li>
 <li>Uses dependency injection for configured validators.</li>
@@ -1568,9 +1590,9 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <hr />
 <h2 id="reasoning-service">Reasoning Service</h2>
-<h3 id="purpose_14">Purpose</h3>
+<h3 id="purpose_15">Purpose</h3>
 <p>Perform AI-assisted documentation reasoning.</p>
-<h3 id="responsibilities_12">Responsibilities</h3>
+<h3 id="responsibilities_13">Responsibilities</h3>
 <ul>
 <li>Analyze repository changes and documentation impact.</li>
 <li>Generate proposed documentation updates.</li>
@@ -1589,7 +1611,7 @@ Implementation details are intentionally excluded.</p>
 <li>User requests.</li>
 <li>Documentation standards.</li>
 </ul>
-<h3 id="design-notes_11">Design Notes</h3>
+<h3 id="design-notes_12">Design Notes</h3>
 <ul>
 <li>Performs only tasks requiring AI-assisted reasoning.</li>
 <li>Does not directly read or write repository files.</li>
@@ -1625,9 +1647,9 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <hr />
 <h2 id="review-coordinator">Review Coordinator</h2>
-<h3 id="purpose_15">Purpose</h3>
+<h3 id="purpose_16">Purpose</h3>
 <p>Coordinate user review of individual documentation changes.</p>
-<h3 id="responsibilities_13">Responsibilities</h3>
+<h3 id="responsibilities_14">Responsibilities</h3>
 <ul>
 <li>Process Approve, Revise, Reject, and Skip decisions.</li>
 <li>Produce immutable review results.</li>
@@ -1643,9 +1665,9 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <hr />
 <h2 id="repository-update-service">Repository Update Service</h2>
-<h3 id="purpose_16">Purpose</h3>
+<h3 id="purpose_17">Purpose</h3>
 <p>Apply approved documentation changes.</p>
-<h3 id="responsibilities_14">Responsibilities</h3>
+<h3 id="responsibilities_15">Responsibilities</h3>
 <ul>
 <li>Apply approved Markdown updates.</li>
 <li>Preserve repository integrity.</li>
@@ -1653,9 +1675,9 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <hr />
 <h2 id="git-diff-service">Git Diff Service</h2>
-<h3 id="purpose_17">Purpose</h3>
+<h3 id="purpose_18">Purpose</h3>
 <p>Generate Git diffs for approved documentation updates.</p>
-<h3 id="responsibilities_15">Responsibilities</h3>
+<h3 id="responsibilities_16">Responsibilities</h3>
 <ul>
 <li>Generate repository diffs.</li>
 <li>Restrict output to modified files.</li>
@@ -1663,9 +1685,9 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <hr />
 <h2 id="documentation-workflow">Documentation Workflow</h2>
-<h3 id="purpose_18">Purpose</h3>
+<h3 id="purpose_19">Purpose</h3>
 <p>Coordinate the complete Documentation Agent execution pipeline.</p>
-<h3 id="responsibilities_16">Responsibilities</h3>
+<h3 id="responsibilities_17">Responsibilities</h3>
 <ul>
 <li>Coordinate Knowledge, Reasoning, Validation, Review, Repository Update, and Git Diff services.</li>
 <li>Preserve workflow state.</li>

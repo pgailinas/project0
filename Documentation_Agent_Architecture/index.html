@@ -921,8 +921,15 @@ intentionally excluded.</p>
 </ul>
 <hr />
 <h1 id="3-architectural-workflow">3. Architectural Workflow</h1>
-<p>The implemented Phase 6 platform provides an end-to-end documentation workflow that integrates deterministic repository knowledge, AI reasoning, validation, user review, approved repository updates, and Git diff generation through the Platform Dispatcher.</p>
+<p>The implemented Phase 7 platform provides an end-to-end documentation
+workflow. The Documentation Agent is accessed through the reusable
+Dashboard Framework, which provides the browser interface but is
+architecturally separate from the Documentation Agent services. that
+integrates deterministic repository knowledge, AI reasoning, validation,
+user review, approved repository updates, and Git diff generation
+through the Platform Dispatcher.</p>
 <pre class="mermaid"><code>flowchart TD
+    UI["Dashboard Framework"]
     A["Application Entry Point&lt;br/&gt;&lt;small&gt;main.py&lt;/small&gt;"]
     B["Platform Dispatcher"]
     C["Documentation Workflow"]
@@ -937,6 +944,7 @@ intentionally excluded.</p>
 
     J["Workflow Result"]
 
+    UI --&gt; A
     A --&gt; B
     B --&gt; C
 
@@ -1213,6 +1221,7 @@ intentionally excluded.</p>
 <li>pytest test framework</li>
 <li>Validation tools</li>
 <li>AI reasoning provider</li>
+<li>Dashboard Framework (FastAPI, Jinja2 templates, shared dashboard resources)</li>
 </ul>
 <hr />
 <h1 id="6-design-constraints">6. Design Constraints</h1>
@@ -1228,6 +1237,7 @@ intentionally excluded.</p>
 <li>Applied documentation changes shall undergo final validation.</li>
 <li>Current repository operations are read-only.</li>
 <li>Source code modification by the Documentation Agent is outside the current architectural scope.</li>
+<li>The Dashboard Framework shall remain a reusable platform interface and shall not contain Documentation Agent business logic.</li>
 </ul>
 <hr />
 <h1 id="7-future-architectural-expansion">7. Future Architectural Expansion</h1>

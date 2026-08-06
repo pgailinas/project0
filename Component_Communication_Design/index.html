@@ -1857,9 +1857,9 @@
 
 
 <h1 id="component-communication-design">Component Communication Design</h1>
-<p><strong>Version:</strong> 0.3<br />
+<p><strong>Version:</strong> 0.4<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-05  </p>
+<strong>Last Updated:</strong> 2026-08-06  </p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <p>This document defines how Project0 platform components communicate. It establishes the implemented communication patterns, execution flow, interface responsibilities, shared model usage, and event handling.</p>
@@ -1940,6 +1940,7 @@
 <p>Validation processing is implemented through the Validation Service. Documentation review, repository updates, and Git diff generation are implemented through the Documentation Workflow. Validation lifecycle events and audit events remain future enhancements.</p>
 <h2 id="6-implemented-communication-flow">6. Implemented Communication Flow</h2>
 <pre class="mermaid"><code>flowchart TD
+    UI["Dashboard Framework"]
     A["Application Entry Point&lt;br/&gt;&lt;small&gt;main.py&lt;/small&gt;"]
     B["Platform Dispatcher"]
     C["Documentation Workflow"]
@@ -1952,6 +1953,7 @@
     I["Git Diff Service"]
     J["Documentation Workflow Result"]
 
+    UI --&gt; A
     A --&gt; B
     B --&gt; C
     C --&gt; D
@@ -2186,7 +2188,7 @@
 </ul>
 <p>Persistent audit storage is not part of the current implementation.</p>
 <h2 id="12-initial-implementation">12. Initial Implementation</h2>
-<p>The implemented Phase 6 communication foundation uses:</p>
+<p>The implemented Phase 7 communication foundation uses:</p>
 <ul>
 <li>Python structural <code>Protocol</code> interfaces</li>
 <li>Python immutable dataclasses</li>
@@ -2226,27 +2228,19 @@
 <p>This document defines <strong>how</strong> Project0 platform components communicate.</p>
 <p>The companion document <strong>Shared_Data_Models_and_Error_Contracts.md</strong> defines <strong>what</strong> is communicated.</p>
 <p>The two documents are intended to be used together:</p>
-<table>
-<thead>
-<tr>
-<th>Document</th>
-<th>Responsibility</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Shared Data Models and Error Contracts</td>
-<td>Defines shared model structures, identifiers, statuses, results, and error contracts.</td>
-</tr>
-<tr>
-<td>Component Communication Design</td>
-<td>Defines communication patterns, execution flow, events, and component responsibilities.</td>
-</tr>
-</tbody>
-</table>
-<p>Communication payloads shall conform to the shared models defined in the companion document or to implemented subsystem result contracts.</p>
+<hr />
+<p>Document              Responsibility</p>
+<hr />
+<p>Shared Data Models    Defines shared model structures, identifiers,
+  and Error Contracts   statuses, results, and error contracts.</p>
+<p>Component             Defines communication patterns, execution flow,
+  Communication Design  events, and component responsibilities.</p>
+<hr />
+<p>Communication payloads shall conform to the shared models defined in the
+companion document or to implemented subsystem result contracts.</p>
 <h2 id="15-implementation-status">15. Implementation Status</h2>
-<p>The Phase 6 communication architecture has been implemented and validated through comprehensive unit and integration testing.</p>
+<p>The Phase 7 communication architecture has been implemented and
+validated through comprehensive unit and integration testing.</p>
 <p>The validated end-to-end communication flow includes:</p>
 <ol>
 <li>Platform Dispatcher</li>

@@ -896,7 +896,7 @@
 <h1 id="shared-data-models-and-error-contracts">Shared Data Models and Error Contracts</h1>
 <p><strong>Version:</strong> 0.2<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-03</p>
+<strong>Last Updated:</strong> 2026-08-06</p>
 <hr />
 <h1 id="1-purpose">1. Purpose</h1>
 <h2 id="objective">Objective</h2>
@@ -953,11 +953,11 @@
 </tr>
 <tr>
 <td>Produced By</td>
-<td>User Interface</td>
+<td>Dashboard Framework</td>
 </tr>
 <tr>
 <td>Consumed By</td>
-<td>Workflow Engine, Knowledge Service, Reasoning Service</td>
+<td>Platform Dispatcher, Workflow Engine, Knowledge Service, Reasoning Service</td>
 </tr>
 </tbody>
 </table>
@@ -1065,36 +1065,12 @@
 <p><strong>Status Values:</strong> Success, Partial Success, Failed, Skipped</p>
 <hr />
 <h2 id="repository-context">Repository Context</h2>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Purpose</td>
-<td>Represents repository information required for analysis.</td>
-</tr>
-<tr>
-<td>Required Fields</td>
-<td>Repository ID, root, relevant files, retrieved content, repository status</td>
-</tr>
-<tr>
-<td>Optional Fields</td>
-<td>Changed files, Git diff</td>
-</tr>
-<tr>
-<td>Produced By</td>
-<td>Repository Tools, Knowledge Service</td>
-</tr>
-<tr>
-<td>Consumed By</td>
-<td>Workflow Engine, Reasoning Service, Validation Engine</td>
-</tr>
-</tbody>
-</table>
+<p>| Property | Description |
+| Purpose | Represents repository information required for analysis. |
+| Required Fields | Repository ID, root, relevant files, retrieved content, repository status |
+| Optional Fields | Changed files, Git diff |
+| Produced By | Repository Tools, Knowledge Service |
+| Consumed By | Workflow Engine, Reasoning Service, Validation Engine |</p>
 <hr />
 <h2 id="proposed-documentation-change">Proposed Documentation Change</h2>
 <table>
@@ -1351,8 +1327,8 @@
 <li>Reasoning Service produces Proposed Documentation Changes.</li>
 <li>Validation Engine produces Validation Results.</li>
 <li>User Review produces User Review Decisions.</li>
-<li>Repository Tools apply approved changes.</li>
-<li>Workflow Engine produces the Completion Summary.</li>
+<li>Repository Update Service applies approved changes.</li>
+<li>Documentation Workflow produces the Completion Summary.</li>
 <li>Any component may return an Error Detail.</li>
 </ol>
 <hr />
@@ -1367,6 +1343,7 @@
 <hr />
 <h1 id="11-future-considerations">11. Future Considerations</h1>
 <ul>
+<li>Dashboard-aware request models</li>
 <li>Python data classes</li>
 <li>Enumerations</li>
 <li>Schema validation</li>
