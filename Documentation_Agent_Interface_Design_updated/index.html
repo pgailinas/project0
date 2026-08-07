@@ -10,7 +10,7 @@
       
       
       
-        <link rel="canonical" href="https://pgailinas.github.io/project0/Shared_Data_Models_and_Error_Contracts_OLD/">
+        <link rel="canonical" href="https://pgailinas.github.io/project0/Documentation_Agent_Interface_Design_updated/">
       
       
       
@@ -23,7 +23,7 @@
     
     
       
-        <title>Shared Data Models and Error Contracts - Project0</title>
+        <title>Documentation Agent Interface Design - Project0</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#shared-data-models-and-error-contracts" class="md-skip">
+        <a href="#documentation-agent-interface-design" class="md-skip">
           Skip to content
         </a>
       
@@ -110,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Shared Data Models and Error Contracts
+              Documentation Agent Interface Design
             
           </span>
         </div>
@@ -856,6 +856,42 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Purpose
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Purpose">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-7-alignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 7 Alignment
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -871,7 +907,7 @@
 
 
   
-    <a href="https://github.com/pgailinas/project0/edit/main/docs/Shared_Data_Models_and_Error_Contracts_OLD.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/pgailinas/project0/edit/main/docs/Documentation_Agent_Interface_Design_updated.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -879,474 +915,20 @@
   
 
 
-<h1 id="shared-data-models-and-error-contracts">Shared Data Models and Error Contracts</h1>
-<p><strong>Version:</strong> 0.2<br />
+<h1 id="documentation-agent-interface-design">Documentation Agent Interface Design</h1>
+<p><strong>Version:</strong> 0.1<br />
 <strong>Owner:</strong> Project0<br />
 <strong>Last Updated:</strong> 2026-08-06</p>
 <hr />
-<h1 id="1-purpose">1. Purpose</h1>
-<h2 id="objective">Objective</h2>
-<p>Define the shared data models and error contracts used by Documentation Agent components.</p>
-<h2 id="scope">Scope</h2>
-<p>Specify the common information exchanged between components, the minimum required fields for each shared model, and the standard error information exchanged between components. Implementation-specific classes, serialization formats, and provider-specific details are intentionally excluded.</p>
-<hr />
-<h1 id="2-design-principles">2. Design Principles</h1>
-<ul>
-<li>Shared models shall use consistent terminology.</li>
-<li>Models shall contain only information required for component communication.</li>
-<li>Components shall remain independent of each other's internal structures.</li>
-<li>Models shall remain technology independent.</li>
-<li>Errors shall be represented as structured data.</li>
-<li>Shared models and error contracts shall be independently testable.</li>
-</ul>
-<hr />
-<h1 id="3-shared-model-overview">3. Shared Model Overview</h1>
-<p>The Documentation Agent uses the following shared models:</p>
-<ul>
-<li>User Request</li>
-<li>Workflow State</li>
-<li>Component Request</li>
-<li>Component Result</li>
-<li>Repository Context</li>
-<li>Proposed Documentation Change</li>
-<li>Validation Result</li>
-<li>User Review Decision</li>
-<li>Completion Summary</li>
-<li>Error Detail</li>
-</ul>
-<hr />
-<h1 id="4-core-data-models">4. Core Data Models</h1>
-<h2 id="user-request">User Request</h2>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Purpose</td>
-<td>Represents a documentation request submitted by the user.</td>
-</tr>
-<tr>
-<td>Required Fields</td>
-<td>Request ID, description, timestamp</td>
-</tr>
-<tr>
-<td>Optional Fields</td>
-<td>Target files, user constraints</td>
-</tr>
-<tr>
-<td>Produced By</td>
-<td>Dashboard Framework</td>
-</tr>
-<tr>
-<td>Consumed By</td>
-<td>Platform Dispatcher, Workflow Engine, Knowledge Service, Reasoning Service</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="workflow-state">Workflow State</h2>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Purpose</td>
-<td>Represents the current workflow.</td>
-</tr>
-<tr>
-<td>Required Fields</td>
-<td>Workflow ID, request, status, current step, created, updated</td>
-</tr>
-<tr>
-<td>Optional Fields</td>
-<td>Repository context, proposed changes, validation results</td>
-</tr>
-<tr>
-<td>Produced By</td>
-<td>Workflow Engine</td>
-</tr>
-<tr>
-<td>Consumed By</td>
-<td>Workflow Engine</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Design Notes</strong></p>
-<ul>
-<li>The Workflow Engine owns workflow state.</li>
-<li>Other components receive only the information needed to perform their work.</li>
-</ul>
-<hr />
-<h2 id="component-request">Component Request</h2>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Purpose</td>
-<td>Represents a request from the Workflow Engine to another component.</td>
-</tr>
-<tr>
-<td>Required Fields</td>
-<td>Request ID, workflow ID, target component, operation, payload</td>
-</tr>
-<tr>
-<td>Optional Fields</td>
-<td>Request metadata</td>
-</tr>
-<tr>
-<td>Produced By</td>
-<td>Workflow Engine</td>
-</tr>
-<tr>
-<td>Consumed By</td>
-<td>Repository Tools, Knowledge Service, Validation Engine, Reasoning Service</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="component-result">Component Result</h2>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Purpose</td>
-<td>Represents a standard component response.</td>
-</tr>
-<tr>
-<td>Required Fields</td>
-<td>Request ID, workflow ID, source component, status, payload</td>
-</tr>
-<tr>
-<td>Optional Fields</td>
-<td>Warnings, error detail</td>
-</tr>
-<tr>
-<td>Produced By</td>
-<td>Repository Tools, Knowledge Service, Validation Engine, Reasoning Service</td>
-</tr>
-<tr>
-<td>Consumed By</td>
-<td>Workflow Engine</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Status Values:</strong> Success, Partial Success, Failed, Skipped</p>
-<hr />
-<h2 id="repository-context">Repository Context</h2>
-<p>| Property | Description |
-| Purpose | Represents repository information required for analysis. |
-| Required Fields | Repository ID, root, relevant files, retrieved content, repository status |
-| Optional Fields | Changed files, Git diff |
-| Produced By | Repository Tools, Knowledge Service |
-| Consumed By | Workflow Engine, Reasoning Service, Validation Engine |</p>
-<hr />
-<h2 id="proposed-documentation-change">Proposed Documentation Change</h2>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Purpose</td>
-<td>Represents one proposed documentation update.</td>
-</tr>
-<tr>
-<td>Required Fields</td>
-<td>Change ID, target file, type, proposed content, explanation, review status</td>
-</tr>
-<tr>
-<td>Optional Fields</td>
-<td>Original content, source references, validation results</td>
-</tr>
-<tr>
-<td>Produced By</td>
-<td>Reasoning Service, Workflow Engine</td>
-</tr>
-<tr>
-<td>Consumed By</td>
-<td>Workflow Engine, Validation Engine, Repository Tools, User Review</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Change Types:</strong> Create, Update, Delete, Rename, Move</p>
-<p><strong>Review Status:</strong> Pending, Approved, Revision Requested, Rejected, Skipped, Applied</p>
-<hr />
-<h2 id="validation-result">Validation Result</h2>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Purpose</td>
-<td>Represents the outcome of a validation operation.</td>
-</tr>
-<tr>
-<td>Required Fields</td>
-<td>Validation ID, type, status, message</td>
-</tr>
-<tr>
-<td>Optional Fields</td>
-<td>Findings, warnings</td>
-</tr>
-<tr>
-<td>Produced By</td>
-<td>Validation Engine</td>
-</tr>
-<tr>
-<td>Consumed By</td>
-<td>Workflow Engine, User Review</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Status Values:</strong> Passed, Passed with Warnings, Failed, Not Run</p>
-<hr />
-<h2 id="user-review-decision">User Review Decision</h2>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Purpose</td>
-<td>Represents the user's decision for one proposed change.</td>
-</tr>
-<tr>
-<td>Required Fields</td>
-<td>Decision ID, change ID, decision, timestamp</td>
-</tr>
-<tr>
-<td>Optional Fields</td>
-<td>Revision instructions</td>
-</tr>
-<tr>
-<td>Produced By</td>
-<td>User Review</td>
-</tr>
-<tr>
-<td>Consumed By</td>
-<td>Workflow Engine</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Decision Values:</strong> Approve, Revise, Reject, Skip</p>
-<hr />
-<h2 id="completion-summary">Completion Summary</h2>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Purpose</td>
-<td>Represents the final workflow outcome.</td>
-</tr>
-<tr>
-<td>Required Fields</td>
-<td>Workflow ID, status, completion timestamp, summary</td>
-</tr>
-<tr>
-<td>Optional Fields</td>
-<td>Validation summary, final Git diff</td>
-</tr>
-<tr>
-<td>Produced By</td>
-<td>Workflow Engine</td>
-</tr>
-<tr>
-<td>Consumed By</td>
-<td>User</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h1 id="5-error-contract">5. Error Contract</h1>
-<h2 id="error-detail">Error Detail</h2>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Purpose</td>
-<td>Represents a structured component error.</td>
-</tr>
-<tr>
-<td>Required Fields</td>
-<td>Error code, category, message, source component, recoverable</td>
-</tr>
-<tr>
-<td>Optional Fields</td>
-<td>Related file, suggested action</td>
-</tr>
-<tr>
-<td>Produced By</td>
-<td>Any component</td>
-</tr>
-<tr>
-<td>Consumed By</td>
-<td>Workflow Engine</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h1 id="6-error-categories">6. Error Categories</h1>
-<table>
-<thead>
-<tr>
-<th>Category</th>
-<th>Typical Examples</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Request</td>
-<td>Missing target, unsupported request</td>
-</tr>
-<tr>
-<td>Repository</td>
-<td>File not found, Git failure</td>
-</tr>
-<tr>
-<td>Knowledge</td>
-<td>Missing context</td>
-</tr>
-<tr>
-<td>Reasoning</td>
-<td>AI unavailable, invalid response</td>
-</tr>
-<tr>
-<td>Validation</td>
-<td>Markdown or MkDocs failure</td>
-</tr>
-<tr>
-<td>Review</td>
-<td>Invalid review decision</td>
-</tr>
-<tr>
-<td>Workflow</td>
-<td>Invalid workflow state</td>
-</tr>
-<tr>
-<td>System</td>
-<td>Configuration or dependency failure</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h1 id="7-error-severity">7. Error Severity</h1>
-<table>
-<thead>
-<tr>
-<th>Severity</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Information</td>
-<td>Continue normally</td>
-</tr>
-<tr>
-<td>Warning</td>
-<td>Continue with attention</td>
-</tr>
-<tr>
-<td>Error</td>
-<td>Current operation fails</td>
-</tr>
-<tr>
-<td>Critical</td>
-<td>Stop workflow</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h1 id="8-error-handling-rules">8. Error Handling Rules</h1>
-<ul>
-<li>Components shall return structured error information.</li>
-<li>Components shall not silently ignore errors.</li>
-<li>The Workflow Engine determines workflow response.</li>
-<li>Validation failures prevent affected changes from being applied.</li>
-<li>User-visible errors shall explain the problem and the next available action.</li>
-</ul>
-<hr />
-<h1 id="9-model-relationships">9. Model Relationships</h1>
-<ol>
-<li>User Request starts a Workflow State.</li>
-<li>Workflow Engine creates Component Requests.</li>
-<li>Components return Component Results.</li>
-<li>Repository Tools and Knowledge Service produce Repository Context.</li>
-<li>Reasoning Service produces Proposed Documentation Changes.</li>
-<li>Validation Engine produces Validation Results.</li>
-<li>User Review produces User Review Decisions.</li>
-<li>Repository Update Service applies approved changes.</li>
-<li>Documentation Workflow produces the Completion Summary.</li>
-<li>Any component may return an Error Detail.</li>
-</ol>
-<hr />
-<h1 id="10-design-constraints">10. Design Constraints</h1>
-<ul>
-<li>Models shall remain vendor neutral.</li>
-<li>Identifiers shall be unique within a workflow.</li>
-<li>Optional fields shall not be required for interoperability.</li>
-<li>Models shall support future serialization.</li>
-<li>Changes should preserve backward compatibility whenever practical.</li>
-</ul>
-<hr />
-<h1 id="11-future-considerations">11. Future Considerations</h1>
-<ul>
-<li>Dashboard-aware request models</li>
-<li>Python data classes</li>
-<li>Enumerations</li>
-<li>Schema validation</li>
-<li>JSON serialization</li>
-<li>Persistent workflow state</li>
-<li>Structured logging</li>
-</ul>
-<hr />
-<h1 id="12-related-documents">12. Related Documents</h1>
-<ul>
-<li>Project Charter</li>
-<li>Documentation Standards</li>
-<li>Documentation Agent Functional Specification</li>
-<li>Documentation Agent Architecture</li>
-<li>Documentation Agent Design</li>
-<li>Implementation Roadmap</li>
-</ul>
+<h2 id="1-purpose">1. Purpose</h2>
+<h3 id="phase-7-alignment">Phase 7 Alignment</h3>
+<p>The Documentation Agent interfaces are designed to operate within the
+Project0 Dashboard Framework. The Dashboard Framework provides the
+browser-based user interface, navigation, shared layout, and template
+infrastructure, while Documentation Agent interfaces define only the
+contracts between Documentation Agent components. The Dashboard
+Framework remains architecturally separate from Documentation Agent
+business logic.</p>
 
 
 
