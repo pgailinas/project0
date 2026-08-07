@@ -10,13 +10,9 @@
       
       
       
-        <link rel="canonical" href="https://pgailinas.github.io/project0/Shared_Data_Models_and_Error_Contracts/">
+        <link rel="canonical" href="https://pgailinas.github.io/project0/Shared_Data_Models_and_Error_Contracts_OLD/">
       
       
-        <link rel="prev" href="../Project_Directory_Structure/">
-      
-      
-        <link rel="next" href="../Component_Communication_Design/">
       
       
         
@@ -508,20 +504,20 @@
       
   
   
-    
   
   
-  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
@@ -542,7 +538,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -557,37 +553,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Shared Data Models and Error Contracts
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../Shared_Data_Models_and_Error_Contracts/" class="md-nav__link">
         
   
   
@@ -603,308 +572,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#1-purpose" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        1. Purpose
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="1. Purpose">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#objective" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Objective
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#scope" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Scope
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#2-design-principles" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. Design Principles
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#3-shared-model-overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Shared Model Overview
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#4-core-data-models" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Core Data Models
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4. Core Data Models">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#user-request" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        User Request
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#workflow-state" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Workflow State
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#component-request" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Component Request
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#component-result" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Component Result
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#repository-context" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Repository Context
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#proposed-documentation-change" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Proposed Documentation Change
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#validation-result" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Validation Result
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#user-review-decision" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        User Review Decision
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#completion-summary" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Completion Summary
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#5-error-contract" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. Error Contract
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="5. Error Contract">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#error-detail" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Error Detail
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#6-error-categories" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        6. Error Categories
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#7-error-severity" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        7. Error Severity
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#8-error-handling-rules" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8. Error Handling Rules
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#9-model-relationships" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9. Model Relationships
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#10-design-constraints" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        10. Design Constraints
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#11-future-considerations" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        11. Future Considerations
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#12-related-documents" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        12. Related Documents
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1189,296 +856,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#1-purpose" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        1. Purpose
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="1. Purpose">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#objective" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Objective
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#scope" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Scope
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#2-design-principles" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. Design Principles
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#3-shared-model-overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Shared Model Overview
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#4-core-data-models" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Core Data Models
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4. Core Data Models">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#user-request" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        User Request
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#workflow-state" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Workflow State
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#component-request" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Component Request
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#component-result" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Component Result
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#repository-context" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Repository Context
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#proposed-documentation-change" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Proposed Documentation Change
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#validation-result" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Validation Result
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#user-review-decision" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        User Review Decision
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#completion-summary" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Completion Summary
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#5-error-contract" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. Error Contract
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="5. Error Contract">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#error-detail" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Error Detail
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#6-error-categories" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        6. Error Categories
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#7-error-severity" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        7. Error Severity
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#8-error-handling-rules" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8. Error Handling Rules
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#9-model-relationships" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9. Model Relationships
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#10-design-constraints" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        10. Design Constraints
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#11-future-considerations" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        11. Future Considerations
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#12-related-documents" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        12. Related Documents
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -1494,7 +871,7 @@
 
 
   
-    <a href="https://github.com/pgailinas/project0/edit/main/docs/Shared_Data_Models_and_Error_Contracts.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/pgailinas/project0/edit/main/docs/Shared_Data_Models_and_Error_Contracts_OLD.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -1507,13 +884,13 @@
 <strong>Owner:</strong> Project0<br />
 <strong>Last Updated:</strong> 2026-08-06</p>
 <hr />
-<h2 id="1-purpose">1. Purpose</h2>
-<h3 id="objective">Objective</h3>
+<h1 id="1-purpose">1. Purpose</h1>
+<h2 id="objective">Objective</h2>
 <p>Define the shared data models and error contracts used by Documentation Agent components.</p>
-<h3 id="scope">Scope</h3>
+<h2 id="scope">Scope</h2>
 <p>Specify the common information exchanged between components, the minimum required fields for each shared model, and the standard error information exchanged between components. Implementation-specific classes, serialization formats, and provider-specific details are intentionally excluded.</p>
 <hr />
-<h2 id="2-design-principles">2. Design Principles</h2>
+<h1 id="2-design-principles">2. Design Principles</h1>
 <ul>
 <li>Shared models shall use consistent terminology.</li>
 <li>Models shall contain only information required for component communication.</li>
@@ -1523,7 +900,7 @@
 <li>Shared models and error contracts shall be independently testable.</li>
 </ul>
 <hr />
-<h2 id="3-shared-model-overview">3. Shared Model Overview</h2>
+<h1 id="3-shared-model-overview">3. Shared Model Overview</h1>
 <p>The Documentation Agent uses the following shared models:</p>
 <ul>
 <li>User Request</li>
@@ -1538,8 +915,8 @@
 <li>Error Detail</li>
 </ul>
 <hr />
-<h2 id="4-core-data-models">4. Core Data Models</h2>
-<h3 id="user-request">User Request</h3>
+<h1 id="4-core-data-models">4. Core Data Models</h1>
+<h2 id="user-request">User Request</h2>
 <table>
 <thead>
 <tr>
@@ -1571,7 +948,7 @@
 </tbody>
 </table>
 <hr />
-<h3 id="workflow-state">Workflow State</h3>
+<h2 id="workflow-state">Workflow State</h2>
 <table>
 <thead>
 <tr>
@@ -1608,7 +985,7 @@
 <li>Other components receive only the information needed to perform their work.</li>
 </ul>
 <hr />
-<h3 id="component-request">Component Request</h3>
+<h2 id="component-request">Component Request</h2>
 <table>
 <thead>
 <tr>
@@ -1640,7 +1017,7 @@
 </tbody>
 </table>
 <hr />
-<h3 id="component-result">Component Result</h3>
+<h2 id="component-result">Component Result</h2>
 <table>
 <thead>
 <tr>
@@ -1673,7 +1050,7 @@
 </table>
 <p><strong>Status Values:</strong> Success, Partial Success, Failed, Skipped</p>
 <hr />
-<h3 id="repository-context">Repository Context</h3>
+<h2 id="repository-context">Repository Context</h2>
 <p>| Property | Description |
 | Purpose | Represents repository information required for analysis. |
 | Required Fields | Repository ID, root, relevant files, retrieved content, repository status |
@@ -1681,7 +1058,7 @@
 | Produced By | Repository Tools, Knowledge Service |
 | Consumed By | Workflow Engine, Reasoning Service, Validation Engine |</p>
 <hr />
-<h3 id="proposed-documentation-change">Proposed Documentation Change</h3>
+<h2 id="proposed-documentation-change">Proposed Documentation Change</h2>
 <table>
 <thead>
 <tr>
@@ -1715,7 +1092,7 @@
 <p><strong>Change Types:</strong> Create, Update, Delete, Rename, Move</p>
 <p><strong>Review Status:</strong> Pending, Approved, Revision Requested, Rejected, Skipped, Applied</p>
 <hr />
-<h3 id="validation-result">Validation Result</h3>
+<h2 id="validation-result">Validation Result</h2>
 <table>
 <thead>
 <tr>
@@ -1748,7 +1125,7 @@
 </table>
 <p><strong>Status Values:</strong> Passed, Passed with Warnings, Failed, Not Run</p>
 <hr />
-<h3 id="user-review-decision">User Review Decision</h3>
+<h2 id="user-review-decision">User Review Decision</h2>
 <table>
 <thead>
 <tr>
@@ -1781,7 +1158,7 @@
 </table>
 <p><strong>Decision Values:</strong> Approve, Revise, Reject, Skip</p>
 <hr />
-<h3 id="completion-summary">Completion Summary</h3>
+<h2 id="completion-summary">Completion Summary</h2>
 <table>
 <thead>
 <tr>
@@ -1813,8 +1190,8 @@
 </tbody>
 </table>
 <hr />
-<h2 id="5-error-contract">5. Error Contract</h2>
-<h3 id="error-detail">Error Detail</h3>
+<h1 id="5-error-contract">5. Error Contract</h1>
+<h2 id="error-detail">Error Detail</h2>
 <table>
 <thead>
 <tr>
@@ -1846,7 +1223,7 @@
 </tbody>
 </table>
 <hr />
-<h2 id="6-error-categories">6. Error Categories</h2>
+<h1 id="6-error-categories">6. Error Categories</h1>
 <table>
 <thead>
 <tr>
@@ -1890,7 +1267,7 @@
 </tbody>
 </table>
 <hr />
-<h2 id="7-error-severity">7. Error Severity</h2>
+<h1 id="7-error-severity">7. Error Severity</h1>
 <table>
 <thead>
 <tr>
@@ -1918,7 +1295,7 @@
 </tbody>
 </table>
 <hr />
-<h2 id="8-error-handling-rules">8. Error Handling Rules</h2>
+<h1 id="8-error-handling-rules">8. Error Handling Rules</h1>
 <ul>
 <li>Components shall return structured error information.</li>
 <li>Components shall not silently ignore errors.</li>
@@ -1927,7 +1304,7 @@
 <li>User-visible errors shall explain the problem and the next available action.</li>
 </ul>
 <hr />
-<h2 id="9-model-relationships">9. Model Relationships</h2>
+<h1 id="9-model-relationships">9. Model Relationships</h1>
 <ol>
 <li>User Request starts a Workflow State.</li>
 <li>Workflow Engine creates Component Requests.</li>
@@ -1941,7 +1318,7 @@
 <li>Any component may return an Error Detail.</li>
 </ol>
 <hr />
-<h2 id="10-design-constraints">10. Design Constraints</h2>
+<h1 id="10-design-constraints">10. Design Constraints</h1>
 <ul>
 <li>Models shall remain vendor neutral.</li>
 <li>Identifiers shall be unique within a workflow.</li>
@@ -1950,7 +1327,7 @@
 <li>Changes should preserve backward compatibility whenever practical.</li>
 </ul>
 <hr />
-<h2 id="11-future-considerations">11. Future Considerations</h2>
+<h1 id="11-future-considerations">11. Future Considerations</h1>
 <ul>
 <li>Dashboard-aware request models</li>
 <li>Python data classes</li>
@@ -1961,7 +1338,7 @@
 <li>Structured logging</li>
 </ul>
 <hr />
-<h2 id="12-related-documents">12. Related Documents</h2>
+<h1 id="12-related-documents">12. Related Documents</h1>
 <ul>
 <li>Project Charter</li>
 <li>Documentation Standards</li>
