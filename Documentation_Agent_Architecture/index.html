@@ -765,6 +765,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Agent Architecture
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -781,6 +799,373 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Purpose
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Purpose">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#objective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Objective
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-architectural-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Architectural Principles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-architectural-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Architectural Workflow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Architectural Workflow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#implemented-runtime-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implemented Runtime Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-architectural-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Architectural Components
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Architectural Components">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#platform-dispatcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Platform Dispatcher
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#workflow-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workflow Engine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#repository-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repository Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#knowledge-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Knowledge Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#document-parser" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Document Parser
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#document-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Document Index
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#document-selector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Document Selector
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#context-formatter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context Formatter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#context-builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context Builder
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#context-rule-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context Rule Registry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#context-filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context Filter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shared-interfaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shared Interfaces
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shared-data-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shared Data Models
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validation-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reasoning-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reasoning Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#review-coordinator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Review Coordinator
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#repository-update-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repository Update Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#git-diff-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Git Diff Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-external-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. External Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-design-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Design Constraints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-future-architectural-expansion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Future Architectural Expansion
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-related-documents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Related Documents
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -870,6 +1255,362 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Purpose
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Purpose">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#objective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Objective
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-architectural-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Architectural Principles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-architectural-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Architectural Workflow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Architectural Workflow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#implemented-runtime-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implemented Runtime Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-architectural-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Architectural Components
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Architectural Components">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#platform-dispatcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Platform Dispatcher
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#workflow-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workflow Engine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#repository-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repository Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#knowledge-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Knowledge Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#document-parser" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Document Parser
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#document-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Document Index
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#document-selector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Document Selector
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#context-formatter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context Formatter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#context-builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context Builder
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#context-rule-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context Rule Registry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#context-filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context Filter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shared-interfaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shared Interfaces
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shared-data-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shared Data Models
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validation-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reasoning-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reasoning Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#review-coordinator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Review Coordinator
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#repository-update-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repository Update Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#git-diff-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Git Diff Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-external-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. External Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-design-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Design Constraints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-future-architectural-expansion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Future Architectural Expansion
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-related-documents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Related Documents
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -898,16 +1639,16 @@
 <strong>Owner:</strong> Project0<br />
 <strong>Last Updated:</strong> 2026-08-06</p>
 <hr />
-<h1 id="1-purpose">1. Purpose</h1>
-<h2 id="objective">Objective</h2>
+<h2 id="1-purpose">1. Purpose</h2>
+<h3 id="objective">Objective</h3>
 <p>Define the high-level architecture of the Documentation Agent and the
 major functional components required to satisfy the Documentation Agent Functional Specification.</p>
-<h2 id="scope">Scope</h2>
+<h3 id="scope">Scope</h3>
 <p>Describe the architectural organization of the Documentation Agent.
 Implementation details, algorithms, and technology selections are
 intentionally excluded.</p>
 <hr />
-<h1 id="2-architectural-principles">2. Architectural Principles</h1>
+<h2 id="2-architectural-principles">2. Architectural Principles</h2>
 <ul>
 <li>Modular component design.</li>
 <li>Single responsibility for each component.</li>
@@ -920,7 +1661,7 @@ intentionally excluded.</p>
 <li>Implementation technologies may change without affecting the architecture.</li>
 </ul>
 <hr />
-<h1 id="3-architectural-workflow">3. Architectural Workflow</h1>
+<h2 id="3-architectural-workflow">3. Architectural Workflow</h2>
 <p>The implemented platform provides an end-to-end documentation
 workflow. The Documentation Agent is accessed through the reusable
 Dashboard Framework, which provides the browser interface while
@@ -961,7 +1702,7 @@ updates, and Git diff generation through the Platform Dispatcher.</p>
     H --&gt; F
     F --&gt; I
     I --&gt; J</code></pre>
-<h2 id="implemented-runtime-flow">Implemented Runtime Flow</h2>
+<h3 id="implemented-runtime-flow">Implemented Runtime Flow</h3>
 <ol>
 <li><code>dashboard_app.py</code> creates the Dashboard application and configured Documentation Agent UI services.</li>
 <li><code>main.py</code> creates the Platform Dispatcher.</li>
@@ -978,8 +1719,8 @@ updates, and Git diff generation through the Platform Dispatcher.</p>
 <li>The Documentation Workflow returns a structured Documentation Workflow Result.</li>
 </ol>
 <hr />
-<h1 id="4-architectural-components">4. Architectural Components</h1>
-<h2 id="platform-dispatcher">Platform Dispatcher</h2>
+<h2 id="4-architectural-components">4. Architectural Components</h2>
+<h3 id="platform-dispatcher">Platform Dispatcher</h3>
 <p>Provides the platform-level entry point for executing workflows.</p>
 <p>Responsibilities:</p>
 <ul>
@@ -991,7 +1732,7 @@ updates, and Git diff generation through the Platform Dispatcher.</p>
 <li>Dispatch Documentation Workflows.</li>
 <li>Assemble Documentation Workflow dependencies.</li>
 </ul>
-<h2 id="workflow-engine">Workflow Engine</h2>
+<h3 id="workflow-engine">Workflow Engine</h3>
 <p>Coordinates synchronous workflow task execution.</p>
 <p>Responsibilities:</p>
 <ul>
@@ -1002,7 +1743,7 @@ updates, and Git diff generation through the Platform Dispatcher.</p>
 <li>Publish workflow and task events through an abstract interface.</li>
 <li>Return structured workflow execution results.</li>
 </ul>
-<h2 id="repository-service">Repository Service</h2>
+<h3 id="repository-service">Repository Service</h3>
 <p>Provides deterministic, read-only access to the local repository.</p>
 <p>Responsibilities:</p>
 <ul>
@@ -1013,7 +1754,7 @@ updates, and Git diff generation through the Platform Dispatcher.</p>
 <li>Exclude unsupported, generated, and hidden content.</li>
 <li>Return structured repository results and errors.</li>
 </ul>
-<h2 id="knowledge-service">Knowledge Service</h2>
+<h3 id="knowledge-service">Knowledge Service</h3>
 <p>Coordinates deterministic repository knowledge retrieval.</p>
 <p>Responsibilities:</p>
 <ul>
@@ -1025,7 +1766,7 @@ updates, and Git diff generation through the Platform Dispatcher.</p>
 <li>Preserve parsing and selection warnings.</li>
 <li>Return structured Knowledge Results.</li>
 </ul>
-<h2 id="document-parser">Document Parser</h2>
+<h3 id="document-parser">Document Parser</h3>
 <p>Parses Markdown documentation into structured repository models.</p>
 <p>Responsibilities:</p>
 <ul>
@@ -1036,7 +1777,7 @@ updates, and Git diff generation through the Platform Dispatcher.</p>
 <li>Preserve repository paths.</li>
 <li>Return immutable Document Records.</li>
 </ul>
-<h2 id="document-index">Document Index</h2>
+<h3 id="document-index">Document Index</h3>
 <p>Provides deterministic indexing of parsed repository documentation.</p>
 <p>Responsibilities:</p>
 <ul>
@@ -1045,7 +1786,7 @@ updates, and Git diff generation through the Platform Dispatcher.</p>
 <li>Maintain deterministic document ordering.</li>
 <li>Detect duplicate document paths.</li>
 </ul>
-<h2 id="document-selector">Document Selector</h2>
+<h3 id="document-selector">Document Selector</h3>
 <p>Selects repository documentation relevant to a Knowledge Request.</p>
 <p>Responsibilities:</p>
 <ul>
@@ -1058,7 +1799,7 @@ updates, and Git diff generation through the Platform Dispatcher.</p>
 <li>Preserve deterministic ordering.</li>
 <li>Return Document Selections.</li>
 </ul>
-<h2 id="context-formatter">Context Formatter</h2>
+<h3 id="context-formatter">Context Formatter</h3>
 <p>Formats selected repository documents into deterministic context.</p>
 <p>Responsibilities:</p>
 <ul>
@@ -1067,7 +1808,7 @@ updates, and Git diff generation through the Platform Dispatcher.</p>
 <li>Produce deterministic prompt context.</li>
 <li>Avoid modification of repository content.</li>
 </ul>
-<h2 id="context-builder">Context Builder</h2>
+<h3 id="context-builder">Context Builder</h3>
 <p>Builds workflow-specific repository context.</p>
 <p>Responsibilities:</p>
 <ul>
@@ -1079,7 +1820,7 @@ updates, and Git diff generation through the Platform Dispatcher.</p>
 <li>Produce structured Context Packages.</li>
 <li>Preserve partial results and report read warnings.</li>
 </ul>
-<h2 id="context-rule-registry">Context Rule Registry</h2>
+<h3 id="context-rule-registry">Context Rule Registry</h3>
 <p>Defines document-selection policies for supported workflow types.</p>
 <p>Responsibilities:</p>
 <ul>
@@ -1088,7 +1829,7 @@ updates, and Git diff generation through the Platform Dispatcher.</p>
 <li>Convert Context Rules into Context Filter criteria.</li>
 <li>Provide default rules for general documentation, documentation updates, component implementation, and documentation validation.</li>
 </ul>
-<h2 id="context-filter">Context Filter</h2>
+<h3 id="context-filter">Context Filter</h3>
 <p>Applies deterministic file-selection criteria.</p>
 <p>Responsibilities:</p>
 <ul>
@@ -1099,7 +1840,7 @@ updates, and Git diff generation through the Platform Dispatcher.</p>
 <li>Normalize repository paths.</li>
 <li>Return files in deterministic order.</li>
 </ul>
-<h2 id="shared-interfaces">Shared Interfaces</h2>
+<h3 id="shared-interfaces">Shared Interfaces</h3>
 <p>Define stable contracts between platform components.</p>
 <p>Implemented interfaces:</p>
 <ul>
@@ -1116,7 +1857,7 @@ updates, and Git diff generation through the Platform Dispatcher.</p>
 <li>Git Diff Interface</li>
 </ul>
 <p>Interfaces allow components to depend on required capabilities rather than concrete implementations.</p>
-<h2 id="shared-data-models">Shared Data Models</h2>
+<h3 id="shared-data-models">Shared Data Models</h3>
 <p>Define immutable data exchanged between platform components.</p>
 <p>Implemented model groups:</p>
 <ul>
@@ -1146,7 +1887,7 @@ updates, and Git diff generation through the Platform Dispatcher.</p>
 <li>Applied documentation changes</li>
 <li>Documentation workflow summaries</li>
 </ul>
-<h2 id="validation-service">Validation Service</h2>
+<h3 id="validation-service">Validation Service</h3>
 <p>Coordinates deterministic repository validation.</p>
 <p>Responsibilities:</p>
 <ul>
@@ -1164,7 +1905,7 @@ updates, and Git diff generation through the Platform Dispatcher.</p>
 <li>Documentation Consistency Validator</li>
 </ul>
 <p>Validation components communicate through the Validation Interface and exchange immutable Validation Models.</p>
-<h2 id="reasoning-service">Reasoning Service</h2>
+<h3 id="reasoning-service">Reasoning Service</h3>
 <p>Provides AI reasoning through an abstract provider interface.</p>
 <p>Responsibilities:</p>
 <ul>
@@ -1174,7 +1915,7 @@ updates, and Git diff generation through the Platform Dispatcher.</p>
 </ul>
 <p>The Reasoning Service is implemented and integrated into the Documentation Workflow through an abstract provider interface.</p>
 <hr />
-<h2 id="review-coordinator">Review Coordinator</h2>
+<h3 id="review-coordinator">Review Coordinator</h3>
 <p>Coordinates user review of individual proposed documentation changes.</p>
 <p>Responsibilities:</p>
 <ul>
@@ -1183,7 +1924,7 @@ updates, and Git diff generation through the Platform Dispatcher.</p>
 <li>Return immutable review results.</li>
 </ul>
 <hr />
-<h2 id="repository-update-service">Repository Update Service</h2>
+<h3 id="repository-update-service">Repository Update Service</h3>
 <p>Applies approved documentation changes.</p>
 <p>Responsibilities:</p>
 <ul>
@@ -1193,7 +1934,7 @@ updates, and Git diff generation through the Platform Dispatcher.</p>
 <li>Produce immutable application results.</li>
 </ul>
 <hr />
-<h2 id="git-diff-service">Git Diff Service</h2>
+<h3 id="git-diff-service">Git Diff Service</h3>
 <p>Produces Git-based summaries of approved repository changes.</p>
 <p>Responsibilities:</p>
 <ul>
@@ -1203,7 +1944,7 @@ updates, and Git diff generation through the Platform Dispatcher.</p>
 <li>Preserve deterministic output.</li>
 </ul>
 <hr />
-<h2 id="documentation-workflow">Documentation Workflow</h2>
+<h3 id="documentation-workflow">Documentation Workflow</h3>
 <p>Coordinates the complete Documentation Agent execution pipeline.</p>
 <p>Responsibilities:</p>
 <ul>
@@ -1212,7 +1953,7 @@ updates, and Git diff generation through the Platform Dispatcher.</p>
 <li>Produce immutable Documentation Workflow Results.</li>
 </ul>
 <hr />
-<h1 id="5-external-dependencies">5. External Dependencies</h1>
+<h2 id="5-external-dependencies">5. External Dependencies</h2>
 <p>The Documentation Agent interacts with:</p>
 <ul>
 <li>Local Git repository</li>
@@ -1226,7 +1967,7 @@ updates, and Git diff generation through the Platform Dispatcher.</p>
 <li>Dashboard Framework (FastAPI, Jinja2 templates, shared dashboard resources)</li>
 </ul>
 <hr />
-<h1 id="6-design-constraints">6. Design Constraints</h1>
+<h2 id="6-design-constraints">6. Design Constraints</h2>
 <ul>
 <li>Markdown is the authoritative documentation format.</li>
 <li>Repository documentation is the source of truth.</li>
@@ -1243,7 +1984,7 @@ updates, and Git diff generation through the Platform Dispatcher.</p>
 <li>Agent user interfaces shall render within Dashboard Work Areas rather than operating as independent applications.</li>
 </ul>
 <hr />
-<h1 id="7-future-architectural-expansion">7. Future Architectural Expansion</h1>
+<h2 id="7-future-architectural-expansion">7. Future Architectural Expansion</h2>
 <p>Future versions may introduce:</p>
 <ul>
 <li>Documentation Agent reasoning</li>
@@ -1258,7 +1999,7 @@ updates, and Git diff generation through the Platform Dispatcher.</p>
 <li>Asynchronous workflow execution</li>
 </ul>
 <hr />
-<h1 id="8-related-documents">8. Related Documents</h1>
+<h2 id="8-related-documents">8. Related Documents</h2>
 <ul>
 <li>Project Charter</li>
 <li>Documentation Standards</li>

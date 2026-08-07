@@ -485,6 +485,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Directory Structure
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -501,6 +519,86 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repository-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repository Structure
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Repository Structure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#repository-directory-purposes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repository Directory Purposes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#relationship-between-documentation-and-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Relationship Between Documentation and Implementation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#important-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Important Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -870,6 +968,75 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repository-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repository Structure
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Repository Structure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#repository-directory-purposes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repository Directory Purposes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#relationship-between-documentation-and-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Relationship Between Documentation and Implementation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#important-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Important Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -898,7 +1065,7 @@
 <strong>Owner:</strong> Project0<br />
 <strong>Last Updated:</strong> 2026-08-06</p>
 <hr />
-<h1 id="overview">Overview</h1>
+<h2 id="overview">Overview</h2>
 <p>This document describes the Project0 repository organization and the
 purpose of each major directory within the project.</p>
 <p>Project0 is organized as a documentation-first software development
@@ -909,7 +1076,7 @@ Documentation Agent.</p>
 <p>The repository serves as the authoritative source for all project
 documentation, implementation, automated testing, and supporting artifacts.</p>
 <hr />
-<h1 id="repository-structure">Repository Structure</h1>
+<h2 id="repository-structure">Repository Structure</h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>project0/
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── docs/
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│   ├── index.md
@@ -991,7 +1158,7 @@ documentation, implementation, automated testing, and supporting artifacts.</p>
 </span><span id="__span-0-79"><a id="__codelineno-0-79" name="__codelineno-0-79" href="#__codelineno-0-79"></a>├── LICENSE
 </span><span id="__span-0-80"><a id="__codelineno-0-80" name="__codelineno-0-80" href="#__codelineno-0-80"></a>└── .gitignore
 </span></code></pre></div>
-<h2 id="repository-directory-purposes">Repository Directory Purposes</h2>
+<h3 id="repository-directory-purposes">Repository Directory Purposes</h3>
 <table>
 <thead>
 <tr>
@@ -1031,11 +1198,11 @@ documentation, implementation, automated testing, and supporting artifacts.</p>
 </tbody>
 </table>
 <hr />
-<h1 id="relationship-between-documentation-and-implementation">Relationship Between Documentation and Implementation</h1>
+<h2 id="relationship-between-documentation-and-implementation">Relationship Between Documentation and Implementation</h2>
 <p>Implementation within <code>src/</code> follows the project architecture. Material for MkDocs generates the GitHub Pages website directly from the Markdown documents stored in <code>docs/</code>. The generated HTML is a published representation of the documentation and is not the authoritative source.</p>
 <p>The Dashboard Framework is implemented within the <code>src/project0/dashboard/</code> package and provides the reusable browser-based user interface used by Project0 services and future AI agents.</p>
 <hr />
-<h1 id="important-notes">Important Notes</h1>
+<h2 id="important-notes">Important Notes</h2>
 <ul>
 <li>The GitHub repository is the authoritative source for Project0 documentation and implementation.</li>
 <li>Markdown (<code>.md</code>) is the authoritative documentation format.</li>

@@ -457,6 +457,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Document Standards
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -473,6 +491,64 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#documentation-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation Principles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spreadsheet-companion-documents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spreadsheet Companion Documents
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Spreadsheet Companion Documents">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python-source-file-header-standard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python Source File Header Standard
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -870,6 +946,53 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#documentation-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation Principles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spreadsheet-companion-documents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spreadsheet Companion Documents
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Spreadsheet Companion Documents">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python-source-file-header-standard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python Source File Header Standard
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -898,7 +1021,7 @@
 <strong>Owner:</strong> Project0<br />
 <strong>Last Updated:</strong> 2026-08-03</p>
 <hr />
-<h1 id="documentation-principles">Documentation Principles</h1>
+<h2 id="documentation-principles">Documentation Principles</h2>
 <ol>
 <li>
 <p>Repository documentation is the authoritative source of project knowledge.</p>
@@ -946,21 +1069,21 @@
 <p>Reusable user interface frameworks, shared stylesheets, and template layouts shall be documented once in their authoritative design document and referenced elsewhere rather than duplicated.</p>
 </li>
 </ol>
-<h1 id="spreadsheet-companion-documents">Spreadsheet Companion Documents</h1>
+<h2 id="spreadsheet-companion-documents">Spreadsheet Companion Documents</h2>
 <p>When project tracking or structured data is better represented in a spreadsheet, a companion OpenDocument Spreadsheet (.ods) may accompany a Markdown document. The Markdown document remains the narrative description, while the spreadsheet serves as the authoritative structured data source. Companion documents shall share the same numeric document identifier.</p>
 <h3 id="python-source-file-header-standard">Python Source File Header Standard</h3>
 <p>All Python source files shall begin with the standard Project0 file header.</p>
 <p>The header shall identify the owning platform component or AI agent, the source filename, and a concise statement describing the file's primary responsibility.</p>
 <p>Standard format:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># ============================================================</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1"># Project0 - &lt;Platform Component or AI Agent&gt;</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1">## ============================================================</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1">## Project0 - &lt;Platform Component or AI Agent&gt;</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1">#</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># File: &lt;filename&gt;.py</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1">## File: &lt;filename&gt;.py</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1">#</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># Purpose:</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1">#     &lt;Brief description of the file&#39;s primary responsibility.&gt;</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1">## Purpose:</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1">##     &lt;Brief description of the file&#39;s primary responsibility.&gt;</span>
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1">#</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1"># ============================================================</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1">## ============================================================</span>
 </span></code></pre></div>
 
 
