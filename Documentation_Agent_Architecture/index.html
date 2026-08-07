@@ -894,9 +894,9 @@
 
 
 <h1 id="documentation-agent-architecture">Documentation Agent Architecture</h1>
-<p><strong>Version:</strong> 0.3<br />
+<p><strong>Version:</strong> 0.4<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-04</p>
+<strong>Last Updated:</strong> 2026-08-06</p>
 <hr />
 <h1 id="1-purpose">1. Purpose</h1>
 <h2 id="objective">Objective</h2>
@@ -921,13 +921,14 @@ intentionally excluded.</p>
 </ul>
 <hr />
 <h1 id="3-architectural-workflow">3. Architectural Workflow</h1>
-<p>The implemented Phase 7 platform provides an end-to-end documentation
+<p>The implemented platform provides an end-to-end documentation
 workflow. The Documentation Agent is accessed through the reusable
-Dashboard Framework, which provides the browser interface but is
-architecturally separate from the Documentation Agent services. that
-integrates deterministic repository knowledge, AI reasoning, validation,
-user review, approved repository updates, and Git diff generation
-through the Platform Dispatcher.</p>
+Dashboard Framework, which provides the browser interface while
+remaining architecturally separate from the Documentation Agent services.
+The Dashboard Framework hosts the Documentation Agent user interface
+within the Dashboard Work Area and integrates deterministic repository
+knowledge, AI reasoning, validation, user review, approved repository
+updates, and Git diff generation through the Platform Dispatcher.</p>
 <pre class="mermaid"><code>flowchart TD
     UI["Dashboard Framework"]
     A["Application Entry Point&lt;br/&gt;&lt;small&gt;main.py&lt;/small&gt;"]
@@ -962,6 +963,7 @@ through the Platform Dispatcher.</p>
     I --&gt; J</code></pre>
 <h2 id="implemented-runtime-flow">Implemented Runtime Flow</h2>
 <ol>
+<li><code>dashboard_app.py</code> creates the Dashboard application and configured Documentation Agent UI services.</li>
 <li><code>main.py</code> creates the Platform Dispatcher.</li>
 <li>The Platform Dispatcher dispatches the requested Documentation Workflow.</li>
 <li>The Knowledge Service builds structured repository knowledge.</li>
@@ -1238,6 +1240,7 @@ through the Platform Dispatcher.</p>
 <li>Current repository operations are read-only.</li>
 <li>Source code modification by the Documentation Agent is outside the current architectural scope.</li>
 <li>The Dashboard Framework shall remain a reusable platform interface and shall not contain Documentation Agent business logic.</li>
+<li>Agent user interfaces shall render within Dashboard Work Areas rather than operating as independent applications.</li>
 </ul>
 <hr />
 <h1 id="7-future-architectural-expansion">7. Future Architectural Expansion</h1>

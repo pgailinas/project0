@@ -894,7 +894,7 @@
 
 
 <h1 id="dashboard-design">Dashboard Design</h1>
-<p><strong>Version:</strong> 0.4<br />
+<p><strong>Version:</strong> 0.5<br />
 <strong>Owner:</strong> Project0<br />
 <strong>Last Updated:</strong> 2026-08-06</p>
 <hr />
@@ -1094,16 +1094,22 @@
 </span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    ├── Research Agent
 </span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    └── Future Agents
 </span></code></pre></div>
-<p>The Dashboard hosts agents while existing platform services perform the work. Agent-specific features such as documentation review, validation presentation, repository updates, and Git diff display are outside the Dashboard Framework and belong in the applicable Agent Interface Design document.</p>
+<p>The Dashboard hosts AI agents while existing platform services perform the work.</p>
+<p>The Documentation Agent is the first implemented Dashboard Agent. Agent interfaces render within the Dashboard Work Area rather than operating as independent applications.</p>
+<p>Agent workflows communicate through the Platform Dispatcher and reuse existing Project0 services.</p>
+<p>Agent-specific features such as documentation review, validation presentation, repository updates, and Git diff display are outside the Dashboard Framework and belong in the applicable Agent Interface Design document.</p>
 <hr />
 <h1 id="9-workflow-interaction">9. Workflow Interaction</h1>
 <ol>
 <li>Start</li>
-<li>Analyze</li>
-<li>Progress</li>
-<li>User Review</li>
-<li>Validation</li>
-<li>Apply Changes</li>
+<li>Request Submission</li>
+<li>Reasoning</li>
+<li>Preliminary Validation</li>
+<li>Proposal Review</li>
+<li>User Decision</li>
+<li>Apply Approved Changes</li>
+<li>Final Validation</li>
+<li>Git Diff Summary</li>
 <li>Completion</li>
 <li>History (future)</li>
 </ol>
@@ -1173,13 +1179,20 @@
 <li>Basic status endpoint</li>
 <li>Unit and integration tests</li>
 </ul>
-<p>The initial implementation excludes:</p>
+<p>The initial implementation now includes:</p>
 <ul>
-<li>Documentation Agent request forms</li>
-<li>Documentation review controls</li>
-<li>Git diff presentation</li>
+<li>Documentation Agent request interface</li>
+<li>Documentation Agent review workflow</li>
+<li>Proposal presentation</li>
+<li>User approval controls</li>
 <li>Validation-result presentation</li>
-<li>Agent-specific workflow state</li>
+<li>Agent workflow state presentation</li>
+</ul>
+<p>Future implementation includes:</p>
+<ul>
+<li>Production LLM integration</li>
+<li>Improved automated documentation generation quality</li>
+<li>Additional AI agents</li>
 </ul>
 <hr />
 <h1 id="14-future-expansion">14. Future Expansion</h1>
@@ -1207,7 +1220,7 @@
 <li>Component Communication Design</li>
 <li>Testing Guide</li>
 <li>Project Directory Structure</li>
-<li>Documentation Agent Interface Design (future)</li>
+<li>Documentation Agent Interface Design</li>
 </ul>
 
 

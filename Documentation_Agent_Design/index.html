@@ -894,7 +894,7 @@
 
 
 <h1 id="documentation-agent-component-design">Documentation Agent Component Design</h1>
-<p><strong>Version:</strong> 0.4<br />
+<p><strong>Version:</strong> 0.5<br />
 <strong>Owner:</strong> Project0<br />
 <strong>Last Updated:</strong> 2026-08-06</p>
 <hr />
@@ -920,10 +920,13 @@ Implementation details are intentionally excluded.</p>
 </ul>
 <hr />
 <h1 id="3-component-overview">3. Component Overview</h1>
-<p>The implemented Phase 7 platform foundation consists of the following
+<p>The implemented Phase 7 and Phase 8 platform foundation consists of the following
 primary components. The Documentation Agent is hosted within the
 reusable Dashboard Framework, which provides the browser interface while
-remaining architecturally separate from the agent services:</p>
+remaining architecturally separate from the agent services. The Dashboard
+Framework provides the shared user interface shell, while the Documentation
+Agent provides agent-specific workflows and interactions within the Dashboard
+Work Area:</p>
 <ul>
 <li>Dashboard Framework</li>
 <li>Platform Dispatcher</li>
@@ -1023,6 +1026,7 @@ and AI agents.</p>
 <li>Keep the Sidebar focused on Agent and Workspace navigation.</li>
 <li>Display Project0 status in the Project Overview Work Area.</li>
 <li>Allow agent status, controls, and content to be displayed in the Work Area for the selected agent.</li>
+<li>Provide the Dashboard Work Area for Documentation Agent interaction.</li>
 <li>Remain independent of Documentation Agent business logic.</li>
 </ul>
 <h3 id="design-notes_1">Design Notes</h3>
@@ -1031,6 +1035,8 @@ and AI agents.</p>
 <li>The Project Overview is the default platform-level Work Area and contains Project0 status information.</li>
 <li>The Context Toolbar and Work Area reflect the currently selected platform or agent context.</li>
 <li>Project0 status is not displayed persistently in the Sidebar.</li>
+<li>The Documentation Agent is the first implemented agent hosted within the Dashboard Framework.</li>
+<li>Agent-specific pages render within the Dashboard Work Area rather than operating as independent applications.</li>
 <li>Serves as reusable platform infrastructure for future AI agents.</li>
 </ul>
 <hr />
@@ -1698,6 +1704,13 @@ and AI agents.</p>
 <li>Coordinate Knowledge, Reasoning, Validation, Review, Repository Update, and Git Diff services.</li>
 <li>Preserve workflow state.</li>
 <li>Produce immutable Documentation Workflow Results.</li>
+<li>Support human-in-the-loop review before applying documentation changes.</li>
+</ul>
+<h3 id="design-notes_13">Design Notes</h3>
+<ul>
+<li>Documentation Workflow execution is initiated through the Platform Dispatcher.</li>
+<li>Documentation Agent UI interactions are hosted by the Dashboard Framework.</li>
+<li>Proposed documentation changes are reviewed before repository updates are applied.</li>
 </ul>
 <hr />
 <h1 id="5-interface-design-principles">5. Interface Design Principles</h1>
