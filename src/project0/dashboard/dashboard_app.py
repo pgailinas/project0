@@ -28,6 +28,9 @@ from project0.config.settings import SETTINGS
 from project0.dashboard.dashboard_routes import create_dashboard_router
 from project0.models.reasoning_models import ProviderResponse
 from project0.platform.platform_dispatcher import create_platform_dispatcher
+from project0.reasoning.providers.ollama_provider import (
+    OllamaReasoningProvider,
+)
 from project0.reasoning.providers.stub_provider import (
     StubReasoningProvider,
 )
@@ -105,31 +108,49 @@ def create_dashboard_app(
     return application
 
 
+def _create_reasoning_provider():
+    """Create the configured Project0 reasoning provider."""
+
+    if SETTINGS.reasoning_provider == "ollama":
+        return OllamaReasoningProvider(
+            base_url=SETTINGS.ollama_base_url,
+            timeout_seconds=SETTINGS.ollama_timeout_seconds,
+        )
+
+    if SETTINGS.reasoning_provider == "stub":
+        return StubReasoningProvider(
+            response=ProviderResponse(
+                provider_name="stub",
+                model_name="stub-model",
+                content=(
+                    '{"summary": '
+                    '"No documentation changes proposed."}'
+                ),
+                structured_output={
+                    "summary": "No documentation changes proposed.",
+                    "impacts": [],
+                    "proposed_changes": [],
+                    "assumptions": [],
+                    "warnings": [],
+                },
+                duration_seconds=0.0,
+                metadata={
+                    "stub": True,
+                    "purpose": "dashboard-development",
+                },
+            )
+        )
+
+    raise ValueError(
+        "Unsupported Project0 reasoning provider: "
+        f"{SETTINGS.reasoning_provider}"
+    )
+
+
 def create_project0_dashboard_app() -> FastAPI:
     """Create the configured Project0 Dashboard application."""
 
-    reasoning_provider = StubReasoningProvider(
-        response=ProviderResponse(
-            provider_name="stub",
-            model_name="stub-model",
-            content=(
-                '{"summary": '
-                '"No documentation changes proposed."}'
-            ),
-            structured_output={
-                "summary": "No documentation changes proposed.",
-                "impacts": [],
-                "proposed_changes": [],
-                "assumptions": [],
-                "warnings": [],
-            },
-            duration_seconds=0.0,
-            metadata={
-                "stub": True,
-                "purpose": "dashboard-development",
-            },
-        )
-    )
+    reasoning_provider = _create_reasoning_provider()
 
     dispatcher = create_platform_dispatcher(
         reasoning_provider=reasoning_provider,

@@ -19,8 +19,15 @@ from project0.agents.documentation.documentation_agent_ui_service import (
     DocumentationAgentUIService,
 )
 from project0.dashboard.dashboard_app import (
+    _create_reasoning_provider,
     create_dashboard_app,
     create_project0_dashboard_app,
+)
+from project0.reasoning.providers.ollama_provider import (
+    OllamaReasoningProvider,
+)
+from project0.reasoning.providers.stub_provider import (
+    StubReasoningProvider,
 )
 
 
@@ -362,7 +369,12 @@ def test_create_project0_dashboard_app_configures_documentation_agent(
     )
     monkeypatch.setattr(
         "project0.dashboard.dashboard_app.SETTINGS",
-        SimpleNamespace(project_root=tmp_path),
+        SimpleNamespace(
+            project_root=tmp_path,
+            reasoning_provider="ollama",
+            ollama_base_url="http://127.0.0.1:11434",
+            ollama_timeout_seconds=120.0,
+        ),
     )
 
     application = create_project0_dashboard_app()
@@ -383,10 +395,87 @@ def test_create_project0_dashboard_app_configures_documentation_agent(
     )
 
 
+def test_create_reasoning_provider_uses_ollama_configuration(
+    monkeypatch,
+) -> None:
+    """The configured provider factory creates an Ollama provider."""
+
+    monkeypatch.setattr(
+        "project0.dashboard.dashboard_app.SETTINGS",
+        SimpleNamespace(
+            reasoning_provider="ollama",
+            ollama_base_url="http://localhost:22000",
+            ollama_timeout_seconds=45.0,
+        ),
+    )
+
+    reasoning_provider = _create_reasoning_provider()
+
+    assert isinstance(
+        reasoning_provider,
+        OllamaReasoningProvider,
+    )
+    assert reasoning_provider.base_url == "http://localhost:22000"
+    assert reasoning_provider.timeout_seconds == 45.0
+
+
+def test_create_reasoning_provider_can_use_stub(
+    monkeypatch,
+) -> None:
+    """The configured provider factory retains the stub provider."""
+
+    monkeypatch.setattr(
+        "project0.dashboard.dashboard_app.SETTINGS",
+        SimpleNamespace(
+            reasoning_provider="stub",
+        ),
+    )
+
+    reasoning_provider = _create_reasoning_provider()
+
+    assert isinstance(
+        reasoning_provider,
+        StubReasoningProvider,
+    )
+    assert reasoning_provider.response.provider_name == "stub"
+    assert reasoning_provider.response.model_name == "stub-model"
+    assert reasoning_provider.response.structured_output == {
+        "summary": "No documentation changes proposed.",
+        "impacts": [],
+        "proposed_changes": [],
+        "assumptions": [],
+        "warnings": [],
+    }
+
+
+def test_create_reasoning_provider_rejects_unsupported_provider(
+    monkeypatch,
+) -> None:
+    """Unsupported provider configuration fails explicitly."""
+
+    monkeypatch.setattr(
+        "project0.dashboard.dashboard_app.SETTINGS",
+        SimpleNamespace(
+            reasoning_provider="unsupported",
+        ),
+    )
+
+    try:
+        _create_reasoning_provider()
+    except ValueError as error:
+        assert str(error) == (
+            "Unsupported Project0 reasoning provider: unsupported"
+        )
+    else:
+        raise AssertionError(
+            "Unsupported reasoning provider did not raise ValueError."
+        )
+
+
 def test_create_project0_dashboard_app_supplies_reasoning_provider(
     monkeypatch,
 ) -> None:
-    """The executable factory supplies a configured reasoning provider."""
+    """The executable factory supplies the configured reasoning provider."""
 
     captured: dict[str, object] = {}
     dispatcher = FakeDocumentationWorkflow()
@@ -401,18 +490,21 @@ def test_create_project0_dashboard_app_supplies_reasoning_provider(
         "project0.dashboard.dashboard_app.create_platform_dispatcher",
         fake_create_platform_dispatcher,
     )
+    monkeypatch.setattr(
+        "project0.dashboard.dashboard_app.SETTINGS",
+        SimpleNamespace(
+            project_root=Path.cwd(),
+            reasoning_provider="ollama",
+            ollama_base_url="http://127.0.0.1:11434",
+            ollama_timeout_seconds=120.0,
+        ),
+    )
 
     create_project0_dashboard_app()
 
     reasoning_provider = captured["reasoning_provider"]
 
-    assert reasoning_provider is not None
-    assert reasoning_provider.response.provider_name == "stub"
-    assert reasoning_provider.response.model_name == "stub-model"
-    assert reasoning_provider.response.structured_output == {
-        "summary": "No documentation changes proposed.",
-        "impacts": [],
-        "proposed_changes": [],
-        "assumptions": [],
-        "warnings": [],
-    }
+    assert isinstance(
+        reasoning_provider,
+        OllamaReasoningProvider,
+    )

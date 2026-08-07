@@ -99,25 +99,6 @@
         </ol>
     </section>
 
-    <section
-        class="status-panel"
-        aria-labelledby="documentation-status-title"
-    >
-        <div>
-            <h2 id="documentation-status-title">Workflow Status</h2>
-            <p>{{ page.status_message }}</p>
-        </div>
-
-        {% if page.workflow_id %}
-        <dl class="status-details">
-            <div>
-                <dt>Workflow ID</dt>
-                <dd>{{ page.workflow_id }}</dd>
-            </div>
-        </dl>
-        {% endif %}
-    </section>
-
     {% if page.error_message %}
     <section
         class="message-panel message-panel--error"

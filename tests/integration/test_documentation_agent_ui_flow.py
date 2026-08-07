@@ -203,7 +203,7 @@ def test_documentation_agent_home_page_renders_shared_dashboard() -> None:
     assert response.status_code == 200
     assert "Documentation Agent" in response.text
     assert "Documentation Request" in response.text
-    assert "Workflow Status" in response.text
+    assert "Documentation Workflow" in response.text
     assert "Ready for a documentation request." in response.text
     assert 'action="/agents/documentation/request"' in response.text
 
