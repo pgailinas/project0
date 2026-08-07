@@ -16,8 +16,21 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
+from project0.agents.documentation.documentation_agent_routes import (
+    create_documentation_agent_router,
+)
+from project0.agents.documentation.documentation_agent_ui_service import (
+    DocumentationAgentUIService,
+)
+from project0.config.settings import SETTINGS
 from project0.dashboard.dashboard_routes import create_dashboard_router
+from project0.models.reasoning_models import ProviderResponse
+from project0.platform.platform_dispatcher import create_platform_dispatcher
+from project0.reasoning.providers.stub_provider import (
+    StubReasoningProvider,
+)
 
 
 ApplicationFactory = Callable[[], FastAPI]
@@ -25,6 +38,7 @@ ApplicationFactory = Callable[[], FastAPI]
 
 def create_dashboard_app(
     project_root: Path | None = None,
+    documentation_agent_ui_service: DocumentationAgentUIService | None = None,
 ) -> FastAPI:
     """Create and configure the Project0 Dashboard application."""
 
@@ -51,6 +65,29 @@ def create_dashboard_app(
     application.state.project_root = resolved_project_root
     application.state.dashboard_root = dashboard_root
 
+    if documentation_agent_ui_service is not None:
+        documentation_agent_root = (
+            dashboard_root.parent / "agents" / "documentation"
+        )
+        documentation_agent_templates = Jinja2Templates(
+            directory=[
+                str(dashboard_root / "templates"),
+                str(documentation_agent_root / "templates"),
+            ]
+        )
+
+        application.state.documentation_agent_root = documentation_agent_root
+        application.state.documentation_agent_ui_service = (
+            documentation_agent_ui_service
+        )
+
+        application.include_router(
+            create_documentation_agent_router(
+                ui_service=documentation_agent_ui_service,
+                templates=documentation_agent_templates,
+            )
+        )
+
     application.include_router(
         create_dashboard_router(
             project_root=resolved_project_root,
@@ -68,6 +105,47 @@ def create_dashboard_app(
     return application
 
 
+def create_project0_dashboard_app() -> FastAPI:
+    """Create the configured Project0 Dashboard application."""
+
+    reasoning_provider = StubReasoningProvider(
+        response=ProviderResponse(
+            provider_name="stub",
+            model_name="stub-model",
+            content=(
+                '{"summary": '
+                '"No documentation changes proposed."}'
+            ),
+            structured_output={
+                "summary": "No documentation changes proposed.",
+                "impacts": [],
+                "proposed_changes": [],
+                "assumptions": [],
+                "warnings": [],
+            },
+            duration_seconds=0.0,
+            metadata={
+                "stub": True,
+                "purpose": "dashboard-development",
+            },
+        )
+    )
+
+    dispatcher = create_platform_dispatcher(
+        reasoning_provider=reasoning_provider,
+    )
+    documentation_agent_ui_service = DocumentationAgentUIService(
+        workflow=dispatcher,
+    )
+
+    return create_dashboard_app(
+        project_root=SETTINGS.project_root,
+        documentation_agent_ui_service=(
+            documentation_agent_ui_service
+        ),
+    )
+
+
 app = create_dashboard_app()
 
 
@@ -77,14 +155,16 @@ def main() -> None:
     import uvicorn
 
     uvicorn.run(
-        "project0.dashboard.dashboard_app:app",
+        (
+            "project0.dashboard.dashboard_app:"
+            "create_project0_dashboard_app"
+        ),
         host="127.0.0.1",
         port=8001,
         reload=True,
+        factory=True,
     )
 
 
 if __name__ == "__main__":
     main()
-    
-

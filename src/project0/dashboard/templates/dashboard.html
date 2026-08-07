@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Project0 Dashboard{% endblock %}</title>
+    <title>{% block title %}{% block page_title %}Project0 Dashboard{% endblock %}{% endblock %}</title>
 
     <link rel="stylesheet" href="/css/dashboard.css" >
 
@@ -43,7 +43,12 @@
                         {% block agent_navigation %}
                         {% for agent in agents | default([]) %}
                         <li>
-                            <a class="sidebar-link" href="/agents/{{ agent.identifier }}">
+                            <a class="sidebar-link"
+                               href="/agents/{{ agent.identifier }}"
+                               {% if active_page | default("") == "agent:" ~ agent.identifier
+                                  or active_navigation | default("") == agent.identifier ~ "-agent" %}
+                               aria-current="page"
+                               {% endif %}>
                                 <span>{{ agent.name }}</span>
                                 {% if not agent.available %}
                                 <span class="sidebar-badge">Planned</span>

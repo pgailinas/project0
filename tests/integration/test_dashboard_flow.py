@@ -13,7 +13,32 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
+from project0.agents.documentation.documentation_agent_ui_service import (
+    DocumentationAgentUIService,
+)
 from project0.dashboard.dashboard_app import create_dashboard_app
+
+
+class FakeDocumentationWorkflow:
+    """Minimal workflow fake for Dashboard integration testing."""
+
+    def execute(self, request: object) -> object:
+        """Return an incomplete documentation workflow result."""
+
+        return {
+            "workflow_id": "workflow-dashboard-integration",
+            "completed": False,
+        }
+
+
+def _create_documentation_agent_ui_service() -> (
+    DocumentationAgentUIService
+):
+    """Create the Documentation Agent UI service used by integration tests."""
+
+    return DocumentationAgentUIService(
+        workflow=FakeDocumentationWorkflow()
+    )
 
 
 def _write_dashboard_templates(
@@ -73,6 +98,39 @@ def _write_dashboard_templates(
         encoding="utf-8",
     )
 
+    documentation_templates_directory = (
+        dashboard_root.parent
+        / "agents"
+        / "documentation"
+        / "templates"
+    )
+    documentation_templates_directory.mkdir(parents=True)
+
+    (
+        documentation_templates_directory
+        / "documentation_agent_home.html"
+    ).write_text(
+        (
+            "{% extends \"dashboard.html\" %}"
+            "{% block breadcrumb %}"
+            "<span>Project0 / Documentation Agent</span>"
+            "{% endblock %}"
+            "{% block context_toolbar %}"
+            "<a href=\"/agents/documentation\">New Request</a>"
+            "{% endblock %}"
+            "{% block work_area %}"
+            "<h1>Documentation Agent</h1>"
+            "<p>{{ page.status_message }}</p>"
+            "<form action=\"/agents/documentation/request\" method=\"post\">"
+            "<textarea name=\"user_request\"></textarea>"
+            "<textarea name=\"target_paths\"></textarea>"
+            "<button type=\"submit\">Submit Documentation Request</button>"
+            "</form>"
+            "{% endblock %}"
+        ),
+        encoding="utf-8",
+    )
+
     (
         templates_directory / "agent_placeholder.html"
     ).write_text(
@@ -106,7 +164,10 @@ def _create_integration_client(
     )
 
     application = create_dashboard_app(
-        project_root=project_root
+        project_root=project_root,
+        documentation_agent_ui_service=(
+            _create_documentation_agent_ui_service()
+        ),
     )
 
     return TestClient(application), project_root
@@ -129,7 +190,7 @@ def test_dashboard_home_flow(
     assert "Project Overview" in response.text
     assert "Project0" in response.text
     assert str(project_root) in response.text
-    assert "Phase 7 – Dashboard Framework" in response.text
+    assert "Phase 8 – Documentation Agent User Interface" in response.text
     assert "All tests passing" in response.text
     assert "Documentation Agent" in response.text
     assert "Research Agent" in response.text
@@ -165,7 +226,7 @@ def test_dashboard_agent_navigation_flow(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
-    """Dashboard agent links open shared placeholder pages."""
+    """Implemented agents open their UI while planned agents use fallback."""
 
     client, _ = _create_integration_client(
         tmp_path,
@@ -184,17 +245,25 @@ def test_dashboard_agent_navigation_flow(
 
     assert documentation_response.status_code == 200
     assert "Documentation Agent" in documentation_response.text
-    assert "Project Overview" in documentation_response.text
-    assert "Phase 7 – Dashboard Framework" not in (
+    assert "Ready for a documentation request." in (
         documentation_response.text
+    )
+    assert 'action="/agents/documentation/request"' in (
+        documentation_response.text
+    )
+    assert "Project Overview" in documentation_response.text
+    assert (
+        "Phase 8 – Documentation Agent User Interface"
+        not in documentation_response.text
     )
     assert "All tests passing" not in documentation_response.text
 
     assert research_response.status_code == 200
     assert "Research Agent" in research_response.text
     assert "Project Overview" in research_response.text
-    assert "Phase 7 – Dashboard Framework" not in (
-        research_response.text
+    assert (
+        "Phase 8 – Documentation Agent User Interface"
+        not in research_response.text
     )
     assert "All tests passing" not in research_response.text
 
@@ -239,6 +308,9 @@ def test_dashboard_openapi_flow(
 
     assert "/" in paths
     assert "/documentation" in paths
+    assert "/agents/documentation" in paths
+    assert "/agents/documentation/request" in paths
+    assert "/agents/documentation/review" in paths
     assert "/agents/{agent_identifier}" in paths
     assert "/api/status" in paths
 

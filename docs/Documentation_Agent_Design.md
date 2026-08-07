@@ -1,6 +1,6 @@
 # Documentation Agent Component Design
 
-**Version:** 0.4  
+**Version:** 0.5  
 **Owner:** Project0  
 **Last Updated:** 2026-08-06
 
@@ -36,10 +36,13 @@ Implementation details are intentionally excluded.
 
 # 3. Component Overview
 
-The implemented Phase 7 platform foundation consists of the following
+The implemented Phase 7 and Phase 8 platform foundation consists of the following
 primary components. The Documentation Agent is hosted within the
 reusable Dashboard Framework, which provides the browser interface while
-remaining architecturally separate from the agent services:
+remaining architecturally separate from the agent services. The Dashboard
+Framework provides the shared user interface shell, while the Documentation
+Agent provides agent-specific workflows and interactions within the Dashboard
+Work Area:
 
 - Dashboard Framework
 - Platform Dispatcher
@@ -153,6 +156,7 @@ and AI agents.
 - Keep the Sidebar focused on Agent and Workspace navigation.
 - Display Project0 status in the Project Overview Work Area.
 - Allow agent status, controls, and content to be displayed in the Work Area for the selected agent.
+- Provide the Dashboard Work Area for Documentation Agent interaction.
 - Remain independent of Documentation Agent business logic.
 
 ### Design Notes
@@ -161,6 +165,8 @@ and AI agents.
 - The Project Overview is the default platform-level Work Area and contains Project0 status information.
 - The Context Toolbar and Work Area reflect the currently selected platform or agent context.
 - Project0 status is not displayed persistently in the Sidebar.
+- The Documentation Agent is the first implemented agent hosted within the Dashboard Framework.
+- Agent-specific pages render within the Dashboard Work Area rather than operating as independent applications.
 - Serves as reusable platform infrastructure for future AI agents.
 
 ---
@@ -917,6 +923,13 @@ Coordinate the complete Documentation Agent execution pipeline.
 * Coordinate Knowledge, Reasoning, Validation, Review, Repository Update, and Git Diff services.
 * Preserve workflow state.
 * Produce immutable Documentation Workflow Results.
+* Support human-in-the-loop review before applying documentation changes.
+
+### Design Notes
+
+* Documentation Workflow execution is initiated through the Platform Dispatcher.
+* Documentation Agent UI interactions are hosted by the Dashboard Framework.
+* Proposed documentation changes are reviewed before repository updates are applied.
 
 ---
 

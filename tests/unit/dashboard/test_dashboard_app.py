@@ -10,11 +10,61 @@
 # ============================================================
 
 from pathlib import Path
+from types import SimpleNamespace
 
 from fastapi import FastAPI
 from starlette.routing import Mount
 
-from project0.dashboard.dashboard_app import create_dashboard_app
+from project0.agents.documentation.documentation_agent_ui_service import (
+    DocumentationAgentUIService,
+)
+from project0.dashboard.dashboard_app import (
+    create_dashboard_app,
+    create_project0_dashboard_app,
+)
+
+
+class FakeDocumentationWorkflow:
+    """Minimal workflow fake used for Dashboard registration tests."""
+
+    def run_documentation_workflow(
+        self,
+        user_request: str,
+        target_paths: tuple[str, ...] = (),
+        workflow_id: str | None = None,
+    ) -> object:
+        """Return an incomplete workflow result."""
+
+        del user_request, target_paths, workflow_id
+
+        return {
+            "workflow_id": "workflow-dashboard-test",
+            "status": "running",
+        }
+
+    def submit_documentation_review(
+        self,
+        workflow_id: str,
+        review: object,
+    ) -> object:
+        """Return an incomplete workflow result after review."""
+
+        del workflow_id, review
+
+        return {
+            "workflow_id": "workflow-dashboard-test",
+            "status": "running",
+        }
+
+
+def _create_documentation_agent_ui_service() -> (
+    DocumentationAgentUIService
+):
+    """Create a Documentation Agent UI service for application tests."""
+
+    return DocumentationAgentUIService(
+        workflow=FakeDocumentationWorkflow()
+    )
 
 
 def test_create_dashboard_app_returns_fastapi_application(
@@ -195,3 +245,174 @@ def test_dashboard_applications_are_independent(
         first_application.state.project_root
         != second_application.state.project_root
     )
+
+
+def test_documentation_agent_routes_are_not_registered_by_default(
+    tmp_path: Path,
+) -> None:
+    """Agent-specific routes remain optional without a UI service."""
+
+    application = create_dashboard_app(
+        project_root=tmp_path
+    )
+
+    route_paths = set(application.openapi()["paths"])
+
+    assert "/agents/documentation/request" not in route_paths
+    assert "/agents/documentation/review" not in route_paths
+    assert not hasattr(
+        application.state,
+        "documentation_agent_ui_service",
+    )
+
+
+def test_documentation_agent_routes_are_registered_when_configured(
+    tmp_path: Path,
+) -> None:
+    """Configured Documentation Agent services register Phase 8 routes."""
+
+    ui_service = _create_documentation_agent_ui_service()
+
+    application = create_dashboard_app(
+        project_root=tmp_path,
+        documentation_agent_ui_service=ui_service,
+    )
+
+    route_paths = set(application.openapi()["paths"])
+
+    assert "/agents/documentation" in route_paths
+    assert "/agents/documentation/request" in route_paths
+    assert "/agents/documentation/review" in route_paths
+
+
+def test_documentation_agent_service_is_stored_in_application_state(
+    tmp_path: Path,
+) -> None:
+    """Configured Documentation Agent services are available in app state."""
+
+    ui_service = _create_documentation_agent_ui_service()
+
+    application = create_dashboard_app(
+        project_root=tmp_path,
+        documentation_agent_ui_service=ui_service,
+    )
+
+    assert (
+        application.state.documentation_agent_ui_service
+        is ui_service
+    )
+
+
+def test_documentation_agent_root_is_stored_in_application_state(
+    tmp_path: Path,
+) -> None:
+    """Configured Documentation Agent package root is stored in app state."""
+
+    application = create_dashboard_app(
+        project_root=tmp_path,
+        documentation_agent_ui_service=(
+            _create_documentation_agent_ui_service()
+        ),
+    )
+
+    documentation_agent_root = (
+        application.state.documentation_agent_root
+    )
+
+    assert isinstance(documentation_agent_root, Path)
+    assert documentation_agent_root.name == "documentation"
+    assert documentation_agent_root.parent.name == "agents"
+    assert documentation_agent_root.is_absolute()
+
+
+def test_documentation_agent_route_precedes_generic_agent_route(
+    tmp_path: Path,
+) -> None:
+    """The specific Documentation Agent route handles its URL."""
+
+    from fastapi.testclient import TestClient
+
+    application = create_dashboard_app(
+        project_root=tmp_path,
+        documentation_agent_ui_service=(
+            _create_documentation_agent_ui_service()
+        ),
+    )
+    client = TestClient(application)
+
+    response = client.get("/agents/documentation")
+
+    assert response.status_code == 200
+    assert "Ready for a documentation request." in response.text
+    assert "agent:documentation" not in response.text
+
+
+
+def test_create_project0_dashboard_app_configures_documentation_agent(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    """The executable factory wires the Documentation Agent service."""
+
+    dispatcher = FakeDocumentationWorkflow()
+
+    monkeypatch.setattr(
+        "project0.dashboard.dashboard_app.create_platform_dispatcher",
+        lambda reasoning_provider: dispatcher,
+    )
+    monkeypatch.setattr(
+        "project0.dashboard.dashboard_app.SETTINGS",
+        SimpleNamespace(project_root=tmp_path),
+    )
+
+    application = create_project0_dashboard_app()
+    route_paths = set(application.openapi()["paths"])
+
+    assert isinstance(application, FastAPI)
+    assert application.state.project_root == tmp_path.resolve()
+    assert "/agents/documentation" in route_paths
+    assert "/agents/documentation/request" in route_paths
+    assert "/agents/documentation/review" in route_paths
+    assert isinstance(
+        application.state.documentation_agent_ui_service,
+        DocumentationAgentUIService,
+    )
+    assert (
+        application.state.documentation_agent_ui_service.workflow
+        is dispatcher
+    )
+
+
+def test_create_project0_dashboard_app_supplies_reasoning_provider(
+    monkeypatch,
+) -> None:
+    """The executable factory supplies a configured reasoning provider."""
+
+    captured: dict[str, object] = {}
+    dispatcher = FakeDocumentationWorkflow()
+
+    def fake_create_platform_dispatcher(
+        reasoning_provider,
+    ):
+        captured["reasoning_provider"] = reasoning_provider
+        return dispatcher
+
+    monkeypatch.setattr(
+        "project0.dashboard.dashboard_app.create_platform_dispatcher",
+        fake_create_platform_dispatcher,
+    )
+
+    create_project0_dashboard_app()
+
+    reasoning_provider = captured["reasoning_provider"]
+
+    assert reasoning_provider is not None
+    assert reasoning_provider.response.provider_name == "stub"
+    assert reasoning_provider.response.model_name == "stub-model"
+    assert reasoning_provider.response.structured_output == {
+        "summary": "No documentation changes proposed.",
+        "impacts": [],
+        "proposed_changes": [],
+        "assumptions": [],
+        "warnings": [],
+    }

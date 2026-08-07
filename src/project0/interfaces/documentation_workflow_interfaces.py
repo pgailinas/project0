@@ -19,6 +19,7 @@ from project0.models.documentation_workflow_models import (
     DocumentationReview,
     DocumentationWorkflowRequest,
     DocumentationWorkflowResult,
+    DocumentationWorkflowState,
 )
 
 
@@ -28,8 +29,15 @@ class DocumentationWorkflowInterface(Protocol):
     def execute(
         self,
         request: DocumentationWorkflowRequest,
-    ) -> DocumentationWorkflowResult:
-        """Execute a documentation workflow and return its result."""
+    ) -> DocumentationWorkflowState | DocumentationWorkflowResult:
+        """Execute a workflow until review or completion."""
+
+    def submit_review(
+        self,
+        workflow_id: str,
+        review: DocumentationReview,
+    ) -> DocumentationWorkflowState | DocumentationWorkflowResult:
+        """Submit a user review and continue the workflow."""
 
 
 class ReviewCoordinatorInterface(Protocol):

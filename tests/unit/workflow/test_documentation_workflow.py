@@ -216,6 +216,19 @@ def _update_change(
     )
 
 
+def _review(
+    proposal: DocumentationChangeProposal,
+    decision: ReviewDecision = ReviewDecision.APPROVE,
+) -> DocumentationReview:
+    """Create a browser-supplied review for a proposal."""
+
+    return DocumentationReview(
+        proposal_id=proposal.proposal_id,
+        decision=decision,
+        reviewed_at=datetime(2026, 8, 5, 12, 0, tzinfo=UTC),
+    )
+
+
 def _create_workflow(
     tmp_path: Path,
     *,
@@ -265,7 +278,7 @@ def _create_workflow(
 
 
 def test_approved_update_completes_workflow(tmp_path: Path) -> None:
-    """An approved update completes the full workflow."""
+    """An approved browser review completes the full workflow."""
 
     document = tmp_path / "docs/index.md"
     document.parent.mkdir()
@@ -282,13 +295,25 @@ def test_approved_update_completes_workflow(tmp_path: Path) -> None:
         ),
     )
     workflow = components[0]
+    review_coordinator = components[3]
 
-    result = workflow.execute(
+    state = workflow.execute(
         DocumentationWorkflowRequest(
             user_request="Update the documentation.",
             target_paths=("docs/index.md",),
             workflow_id="workflow-001",
         )
+    )
+
+    assert state.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+    assert len(state.proposals) == 1
+    assert state.reviews == ()
+    assert state.applied_changes == ()
+    assert review_coordinator.proposals == []
+
+    result = workflow.submit_review(
+        state.workflow_id,
+        _review(state.proposals[0]),
     )
 
     assert result.status is DocumentationWorkflowStatus.COMPLETED
@@ -404,7 +429,7 @@ def test_preliminary_validation_failure_stops_review(
 
 
 def test_preliminary_warning_is_preserved(tmp_path: Path) -> None:
-    """Preliminary validation warnings affect final status."""
+    """Preliminary validation warnings survive browser review."""
 
     document = tmp_path / "docs/index.md"
     document.parent.mkdir()
@@ -423,10 +448,22 @@ def test_preliminary_warning_is_preserved(tmp_path: Path) -> None:
         ),
     )[0]
 
-    result = workflow.execute(
+    state = workflow.execute(
         DocumentationWorkflowRequest(
             user_request="Update documentation.",
+            workflow_id="workflow-warning",
         )
+    )
+
+    assert state.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+    assert (
+        "Preliminary validation completed with warnings."
+        in state.warnings
+    )
+
+    result = workflow.submit_review(
+        state.workflow_id,
+        _review(state.proposals[0]),
     )
 
     assert (
@@ -514,7 +551,7 @@ def test_non_markdown_proposal_is_skipped(tmp_path: Path) -> None:
 
 
 def test_review_decisions_are_summarized(tmp_path: Path) -> None:
-    """Approve and reject decisions produce correct summary counts."""
+    """Browser review decisions produce correct summary counts."""
 
     first = tmp_path / "docs/first.md"
     second = tmp_path / "docs/second.md"
@@ -534,16 +571,30 @@ def test_review_decisions_are_summarized(tmp_path: Path) -> None:
             _validation_result(ValidationStatus.PASSED),
             _validation_result(ValidationStatus.PASSED),
         ),
-        decisions={
-            "docs/first.md": ReviewDecision.APPROVE,
-            "docs/second.md": ReviewDecision.REJECT,
-        },
     )[0]
 
-    result = workflow.execute(
+    state = workflow.execute(
         DocumentationWorkflowRequest(
             user_request="Update documents.",
+            workflow_id="workflow-review-summary",
         )
+    )
+
+    assert state.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+    assert len(state.proposals) == 2
+
+    state = workflow.submit_review(
+        state.workflow_id,
+        _review(state.proposals[0], ReviewDecision.APPROVE),
+    )
+
+    assert state.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+    assert len(state.reviews) == 1
+    assert len(state.applied_changes) == 1
+
+    result = workflow.submit_review(
+        state.workflow_id,
+        _review(state.proposals[1], ReviewDecision.REJECT),
     )
 
     assert result.summary.proposed_count == 2
@@ -570,18 +621,20 @@ def test_no_approved_changes_skip_final_validation_and_diff(
         validation_results=(
             _validation_result(ValidationStatus.PASSED),
         ),
-        decisions={
-            "docs/index.md": ReviewDecision.REJECT,
-        },
     )
     workflow = components[0]
     validation_service = components[2]
     git_service = components[5]
 
-    result = workflow.execute(
+    state = workflow.execute(
         DocumentationWorkflowRequest(
             user_request="Update documentation.",
+            workflow_id="workflow-reject",
         )
+    )
+    result = workflow.submit_review(
+        state.workflow_id,
+        _review(state.proposals[0], ReviewDecision.REJECT),
     )
 
     assert result.status is DocumentationWorkflowStatus.COMPLETED
@@ -594,7 +647,7 @@ def test_no_approved_changes_skip_final_validation_and_diff(
 def test_repository_update_failure_fails_workflow(
     tmp_path: Path,
 ) -> None:
-    """A failed approved update fails the documentation workflow."""
+    """A failed approved browser update fails the workflow."""
 
     document = tmp_path / "docs/index.md"
     document.parent.mkdir()
@@ -613,10 +666,15 @@ def test_repository_update_failure_fails_workflow(
         },
     )[0]
 
-    result = workflow.execute(
+    state = workflow.execute(
         DocumentationWorkflowRequest(
             user_request="Update documentation.",
+            workflow_id="workflow-update-failure",
         )
+    )
+    result = workflow.submit_review(
+        state.workflow_id,
+        _review(state.proposals[0]),
     )
 
     assert result.status is DocumentationWorkflowStatus.FAILED
@@ -647,10 +705,15 @@ def test_final_validation_failure_fails_workflow(
         ),
     )[0]
 
-    result = workflow.execute(
+    state = workflow.execute(
         DocumentationWorkflowRequest(
             user_request="Update documentation.",
+            workflow_id="workflow-final-validation",
         )
+    )
+    result = workflow.submit_review(
+        state.workflow_id,
+        _review(state.proposals[0]),
     )
 
     assert result.status is DocumentationWorkflowStatus.FAILED
@@ -661,10 +724,10 @@ def test_final_validation_failure_fails_workflow(
     )
 
 
-def test_git_diff_error_is_converted_to_failed_result(
+def test_git_diff_error_is_raised_during_review_completion(
     tmp_path: Path,
 ) -> None:
-    """A Git diff error is returned as a workflow failure."""
+    """A Git diff error occurs when the final review completes."""
 
     document = tmp_path / "docs/index.md"
     document.parent.mkdir()
@@ -682,14 +745,87 @@ def test_git_diff_error_is_converted_to_failed_result(
         git_error=RuntimeError("Git diff failed."),
     )[0]
 
-    result = workflow.execute(
+    state = workflow.execute(
         DocumentationWorkflowRequest(
             user_request="Update documentation.",
+            workflow_id="workflow-git-error",
         )
     )
 
-    assert result.status is DocumentationWorkflowStatus.FAILED
-    assert result.error_message == "Git diff failed."
+    try:
+        workflow.submit_review(
+            state.workflow_id,
+            _review(state.proposals[0]),
+        )
+    except RuntimeError as error:
+        assert str(error) == "Git diff failed."
+    else:
+        raise AssertionError("Expected Git diff failure.")
+
+
+def test_unknown_workflow_review_is_rejected(tmp_path: Path) -> None:
+    """A review cannot be submitted for an unknown workflow."""
+
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(),
+        validation_results=(
+            _validation_result(ValidationStatus.PASSED),
+        ),
+    )[0]
+
+    review = DocumentationReview(
+        proposal_id="proposal-unknown",
+        decision=ReviewDecision.APPROVE,
+        reviewed_at=datetime(2026, 8, 5, 12, 0, tzinfo=UTC),
+    )
+
+    try:
+        workflow.submit_review("workflow-missing", review)
+    except ValueError as error:
+        assert "workflow state was not found" in str(error)
+    else:
+        raise AssertionError("Expected missing workflow failure.")
+
+
+def test_duplicate_review_is_rejected(tmp_path: Path) -> None:
+    """A proposal cannot be reviewed twice."""
+
+    first = tmp_path / "docs/first.md"
+    second = tmp_path / "docs/second.md"
+    first.parent.mkdir()
+    first.write_text("# First\n", encoding="utf-8")
+    second.write_text("# Second\n", encoding="utf-8")
+
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(
+                _update_change("docs/first.md"),
+                _update_change("docs/second.md"),
+            )
+        ),
+        validation_results=(
+            _validation_result(ValidationStatus.PASSED),
+            _validation_result(ValidationStatus.PASSED),
+        ),
+    )[0]
+
+    state = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Update documents.",
+            workflow_id="workflow-duplicate",
+        )
+    )
+    first_review = _review(state.proposals[0])
+    state = workflow.submit_review(state.workflow_id, first_review)
+
+    try:
+        workflow.submit_review(state.workflow_id, first_review)
+    except ValueError as error:
+        assert "already been reviewed" in str(error)
+    else:
+        raise AssertionError("Expected duplicate review failure.")
 
 
 def test_context_provider_error_is_converted_to_failed_result(

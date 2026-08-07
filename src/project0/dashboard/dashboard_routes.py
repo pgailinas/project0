@@ -35,7 +35,7 @@ def create_dashboard_router(
         {
             "identifier": "documentation",
             "name": "Documentation Agent",
-            "available": False,
+            "available": True,
         },
         {
             "identifier": "research",
@@ -60,7 +60,9 @@ def create_dashboard_router(
             "git_branch": "Unknown",
             "git_status": "Unavailable",
             "git_status_class": "status-value--muted",
-            "current_phase": "Phase 7 – Dashboard Framework",
+            "current_phase": (
+                "Phase 8 – Documentation Agent User Interface"
+            ),
             "documentation_count": "Unknown",
             "test_status": "All tests passing",
             "test_status_class": "status-value--success",
@@ -116,7 +118,12 @@ def create_dashboard_router(
         request: Request,
         agent_identifier: str,
     ) -> HTMLResponse:
-        """Render a generic placeholder for an agent interface."""
+        """
+        Render a generic placeholder for an agent without a registered UI.
+
+        Agent-specific routers should be registered before this platform-level
+        fallback route so implemented agents receive their own Work Areas.
+        """
 
         normalized_identifier = agent_identifier.strip().lower()
 

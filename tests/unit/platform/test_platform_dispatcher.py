@@ -20,9 +20,13 @@ import pytest
 
 from project0.models.context_models import ContextWorkflowType
 from project0.models.documentation_workflow_models import (
+    DocumentationChangeProposal,
+    DocumentationReview,
     DocumentationWorkflowResult,
+    DocumentationWorkflowState,
     DocumentationWorkflowStatus,
     DocumentationWorkflowSummary,
+    ReviewDecision,
 )
 from project0.models.workflow_models import (
     WorkflowExecutionResult,
@@ -77,6 +81,40 @@ def _documentation_workflow_result(
             applied_count=0,
             failed_count=0,
         ),
+    )
+
+
+def _documentation_workflow_state(
+    workflow_id: str = "documentation-workflow-1",
+) -> DocumentationWorkflowState:
+    """Create documentation workflow state awaiting user review."""
+
+    proposal = DocumentationChangeProposal(
+        repository_path="docs/index.md",
+        original_content="# Original\n",
+        proposed_content="# Updated\n",
+        rationale="Update the documentation.",
+        proposal_id="proposal-001",
+    )
+
+    return DocumentationWorkflowState(
+        workflow_id=workflow_id,
+        status=DocumentationWorkflowStatus.REVIEW_REQUIRED,
+        started_at=STARTED_AT,
+        reasoning_result=None,
+        proposals=(proposal,),
+    )
+
+
+def _documentation_review(
+    proposal_id: str = "proposal-001",
+) -> DocumentationReview:
+    """Create a user-supplied documentation review."""
+
+    return DocumentationReview(
+        proposal_id=proposal_id,
+        decision=ReviewDecision.APPROVE,
+        reviewed_at=COMPLETED_AT,
     )
 
 
@@ -454,8 +492,34 @@ def test_run_documentation_workflow_defaults_target_paths() -> None:
     assert request.target_paths == ()
 
 
+def test_run_documentation_workflow_returns_workflow_state() -> None:
+    """Documentation dispatch returns intermediate review state."""
+
+    (
+        dispatcher,
+        _,
+        _,
+        _,
+        documentation_workflow,
+    ) = _dispatcher(include_documentation_workflow=True)
+    expected = _documentation_workflow_state(
+        workflow_id="documentation-review"
+    )
+    assert documentation_workflow is not None
+    documentation_workflow.execute.return_value = expected
+
+    result = dispatcher.run_documentation_workflow(
+        user_request="Update documentation.",
+        workflow_id="documentation-review",
+    )
+
+    assert result is expected
+    assert result.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+    documentation_workflow.execute.assert_called_once()
+
+
 def test_run_documentation_workflow_returns_workflow_result() -> None:
-    """Documentation dispatch returns the underlying workflow result."""
+    """Documentation dispatch also returns a completed workflow result."""
 
     (
         dispatcher,
@@ -477,3 +541,97 @@ def test_run_documentation_workflow_returns_workflow_result() -> None:
 
     assert result is expected
     documentation_workflow.execute.assert_called_once()
+
+
+def test_submit_documentation_review_requires_configuration() -> None:
+    """Review dispatch fails when no documentation workflow exists."""
+
+    dispatcher, _, _, _, _ = _dispatcher()
+
+    with pytest.raises(
+        RuntimeError,
+        match="The documentation workflow is not configured.",
+    ):
+        dispatcher.submit_documentation_review(
+            workflow_id="documentation-review",
+            review=_documentation_review(),
+        )
+
+
+def test_submit_documentation_review_rejects_empty_workflow_id() -> None:
+    """Review dispatch rejects an empty workflow identifier."""
+
+    (
+        dispatcher,
+        _,
+        _,
+        _,
+        documentation_workflow,
+    ) = _dispatcher(include_documentation_workflow=True)
+
+    with pytest.raises(
+        ValueError,
+        match="Workflow identifier cannot be empty",
+    ):
+        dispatcher.submit_documentation_review(
+            workflow_id="   ",
+            review=_documentation_review(),
+        )
+
+    assert documentation_workflow is not None
+    documentation_workflow.submit_review.assert_not_called()
+
+
+def test_submit_documentation_review_forwards_review() -> None:
+    """Review dispatch forwards workflow ID and user decision."""
+
+    (
+        dispatcher,
+        _,
+        _,
+        _,
+        documentation_workflow,
+    ) = _dispatcher(include_documentation_workflow=True)
+    expected = _documentation_workflow_result(
+        workflow_id="documentation-review"
+    )
+    review = _documentation_review()
+    assert documentation_workflow is not None
+    documentation_workflow.submit_review.return_value = expected
+
+    result = dispatcher.submit_documentation_review(
+        workflow_id="documentation-review",
+        review=review,
+    )
+
+    assert result is expected
+    documentation_workflow.submit_review.assert_called_once_with(
+        "documentation-review",
+        review,
+    )
+
+
+def test_submit_documentation_review_returns_intermediate_state() -> None:
+    """Review dispatch can return state when more reviews remain."""
+
+    (
+        dispatcher,
+        _,
+        _,
+        _,
+        documentation_workflow,
+    ) = _dispatcher(include_documentation_workflow=True)
+    expected = _documentation_workflow_state(
+        workflow_id="documentation-review"
+    )
+    review = _documentation_review()
+    assert documentation_workflow is not None
+    documentation_workflow.submit_review.return_value = expected
+
+    result = dispatcher.submit_documentation_review(
+        workflow_id="documentation-review",
+        review=review,
+    )
+
+    assert result is expected
+    assert result.status is DocumentationWorkflowStatus.REVIEW_REQUIRED

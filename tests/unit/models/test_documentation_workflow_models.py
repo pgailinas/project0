@@ -22,6 +22,7 @@ from project0.models.documentation_workflow_models import (
     DocumentationReview,
     DocumentationWorkflowRequest,
     DocumentationWorkflowResult,
+    DocumentationWorkflowState,
     DocumentationWorkflowStatus,
     DocumentationWorkflowSummary,
     ReviewDecision,
@@ -33,6 +34,10 @@ def test_documentation_workflow_status_values() -> None:
 
     assert DocumentationWorkflowStatus.PENDING == "pending"
     assert DocumentationWorkflowStatus.RUNNING == "running"
+    assert (
+        DocumentationWorkflowStatus.REVIEW_REQUIRED
+        == "review_required"
+    )
     assert DocumentationWorkflowStatus.COMPLETED == "completed"
     assert (
         DocumentationWorkflowStatus.COMPLETED_WITH_WARNINGS
@@ -202,6 +207,82 @@ def test_documentation_workflow_request_preserves_values() -> None:
     )
 
 
+def test_documentation_workflow_state_defaults() -> None:
+    """DocumentationWorkflowState defaults retained review state."""
+
+    started_at = datetime(2026, 8, 5, 11, 0, tzinfo=UTC)
+    proposal = DocumentationChangeProposal(
+        repository_path="docs/index.md",
+        original_content="# Original\n",
+        proposed_content="# Updated\n",
+        rationale="Update the heading.",
+        proposal_id="proposal-001",
+    )
+
+    state = DocumentationWorkflowState(
+        workflow_id="workflow-001",
+        status=DocumentationWorkflowStatus.REVIEW_REQUIRED,
+        started_at=started_at,
+        reasoning_result=None,
+        proposals=(proposal,),
+    )
+
+    assert state.workflow_id == "workflow-001"
+    assert state.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+    assert state.started_at == started_at
+    assert state.reasoning_result is None
+    assert state.proposals == (proposal,)
+    assert state.reviews == ()
+    assert state.applied_changes == ()
+    assert state.preliminary_validation is None
+    assert state.warnings == ()
+    assert state.error_message is None
+
+
+def test_documentation_workflow_state_preserves_optional_values() -> None:
+    """DocumentationWorkflowState preserves accumulated workflow values."""
+
+    started_at = datetime(2026, 8, 5, 11, 0, tzinfo=UTC)
+    reviewed_at = datetime(2026, 8, 5, 11, 5, tzinfo=UTC)
+
+    proposal = DocumentationChangeProposal(
+        repository_path="docs/index.md",
+        original_content="# Original\n",
+        proposed_content="# Updated\n",
+        rationale="Update the heading.",
+        proposal_id="proposal-001",
+    )
+    review = DocumentationReview(
+        proposal_id="proposal-001",
+        decision=ReviewDecision.APPROVE,
+        reviewed_at=reviewed_at,
+    )
+    applied_change = AppliedDocumentationChange(
+        proposal_id="proposal-001",
+        repository_path="docs/index.md",
+        status=ChangeApplicationStatus.APPLIED,
+        applied_at=reviewed_at,
+    )
+
+    state = DocumentationWorkflowState(
+        workflow_id="workflow-001",
+        status=DocumentationWorkflowStatus.REVIEW_REQUIRED,
+        started_at=started_at,
+        reasoning_result=None,
+        proposals=(proposal,),
+        reviews=(review,),
+        applied_changes=(applied_change,),
+        preliminary_validation=None,
+        warnings=("Review remains pending.",),
+        error_message=None,
+    )
+
+    assert state.reviews == (review,)
+    assert state.applied_changes == (applied_change,)
+    assert state.warnings == ("Review remains pending.",)
+    assert state.error_message is None
+
+
 def test_documentation_workflow_summary_preserves_counts() -> None:
     """DocumentationWorkflowSummary preserves all summary counts."""
 
@@ -360,6 +441,17 @@ def test_documentation_workflow_result_preserves_warnings_and_error() -> None:
             ),
             "user_request",
             "Changed request.",
+        ),
+        (
+            DocumentationWorkflowState(
+                workflow_id="workflow-001",
+                status=DocumentationWorkflowStatus.REVIEW_REQUIRED,
+                started_at=datetime(2026, 8, 5, 11, 0, tzinfo=UTC),
+                reasoning_result=None,
+                proposals=(),
+            ),
+            "status",
+            DocumentationWorkflowStatus.COMPLETED,
         ),
         (
             DocumentationWorkflowSummary(

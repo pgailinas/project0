@@ -34,6 +34,7 @@ from project0.models.documentation_workflow_models import (
     DocumentationReview,
     DocumentationWorkflowRequest,
     DocumentationWorkflowResult,
+    DocumentationWorkflowState,
     DocumentationWorkflowStatus,
     DocumentationWorkflowSummary,
     ReviewDecision,
@@ -74,21 +75,18 @@ class DocumentationWorkflow:
         self._review_coordinator = review_coordinator
         self._repository_update_service = repository_update_service
         self._git_diff_service = git_diff_service
+        self._workflow_states: dict[str, DocumentationWorkflowState] = {}
 
     def execute(
         self,
         request: DocumentationWorkflowRequest,
-    ) -> DocumentationWorkflowResult:
-        """Execute a documentation workflow and return its result."""
+    ) -> DocumentationWorkflowState | DocumentationWorkflowResult:
+        """Execute a documentation workflow until review or completion."""
 
         started_at = datetime.now(UTC)
         reasoning_result: ReasoningResult | None = None
         proposals: tuple[DocumentationChangeProposal, ...] = ()
-        reviews: tuple[DocumentationReview, ...] = ()
-        applied_changes: tuple[AppliedDocumentationChange, ...] = ()
         preliminary_validation: ValidationResult | None = None
-        final_validation: ValidationResult | None = None
-        git_diff: str | None = None
         warnings: list[str] = []
 
         try:
@@ -142,10 +140,7 @@ class DocumentationWorkflow:
                 request.workflow_id,
             )
 
-            if (
-                preliminary_validation.status
-                is ValidationStatus.FAILED
-            ):
+            if preliminary_validation.status is ValidationStatus.FAILED:
                 return self._failed_result(
                     request=request,
                     started_at=started_at,
@@ -166,90 +161,29 @@ class DocumentationWorkflow:
                     "Preliminary validation completed with warnings."
                 )
 
-            review_list: list[DocumentationReview] = []
-            applied_list: list[AppliedDocumentationChange] = []
-
-            for proposal in proposals:
-                review = self._review_coordinator.review(proposal)
-                review_list.append(review)
-
-                applied_change = (
-                    self._repository_update_service.apply(
-                        proposal,
-                        review,
-                    )
-                )
-                applied_list.append(applied_change)
-
-            reviews = tuple(review_list)
-            applied_changes = tuple(applied_list)
-
-            applied_paths = tuple(
-                change.repository_path
-                for change in applied_changes
-                if (
-                    change.status
-                    is ChangeApplicationStatus.APPLIED
-                )
-            )
-
-            if applied_paths:
-                final_validation = self._validate_paths(
-                    applied_paths,
-                    request.workflow_id,
+            if not proposals:
+                return self._complete_workflow(
+                    workflow_id=request.workflow_id,
+                    started_at=started_at,
+                    reasoning_result=reasoning_result,
+                    proposals=(),
+                    reviews=(),
+                    applied_changes=(),
+                    preliminary_validation=preliminary_validation,
+                    warnings=warnings,
                 )
 
-                if final_validation.status is ValidationStatus.FAILED:
-                    warnings.append(
-                        "Final validation failed after approved "
-                        "documentation changes were applied."
-                    )
-                elif (
-                    final_validation.status
-                    is ValidationStatus.PASSED_WITH_WARNINGS
-                ):
-                    warnings.append(
-                        "Final validation completed with warnings."
-                    )
-
-                git_diff = self._git_diff_service.generate_diff(
-                    applied_paths
-                )
-            else:
-                final_validation = None
-                git_diff = ""
-
-            summary = self._build_summary(
-                proposals=proposals,
-                reviews=reviews,
-                applied_changes=applied_changes,
-            )
-            status = self._determine_status(
-                final_validation=final_validation,
-                applied_changes=applied_changes,
-                warnings=warnings,
-            )
-
-            return DocumentationWorkflowResult(
+            state = DocumentationWorkflowState(
                 workflow_id=request.workflow_id,
-                status=status,
+                status=DocumentationWorkflowStatus.REVIEW_REQUIRED,
                 started_at=started_at,
-                completed_at=datetime.now(UTC),
                 reasoning_result=reasoning_result,
                 proposals=proposals,
-                reviews=reviews,
-                applied_changes=applied_changes,
                 preliminary_validation=preliminary_validation,
-                final_validation=final_validation,
-                git_diff=git_diff,
-                summary=summary,
                 warnings=tuple(warnings),
-                error_message=(
-                    "One or more approved documentation changes failed."
-                    if status is DocumentationWorkflowStatus.FAILED
-                    else None
-                ),
             )
+            self._workflow_states[request.workflow_id] = state
+            return state
 
         except (OSError, RuntimeError, TypeError, ValueError) as error:
             return self._failed_result(
@@ -257,14 +191,162 @@ class DocumentationWorkflow:
                 started_at=started_at,
                 reasoning_result=reasoning_result,
                 proposals=proposals,
-                reviews=reviews,
-                applied_changes=applied_changes,
                 preliminary_validation=preliminary_validation,
-                final_validation=final_validation,
-                git_diff=git_diff,
                 error_message=str(error),
                 warnings=tuple(warnings),
             )
+
+    def submit_review(
+        self,
+        workflow_id: str,
+        review: DocumentationReview,
+    ) -> DocumentationWorkflowState | DocumentationWorkflowResult:
+        """Submit one user review and continue the workflow."""
+
+        state = self._workflow_states.get(workflow_id)
+        if state is None:
+            raise ValueError(
+                f"Documentation workflow state was not found: {workflow_id}"
+            )
+
+        reviewed_ids = {
+            existing_review.proposal_id
+            for existing_review in state.reviews
+        }
+        if review.proposal_id in reviewed_ids:
+            raise ValueError(
+                "Documentation proposal has already been reviewed: "
+                f"{review.proposal_id}"
+            )
+
+        proposal = next(
+            (
+                candidate
+                for candidate in state.proposals
+                if candidate.proposal_id == review.proposal_id
+            ),
+            None,
+        )
+        if proposal is None:
+            raise ValueError(
+                "Documentation proposal was not found in workflow: "
+                f"{review.proposal_id}"
+            )
+
+        applied_change = self._repository_update_service.apply(
+            proposal,
+            review,
+        )
+        reviews = (*state.reviews, review)
+        applied_changes = (*state.applied_changes, applied_change)
+
+        if len(reviews) < len(state.proposals):
+            updated_state = DocumentationWorkflowState(
+                workflow_id=state.workflow_id,
+                status=DocumentationWorkflowStatus.REVIEW_REQUIRED,
+                started_at=state.started_at,
+                reasoning_result=state.reasoning_result,
+                proposals=state.proposals,
+                reviews=reviews,
+                applied_changes=applied_changes,
+                preliminary_validation=state.preliminary_validation,
+                warnings=state.warnings,
+                error_message=state.error_message,
+            )
+            self._workflow_states[workflow_id] = updated_state
+            return updated_state
+
+        result = self._complete_workflow(
+            workflow_id=state.workflow_id,
+            started_at=state.started_at,
+            reasoning_result=state.reasoning_result,
+            proposals=state.proposals,
+            reviews=reviews,
+            applied_changes=applied_changes,
+            preliminary_validation=state.preliminary_validation,
+            warnings=list(state.warnings),
+        )
+        self._workflow_states.pop(workflow_id, None)
+        return result
+
+    def _complete_workflow(
+        self,
+        workflow_id: str,
+        started_at: datetime,
+        reasoning_result: ReasoningResult | None,
+        proposals: tuple[DocumentationChangeProposal, ...],
+        reviews: tuple[DocumentationReview, ...],
+        applied_changes: tuple[AppliedDocumentationChange, ...],
+        preliminary_validation: ValidationResult | None,
+        warnings: list[str],
+    ) -> DocumentationWorkflowResult:
+        """Complete validation, diff generation, and workflow reporting."""
+
+        final_validation: ValidationResult | None = None
+        git_diff: str | None = None
+
+        applied_paths = tuple(
+            change.repository_path
+            for change in applied_changes
+            if change.status is ChangeApplicationStatus.APPLIED
+        )
+
+        if applied_paths:
+            final_validation = self._validate_paths(
+                applied_paths,
+                workflow_id,
+            )
+
+            if final_validation.status is ValidationStatus.FAILED:
+                warnings.append(
+                    "Final validation failed after approved "
+                    "documentation changes were applied."
+                )
+            elif (
+                final_validation.status
+                is ValidationStatus.PASSED_WITH_WARNINGS
+            ):
+                warnings.append(
+                    "Final validation completed with warnings."
+                )
+
+            git_diff = self._git_diff_service.generate_diff(
+                applied_paths
+            )
+        else:
+            git_diff = ""
+
+        summary = self._build_summary(
+            proposals=proposals,
+            reviews=reviews,
+            applied_changes=applied_changes,
+        )
+        status = self._determine_status(
+            final_validation=final_validation,
+            applied_changes=applied_changes,
+            warnings=warnings,
+        )
+
+        return DocumentationWorkflowResult(
+            workflow_id=workflow_id,
+            status=status,
+            started_at=started_at,
+            completed_at=datetime.now(UTC),
+            reasoning_result=reasoning_result,
+            proposals=proposals,
+            reviews=reviews,
+            applied_changes=applied_changes,
+            preliminary_validation=preliminary_validation,
+            final_validation=final_validation,
+            git_diff=git_diff,
+            summary=summary,
+            warnings=tuple(warnings),
+            error_message=(
+                "One or more approved documentation changes failed."
+                if status is DocumentationWorkflowStatus.FAILED
+                else None
+            ),
+        )
 
     def _build_proposals(
         self,

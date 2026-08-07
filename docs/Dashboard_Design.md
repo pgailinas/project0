@@ -1,6 +1,6 @@
 # Dashboard Design
 
-**Version:** 0.4  
+**Version:** 0.5  
 **Owner:** Project0  
 **Last Updated:** 2026-08-06
 
@@ -275,20 +275,29 @@ Agent Launcher
     └── Future Agents
 ```
 
-The Dashboard hosts agents while existing platform services perform the work. Agent-specific features such as documentation review, validation presentation, repository updates, and Git diff display are outside the Dashboard Framework and belong in the applicable Agent Interface Design document.
+The Dashboard hosts AI agents while existing platform services perform the work.
+
+The Documentation Agent is the first implemented Dashboard Agent. Agent interfaces render within the Dashboard Work Area rather than operating as independent applications.
+
+Agent workflows communicate through the Platform Dispatcher and reuse existing Project0 services.
+
+Agent-specific features such as documentation review, validation presentation, repository updates, and Git diff display are outside the Dashboard Framework and belong in the applicable Agent Interface Design document.
 
 ---
 
 # 9. Workflow Interaction
 
 1. Start
-2. Analyze
-3. Progress
-4. User Review
-5. Validation
-6. Apply Changes
-7. Completion
-8. History (future)
+2. Request Submission
+3. Reasoning
+4. Preliminary Validation
+5. Proposal Review
+6. User Decision
+7. Apply Approved Changes
+8. Final Validation
+9. Git Diff Summary
+10. Completion
+11. History (future)
 
 ---
 
@@ -369,13 +378,20 @@ The first Dashboard Framework implementation includes:
 * Basic status endpoint
 * Unit and integration tests
 
-The initial implementation excludes:
+The initial implementation now includes:
 
-* Documentation Agent request forms
-* Documentation review controls
-* Git diff presentation
+* Documentation Agent request interface
+* Documentation Agent review workflow
+* Proposal presentation
+* User approval controls
 * Validation-result presentation
-* Agent-specific workflow state
+* Agent workflow state presentation
+
+Future implementation includes:
+
+* Production LLM integration
+* Improved automated documentation generation quality
+* Additional AI agents
 
 ---
 
@@ -409,4 +425,4 @@ Each AI agent shall provide its own Interface Design document describing agent-s
 * Component Communication Design
 * Testing Guide
 * Project Directory Structure
-* Documentation Agent Interface Design (future)
+* Documentation Agent Interface Design

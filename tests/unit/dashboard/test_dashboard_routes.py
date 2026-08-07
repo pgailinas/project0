@@ -42,6 +42,11 @@ def _create_test_client(
                 {% for agent in agents %}
                     <a href="/agents/{{ agent.identifier }}">
                         {{ agent.name }}
+                        {% if agent.available %}
+                            <span>{{ agent.identifier }}-available</span>
+                        {% else %}
+                            <span>{{ agent.identifier }}-planned</span>
+                        {% endif %}
                     </a>
                 {% endfor %}
 
@@ -151,7 +156,7 @@ def test_dashboard_home_displays_project_status_in_work_area(
 
     assert "Project Overview" in response.text
     assert "Unknown" in response.text
-    assert "Phase 7 – Dashboard Framework" in response.text
+    assert "Phase 8 – Documentation Agent User Interface" in response.text
     assert "All tests passing" in response.text
     assert "Not run" in response.text
     assert "Not configured" in response.text
@@ -174,6 +179,20 @@ def test_dashboard_home_displays_registered_agents(
     assert 'href="/agents/research"' in response.text
 
 
+def test_dashboard_home_displays_agent_availability(
+    tmp_path: Path,
+) -> None:
+    """Implemented and planned agents expose distinct availability states."""
+
+    client, _ = _create_test_client(tmp_path)
+
+    response = client.get("/")
+
+    assert "documentation-available" in response.text
+    assert "documentation-planned" not in response.text
+    assert "research-planned" in response.text
+
+
 def test_documentation_route_redirects_to_local_mkdocs(
     tmp_path: Path,
 ) -> None:
@@ -192,10 +211,15 @@ def test_documentation_route_redirects_to_local_mkdocs(
     )
 
 
-def test_known_agent_route_renders_placeholder(
+def test_documentation_agent_fallback_route_renders_placeholder(
     tmp_path: Path,
 ) -> None:
-    """Known agents render within the shared Dashboard shell."""
+    """
+    The platform router retains a fallback when the agent UI is not registered.
+
+    The complete Dashboard application registers the Documentation Agent
+    router before this generic fallback during Phase 8.
+    """
 
     client, _ = _create_test_client(tmp_path)
 
@@ -206,7 +230,10 @@ def test_known_agent_route_renders_placeholder(
     assert "documentation" in response.text
     assert "agent:documentation" in response.text
     assert "Project Overview" in response.text
-    assert "Phase 7 – Dashboard Framework" not in response.text
+    assert (
+        "Phase 8 – Documentation Agent User Interface"
+        not in response.text
+    )
     assert "All tests passing" not in response.text
 
 

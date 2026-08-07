@@ -1,8 +1,8 @@
 # Documentation Agent Architecture
 
-**Version:** 0.3  
+**Version:** 0.4  
 **Owner:** Project0  
-**Last Updated:** 2026-08-04
+**Last Updated:** 2026-08-06
 
 ---
 
@@ -37,13 +37,14 @@ intentionally excluded.
 
 # 3. Architectural Workflow
 
-The implemented Phase 7 platform provides an end-to-end documentation
+The implemented platform provides an end-to-end documentation
 workflow. The Documentation Agent is accessed through the reusable
-Dashboard Framework, which provides the browser interface but is
-architecturally separate from the Documentation Agent services. that
-integrates deterministic repository knowledge, AI reasoning, validation,
-user review, approved repository updates, and Git diff generation
-through the Platform Dispatcher.
+Dashboard Framework, which provides the browser interface while
+remaining architecturally separate from the Documentation Agent services.
+The Dashboard Framework hosts the Documentation Agent user interface
+within the Dashboard Work Area and integrates deterministic repository
+knowledge, AI reasoning, validation, user review, approved repository
+updates, and Git diff generation through the Platform Dispatcher.
 
 ```mermaid
 flowchart TD
@@ -82,18 +83,19 @@ flowchart TD
 
 ## Implemented Runtime Flow
 
-1. `main.py` creates the Platform Dispatcher.
-2. The Platform Dispatcher dispatches the requested Documentation Workflow.
-3. The Knowledge Service builds structured repository knowledge.
-4. The Reasoning Service generates proposed documentation changes.
-5. The Validation Service validates all proposed documentation changes.
-6. The Review Coordinator processes each proposed change individually.
-7. Approved changes are applied through the Repository Update Service.
-8. Rejected and skipped changes continue without repository modification.
-9. Revised changes return to the Reasoning Service for regeneration.
-10. Approved repository updates undergo final validation.
-11. The Git Diff Service generates a summary of applied repository changes.
-12. The Documentation Workflow returns a structured Documentation Workflow Result.
+1. `dashboard_app.py` creates the Dashboard application and configured Documentation Agent UI services.
+2. `main.py` creates the Platform Dispatcher.
+3. The Platform Dispatcher dispatches the requested Documentation Workflow.
+4. The Knowledge Service builds structured repository knowledge.
+5. The Reasoning Service generates proposed documentation changes.
+6. The Validation Service validates all proposed documentation changes.
+7. The Review Coordinator processes each proposed change individually.
+8. Approved changes are applied through the Repository Update Service.
+9. Rejected and skipped changes continue without repository modification.
+10. Revised changes return to the Reasoning Service for regeneration.
+11. Approved repository updates undergo final validation.
+12. The Git Diff Service generates a summary of applied repository changes.
+13. The Documentation Workflow returns a structured Documentation Workflow Result.
 
 ---
 
@@ -408,6 +410,7 @@ The Documentation Agent interacts with:
 - Current repository operations are read-only.
 - Source code modification by the Documentation Agent is outside the current architectural scope.
 - The Dashboard Framework shall remain a reusable platform interface and shall not contain Documentation Agent business logic.
+- Agent user interfaces shall render within Dashboard Work Areas rather than operating as independent applications.
 
 ---
 

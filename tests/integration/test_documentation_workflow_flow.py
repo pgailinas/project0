@@ -16,6 +16,7 @@ import subprocess
 
 from project0.models.documentation_workflow_models import (
     ChangeApplicationStatus,
+    DocumentationReview,
     DocumentationWorkflowRequest,
     DocumentationWorkflowStatus,
     ReviewDecision,
@@ -192,11 +193,25 @@ def _git_diff_runner(
     )
 
 
+def _review(
+    proposal_id: str,
+    decision: ReviewDecision,
+    feedback: str | None = None,
+) -> DocumentationReview:
+    """Create a deterministic interactive workflow review."""
+
+    return DocumentationReview(
+        proposal_id=proposal_id,
+        decision=decision,
+        feedback=feedback,
+        reviewed_at=datetime(2026, 8, 5, 13, 5, tzinfo=UTC),
+    )
+
+
 def _create_workflow(
     repository_root: Path,
     reasoning_service: StubReasoningService,
     *,
-    decision_provider,
     validator: FileContentValidator | None = None,
     git_runner=_git_diff_runner,
 ) -> DocumentationWorkflow:
@@ -215,7 +230,12 @@ def _create_workflow(
         ),
         reasoning_service=reasoning_service,
         validation_service=validation_service,
-        review_coordinator=ReviewCoordinator(decision_provider),
+        review_coordinator=ReviewCoordinator(
+            lambda proposal: (
+                ReviewDecision.SKIP,
+                "Interactive review is supplied explicitly.",
+            )
+        ),
         repository_update_service=RepositoryUpdateService(
             repository_root
         ),
@@ -243,18 +263,25 @@ def test_approved_change_updates_file_and_returns_diff(
     workflow = _create_workflow(
         tmp_path,
         reasoning_service,
-        decision_provider=lambda proposal: (
-            ReviewDecision.APPROVE,
-            None,
-        ),
     )
 
-    result = workflow.execute(
+    state = workflow.execute(
         DocumentationWorkflowRequest(
             user_request="Update the project index.",
             target_paths=("docs/index.md",),
             workflow_id="workflow-integration-001",
         )
+    )
+
+    assert state.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+    assert document.read_text(encoding="utf-8") == "# Original\n"
+
+    result = workflow.submit_review(
+        state.workflow_id,
+        _review(
+            state.proposals[0].proposal_id,
+            ReviewDecision.APPROVE,
+        ),
     )
 
     assert result.status is DocumentationWorkflowStatus.COMPLETED
@@ -287,16 +314,24 @@ def test_rejected_change_does_not_modify_repository(
     workflow = _create_workflow(
         tmp_path,
         reasoning_service,
-        decision_provider=lambda proposal: (
-            ReviewDecision.REJECT,
-            "The update is not needed.",
-        ),
     )
 
-    result = workflow.execute(
+    state = workflow.execute(
         DocumentationWorkflowRequest(
             user_request="Update the project index.",
         )
+    )
+
+    assert state.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+    assert document.read_text(encoding="utf-8") == "# Original\n"
+
+    result = workflow.submit_review(
+        state.workflow_id,
+        _review(
+            state.proposals[0].proposal_id,
+            ReviewDecision.REJECT,
+            "The update is not needed.",
+        ),
     )
 
     assert result.status is DocumentationWorkflowStatus.COMPLETED
@@ -319,12 +354,6 @@ def test_preliminary_validation_failure_stops_review_and_update(
         encoding="utf-8",
     )
 
-    review_calls: list[str] = []
-
-    def decision_provider(proposal):
-        review_calls.append(proposal.repository_path)
-        return ReviewDecision.APPROVE, None
-
     reasoning_service = StubReasoningService(
         proposed_changes=(
             _update_change("docs/index.md", "# Updated\n"),
@@ -333,7 +362,6 @@ def test_preliminary_validation_failure_stops_review_and_update(
     workflow = _create_workflow(
         tmp_path,
         reasoning_service,
-        decision_provider=decision_provider,
         validator=FileContentValidator(
             tmp_path,
             fail_on_text="DISALLOWED",
@@ -350,7 +378,6 @@ def test_preliminary_validation_failure_stops_review_and_update(
     assert result.error_message == (
         "Preliminary documentation validation failed."
     )
-    assert review_calls == []
     assert document.read_text(encoding="utf-8") == (
         "# Original\n\nDISALLOWED\n"
     )
@@ -377,25 +404,44 @@ def test_mixed_review_decisions_apply_only_approved_changes(
         )
     )
 
-    decisions = {
-        "docs/first.md": ReviewDecision.APPROVE,
-        "docs/second.md": ReviewDecision.REJECT,
-        "docs/third.md": ReviewDecision.SKIP,
-    }
-
     workflow = _create_workflow(
         tmp_path,
         reasoning_service,
-        decision_provider=lambda proposal: (
-            decisions[proposal.repository_path],
-            None,
-        ),
     )
 
-    result = workflow.execute(
+    state = workflow.execute(
         DocumentationWorkflowRequest(
             user_request="Update selected documentation.",
         )
+    )
+
+    assert state.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+    assert len(state.proposals) == 3
+
+    state = workflow.submit_review(
+        state.workflow_id,
+        _review(
+            state.proposals[0].proposal_id,
+            ReviewDecision.APPROVE,
+        ),
+    )
+    assert state.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+
+    state = workflow.submit_review(
+        state.workflow_id,
+        _review(
+            state.proposals[1].proposal_id,
+            ReviewDecision.REJECT,
+        ),
+    )
+    assert state.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+
+    result = workflow.submit_review(
+        state.workflow_id,
+        _review(
+            state.proposals[2].proposal_id,
+            ReviewDecision.SKIP,
+        ),
     )
 
     assert result.status is DocumentationWorkflowStatus.COMPLETED
@@ -432,20 +478,26 @@ def test_final_validation_failure_is_reported_after_update(
     workflow = _create_workflow(
         tmp_path,
         reasoning_service,
-        decision_provider=lambda proposal: (
-            ReviewDecision.APPROVE,
-            None,
-        ),
         validator=FileContentValidator(
             tmp_path,
             fail_on_text="DISALLOWED",
         ),
     )
 
-    result = workflow.execute(
+    state = workflow.execute(
         DocumentationWorkflowRequest(
             user_request="Update the project index.",
         )
+    )
+
+    assert state.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+
+    result = workflow.submit_review(
+        state.workflow_id,
+        _review(
+            state.proposals[0].proposal_id,
+            ReviewDecision.APPROVE,
+        ),
     )
 
     assert result.status is DocumentationWorkflowStatus.FAILED
@@ -484,20 +536,30 @@ def test_validation_warning_produces_completed_with_warnings(
     workflow = _create_workflow(
         tmp_path,
         reasoning_service,
-        decision_provider=lambda proposal: (
-            ReviewDecision.APPROVE,
-            None,
-        ),
         validator=FileContentValidator(
             tmp_path,
             warn_on_text="WARNING",
         ),
     )
 
-    result = workflow.execute(
+    state = workflow.execute(
         DocumentationWorkflowRequest(
             user_request="Update the project index.",
         )
+    )
+
+    assert state.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+    assert (
+        "Preliminary validation completed with warnings."
+        in state.warnings
+    )
+
+    result = workflow.submit_review(
+        state.workflow_id,
+        _review(
+            state.proposals[0].proposal_id,
+            ReviewDecision.APPROVE,
+        ),
     )
 
     assert (

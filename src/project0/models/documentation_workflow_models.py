@@ -25,6 +25,7 @@ class DocumentationWorkflowStatus(StrEnum):
 
     PENDING = "pending"
     RUNNING = "running"
+    REVIEW_REQUIRED = "review_required"
     COMPLETED = "completed"
     COMPLETED_WITH_WARNINGS = "completed_with_warnings"
     FAILED = "failed"
@@ -87,6 +88,22 @@ class DocumentationWorkflowRequest:
     user_request: str
     target_paths: tuple[str, ...] = ()
     workflow_id: str = field(default_factory=lambda: str(uuid4()))
+
+
+@dataclass(frozen=True, slots=True)
+class DocumentationWorkflowState:
+    """State retained while a documentation workflow awaits user review."""
+
+    workflow_id: str
+    status: DocumentationWorkflowStatus
+    started_at: datetime
+    reasoning_result: ReasoningResult | None
+    proposals: tuple[DocumentationChangeProposal, ...]
+    reviews: tuple[DocumentationReview, ...] = ()
+    applied_changes: tuple[AppliedDocumentationChange, ...] = ()
+    preliminary_validation: ValidationResult | None = None
+    warnings: tuple[str, ...] = ()
+    error_message: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

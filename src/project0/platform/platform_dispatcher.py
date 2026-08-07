@@ -32,8 +32,10 @@ from project0.knowledge.context_builder import ContextBuilder
 from project0.knowledge.knowledge_service import KnowledgeService
 from project0.models.context_models import ContextWorkflowType
 from project0.models.documentation_workflow_models import (
+    DocumentationReview,
     DocumentationWorkflowRequest,
     DocumentationWorkflowResult,
+    DocumentationWorkflowState,
 )
 from project0.models.knowledge_models import KnowledgeRequest
 from project0.models.workflow_models import (
@@ -107,8 +109,8 @@ class PlatformDispatcher:
         user_request: str,
         target_paths: tuple[str, ...] = (),
         workflow_id: str | None = None,
-    ) -> DocumentationWorkflowResult:
-        """Execute the configured documentation update workflow."""
+    ) -> DocumentationWorkflowState | DocumentationWorkflowResult:
+        """Execute the configured documentation workflow until review."""
 
         if self.documentation_workflow is None:
             raise RuntimeError(
@@ -124,6 +126,26 @@ class PlatformDispatcher:
                 target_paths=target_paths,
                 workflow_id=workflow_id or str(uuid4()),
             )
+        )
+
+    def submit_documentation_review(
+        self,
+        workflow_id: str,
+        review: DocumentationReview,
+    ) -> DocumentationWorkflowState | DocumentationWorkflowResult:
+        """Submit a user review to the configured documentation workflow."""
+
+        if self.documentation_workflow is None:
+            raise RuntimeError(
+                "The documentation workflow is not configured."
+            )
+
+        if not workflow_id.strip():
+            raise ValueError("Workflow identifier cannot be empty.")
+
+        return self.documentation_workflow.submit_review(
+            workflow_id,
+            review,
         )
 
 
@@ -159,6 +181,16 @@ def create_platform_dispatcher(
     )
 
 
+def _interactive_review_decision_provider(
+    proposal,
+):
+    """Reject unexpected automatic review in interactive UI workflows."""
+
+    raise RuntimeError(
+        "Interactive documentation review requires a user decision."
+    )
+
+
 def _create_documentation_workflow(
     repository_root: Path,
     reasoning_provider: ReasoningProviderProtocol | None,
@@ -166,21 +198,12 @@ def _create_documentation_workflow(
 ) -> DocumentationWorkflowInterface | None:
     """Assemble the documentation workflow when dependencies are supplied."""
 
-    if (
-        reasoning_provider is None
-        and review_decision_provider is None
-    ):
-        return None
-
     if reasoning_provider is None:
+        if review_decision_provider is None:
+            return None
+
         raise ValueError(
             "A reasoning provider is required to configure "
-            "the documentation workflow."
-        )
-
-    if review_decision_provider is None:
-        raise ValueError(
-            "A review decision provider is required to configure "
             "the documentation workflow."
         )
 
@@ -223,6 +246,7 @@ def _create_documentation_workflow(
         validation_service=validation_service,
         review_coordinator=ReviewCoordinator(
             review_decision_provider
+            or _interactive_review_decision_provider
         ),
         repository_update_service=RepositoryUpdateService(
             repository_root

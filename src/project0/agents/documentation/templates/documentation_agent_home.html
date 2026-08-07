@@ -1,0 +1,443 @@
+{% extends "dashboard.html" %}
+
+{% block page_title %}Documentation Agent{% endblock %}
+
+{% block breadcrumb %}
+<nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/">Project0</a>
+    <span aria-hidden="true">/</span>
+    <span>Documentation Agent</span>
+</nav>
+{% endblock %}
+
+{% block context_toolbar %}
+<div class="context-toolbar__group">
+    <a
+        class="button button--secondary"
+        href="/agents/documentation"
+    >
+        New Request
+    </a>
+</div>
+{% endblock %}
+
+{% block work_area %}
+<section
+    class="agent-work-area documentation-agent"
+    aria-labelledby="documentation-agent-title"
+>
+    <header class="work-area-header">
+        <div>
+            <p class="work-area-eyebrow">AI Agent</p>
+            <h1 id="documentation-agent-title">Documentation Agent</h1>
+            <p>
+                Submit a documentation request, review proposed changes,
+                inspect validation results, and approve or reject updates.
+            </p>
+        </div>
+
+        <div
+            class="status-badge status-badge--{{ page.page_status.value }}"
+            aria-label="Workflow status"
+        >
+            {{ page.page_status.value | replace("_", " ") | title }}
+        </div>
+    </header>
+
+    <section
+        class="status-panel"
+        aria-labelledby="documentation-status-title"
+    >
+        <div>
+            <h2 id="documentation-status-title">Workflow Status</h2>
+            <p>{{ page.status_message }}</p>
+        </div>
+
+        {% if page.workflow_id %}
+        <dl class="status-details">
+            <div>
+                <dt>Workflow ID</dt>
+                <dd>{{ page.workflow_id }}</dd>
+            </div>
+        </dl>
+        {% endif %}
+    </section>
+
+    {% if page.error_message %}
+    <section
+        class="message-panel message-panel--error"
+        role="alert"
+        aria-labelledby="documentation-error-title"
+    >
+        <h2 id="documentation-error-title">Documentation Workflow Error</h2>
+        <p>{{ page.error_message }}</p>
+    </section>
+    {% endif %}
+
+    {% if page.warnings %}
+    <section
+        class="message-panel message-panel--warning"
+        aria-labelledby="documentation-warning-title"
+    >
+        <h2 id="documentation-warning-title">Warnings</h2>
+        <ul>
+            {% for warning in page.warnings %}
+            <li>{{ warning }}</li>
+            {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+
+    <section
+        class="content-panel"
+        aria-labelledby="documentation-request-title"
+    >
+        <div class="panel-heading">
+            <div>
+                <p class="panel-eyebrow">Request</p>
+                <h2 id="documentation-request-title">
+                    Documentation Request
+                </h2>
+            </div>
+        </div>
+
+        <form
+            class="documentation-request-form"
+            method="post"
+            action="/agents/documentation/request"
+        >
+            <div class="form-field">
+                <label for="user-request">Requested documentation change</label>
+                <textarea
+                    id="user-request"
+                    name="user_request"
+                    rows="7"
+                    required
+                    placeholder="Describe the documentation change to make."
+                >{{ page.request_form.user_request }}</textarea>
+                <p class="form-help">
+                    Describe the change, the reason for it, and any constraints
+                    the Documentation Agent should preserve.
+                </p>
+            </div>
+
+            <div class="form-field">
+                <label for="target-paths">Target documentation paths</label>
+                <textarea
+                    id="target-paths"
+                    name="target_paths"
+                    rows="4"
+                    placeholder="docs/Implementation_Status.md"
+                >{% for path in page.request_form.target_paths %}{{ path }}{% if not loop.last %}
+{% endif %}{% endfor %}</textarea>
+                <p class="form-help">
+                    Optional. Enter one repository-relative path per line.
+                </p>
+            </div>
+
+            <div class="form-actions">
+                <button class="button button--primary" type="submit">
+                    Submit Documentation Request
+                </button>
+            </div>
+        </form>
+    </section>
+
+    {% if page.preliminary_validation %}
+    <section
+        class="content-panel validation-panel"
+        aria-labelledby="preliminary-validation-title"
+    >
+        <div class="panel-heading">
+            <div>
+                <p class="panel-eyebrow">Validation</p>
+                <h2 id="preliminary-validation-title">
+                    Preliminary Validation
+                </h2>
+            </div>
+
+            <span
+                class="status-badge status-badge--{{ page.preliminary_validation.status.value }}"
+            >
+                {{ page.preliminary_validation.status.value
+                    | replace("_", " ")
+                    | title }}
+            </span>
+        </div>
+
+        <p>{{ page.preliminary_validation.summary }}</p>
+
+        <dl class="validation-summary">
+            <div>
+                <dt>Errors</dt>
+                <dd>{{ page.preliminary_validation.error_count }}</dd>
+            </div>
+            <div>
+                <dt>Warnings</dt>
+                <dd>{{ page.preliminary_validation.warning_count }}</dd>
+            </div>
+        </dl>
+
+        {% if page.preliminary_validation.messages %}
+        <div class="validation-results">
+            {% for message in page.preliminary_validation.messages %}
+            <article class="validation-result">
+                <header>
+                    <strong>{{ message.validator_name }}</strong>
+                    <span>{{ message.severity | title }}</span>
+                </header>
+                <p>{{ message.message }}</p>
+
+                {% if message.repository_path %}
+                <p class="validation-location">
+                    {{ message.repository_path }}
+                    {% if message.line_number %}
+                    :{{ message.line_number }}
+                    {% endif %}
+                </p>
+                {% endif %}
+            </article>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </section>
+    {% endif %}
+
+    {% if page.proposals %}
+    <section
+        class="content-panel"
+        aria-labelledby="documentation-proposals-title"
+    >
+        <div class="panel-heading">
+            <div>
+                <p class="panel-eyebrow">Review</p>
+                <h2 id="documentation-proposals-title">
+                    Proposed Documentation Changes
+                </h2>
+            </div>
+        </div>
+
+        <div class="proposal-list">
+            {% for proposal in page.proposals %}
+            <article
+                class="proposal-card"
+                aria-labelledby="proposal-title-{{ loop.index }}"
+            >
+                <header class="proposal-card__header">
+                    <div>
+                        <h3 id="proposal-title-{{ loop.index }}">
+                            {{ proposal.repository_path }}
+                        </h3>
+                        <p>{{ proposal.rationale }}</p>
+                    </div>
+
+                    {% if proposal.selected_decision %}
+                    <span class="status-badge">
+                        {{ proposal.selected_decision.value | title }}
+                    </span>
+                    {% endif %}
+                </header>
+
+                {% if proposal.difference and proposal.difference.lines %}
+                <div class="difference-view" role="region" aria-label="Documentation differences">
+                    <div class="difference-view__header">
+                        <strong>{{ proposal.difference.repository_path }}</strong>
+                    </div>
+
+                    <pre class="difference-view__content"><code>{% for line in proposal.difference.lines %}<span class="difference-line difference-line--{{ line.line_type.value }}">{{ line.content }}</span>
+{% endfor %}</code></pre>
+                </div>
+                {% else %}
+                <div class="content-comparison">
+                    <section>
+                        <h4>Original</h4>
+                        <pre><code>{{ proposal.original_content }}</code></pre>
+                    </section>
+
+                    <section>
+                        <h4>Proposed</h4>
+                        <pre><code>{{ proposal.proposed_content }}</code></pre>
+                    </section>
+                </div>
+                {% endif %}
+
+                {% if not proposal.selected_decision %}
+                <form
+                    class="review-form"
+                    method="post"
+                    action="/agents/documentation/review"
+                >
+                    <input
+                        type="hidden"
+                        name="workflow_id"
+                        value="{{ page.workflow_id }}"
+                    >
+                    <input
+                        type="hidden"
+                        name="proposal_id"
+                        value="{{ proposal.proposal_id }}"
+                    >
+
+                    <div class="form-field">
+                        <label for="feedback-{{ loop.index }}">
+                            Review feedback
+                        </label>
+                        <textarea
+                            id="feedback-{{ loop.index }}"
+                            name="feedback"
+                            rows="3"
+                            placeholder="Optional feedback for revise, reject, or skip decisions."
+                        ></textarea>
+                    </div>
+
+                    <div class="review-actions">
+                        <button
+                            class="button button--primary"
+                            type="submit"
+                            name="decision"
+                            value="approve"
+                        >
+                            Approve
+                        </button>
+                        <button
+                            class="button button--secondary"
+                            type="submit"
+                            name="decision"
+                            value="revise"
+                        >
+                            Revise
+                        </button>
+                        <button
+                            class="button button--danger"
+                            type="submit"
+                            name="decision"
+                            value="reject"
+                        >
+                            Reject
+                        </button>
+                        <button
+                            class="button button--secondary"
+                            type="submit"
+                            name="decision"
+                            value="skip"
+                        >
+                            Skip
+                        </button>
+                    </div>
+                </form>
+                {% elif proposal.feedback %}
+                <div class="review-feedback">
+                    <h4>Review Feedback</h4>
+                    <p>{{ proposal.feedback }}</p>
+                </div>
+                {% endif %}
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if page.final_validation %}
+    <section
+        class="content-panel validation-panel"
+        aria-labelledby="final-validation-title"
+    >
+        <div class="panel-heading">
+            <div>
+                <p class="panel-eyebrow">Validation</p>
+                <h2 id="final-validation-title">Final Validation</h2>
+            </div>
+
+            <span
+                class="status-badge status-badge--{{ page.final_validation.status.value }}"
+            >
+                {{ page.final_validation.status.value
+                    | replace("_", " ")
+                    | title }}
+            </span>
+        </div>
+
+        <p>{{ page.final_validation.summary }}</p>
+
+        <dl class="validation-summary">
+            <div>
+                <dt>Errors</dt>
+                <dd>{{ page.final_validation.error_count }}</dd>
+            </div>
+            <div>
+                <dt>Warnings</dt>
+                <dd>{{ page.final_validation.warning_count }}</dd>
+            </div>
+        </dl>
+
+        {% if page.final_validation.messages %}
+        <div class="validation-results">
+            {% for message in page.final_validation.messages %}
+            <article class="validation-result">
+                <header>
+                    <strong>{{ message.validator_name }}</strong>
+                    <span>{{ message.severity | title }}</span>
+                </header>
+                <p>{{ message.message }}</p>
+
+                {% if message.repository_path %}
+                <p class="validation-location">
+                    {{ message.repository_path }}
+                    {% if message.line_number %}
+                    :{{ message.line_number }}
+                    {% endif %}
+                </p>
+                {% endif %}
+            </article>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </section>
+    {% endif %}
+
+    {% if page.workflow_summary %}
+    <section
+        class="content-panel"
+        aria-labelledby="workflow-summary-title"
+    >
+        <div class="panel-heading">
+            <div>
+                <p class="panel-eyebrow">Summary</p>
+                <h2 id="workflow-summary-title">Workflow Summary</h2>
+            </div>
+        </div>
+
+        <dl class="workflow-summary-grid">
+            <div>
+                <dt>Proposed</dt>
+                <dd>{{ page.workflow_summary.proposed_count }}</dd>
+            </div>
+            <div>
+                <dt>Approved</dt>
+                <dd>{{ page.workflow_summary.approved_count }}</dd>
+            </div>
+            <div>
+                <dt>Revised</dt>
+                <dd>{{ page.workflow_summary.revised_count }}</dd>
+            </div>
+            <div>
+                <dt>Rejected</dt>
+                <dd>{{ page.workflow_summary.rejected_count }}</dd>
+            </div>
+            <div>
+                <dt>Skipped</dt>
+                <dd>{{ page.workflow_summary.skipped_count }}</dd>
+            </div>
+            <div>
+                <dt>Applied</dt>
+                <dd>{{ page.workflow_summary.applied_count }}</dd>
+            </div>
+            <div>
+                <dt>Failed</dt>
+                <dd>{{ page.workflow_summary.failed_count }}</dd>
+            </div>
+        </dl>
+    </section>
+    {% endif %}
+</section>
+{% endblock %}
