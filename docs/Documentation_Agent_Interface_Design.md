@@ -6,9 +6,9 @@
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-## Phase 7 Alignment
+### Phase 7 Alignment
 
 The Documentation Agent interfaces are designed to operate within the
 Project0 Dashboard Framework. The Dashboard Framework provides the

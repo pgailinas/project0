@@ -1317,6 +1317,264 @@ textarea:focus-visible {
 
 }
 
+.workflow-progress {
+
+    padding: var(--spacing-md);
+
+    background: var(--surface);
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius: var(--radius-medium);
+
+    box-shadow: var(--shadow-light);
+
+}
+
+.workflow-progress__heading {
+
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: space-between;
+
+    gap: var(--spacing-md);
+
+    margin-bottom: var(--spacing-md);
+
+}
+
+.workflow-progress__heading h2 {
+
+    margin: 0;
+
+    font-size: 1.1rem;
+
+}
+
+.workflow-progress__heading p:last-child {
+
+    margin: 0;
+
+    color: var(--text-muted);
+
+    text-align: right;
+
+}
+
+.workflow-progress__steps {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            8,
+            minmax(5.5rem, 1fr)
+        );
+
+    margin: 0;
+
+    padding: 0;
+
+    list-style: none;
+
+}
+
+.workflow-progress__step {
+
+    position: relative;
+
+    display: grid;
+
+    justify-items: center;
+
+    gap: 0.55rem;
+
+    min-width: 0;
+
+    color: var(--text-subtle);
+
+    text-align: center;
+
+}
+
+.workflow-progress__step:not(:last-child)::after {
+
+    content: "";
+
+    position: absolute;
+
+    top: 0.55rem;
+
+    left: calc(50% + 0.75rem);
+
+    width: calc(100% - 1.5rem);
+
+    height: 0.2rem;
+
+    background: var(--border);
+
+}
+
+.workflow-progress__marker {
+
+    position: relative;
+
+    z-index: 1;
+
+    width: 1.3rem;
+
+    height: 1.3rem;
+
+    border:
+        0.2rem solid
+        var(--border);
+
+    border-radius: 50%;
+
+    background: var(--surface);
+
+}
+
+.workflow-progress__label {
+
+    max-width: 9rem;
+
+    font-size: 0.78rem;
+
+    font-weight: 600;
+
+    line-height: 1.25;
+
+}
+
+.workflow-progress--ready
+.workflow-progress__step--request,
+.workflow-progress--processing
+.workflow-progress__step--reasoning,
+.workflow-progress--review_required
+.workflow-progress__step--review {
+
+    color: var(--primary);
+
+}
+
+.workflow-progress--ready
+.workflow-progress__step--request
+.workflow-progress__marker,
+.workflow-progress--processing
+.workflow-progress__step--reasoning
+.workflow-progress__marker,
+.workflow-progress--review_required
+.workflow-progress__step--review
+.workflow-progress__marker {
+
+    border-color: var(--primary);
+
+    background: var(--primary);
+
+    box-shadow:
+        0 0 0 0.25rem
+        rgba(47, 111, 159, 0.18);
+
+}
+
+.workflow-progress--processing
+.workflow-progress__step--request,
+.workflow-progress--review_required
+.workflow-progress__step--request,
+.workflow-progress--review_required
+.workflow-progress__step--reasoning,
+.workflow-progress--review_required
+.workflow-progress__step--preliminary-validation,
+.workflow-progress--completed
+.workflow-progress__step,
+.workflow-progress--completed_with_warnings
+.workflow-progress__step {
+
+    color: var(--success);
+
+}
+
+.workflow-progress--processing
+.workflow-progress__step--request
+.workflow-progress__marker,
+.workflow-progress--review_required
+.workflow-progress__step--request
+.workflow-progress__marker,
+.workflow-progress--review_required
+.workflow-progress__step--reasoning
+.workflow-progress__marker,
+.workflow-progress--review_required
+.workflow-progress__step--preliminary-validation
+.workflow-progress__marker,
+.workflow-progress--completed
+.workflow-progress__step
+.workflow-progress__marker,
+.workflow-progress--completed_with_warnings
+.workflow-progress__step
+.workflow-progress__marker {
+
+    border-color: var(--success);
+
+    background: var(--success);
+
+}
+
+.workflow-progress--processing
+.workflow-progress__step--request::after,
+.workflow-progress--review_required
+.workflow-progress__step--request::after,
+.workflow-progress--review_required
+.workflow-progress__step--reasoning::after,
+.workflow-progress--review_required
+.workflow-progress__step--preliminary-validation::after,
+.workflow-progress--completed
+.workflow-progress__step:not(:last-child)::after,
+.workflow-progress--completed_with_warnings
+.workflow-progress__step:not(:last-child)::after {
+
+    background: var(--success);
+
+}
+
+.workflow-progress--completed_with_warnings
+.workflow-progress__step--complete {
+
+    color: var(--warning);
+
+}
+
+.workflow-progress--completed_with_warnings
+.workflow-progress__step--complete
+.workflow-progress__marker {
+
+    border-color: var(--warning);
+
+    background: var(--warning);
+
+}
+
+.workflow-progress--failed
+.workflow-progress__step {
+
+    color: var(--danger);
+
+}
+
+.workflow-progress--failed
+.workflow-progress__step
+.workflow-progress__marker {
+
+    border-color: var(--danger);
+
+    background: var(--danger);
+
+}
+
 .work-area-header {
 
     display: flex;
@@ -1962,6 +2220,60 @@ textarea:focus-visible {
         align-items: flex-start;
 
         flex-direction: column;
+
+    }
+
+    .workflow-progress__heading {
+
+        align-items: flex-start;
+
+        flex-direction: column;
+
+    }
+
+    .workflow-progress__heading p:last-child {
+
+        text-align: left;
+
+    }
+
+    .workflow-progress__steps {
+
+        grid-template-columns: 1fr;
+
+        gap: 0.75rem;
+
+    }
+
+    .workflow-progress__step {
+
+        grid-template-columns:
+            1.3rem
+            minmax(0, 1fr);
+
+        justify-items: start;
+
+        align-items: center;
+
+        text-align: left;
+
+    }
+
+    .workflow-progress__step:not(:last-child)::after {
+
+        top: 1.3rem;
+
+        left: 0.55rem;
+
+        width: 0.2rem;
+
+        height: calc(100% + 0.75rem);
+
+    }
+
+    .workflow-progress__label {
+
+        max-width: none;
 
     }
 

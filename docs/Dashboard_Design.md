@@ -6,19 +6,19 @@
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-## Objective
+### Objective
 
 Define the design of the Project0 Dashboard, which serves as the primary user interface for the Project0 platform.
 
-## Scope
+### Scope
 
 Describe the dashboard architecture, navigation, layout, user interaction model, dashboard widgets, integration with Project0 services, and future expansion. This document defines the platform user experience rather than implementation details.
 
 ---
 
-# 2. Design Philosophy
+## 2. Design Philosophy
 
 * Browser-based, local-first operation.
 * Dashboard represents the Project0 platform rather than a single AI agent.
@@ -34,7 +34,7 @@ Describe the dashboard architecture, navigation, layout, user interaction model,
 
 ---
 
-# 3. Dashboard Architecture
+## 3. Dashboard Architecture
 
 ```
 Browser
@@ -56,11 +56,11 @@ FastAPI is the selected application framework for the Project0 Dashboard. Jinja2
 
 ---
 
-# 4. Navigation Model
+## 4. Navigation Model
 
 The Dashboard Framework provides persistent application navigation while the active page is displayed in the Work Area.
 
-## Header
+### Header
 
 The Header is always visible and provides:
 
@@ -69,7 +69,7 @@ The Header is always visible and provides:
 * Help
 * Logout (future)
 
-## Breadcrumb Navigation
+### Breadcrumb Navigation
 
 A horizontal breadcrumb is displayed directly beneath the Header.
 
@@ -89,7 +89,7 @@ Dashboard > Research Agent > Daily Opportunities
 
 The Breadcrumb identifies the user's current location within the Dashboard Framework and updates automatically as navigation changes.
 
-## Sidebar Navigation
+### Sidebar Navigation
 
 The left sidebar contains two permanent navigation sections.
 
@@ -112,7 +112,7 @@ The Dashboard Framework owns all navigation while individual agents own their in
 
 ---
 
-# 5. Dashboard Layout
+## 5. Dashboard Layout
 
 The Dashboard uses a persistent application shell.
 
@@ -134,15 +134,15 @@ Workspace                      │                             │
                                └─────────────────────────────┘
 ```
 
-## Header
+### Header
 
 Displays platform identity and future user controls.
 
-## Breadcrumb Navigation
+### Breadcrumb Navigation
 
 Displays the current navigation path.
 
-## Sidebar
+### Sidebar
 
 The Sidebar contains two permanent navigation sections:
 
@@ -151,7 +151,7 @@ The Sidebar contains two permanent navigation sections:
 
 The Sidebar remains visible while navigating the application. Status information is displayed in the Work Area for the selected platform page or agent.
 
-## Context Toolbar
+### Context Toolbar
 
 The Context Toolbar is displayed directly above the Work Area.
 
@@ -161,7 +161,7 @@ The toolbar changes according to the currently selected page.
 
 The Dashboard Framework provides the toolbar region while the active page supplies its commands.
 
-## Work Area
+### Work Area
 
 Displays the currently selected Dashboard page or Agent Interface.
 
@@ -169,9 +169,9 @@ Only the Work Area changes during navigation.
 
 ---
 
-# 6. Dashboard Components
+## 6. Dashboard Components
 
-## Project Overview
+### Project Overview
 
 The Project Overview is the default Dashboard Work Area.
 
@@ -191,17 +191,17 @@ It displays Project0 overview and status information including:
 
 Project0 status is shown only when the Project Overview is selected. It is not displayed persistently in the Sidebar.
 
-## Agent Navigation
+### Agent Navigation
 
 Displays all registered AI Agents.
 
 Only implemented or registered agents appear.
 
-## Workspace Navigation
+### Workspace Navigation
 
 Provides navigation to platform-level pages.
 
-## Context Toolbar
+### Context Toolbar
 
 Displays actions appropriate to the active page.
 
@@ -229,7 +229,7 @@ The Dashboard Framework does not define toolbar commands.
 
 Each page defines its own toolbar actions.
 
-## Work Area
+### Work Area
 
 Displays all interactive content including:
 
@@ -243,7 +243,7 @@ Displays all interactive content including:
 
 ---
 
-# 7. Documentation Integration
+## 7. Documentation Integration
 
 The Dashboard provides access to Project0 documentation without replacing MkDocs.
 
@@ -263,7 +263,7 @@ Future:
 
 ---
 
-# 8. Agent Integration
+## 8. Agent Integration
 
 ```
 Dashboard
@@ -285,7 +285,7 @@ Agent-specific features such as documentation review, validation presentation, r
 
 ---
 
-# 9. Workflow Interaction
+## 9. Workflow Interaction
 
 1. Start
 2. Request Submission
@@ -301,7 +301,7 @@ Agent-specific features such as documentation review, validation presentation, r
 
 ---
 
-# 10. Platform Status
+## 10. Platform Status
 
 Platform status is displayed in the Project Overview Work Area rather than as a persistent Sidebar panel.
 
@@ -331,7 +331,7 @@ Future additions may include:
 
 ---
 
-# 11. User Interface Standards
+## 11. User Interface Standards
 
 * Consistent navigation
 * Reusable cards and panels
@@ -343,7 +343,7 @@ Future additions may include:
 
 ---
 
-# 12. Page Responsibilities
+## 12. Page Responsibilities
 
 Every Dashboard page provides four elements:
 
@@ -362,7 +362,7 @@ This separation allows new agents to integrate into the Dashboard without modify
 
 ---
 
-# 13. Initial Implementation Scope
+## 13. Initial Implementation Scope
 
 The first Dashboard Framework implementation includes:
 
@@ -395,7 +395,7 @@ Future implementation includes:
 
 ---
 
-# 14. Future Expansion
+## 14. Future Expansion
 
 * Dark mode
 * Authentication
@@ -407,7 +407,7 @@ Future implementation includes:
 
 ---
 
-# 15. Relationship to Agent Interface Documents
+## 15. Relationship to Agent Interface Documents
 
 This document defines the Project0 platform user experience.
 
@@ -415,7 +415,7 @@ Each AI agent shall provide its own Interface Design document describing agent-s
 
 ---
 
-# 16. Related Documents
+## 16. Related Documents
 
 * Project Charter
 * Documentation Standards

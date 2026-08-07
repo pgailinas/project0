@@ -6,14 +6,14 @@
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-## Objective
+### Objective
 
 Define the high-level architecture of the Documentation Agent and the
 major functional components required to satisfy the Documentation Agent Functional Specification.
 
-## Scope
+### Scope
 
 Describe the architectural organization of the Documentation Agent.
 Implementation details, algorithms, and technology selections are
@@ -21,7 +21,7 @@ intentionally excluded.
 
 ---
 
-# 2. Architectural Principles
+## 2. Architectural Principles
 
 * Modular component design.
 * Single responsibility for each component.
@@ -35,7 +35,7 @@ intentionally excluded.
 
 ---
 
-# 3. Architectural Workflow
+## 3. Architectural Workflow
 
 The implemented platform provides an end-to-end documentation
 workflow. The Documentation Agent is accessed through the reusable
@@ -81,7 +81,7 @@ flowchart TD
     I --> J
 ```
 
-## Implemented Runtime Flow
+### Implemented Runtime Flow
 
 1. `dashboard_app.py` creates the Dashboard application and configured Documentation Agent UI services.
 2. `main.py` creates the Platform Dispatcher.
@@ -99,9 +99,9 @@ flowchart TD
 
 ---
 
-# 4. Architectural Components
+## 4. Architectural Components
 
-## Platform Dispatcher
+### Platform Dispatcher
 
 Provides the platform-level entry point for executing workflows.
 
@@ -115,7 +115,7 @@ Responsibilities:
 - Dispatch Documentation Workflows.
 - Assemble Documentation Workflow dependencies.
 
-## Workflow Engine
+### Workflow Engine
 
 Coordinates synchronous workflow task execution.
 
@@ -128,7 +128,7 @@ Responsibilities:
 - Publish workflow and task events through an abstract interface.
 - Return structured workflow execution results.
 
-## Repository Service
+### Repository Service
 
 Provides deterministic, read-only access to the local repository.
 
@@ -141,7 +141,7 @@ Responsibilities:
 - Exclude unsupported, generated, and hidden content.
 - Return structured repository results and errors.
 
-## Knowledge Service
+### Knowledge Service
 
 Coordinates deterministic repository knowledge retrieval.
 
@@ -155,7 +155,7 @@ Responsibilities:
 - Preserve parsing and selection warnings.
 - Return structured Knowledge Results.
 
-## Document Parser
+### Document Parser
 
 Parses Markdown documentation into structured repository models.
 
@@ -168,7 +168,7 @@ Responsibilities:
 - Preserve repository paths.
 - Return immutable Document Records.
 
-## Document Index
+### Document Index
 
 Provides deterministic indexing of parsed repository documentation.
 
@@ -179,7 +179,7 @@ Responsibilities:
 - Maintain deterministic document ordering.
 - Detect duplicate document paths.
 
-## Document Selector
+### Document Selector
 
 Selects repository documentation relevant to a Knowledge Request.
 
@@ -194,7 +194,7 @@ Responsibilities:
 - Preserve deterministic ordering.
 - Return Document Selections.
 
-## Context Formatter
+### Context Formatter
 
 Formats selected repository documents into deterministic context.
 
@@ -205,7 +205,7 @@ Responsibilities:
 - Produce deterministic prompt context.
 - Avoid modification of repository content.
 
-## Context Builder
+### Context Builder
 
 Builds workflow-specific repository context.
 
@@ -219,7 +219,7 @@ Responsibilities:
 - Produce structured Context Packages.
 - Preserve partial results and report read warnings.
 
-## Context Rule Registry
+### Context Rule Registry
 
 Defines document-selection policies for supported workflow types.
 
@@ -230,7 +230,7 @@ Responsibilities:
 - Convert Context Rules into Context Filter criteria.
 - Provide default rules for general documentation, documentation updates, component implementation, and documentation validation.
 
-## Context Filter
+### Context Filter
 
 Applies deterministic file-selection criteria.
 
@@ -243,7 +243,7 @@ Responsibilities:
 - Normalize repository paths.
 - Return files in deterministic order.
 
-## Shared Interfaces
+### Shared Interfaces
 
 Define stable contracts between platform components.
 
@@ -263,7 +263,7 @@ Implemented interfaces:
 
 Interfaces allow components to depend on required capabilities rather than concrete implementations.
 
-## Shared Data Models
+### Shared Data Models
 
 Define immutable data exchanged between platform components.
 
@@ -295,7 +295,7 @@ Implemented model groups:
 - Applied documentation changes
 - Documentation workflow summaries
 
-## Validation Service
+### Validation Service
 
 Coordinates deterministic repository validation.
 
@@ -316,7 +316,7 @@ Implemented validators:
 
 Validation components communicate through the Validation Interface and exchange immutable Validation Models.
 
-## Reasoning Service
+### Reasoning Service
 
 Provides AI reasoning through an abstract provider interface.
 
@@ -330,7 +330,7 @@ The Reasoning Service is implemented and integrated into the Documentation Workf
 
 ---
 
-## Review Coordinator
+### Review Coordinator
 
 Coordinates user review of individual proposed documentation changes.
 
@@ -342,7 +342,7 @@ Responsibilities:
 
 ---
 
-## Repository Update Service
+### Repository Update Service
 
 Applies approved documentation changes.
 
@@ -355,7 +355,7 @@ Responsibilities:
 
 ---
 
-## Git Diff Service
+### Git Diff Service
 
 Produces Git-based summaries of approved repository changes.
 
@@ -368,7 +368,7 @@ Responsibilities:
 
 ---
 
-## Documentation Workflow
+### Documentation Workflow
 
 Coordinates the complete Documentation Agent execution pipeline.
 
@@ -380,7 +380,7 @@ Responsibilities:
 
 ---
 
-# 5. External Dependencies
+## 5. External Dependencies
 
 The Documentation Agent interacts with:
 
@@ -396,7 +396,7 @@ The Documentation Agent interacts with:
 
 ---
 
-# 6. Design Constraints
+## 6. Design Constraints
 
 - Markdown is the authoritative documentation format.
 - Repository documentation is the source of truth.
@@ -414,7 +414,7 @@ The Documentation Agent interacts with:
 
 ---
 
-# 7. Future Architectural Expansion
+## 7. Future Architectural Expansion
 
 Future versions may introduce:
 
@@ -431,7 +431,7 @@ Future versions may introduce:
 
 ---
 
-# 8. Related Documents
+## 8. Related Documents
 
 - Project Charter
 - Documentation Standards

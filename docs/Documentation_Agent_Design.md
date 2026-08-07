@@ -6,14 +6,14 @@
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-## Objective
+### Objective
 
 Define the internal design of each major Documentation Agent component
 identified in the Architecture document.
 
-## Scope
+### Scope
 
 Describe the purpose, responsibilities, interfaces, inputs, outputs,
 dependencies, and future considerations for each component.
@@ -21,7 +21,7 @@ Implementation details are intentionally excluded.
 
 ---
 
-# 2. Component Design Principles
+## 2. Component Design Principles
 
 * Each component has a single responsibility.
 * Components communicate through well-defined typed interfaces.
@@ -34,7 +34,7 @@ Implementation details are intentionally excluded.
 
 ---
 
-# 3. Component Overview
+## 3. Component Overview
 
 The implemented Phase 7 and Phase 8 platform foundation consists of the following
 primary components. The Documentation Agent is hosted within the
@@ -69,9 +69,9 @@ The Validation Service, Reasoning Service, Review Coordinator, Repository Update
 
 ---
 
-# 4. Component Specifications
+## 4. Component Specifications
 
-## Platform Dispatcher
+### Platform Dispatcher
 
 ### Purpose
 
@@ -140,7 +140,7 @@ Provide the platform-level entry point for assembling services and dispatching w
 
 ---
 
-## Dashboard Framework
+### Dashboard Framework
 
 ### Purpose
 
@@ -171,7 +171,7 @@ and AI agents.
 
 ---
 
-## Workflow Engine
+### Workflow Engine
 
 ### Purpose
 
@@ -237,7 +237,7 @@ Execute Project0 workflow tasks sequentially and return structured execution res
 
 ---
 
-## Repository Service
+### Repository Service
 
 ### Purpose
 
@@ -302,7 +302,7 @@ Provide deterministic, read-only access to repository content.
 
 ---
 
-## Context Builder
+### Context Builder
 
 ### Purpose
 
@@ -364,7 +364,7 @@ Assemble workflow-specific repository documentation into a structured Context Pa
 
 ---
 
-## Context Rule Registry
+### Context Rule Registry
 
 ### Purpose
 
@@ -415,7 +415,7 @@ Define and resolve workflow-specific document-selection policies.
 
 ---
 
-## Context Filter
+### Context Filter
 
 ### Purpose
 
@@ -468,7 +468,7 @@ Apply deterministic file-selection criteria to discovered repository files.
 
 ---
 
-## Knowledge Service
+### Knowledge Service
 
 ### Purpose
 
@@ -528,7 +528,7 @@ Coordinate deterministic repository knowledge retrieval.
 
 ---
 
-## Document Parser
+### Document Parser
 
 ### Purpose
 
@@ -561,7 +561,7 @@ Parse Markdown documentation into structured repository models.
 
 ---
 
-## Document Index
+### Document Index
 
 ### Purpose
 
@@ -588,7 +588,7 @@ Maintain deterministic access to parsed repository documents.
 
 ---
 
-## Document Selector
+### Document Selector
 
 ### Purpose
 
@@ -617,7 +617,7 @@ Select repository documentation relevant to a Knowledge Request.
 
 ---
 
-## Context Formatter
+### Context Formatter
 
 ### Purpose
 
@@ -642,7 +642,7 @@ Format selected repository documents into deterministic context.
 
 ---
 
-## Shared Interfaces
+### Shared Interfaces
 
 ### Purpose
 
@@ -671,7 +671,7 @@ Define stable public contracts between Project0 components.
 
 ---
 
-## Shared Data Models
+### Shared Data Models
 
 ### Purpose
 
@@ -732,7 +732,7 @@ Define immutable information exchanged between Project0 components.
 
 ---
 
-## Validation Service
+### Validation Service
 
 ### Purpose
 
@@ -797,7 +797,7 @@ Implemented in Phase 5.
 
 ---
 
-## Reasoning Service
+### Reasoning Service
 
 ### Purpose
 
@@ -861,7 +861,7 @@ Implemented in Phase 4 and integrated into the Documentation Workflow in Phase 6
 
 ---
 
-## Review Coordinator
+### Review Coordinator
 
 ### Purpose
 
@@ -884,7 +884,7 @@ Coordinate user review of individual documentation changes.
 
 ---
 
-## Repository Update Service
+### Repository Update Service
 
 ### Purpose
 
@@ -898,7 +898,7 @@ Apply approved documentation changes.
 
 ---
 
-## Git Diff Service
+### Git Diff Service
 
 ### Purpose
 
@@ -912,7 +912,7 @@ Generate Git diffs for approved documentation updates.
 
 ---
 
-## Documentation Workflow
+### Documentation Workflow
 
 ### Purpose
 
@@ -933,7 +933,7 @@ Coordinate the complete Documentation Agent execution pipeline.
 
 ---
 
-# 5. Interface Design Principles
+## 5. Interface Design Principles
 
 * Interfaces shall remain technology independent.
 * Components communicate only through public typed interfaces.
@@ -946,7 +946,7 @@ Coordinate the complete Documentation Agent execution pipeline.
 
 ---
 
-# 6. Component Interactions
+## 6. Component Interactions
 
 The Platform Dispatcher provides the platform-level entry point and submits workflow tasks to the Workflow Engine.
 
@@ -977,7 +977,7 @@ The Documentation Workflow extends this interaction model by coordinating the Kn
 
 ---
 
-# 7. Design Constraints
+## 7. Design Constraints
 
 * Preserve modularity.
 * Use deterministic processing whenever AI reasoning is not required.
@@ -995,7 +995,7 @@ The Documentation Workflow extends this interaction model by coordinating the Kn
 
 ---
 
-# 8. Related Documents
+## 8. Related Documents
 
 * Project Charter
 * Documentation Standards

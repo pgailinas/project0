@@ -5,7 +5,7 @@
 **Last Updated:** 2026-08-06
 
 ---
-# Overview
+## Overview
 
 This document describes the Project0 repository organization and the
 purpose of each major directory within the project.
@@ -20,7 +20,7 @@ The repository serves as the authoritative source for all project
 documentation, implementation, automated testing, and supporting artifacts.
 
 ---
-# Repository Structure
+## Repository Structure
 
 ``` text
 project0/
@@ -105,7 +105,7 @@ project0/
 └── .gitignore
 ```
 
-## Repository Directory Purposes
+### Repository Directory Purposes
 
 | Directory | Purpose |
 |-----------|---------|
@@ -118,7 +118,7 @@ project0/
 | `pyproject.toml` | Python project configuration and dependencies. |
 
 ---
-# Relationship Between Documentation and Implementation
+## Relationship Between Documentation and Implementation
 
 Implementation within `src/` follows the project architecture. Material for MkDocs generates the GitHub Pages website directly from the Markdown documents stored in `docs/`. The generated HTML is a published representation of the documentation and is not the authoritative source.
 
@@ -126,7 +126,7 @@ The Dashboard Framework is implemented within the `src/project0/dashboard/` pack
 
 ---
 
-# Important Notes
+## Important Notes
 
 - The GitHub repository is the authoritative source for Project0 documentation and implementation.
 - Markdown (`.md`) is the authoritative documentation format.

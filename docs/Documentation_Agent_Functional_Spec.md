@@ -6,13 +6,13 @@
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-## Mission
+### Mission
 
 Maintain synchronization between the software repository and its documentation while minimizing manual effort and preserving documentation quality through controlled, reviewable updates.
 
-## Scope
+### Scope
 
 Define the Version 1 behavior of a standalone agent that analyzes Git
 repository changes, identifies affected Markdown documentation, proposes
@@ -23,7 +23,7 @@ dashboard infrastructure.
 
 ---
 
-# 2. Design Principles
+## 2. Design Principles
 
 - Markdown is the authoritative documentation format.
 - Repository content is the source of truth.
@@ -36,7 +36,7 @@ dashboard infrastructure.
 
 ---
 
-# 3. Responsibilities
+## 3. Responsibilities
 
 The Documentation Agent shall:
 
@@ -53,7 +53,7 @@ The Documentation Agent shall:
 
 ---
 
-# 4. Out of Scope
+## 4. Out of Scope
 
 The Documentation Agent shall **not**:
 
@@ -70,7 +70,7 @@ The Documentation Agent shall **not**:
 
 ---
 
-# 5. Inputs
+## 5. Inputs
 
 - User request
 - Local Git repository
@@ -84,7 +84,7 @@ The Documentation Agent shall **not**:
 
 ---
 
-# 6. Outputs
+## 6. Outputs
 
 - Repository-change summary
 - Affected document list
@@ -98,7 +98,7 @@ The Documentation Agent shall **not**:
 
 ---
 
-# 7. Functional Workflow
+## 7. Functional Workflow
 
 ``` text
 User Request
@@ -130,7 +130,7 @@ Final Git Diff
 
 ---
 
-# 8. User Interaction
+## 8. User Interaction
 
 For each proposed document update, the user may:
 
@@ -144,7 +144,7 @@ The agent shall not apply a proposed file change until that file has been indivi
 
 ---
 
-# 9. Validation Requirements
+## 9. Validation Requirements
 
 - Markdown structure validation
 - Internal link validation
@@ -157,7 +157,7 @@ The agent shall not apply a proposed file change until that file has been indivi
 
 ---
 
-# 10. Success Criteria
+## 10. Success Criteria
 
 The Documentation Agent is successful when it:
 
@@ -171,7 +171,7 @@ The Documentation Agent is successful when it:
 
 ---
 
-# 11. Future Enhancements
+## 11. Future Enhancements
 
 Not included in Version 1:
 

@@ -6,7 +6,7 @@
 
 ------------------------------------------------------------------------
 
-# Documentation Principles
+## Documentation Principles
 
 1. Repository documentation is the authoritative source of project knowledge.
 
@@ -38,7 +38,7 @@
 
 15. Reusable user interface frameworks, shared stylesheets, and template layouts shall be documented once in their authoritative design document and referenced elsewhere rather than duplicated.
 
-# Spreadsheet Companion Documents
+## Spreadsheet Companion Documents
 
 When project tracking or structured data is better represented in a spreadsheet, a companion OpenDocument Spreadsheet (.ods) may accompany a Markdown document. The Markdown document remains the narrative description, while the spreadsheet serves as the authoritative structured data source. Companion documents shall share the same numeric document identifier.
 
@@ -51,13 +51,13 @@ The header shall identify the owning platform component or AI agent, the source 
 Standard format:
 
 ```python
-# ============================================================
-# Project0 - <Platform Component or AI Agent>
+## ============================================================
+## Project0 - <Platform Component or AI Agent>
 #
-# File: <filename>.py
+## File: <filename>.py
 #
-# Purpose:
-#     <Brief description of the file's primary responsibility.>
+## Purpose:
+##     <Brief description of the file's primary responsibility.>
 #
-# ============================================================
+## ============================================================
 ```

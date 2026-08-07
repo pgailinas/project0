@@ -45,6 +45,61 @@
     </header>
 
     <section
+        class="workflow-progress workflow-progress--{{ page.page_status.value }}"
+        aria-labelledby="documentation-workflow-progress-title"
+    >
+        <div class="workflow-progress__heading">
+            <div>
+                <p class="panel-eyebrow">Workflow</p>
+                <h2 id="documentation-workflow-progress-title">
+                    Documentation Workflow
+                </h2>
+            </div>
+
+            <p>{{ page.status_message }}</p>
+        </div>
+
+        <ol class="workflow-progress__steps">
+            <li class="workflow-progress__step workflow-progress__step--request">
+                <span class="workflow-progress__marker" aria-hidden="true"></span>
+                <span class="workflow-progress__label">Request</span>
+            </li>
+            <li class="workflow-progress__step workflow-progress__step--reasoning">
+                <span class="workflow-progress__marker" aria-hidden="true"></span>
+                <span class="workflow-progress__label">Reasoning</span>
+            </li>
+            <li class="workflow-progress__step workflow-progress__step--preliminary-validation">
+                <span class="workflow-progress__marker" aria-hidden="true"></span>
+                <span class="workflow-progress__label">
+                    Preliminary Validation
+                </span>
+            </li>
+            <li class="workflow-progress__step workflow-progress__step--review">
+                <span class="workflow-progress__marker" aria-hidden="true"></span>
+                <span class="workflow-progress__label">Review</span>
+            </li>
+            <li class="workflow-progress__step workflow-progress__step--apply">
+                <span class="workflow-progress__marker" aria-hidden="true"></span>
+                <span class="workflow-progress__label">Apply</span>
+            </li>
+            <li class="workflow-progress__step workflow-progress__step--final-validation">
+                <span class="workflow-progress__marker" aria-hidden="true"></span>
+                <span class="workflow-progress__label">
+                    Final Validation
+                </span>
+            </li>
+            <li class="workflow-progress__step workflow-progress__step--git-diff">
+                <span class="workflow-progress__marker" aria-hidden="true"></span>
+                <span class="workflow-progress__label">Git Diff</span>
+            </li>
+            <li class="workflow-progress__step workflow-progress__step--complete">
+                <span class="workflow-progress__marker" aria-hidden="true"></span>
+                <span class="workflow-progress__label">Complete</span>
+            </li>
+        </ol>
+    </section>
+
+    <section
         class="status-panel"
         aria-labelledby="documentation-status-title"
     >

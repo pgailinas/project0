@@ -6,7 +6,7 @@
 
 ---
 
-# Purpose
+## Purpose
 
 This document defines the standard development environment for Project0. Its purpose is to ensure that every developer uses a consistent toolchain, directory structure, Python environment, and workflow. Following these standards improves reproducibility, reduces environment-related issues, and simplifies onboarding.
 
@@ -14,7 +14,7 @@ This document should be considered the authoritative reference for configuring a
 
 ---
 
-# Supported Development Platform
+## Supported Development Platform
 
 The initial Project0 development environment is based on Ubuntu Linux.
 
@@ -33,7 +33,7 @@ The Project0 Dashboard Framework will use FastAPI as the browser application fra
 
 ---
 
-# Repository Layout
+## Repository Layout
 
 Project0 follows the standard Python **src layout**.
 
@@ -54,7 +54,7 @@ This structure improves package isolation, prevents accidental imports from the 
 
 ---
 
-# Python Environment
+## Python Environment
 
 Project0 uses a dedicated Conda environment named **project0**.
 
@@ -77,7 +77,7 @@ The active interpreter should be the Conda environment rather than the system Py
 
 ---
 
-# Package Installation
+## Package Installation
 
 Project0 is installed in **editable mode** during development.
 
@@ -99,7 +99,7 @@ python -m pip show project0
 
 ---
 
-# Environment Reproducibility
+## Environment Reproducibility
 
 Project0 emphasizes deterministic environment creation.
 
@@ -120,7 +120,7 @@ This procedure verifies that `pyproject.toml` remains the authoritative definiti
 
 ---
 
-# Running Project0
+## Running Project0
 
 Always execute Project0 as an installed package.
 
@@ -148,7 +148,7 @@ Executing individual source files bypasses the package installation and may caus
 
 ---
 
-# Visual Studio Code
+## Visual Studio Code
 
 Visual Studio Code is the recommended development environment.
 
@@ -170,7 +170,7 @@ VS Code configuration is not currently committed to the repository.
 
 ---
 
-# Documentation Environment
+## Documentation Environment
 
 Documentation is generated using MkDocs with the Material theme.
 
@@ -190,14 +190,14 @@ The documentation source is maintained in the `docs/` directory.
 
 ---
 
-# Git Workflow
+## Git Workflow
 
 Typical development workflow:
 
 ```bash
 git pull
 
-# Modify source code
+## Modify source code
 
 git status
 git add .
@@ -209,7 +209,7 @@ Developers should maintain a clean working tree before beginning new work.
 
 ---
 
-# Generated Files
+## Generated Files
 
 The following artifacts are generated automatically and should not be committed.
 
@@ -227,7 +227,7 @@ Repository-specific ignore rules are maintained in `.gitignore`.
 
 ---
 
-# Development Verification
+## Development Verification
 
 A correctly configured development environment should satisfy the following checks.
 
@@ -261,9 +261,9 @@ The dashboard should start successfully and be accessible through a local web br
 
 ---
 
-# Troubleshooting
+## Troubleshooting
 
-## ModuleNotFoundError
+### ModuleNotFoundError
 
 Possible causes:
 
@@ -282,7 +282,7 @@ python -m project0.main
 
 ---
 
-## Incorrect Python Interpreter
+### Incorrect Python Interpreter
 
 Verify:
 
@@ -294,7 +294,7 @@ The interpreter should point to the active Conda environment rather than `/usr/b
 
 ---
 
-## Git Reports Unexpected Files
+### Git Reports Unexpected Files
 
 Review:
 
@@ -306,7 +306,7 @@ If generated files appear, update `.gitignore` rather than committing environmen
 
 ---
 
-# Future Enhancements
+## Future Enhancements
 
 As Project0 evolves, this document will be expanded to include:
 

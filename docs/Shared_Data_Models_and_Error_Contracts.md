@@ -6,19 +6,19 @@
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-## Objective
+### Objective
 
 Define the shared data models and error contracts used by Documentation Agent components.
 
-## Scope
+### Scope
 
 Specify the common information exchanged between components, the minimum required fields for each shared model, and the standard error information exchanged between components. Implementation-specific classes, serialization formats, and provider-specific details are intentionally excluded.
 
 ---
 
-# 2. Design Principles
+## 2. Design Principles
 
 - Shared models shall use consistent terminology.
 - Models shall contain only information required for component communication.
@@ -29,7 +29,7 @@ Specify the common information exchanged between components, the minimum require
 
 ---
 
-# 3. Shared Model Overview
+## 3. Shared Model Overview
 
 The Documentation Agent uses the following shared models:
 
@@ -46,9 +46,9 @@ The Documentation Agent uses the following shared models:
 
 ---
 
-# 4. Core Data Models
+## 4. Core Data Models
 
-## User Request
+### User Request
 
 | Property | Description |
 |-----------|-------------|
@@ -60,7 +60,7 @@ The Documentation Agent uses the following shared models:
 
 ---
 
-## Workflow State
+### Workflow State
 
 | Property | Description |
 |-----------|-------------|
@@ -77,7 +77,7 @@ The Documentation Agent uses the following shared models:
 
 ---
 
-## Component Request
+### Component Request
 
 | Property | Description |
 |-----------|-------------|
@@ -89,7 +89,7 @@ The Documentation Agent uses the following shared models:
 
 ---
 
-## Component Result
+### Component Result
 
 | Property | Description|
 |-----------|------------|
@@ -103,7 +103,7 @@ The Documentation Agent uses the following shared models:
 
 ---
 
-## Repository Context
+### Repository Context
 
 | Property | Description |
 | Purpose | Represents repository information required for analysis. |
@@ -114,7 +114,7 @@ The Documentation Agent uses the following shared models:
 
 ---
 
-## Proposed Documentation Change
+### Proposed Documentation Change
 
 | Property | Description |
 |-----------|-------------|
@@ -130,7 +130,7 @@ The Documentation Agent uses the following shared models:
 
 ---
 
-## Validation Result
+### Validation Result
 
 | Property | Description |
 |-----------|-------------|
@@ -144,7 +144,7 @@ The Documentation Agent uses the following shared models:
 
 ---
 
-## User Review Decision
+### User Review Decision
 
 | Property | Description |
 |-----------|-------------|
@@ -158,7 +158,7 @@ The Documentation Agent uses the following shared models:
 
 ---
 
-## Completion Summary
+### Completion Summary
 
 | Property | Description |
 |-----------|-------------|
@@ -170,9 +170,9 @@ The Documentation Agent uses the following shared models:
 
 ---
 
-# 5. Error Contract
+## 5. Error Contract
 
-## Error Detail
+### Error Detail
 
 | Property | Description |
 |-----------|-------------|
@@ -184,7 +184,7 @@ The Documentation Agent uses the following shared models:
 
 ---
 
-# 6. Error Categories
+## 6. Error Categories
 
 | Category | Typical Examples |
 |----------|------------------|
@@ -199,7 +199,7 @@ The Documentation Agent uses the following shared models:
 
 ---
 
-# 7. Error Severity
+## 7. Error Severity
 
 | Severity | Meaning |
 |----------|---------|
@@ -210,7 +210,7 @@ The Documentation Agent uses the following shared models:
 
 ---
 
-# 8. Error Handling Rules
+## 8. Error Handling Rules
 
 - Components shall return structured error information.
 - Components shall not silently ignore errors.
@@ -220,7 +220,7 @@ The Documentation Agent uses the following shared models:
 
 ---
 
-# 9. Model Relationships
+## 9. Model Relationships
 
 1. User Request starts a Workflow State.
 2. Workflow Engine creates Component Requests.
@@ -235,7 +235,7 @@ The Documentation Agent uses the following shared models:
 
 ---
 
-# 10. Design Constraints
+## 10. Design Constraints
 
 - Models shall remain vendor neutral.
 - Identifiers shall be unique within a workflow.
@@ -245,7 +245,7 @@ The Documentation Agent uses the following shared models:
 
 ---
 
-# 11. Future Considerations
+## 11. Future Considerations
 
 - Dashboard-aware request models
 - Python data classes
@@ -257,7 +257,7 @@ The Documentation Agent uses the following shared models:
 
 ---
 
-# 12. Related Documents
+## 12. Related Documents
 
 - Project Charter
 - Documentation Standards
