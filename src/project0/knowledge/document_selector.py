@@ -86,11 +86,12 @@ class DocumentSelector:
             warnings=warnings,
         )
 
-        self._select_matching_documents(
-            request=request,
-            documents=documents,
-            selected=selected,
-        )
+        if not request.requested_paths:
+            self._select_matching_documents(
+                request=request,
+                documents=documents,
+                selected=selected,
+            )
 
         if request.include_baseline_documents:
             self._select_baseline_documents(

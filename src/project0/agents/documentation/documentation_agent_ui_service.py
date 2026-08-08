@@ -306,67 +306,76 @@ class DocumentationAgentUIService:
                 default=ValidationDisplayStatus.NOT_RUN,
             )
         )
+        issues = tuple(
+            self._read_value(
+                validation_result,
+                "issues",
+                default=(),
+            )
+        )
         messages = tuple(
             ValidationMessageView(
                 validator_name=str(
-                    self._read_value(message, "validator_name", default="")
+                    self._read_value(issue, "validator_name", default="")
                 ),
                 message=str(
-                    self._read_value(message, "message", default="")
+                    self._read_value(issue, "message", default="")
                 ),
                 severity=str(
-                    self._read_value(message, "severity", default="")
+                    self._read_value(issue, "severity", default="")
                 ),
                 repository_path=self._normalize_optional_text(
                     self._read_value(
-                        message,
+                        issue,
                         "repository_path",
                         default=None,
                     )
                 ),
                 line_number=self._read_value(
-                    message,
+                    issue,
                     "line_number",
                     default=None,
                 ),
             )
-            for message in self._read_value(
+            for issue in issues
+        )
+        error_count = sum(
+            str(
+                self._read_value(
+                    issue,
+                    "severity",
+                    default="",
+                )
+            ) == "error"
+            for issue in issues
+        )
+        warning_count = sum(
+            str(
+                self._read_value(
+                    issue,
+                    "severity",
+                    default="",
+                )
+            ) == "warning"
+            for issue in issues
+        )
+        summary = self._normalize_optional_text(
+            self._read_value(
                 validation_result,
-                "messages",
-                default=(),
+                "error_message",
+                default=None,
             )
+        ) or (
+            f"{error_count} error(s), "
+            f"{warning_count} warning(s)."
         )
 
         return ValidationResultView(
             status=status,
-            title=str(
-                self._read_value(
-                    validation_result,
-                    "title",
-                    default=self._validation_title(status),
-                )
-            ),
-            summary=str(
-                self._read_value(
-                    validation_result,
-                    "summary",
-                    default="",
-                )
-            ),
-            error_count=int(
-                self._read_value(
-                    validation_result,
-                    "error_count",
-                    default=0,
-                )
-            ),
-            warning_count=int(
-                self._read_value(
-                    validation_result,
-                    "warning_count",
-                    default=0,
-                )
-            ),
+            title=self._validation_title(status),
+            summary=summary,
+            error_count=error_count,
+            warning_count=warning_count,
             messages=messages,
         )
 

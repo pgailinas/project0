@@ -397,9 +397,7 @@ def test_knowledge_service_flow_preserves_document_order(
 
     request = KnowledgeRequest(
         query="Retrieve repository architecture.",
-        requested_paths=(
-            Path("docs/Repository_Architecture.md"),
-        ),
+        required_tags=("architecture",),
         search_terms=("repository",),
         include_baseline_documents=False,
     )

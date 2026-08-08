@@ -83,14 +83,54 @@ def test_select_documents_selects_requested_path() -> None:
 
     assert selection.documents == (document,)
     assert selection.references[0].path == document.path
-    assert selection.references[0].score == 120.0
-    assert selection.references[0].matched_terms == (
-        "design",
-        "document",
-    )
+    assert selection.references[0].score == 100.0
+    assert selection.references[0].matched_terms == ()
     assert (
         selection.references[0].reason
         == "Explicitly requested document."
+    )
+
+
+def test_select_documents_skips_broad_matching_when_path_requested() -> None:
+    """Verify explicit target paths suppress broad query matching."""
+
+    requested_document = create_document(
+        "docs/Implementation_Status.md",
+        "Implementation Status",
+    )
+
+    matching_document = create_document(
+        "docs/Dashboard_Design.md",
+        "Dashboard Design",
+        content=(
+            "# Dashboard Design\n\n"
+            "Ollama reasoning provider integration."
+        ),
+    )
+
+    request = KnowledgeRequest(
+        query=(
+            "Update Implementation Status for Ollama reasoning "
+            "provider integration."
+        ),
+        requested_paths=(requested_document.path,),
+        include_baseline_documents=False,
+    )
+
+    selector = DocumentSelector()
+
+    selection = selector.select_documents(
+        request=request,
+        documents=(
+            matching_document,
+            requested_document,
+        ),
+    )
+
+    assert selection.documents == (requested_document,)
+    assert selection.references[0].path == requested_document.path
+    assert selection.excluded_paths == (
+        matching_document.path,
     )
 
 
@@ -361,10 +401,8 @@ def test_select_documents_preserves_explicit_reason() -> None:
     reference = selection.references[0]
 
     assert reference.reason == "Explicitly requested document."
-    assert reference.score == 130.0
-    assert reference.matched_terms == (
-        "architecture",
-    )
+    assert reference.score == 100.0
+    assert reference.matched_terms == ()
 
 
 def test_select_documents_includes_baseline_documents() -> None:

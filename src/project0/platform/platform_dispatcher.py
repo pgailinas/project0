@@ -151,6 +151,7 @@ class PlatformDispatcher:
 
 def create_platform_dispatcher(
     reasoning_provider: ReasoningProviderProtocol | None = None,
+    reasoning_model_name: str | None = None,
     review_decision_provider: ReviewDecisionProvider | None = None,
 ) -> PlatformDispatcher:
     """Validate startup and assemble the default Project0 platform."""
@@ -170,6 +171,7 @@ def create_platform_dispatcher(
     documentation_workflow = _create_documentation_workflow(
         repository_root=repository_root,
         reasoning_provider=reasoning_provider,
+        reasoning_model_name=reasoning_model_name,
         review_decision_provider=review_decision_provider,
     )
 
@@ -194,6 +196,7 @@ def _interactive_review_decision_provider(
 def _create_documentation_workflow(
     repository_root: Path,
     reasoning_provider: ReasoningProviderProtocol | None,
+    reasoning_model_name: str | None,
     review_decision_provider: ReviewDecisionProvider | None,
 ) -> DocumentationWorkflowInterface | None:
     """Assemble the documentation workflow when dependencies are supplied."""
@@ -226,7 +229,9 @@ def _create_documentation_workflow(
         return knowledge_result.context
 
     reasoning_service = ReasoningService(
-        prompt_builder=PromptBuilder(),
+        prompt_builder=PromptBuilder(
+            model_name=reasoning_model_name,
+        ),
         provider=reasoning_provider,
     )
 

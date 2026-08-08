@@ -73,14 +73,7 @@ class FakeDocumentationWorkflow:
             ),
             "preliminary_validation": {
                 "status": "passed_with_warnings",
-                "title": "Preliminary validation",
-                "summary": (
-                    "The proposed documentation change passed validation "
-                    "with one warning."
-                ),
-                "error_count": 0,
-                "warning_count": 1,
-                "messages": (
+                "issues": (
                     {
                         "validator_name": "DocumentationConsistencyValidator",
                         "message": (
@@ -138,11 +131,7 @@ class FakeDocumentationWorkflow:
             ),
             "final_validation": {
                 "status": "passed",
-                "title": "Final validation",
-                "summary": "All final validation checks passed.",
-                "error_count": 0,
-                "warning_count": 0,
-                "messages": (),
+                "issues": (),
             },
             "summary": {
                 "proposed_count": 1,
@@ -278,7 +267,7 @@ def test_approved_documentation_change_completes_workflow() -> None:
         in response.text
     )
     assert "Final Validation" in response.text
-    assert "All final validation checks passed." in response.text
+    assert "0 error(s), 0 warning(s)." in response.text
     assert "Workflow Summary" in response.text
     assert "Approved" in response.text
     assert "Applied" in response.text

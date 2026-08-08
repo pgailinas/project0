@@ -365,7 +365,7 @@ def test_create_project0_dashboard_app_configures_documentation_agent(
 
     monkeypatch.setattr(
         "project0.dashboard.dashboard_app.create_platform_dispatcher",
-        lambda reasoning_provider: dispatcher,
+        lambda reasoning_provider, reasoning_model_name: dispatcher,
     )
     monkeypatch.setattr(
         "project0.dashboard.dashboard_app.SETTINGS",
@@ -374,6 +374,7 @@ def test_create_project0_dashboard_app_configures_documentation_agent(
             reasoning_provider="ollama",
             ollama_base_url="http://127.0.0.1:11434",
             ollama_timeout_seconds=120.0,
+            ollama_model="qwen2.5:7b",
         ),
     )
 
@@ -482,8 +483,10 @@ def test_create_project0_dashboard_app_supplies_reasoning_provider(
 
     def fake_create_platform_dispatcher(
         reasoning_provider,
+        reasoning_model_name,
     ):
         captured["reasoning_provider"] = reasoning_provider
+        captured["reasoning_model_name"] = reasoning_model_name
         return dispatcher
 
     monkeypatch.setattr(
@@ -497,6 +500,7 @@ def test_create_project0_dashboard_app_supplies_reasoning_provider(
             reasoning_provider="ollama",
             ollama_base_url="http://127.0.0.1:11434",
             ollama_timeout_seconds=120.0,
+            ollama_model="qwen2.5:7b",
         ),
     )
 
@@ -508,3 +512,4 @@ def test_create_project0_dashboard_app_supplies_reasoning_provider(
         reasoning_provider,
         OllamaReasoningProvider,
     )
+    assert captured["reasoning_model_name"] == "qwen2.5:7b"

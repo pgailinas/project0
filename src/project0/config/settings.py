@@ -26,7 +26,7 @@ class ProjectSettings:
     reasoning_provider: str = "ollama"
     ollama_model: str = "qwen2.5:7b"
     ollama_base_url: str = "http://127.0.0.1:11434"
-    ollama_timeout_seconds: float = 120.0
+    ollama_timeout_seconds: float = 300.0
 
 
 def load_settings() -> ProjectSettings:
@@ -55,7 +55,7 @@ def load_settings() -> ProjectSettings:
         ollama_timeout_seconds=float(
             os.getenv(
                 "PROJECT0_OLLAMA_TIMEOUT_SECONDS",
-                "120.0",
+                "300.0",
             )
         ),
     )

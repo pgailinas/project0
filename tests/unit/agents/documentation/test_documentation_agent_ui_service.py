@@ -181,10 +181,7 @@ def test_submit_request_maps_review_ready_workflow_result() -> None:
             ),
             "preliminary_validation": {
                 "status": "passed_with_warnings",
-                "title": "Preliminary validation",
-                "summary": "Validation completed with one warning.",
-                "warning_count": 1,
-                "messages": (
+                "issues": (
                     {
                         "validator_name": "MarkdownValidator",
                         "message": "Heading level should be reviewed.",
@@ -263,7 +260,7 @@ def test_submit_request_maps_completed_result() -> None:
             ),
             "final_validation": {
                 "status": "passed",
-                "summary": "All final validation checks passed.",
+                "issues": (),
             },
             "summary": {
                 "proposed_count": 1,
@@ -312,6 +309,68 @@ def test_submit_request_maps_completed_with_warnings_result() -> None:
         "The documentation workflow completed with warnings."
     )
     assert page.has_warnings is True
+
+
+def test_submit_request_maps_failed_preliminary_validation() -> None:
+    """Failed preliminary validation should expose validator issues."""
+
+    workflow = FakeWorkflow(
+        result={
+            "workflow_id": "workflow-validation-failed",
+            "status": "failed",
+            "error_message": (
+                "Preliminary documentation validation failed."
+            ),
+            "preliminary_validation": {
+                "status": "failed",
+                "error_message": "Validation found blocking issues.",
+                "issues": (
+                    {
+                        "validator_name": "MarkdownValidator",
+                        "message": "Malformed Markdown heading.",
+                        "severity": "error",
+                        "repository_path": "docs/Implementation_Status.md",
+                        "line_number": 12,
+                    },
+                    {
+                        "validator_name": "LinkValidator",
+                        "message": "Optional link should be reviewed.",
+                        "severity": "warning",
+                        "repository_path": "docs/Implementation_Status.md",
+                    },
+                ),
+            },
+        }
+    )
+    service = DocumentationAgentUIService(workflow=workflow)
+
+    page = service.submit_request("Update documentation.")
+
+    assert page.page_status is DocumentationAgentPageStatus.FAILED
+    assert page.preliminary_validation is not None
+    assert (
+        page.preliminary_validation.status
+        is ValidationDisplayStatus.FAILED
+    )
+    assert page.preliminary_validation.error_count == 1
+    assert page.preliminary_validation.warning_count == 1
+    assert page.preliminary_validation.summary == (
+        "Validation found blocking issues."
+    )
+    assert len(page.preliminary_validation.messages) == 2
+    assert (
+        page.preliminary_validation.messages[0].validator_name
+        == "MarkdownValidator"
+    )
+    assert (
+        page.preliminary_validation.messages[0].message
+        == "Malformed Markdown heading."
+    )
+    assert page.preliminary_validation.messages[0].line_number == 12
+    assert (
+        page.preliminary_validation.messages[1].validator_name
+        == "LinkValidator"
+    )
 
 
 def test_submit_request_maps_explicit_failed_status() -> None:
@@ -470,7 +529,7 @@ def test_unknown_mapped_values_use_safe_defaults() -> None:
             ),
             "preliminary_validation": {
                 "status": "unknown-validation-status",
-                "summary": "Unknown validation state.",
+                "issues": (),
             },
         }
     )

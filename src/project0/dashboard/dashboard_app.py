@@ -154,6 +154,7 @@ def create_project0_dashboard_app() -> FastAPI:
 
     dispatcher = create_platform_dispatcher(
         reasoning_provider=reasoning_provider,
+        reasoning_model_name=SETTINGS.ollama_model,
     )
     documentation_agent_ui_service = DocumentationAgentUIService(
         workflow=dispatcher,

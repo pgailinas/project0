@@ -32,7 +32,10 @@ from project0.models.workflow_models import (
     WorkflowExecutionResult,
     WorkflowStatus,
 )
-from project0.platform.platform_dispatcher import PlatformDispatcher
+from project0.platform.platform_dispatcher import (
+    PlatformDispatcher,
+    _create_documentation_workflow,
+)
 
 
 STARTED_AT = datetime(2026, 8, 4, 18, 0, tzinfo=UTC)
@@ -635,3 +638,23 @@ def test_submit_documentation_review_returns_intermediate_state() -> None:
 
     assert result is expected
     assert result.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+
+
+def test_create_documentation_workflow_uses_reasoning_model_name(
+    tmp_path,
+) -> None:
+    """Documentation workflow propagates the configured reasoning model."""
+
+    reasoning_provider = Mock()
+
+    workflow = _create_documentation_workflow(
+        repository_root=tmp_path,
+        reasoning_provider=reasoning_provider,
+        reasoning_model_name="qwen2.5:7b",
+        review_decision_provider=None,
+    )
+
+    assert workflow is not None
+    assert workflow._reasoning_service._prompt_builder.model_name == (
+        "qwen2.5:7b"
+    )
