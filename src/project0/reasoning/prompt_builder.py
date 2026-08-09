@@ -61,14 +61,23 @@ class PromptBuilder:
             "Repository context outside the Target Paths is reference-only "
             "and must not be proposed for modification unless explicitly "
             "requested.\n"
-            "For an update operation, proposed_content must contain the "
-            "complete resulting document, including all unchanged existing "
-            "content. Preserve existing content that is unrelated to the "
-            "requested change and prefer the smallest change necessary to "
-            "satisfy the request.\n"
+            "For an update operation, proposed_content must contain only "
+            "the documentation content to insert or replace. It must not "
+            "contain the complete resulting document. Identify the target "
+            "location using section and anchor_text. Make only the minimum "
+            "textual modification required to satisfy the request. Do not "
+            "reproduce the surrounding document or section in proposed_content. "
+            "If adding information to an existing list, proposed_content must "
+            "contain only the new list item or items. Do not include existing "
+            "headings, metadata, unchanged list items, or surrounding Markdown "
+            "in proposed_content. Preserve existing repository content that is "
+            "unrelated to the requested change. Do not rewrite, reorder, "
+            "normalize, or reproduce unrelated Markdown content. Do not change "
+            "metadata or other lines unless required by the requested update.\n"
             "For a create operation, proposed_content must contain the "
             "complete new document. For a delete operation, proposed_content "
-            "must be empty.\n"
+            "must contain the content to remove or be empty when no content "
+            "is required.\n"
             "When providing confidence values, use a decimal number between "
             "0.0 and 1.0 inclusive or null. Do not use percentages or values "
             "greater than 1.0.\n"
@@ -195,6 +204,7 @@ class PromptBuilder:
                             "rationale",
                             "proposed_content",
                             "section",
+                            "anchor_text",
                             "confidence",
                         ],
                         "properties": {
@@ -216,6 +226,16 @@ class PromptBuilder:
                                 "type": "string",
                             },
                             "section": {
+                                "anyOf": [
+                                    {
+                                        "type": "string",
+                                    },
+                                    {
+                                        "type": "null",
+                                    },
+                                ]
+                            },
+                            "anchor_text": {
                                 "anyOf": [
                                     {
                                         "type": "string",

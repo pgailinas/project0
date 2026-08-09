@@ -34,6 +34,12 @@ from project0.models.documentation_workflow_models import (
     DocumentationWorkflowStatus,
     ReviewDecision,
 )
+from project0.repository.repository_update_service import (
+    apply_documentation_change,
+)
+
+
+DIFFERENCE_CONTEXT_LINES = 3
 
 
 class DocumentationWorkflowPort(Protocol):
@@ -388,12 +394,28 @@ class DocumentationAgentUIService:
         repository_path = str(
             self._read_value(proposal, "repository_path", default="")
         )
-        original_lines = str(
+        original_content = str(
             self._read_value(proposal, "original_content", default="")
-        ).splitlines()
-        proposed_lines = str(
+        )
+        proposed_content = str(
             self._read_value(proposal, "proposed_content", default="")
-        ).splitlines()
+        )
+        anchor_text = self._normalize_optional_text(
+            self._read_value(
+                proposal,
+                "anchor_text",
+                default=None,
+            )
+        )
+
+        candidate_content = apply_documentation_change(
+            original_content=original_content,
+            proposed_content=proposed_content,
+            anchor_text=anchor_text,
+        )
+
+        original_lines = original_content.splitlines()
+        proposed_lines = candidate_content.splitlines()
 
         old_line_number = 0
         new_line_number = 0
@@ -429,7 +451,36 @@ class DocumentationAgentUIService:
 
         return DocumentationDifferenceView(
             repository_path=repository_path,
-            lines=tuple(lines),
+            lines=self._focus_difference_lines(lines),
+        )
+
+    @staticmethod
+    def _focus_difference_lines(
+        lines: Sequence[DifferenceLineView],
+    ) -> tuple[DifferenceLineView, ...]:
+        """Keep changed lines with limited surrounding review context."""
+
+        changed_indexes = {
+            index
+            for index, line in enumerate(lines)
+            if line.line_type is not DifferenceLineType.CONTEXT
+        }
+        if not changed_indexes:
+            return tuple(lines)
+
+        visible_indexes: set[int] = set()
+        for index in changed_indexes:
+            start = max(0, index - DIFFERENCE_CONTEXT_LINES)
+            stop = min(
+                len(lines),
+                index + DIFFERENCE_CONTEXT_LINES + 1,
+            )
+            visible_indexes.update(range(start, stop))
+
+        return tuple(
+            line
+            for index, line in enumerate(lines)
+            if index in visible_indexes
         )
 
     def _map_difference(

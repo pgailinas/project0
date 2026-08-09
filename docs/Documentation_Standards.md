@@ -61,3 +61,9 @@ Standard format:
 #
 ## ============================================================
 ```
+
+### Repository Baseline Context
+
+Repository baseline documents provide optional reference context to the Documentation Agent. Their paths are repository-specific configuration and must not be hard-coded requirements of the reusable agent framework. Baseline documents are reference-only unless they are explicitly identified as target documentation paths.
+
+

@@ -321,6 +321,143 @@ def test_error_text_with_zero_exit_code_fails(tmp_path: Path) -> None:
     assert result.issues[0].severity is ValidationSeverity.ERROR
 
 
+def test_info_in_stderr_is_classified_as_info(
+    tmp_path: Path,
+) -> None:
+    """MkDocs INFO output on stderr is not reported as a warning."""
+
+    config_path = tmp_path / "mkdocs.yml"
+    config_path.write_text("site_name: Project0\n", encoding="utf-8")
+
+    def command_runner(
+        command: tuple[str, ...],
+        working_directory: Path,
+    ) -> subprocess.CompletedProcess[str]:
+        del working_directory
+
+        return subprocess.CompletedProcess(
+            args=command,
+            returncode=0,
+            stdout="",
+            stderr="INFO - Documentation built successfully.\n",
+        )
+
+    validator = MkDocsValidator(
+        repository_root=tmp_path,
+        command_runner=command_runner,
+    )
+
+    result = validator.validate(
+        ValidationRequest(target_paths=())
+    )
+
+    assert result.status is ValidationStatus.PASSED
+    assert len(result.issues) == 1
+    assert result.issues[0].severity is ValidationSeverity.INFO
+
+
+def test_material_mkdocs_2_advisory_is_ignored(
+    tmp_path: Path,
+) -> None:
+    """The known Material for MkDocs 2.0 advisory is not an issue."""
+
+    config_path = tmp_path / "mkdocs.yml"
+    config_path.write_text("site_name: Project0\n", encoding="utf-8")
+
+    advisory = (
+        "Warning from the Material for MkDocs team:\n"
+        "MkDocs 2.0, the underlying framework of Material for MkDocs,\n"
+        "will introduce backward-incompatible changes, including:\n"
+        "All plugins will stop working – the plugin system has been removed\n"
+        "All theme overrides will break – the theming system has been rewritten\n"
+        "No migration path exists – existing projects cannot be upgraded\n"
+        "Closed contribution model – community members can't report bugs\n"
+        "Currently unlicensed – unsuitable for production use\n"
+        "Our full analysis:\n"
+        "https://squidfunk.github.io/mkdocs-material/blog/2026/02/18/mkdocs-2.0/\n"
+        "INFO - Documentation built successfully.\n"
+    )
+
+    def command_runner(
+        command: tuple[str, ...],
+        working_directory: Path,
+    ) -> subprocess.CompletedProcess[str]:
+        del working_directory
+
+        return subprocess.CompletedProcess(
+            args=command,
+            returncode=0,
+            stdout="",
+            stderr=advisory,
+        )
+
+    validator = MkDocsValidator(
+        repository_root=tmp_path,
+        command_runner=command_runner,
+    )
+
+    result = validator.validate(
+        ValidationRequest(target_paths=())
+    )
+
+    assert result.status is ValidationStatus.PASSED
+    assert len(result.issues) == 1
+    assert result.issues[0].severity is ValidationSeverity.INFO
+    assert result.issues[0].message == (
+        "INFO - Documentation built successfully."
+    )
+
+
+def test_ansi_decorative_output_is_ignored(
+    tmp_path: Path,
+) -> None:
+    """ANSI-only advisory decoration does not create warnings."""
+
+    config_path = tmp_path / "mkdocs.yml"
+    config_path.write_text("site_name: Project0\n", encoding="utf-8")
+
+    stderr = (
+        "\x1b[31m│\x1b[0m\n"
+        "\x1b[31m│\x1b[0m\n"
+        "\x1b[31m╰────────────────────────────╯\x1b[0m\n"
+        "INFO - Cleaning site directory\n"
+        "INFO - Documentation built successfully.\n"
+    )
+
+    def command_runner(
+        command: tuple[str, ...],
+        working_directory: Path,
+    ) -> subprocess.CompletedProcess[str]:
+        del working_directory
+
+        return subprocess.CompletedProcess(
+            args=command,
+            returncode=0,
+            stdout="",
+            stderr=stderr,
+        )
+
+    validator = MkDocsValidator(
+        repository_root=tmp_path,
+        command_runner=command_runner,
+    )
+
+    result = validator.validate(
+        ValidationRequest(target_paths=())
+    )
+
+    assert result.status is ValidationStatus.PASSED
+    assert len(result.issues) == 2
+    assert all(
+        issue.severity is ValidationSeverity.INFO
+        for issue in result.issues
+    )
+    assert tuple(issue.message for issue in result.issues) == (
+        "INFO - Cleaning site directory",
+        "INFO - Documentation built successfully.",
+    )
+
+
 def test_default_runner_uses_subprocess_run(
     tmp_path: Path,
     monkeypatch,

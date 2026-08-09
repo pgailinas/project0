@@ -97,12 +97,32 @@ def test_build_prompt_includes_system_instructions() -> None:
     assert "Preserve repository-relative paths" in instructions
     assert "Target Paths identify the documents that may be changed" in instructions
     assert "reference-only" in instructions
-    assert "complete resulting document" in instructions
-    assert "Preserve existing content that is unrelated" in instructions
-    assert "prefer the smallest change necessary" in instructions
+    assert "proposed_content must contain only" in instructions
+    assert (
+        "For an update operation, proposed_content must contain the "
+        "complete resulting document"
+        not in instructions
+    )
+    assert "Identify the target location using section and anchor_text" in instructions
+    assert "Preserve existing repository content that is unrelated" in instructions
+    assert (
+        "rewrite, reorder, normalize, or reproduce unrelated Markdown content"
+        in instructions
+    )
+    assert "minimum textual modification" in instructions
+    assert "Do not reproduce the surrounding document or section" in instructions
+    assert "only the new list item or items" in instructions
+    assert (
+        "existing headings, metadata, unchanged list items, or surrounding Markdown"
+        in instructions
+    )
     assert "complete new document" in instructions
     assert "delete operation" in instructions
-    assert "proposed_content must be empty" in instructions
+    assert (
+        "proposed_content must contain the content to remove or be empty "
+        "when no content is required"
+        in instructions
+    )
     assert "decimal number between 0.0 and 1.0" in instructions
     assert "Do not use percentages" in instructions
     assert "conforms exactly to the supplied JSON schema" in instructions
@@ -378,6 +398,7 @@ def test_response_schema_defines_change_shape() -> None:
         "rationale",
         "proposed_content",
         "section",
+        "anchor_text",
         "confidence",
     ]
 
@@ -389,6 +410,8 @@ def test_response_schema_defines_change_shape() -> None:
             "delete",
         ]
     )
+
+    assert "anchor_text" in change_schema["properties"]
 
 
 def test_response_schema_allows_nullable_confidence() -> None:
@@ -444,6 +467,39 @@ def test_response_schema_allows_nullable_section() -> None:
     )
 
     assert section_schema == {
+        "anyOf": [
+            {
+                "type": "string",
+            },
+            {
+                "type": "null",
+            },
+        ]
+    }
+
+
+
+
+def test_response_schema_allows_nullable_anchor_text() -> None:
+    """Verify proposed change anchor text may be string or null."""
+
+    reasoning_request = ReasoningRequest(
+        objective="Analyze documentation.",
+        context="Repository context.",
+    )
+
+    builder = PromptBuilder()
+
+    schema = builder.build_prompt(
+        reasoning_request
+    ).response_schema
+
+    anchor_schema = (
+        schema["properties"]["proposed_changes"]["items"]
+        ["properties"]["anchor_text"]
+    )
+
+    assert anchor_schema == {
         "anyOf": [
             {
                 "type": "string",

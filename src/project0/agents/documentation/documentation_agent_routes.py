@@ -26,6 +26,7 @@ from project0.agents.documentation.documentation_agent_view_models import (
     DocumentationRequestForm,
 )
 from project0.models.documentation_workflow_models import ReviewDecision
+from project0.dashboard.dashboard_routes import build_dashboard_shell_context
 
 
 DOCUMENTATION_AGENT_ROUTE_PREFIX = "/agents/documentation"
@@ -151,14 +152,21 @@ def _render_page(
 ) -> HTMLResponse:
     """Render the Documentation Agent template with shared context."""
 
+    context = build_dashboard_shell_context(
+        request=request,
+        active_page="agent:documentation",
+    )
+    context.update(
+        {
+            "page": page,
+            "active_navigation": "documentation-agent",
+        }
+    )
+
     return templates.TemplateResponse(
         request=request,
         name=DOCUMENTATION_AGENT_TEMPLATE_NAME,
-        context={
-            "request": request,
-            "page": page,
-            "active_navigation": "documentation-agent",
-        },
+        context=context,
     )
 
 

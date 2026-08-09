@@ -658,3 +658,33 @@ def test_create_documentation_workflow_uses_reasoning_model_name(
     assert workflow._reasoning_service._prompt_builder.model_name == (
         "qwen2.5:7b"
     )
+
+
+
+def test_create_documentation_workflow_uses_generic_validators(
+    tmp_path,
+) -> None:
+    """Default documentation validation excludes Project0 policy rules."""
+
+    reasoning_provider = Mock()
+
+    workflow = _create_documentation_workflow(
+        repository_root=tmp_path,
+        reasoning_provider=reasoning_provider,
+        reasoning_model_name="qwen2.5:7b",
+        review_decision_provider=None,
+    )
+
+    assert workflow is not None
+
+    validator_names = tuple(
+        validator.validator_name
+        for validator in workflow._validation_service._validators
+    )
+
+    assert validator_names == (
+        "markdown",
+        "link",
+        "mkdocs",
+    )
+    assert "documentation_consistency" not in validator_names

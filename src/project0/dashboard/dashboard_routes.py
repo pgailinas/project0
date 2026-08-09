@@ -18,6 +18,34 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 
+DASHBOARD_AGENTS = (
+    {
+        "identifier": "documentation",
+        "name": "Documentation Agent",
+        "available": True,
+    },
+    {
+        "identifier": "research",
+        "name": "Research Agent",
+        "available": False,
+    },
+)
+
+
+def build_dashboard_shell_context(
+    request: Request,
+    active_page: str,
+) -> dict[str, object]:
+    """Build context owned by the shared Dashboard Framework shell."""
+
+    return {
+        "request": request,
+        "project_name": "Project0",
+        "active_page": active_page,
+        "agents": DASHBOARD_AGENTS,
+    }
+
+
 def create_dashboard_router(
     project_root: Path,
     dashboard_root: Path,
@@ -31,48 +59,39 @@ def create_dashboard_router(
         directory=templates_directory
     )
 
-    agents = (
-        {
-            "identifier": "documentation",
-            "name": "Documentation Agent",
-            "available": True,
-        },
-        {
-            "identifier": "research",
-            "name": "Research Agent",
-            "available": False,
-        },
-    )
-
     def build_dashboard_context(
         request: Request,
         active_page: str,
     ) -> dict[str, object]:
         """Build shared context for Dashboard Framework pages."""
 
-        return {
-            "request": request,
-            "project_name": "Project0",
-            "repository_name": "project0",
-            "project_root": project_root,
-            "documentation_url": "/documentation",
-            "active_page": active_page,
-            "git_branch": "Unknown",
-            "git_status": "Unavailable",
-            "git_status_class": "status-value--muted",
-            "current_phase": (
-                "Phase 8 – Documentation Agent User Interface"
-            ),
-            "documentation_count": "Unknown",
-            "test_status": "All tests passing",
-            "test_status_class": "status-value--success",
-            "validation_status": "Not run",
-            "validation_status_class": "status-value--muted",
-            "llm_status": "Not configured",
-            "workflow_status": "Idle",
-            "platform_version": "0.1.0",
-            "agents": agents,
-        }
+        context = build_dashboard_shell_context(
+            request=request,
+            active_page=active_page,
+        )
+        context.update(
+            {
+                "repository_name": "project0",
+                "project_root": project_root,
+                "documentation_url": "/documentation",
+                "git_branch": "Unknown",
+                "git_status": "Unavailable",
+                "git_status_class": "status-value--muted",
+                "current_phase": (
+                    "Phase 8 – Documentation Agent User Interface"
+                ),
+                "documentation_count": "Unknown",
+                "test_status": "All tests passing",
+                "test_status_class": "status-value--success",
+                "validation_status": "Not run",
+                "validation_status_class": "status-value--muted",
+                "llm_status": "Not configured",
+                "workflow_status": "Idle",
+                "platform_version": "0.1.0",
+            }
+        )
+
+        return context
 
     @router.get(
         "/",

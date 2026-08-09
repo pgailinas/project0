@@ -15,6 +15,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from project0.dashboard.dashboard_routes import (
+    build_dashboard_shell_context,
     create_dashboard_router,
 )
 
@@ -113,6 +114,33 @@ def _create_test_client(
     )
 
     return TestClient(application), project_root
+
+
+def test_dashboard_shell_context_owns_agent_navigation() -> None:
+    """Dashboard shell context provides shared agent navigation."""
+
+    request = object()
+
+    context = build_dashboard_shell_context(
+        request=request,
+        active_page="agent:documentation",
+    )
+
+    assert context["request"] is request
+    assert context["project_name"] == "Project0"
+    assert context["active_page"] == "agent:documentation"
+    assert context["agents"] == (
+        {
+            "identifier": "documentation",
+            "name": "Documentation Agent",
+            "available": True,
+        },
+        {
+            "identifier": "research",
+            "name": "Research Agent",
+            "available": False,
+        },
+    )
 
 
 def test_dashboard_home_returns_success(

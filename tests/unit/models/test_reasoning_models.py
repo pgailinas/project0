@@ -16,6 +16,7 @@ from pathlib import Path
 
 from project0.models.reasoning_models import (
     DocumentationChangeOperation,
+    DocumentationEditType,
     DocumentationImpact,
     ProposedDocumentationChange,
     ProviderRequest,
@@ -44,6 +45,14 @@ def test_documentation_change_operation_values() -> None:
     assert DocumentationChangeOperation.CREATE == "create"
     assert DocumentationChangeOperation.UPDATE == "update"
     assert DocumentationChangeOperation.DELETE == "delete"
+
+
+def test_documentation_edit_type_values() -> None:
+    """Verify supported documentation edit type values."""
+
+    assert DocumentationEditType.INSERT == "insert"
+    assert DocumentationEditType.REPLACE == "replace"
+    assert DocumentationEditType.DELETE == "delete"
 
 
 def test_documentation_impact_creation() -> None:
@@ -95,6 +104,7 @@ def test_proposed_documentation_change_creation() -> None:
         rationale="Add the Reasoning Service design.",
         proposed_content="## Reasoning Service\n",
         section="Component Specifications",
+        anchor_text="## Component Specifications",
         confidence=0.9,
     )
 
@@ -112,6 +122,7 @@ def test_proposed_documentation_change_creation() -> None:
         "## Reasoning Service\n"
     )
     assert change.section == "Component Specifications"
+    assert change.anchor_text == "## Component Specifications"
     assert change.confidence == 0.9
 
 
@@ -126,6 +137,7 @@ def test_proposed_documentation_change_defaults() -> None:
     )
 
     assert change.section is None
+    assert change.anchor_text is None
     assert change.confidence is None
 
 

@@ -160,6 +160,7 @@ def test_submit_request_maps_review_ready_workflow_result() -> None:
                     "rationale": "Record the Phase 8 start.",
                     "original_content": "Phase 8: Ready to Begin",
                     "proposed_content": "Phase 8: In Progress",
+                    "anchor_text": "Phase 8: Ready to Begin",
                     "difference": {
                         "repository_path": (
                             "docs/Implementation_Status.md"
@@ -234,6 +235,121 @@ def test_submit_request_maps_review_ready_workflow_result() -> None:
     assert page.workflow_summary.proposed_count == 1
     assert page.warnings == ("Review the heading level.",)
     assert page.has_warnings is True
+
+
+def test_submit_request_creates_surgical_anchored_difference() -> None:
+    """An anchored proposal should diff the resulting candidate document."""
+
+    original = (
+        "# Documentation\n\n"
+        "Repository status overview.\n\n"
+        "Background information.\n\n"
+        "Additional unchanged material.\n\n"
+        "## Phase 8\n\n"
+        "- Existing item\n\n"
+        "## Phase 9\n\n"
+        "- Unchanged item\n"
+    )
+
+    workflow = FakeWorkflow(
+        result={
+            "workflow_id": "workflow-surgical-diff",
+            "status": "review_required",
+            "proposals": (
+                {
+                    "proposal_id": "proposal-1",
+                    "repository_path": "docs/Implementation_Status.md",
+                    "rationale": "Add the Ollama implementation status.",
+                    "original_content": original,
+                    "proposed_content": (
+                        "- Existing item with Ollama integration"
+                    ),
+                    "anchor_text": "- Existing item",
+                },
+            ),
+        }
+    )
+    service = DocumentationAgentUIService(workflow=workflow)
+
+    page = service.submit_request("Update the Phase 8 status.")
+
+    difference = page.proposals[0].difference
+
+    assert difference is not None
+    removed_lines = tuple(
+        line
+        for line in difference.lines
+        if line.line_type is DifferenceLineType.REMOVED
+    )
+    added_lines = tuple(
+        line
+        for line in difference.lines
+        if line.line_type is DifferenceLineType.ADDED
+    )
+
+    assert tuple(line.content for line in removed_lines) == (
+        "- Existing item",
+    )
+    assert tuple(line.content for line in added_lines) == (
+        "- Existing item with Ollama integration",
+    )
+    assert any(
+        line.content == "## Phase 9"
+        and line.line_type is DifferenceLineType.CONTEXT
+        for line in difference.lines
+    )
+    assert all(
+        line.content != "# Documentation"
+        for line in difference.lines
+    )
+    assert all(
+        line.content != "Repository status overview."
+        for line in difference.lines
+    )
+
+
+def test_submit_request_focuses_multiple_difference_hunks() -> None:
+    """Separated changes should retain context without full-document output."""
+
+    original_lines = tuple(
+        f"Line {number}"
+        for number in range(1, 21)
+    )
+    proposed_lines = list(original_lines)
+    proposed_lines[4] = "Line 5 updated"
+    proposed_lines[15] = "Line 16 updated"
+
+    workflow = FakeWorkflow(
+        result={
+            "workflow_id": "workflow-focused-diff",
+            "status": "review_required",
+            "proposals": (
+                {
+                    "proposal_id": "proposal-1",
+                    "repository_path": "docs/Example.md",
+                    "rationale": "Update two separated status lines.",
+                    "original_content": "\n".join(original_lines),
+                    "proposed_content": "\n".join(proposed_lines),
+                },
+            ),
+        }
+    )
+    service = DocumentationAgentUIService(workflow=workflow)
+
+    page = service.submit_request("Update two status lines.")
+
+    difference = page.proposals[0].difference
+
+    assert difference is not None
+    contents = tuple(line.content for line in difference.lines)
+
+    assert "Line 5" in contents
+    assert "Line 5 updated" in contents
+    assert "Line 16" in contents
+    assert "Line 16 updated" in contents
+    assert "Line 1" not in contents
+    assert "Line 10" not in contents
+    assert "Line 20" not in contents
 
 
 def test_submit_request_maps_completed_result() -> None:

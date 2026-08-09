@@ -91,6 +91,18 @@ def create_dashboard_app(
             )
         )
 
+        documentation_agent_static_directory = (
+            documentation_agent_root / "css"
+        )
+        if documentation_agent_static_directory.is_dir():
+            application.mount(
+                "/agents/documentation/css",
+                StaticFiles(
+                    directory=documentation_agent_static_directory
+                ),
+                name="documentation-agent-static",
+            )
+
     application.include_router(
         create_dashboard_router(
             project_root=resolved_project_root,

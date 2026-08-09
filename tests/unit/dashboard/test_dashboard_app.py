@@ -13,6 +13,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from fastapi import FastAPI
+from fastapi.testclient import TestClient
 from starlette.routing import Mount
 
 from project0.agents.documentation.documentation_agent_ui_service import (
@@ -332,12 +333,92 @@ def test_documentation_agent_root_is_stored_in_application_state(
     assert documentation_agent_root.is_absolute()
 
 
+def test_documentation_agent_css_is_mounted_when_configured(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    """Configured Documentation Agent exposes its agent-owned stylesheet."""
+
+    dashboard_root = tmp_path / "dashboard"
+    dashboard_root.mkdir()
+
+    documentation_agent_root = (
+        tmp_path / "agents" / "documentation"
+    )
+    documentation_agent_css_directory = (
+        documentation_agent_root / "css"
+    )
+    documentation_agent_css_directory.mkdir(parents=True)
+    (
+        documentation_agent_css_directory
+        / "documentation_agent.css"
+    ).write_text(
+        ".documentation-agent { display: grid; }\n",
+        encoding="utf-8",
+    )
+
+    documentation_agent_template_directory = (
+        documentation_agent_root / "templates"
+    )
+    documentation_agent_template_directory.mkdir(parents=True)
+
+    dashboard_templates_directory = (
+        dashboard_root / "templates"
+    )
+    dashboard_templates_directory.mkdir(parents=True)
+
+    monkeypatch.setattr(
+        "project0.dashboard.dashboard_app.__file__",
+        str(dashboard_root / "dashboard_app.py"),
+    )
+
+    application = create_dashboard_app(
+        project_root=tmp_path,
+        documentation_agent_ui_service=(
+            _create_documentation_agent_ui_service()
+        ),
+    )
+
+    mount_paths = {
+        route.path
+        for route in application.routes
+        if isinstance(route, Mount)
+    }
+
+    assert "/agents/documentation/css" in mount_paths
+
+    client = TestClient(application)
+    response = client.get(
+        "/agents/documentation/css/documentation_agent.css"
+    )
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/css")
+    assert ".documentation-agent" in response.text
+
+
+def test_documentation_agent_css_is_not_mounted_without_agent(
+    tmp_path: Path,
+) -> None:
+    """Agent-owned CSS is absent when the Documentation Agent is not configured."""
+
+    application = create_dashboard_app(
+        project_root=tmp_path
+    )
+
+    mount_paths = {
+        route.path
+        for route in application.routes
+        if isinstance(route, Mount)
+    }
+
+    assert "/agents/documentation/css" not in mount_paths
+
+
 def test_documentation_agent_route_precedes_generic_agent_route(
     tmp_path: Path,
 ) -> None:
     """The specific Documentation Agent route handles its URL."""
-
-    from fastapi.testclient import TestClient
 
     application = create_dashboard_app(
         project_root=tmp_path,

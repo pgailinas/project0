@@ -409,6 +409,7 @@ class DocumentationWorkflow:
                         proposed_change.proposed_content
                     ),
                     rationale=proposed_change.rationale,
+                    anchor_text=proposed_change.anchor_text,
                 )
             )
 

@@ -145,6 +145,7 @@ def create_valid_provider_response(
                         "## Reasoning Service\n"
                     ),
                     "section": "Component Specifications",
+                    "anchor_text": "## Component Specifications",
                     "confidence": 0.9,
                 }
             ],
@@ -288,6 +289,7 @@ def test_reasoning_service_parses_proposed_changes() -> None:
         "## Reasoning Service\n"
     )
     assert change.section == "Component Specifications"
+    assert change.anchor_text == "## Component Specifications"
     assert change.confidence == 0.9
 
 
@@ -447,6 +449,54 @@ def test_reasoning_service_allows_null_section() -> None:
     )
 
     assert result.proposed_changes[0].section is None
+
+
+
+def test_reasoning_service_allows_null_anchor_text() -> None:
+    """Verify nullable proposed-change anchor text parsing."""
+
+    response = create_valid_provider_response()
+    response.structured_output[
+        "proposed_changes"
+    ][0]["anchor_text"] = None
+
+    service = ReasoningService(
+        prompt_builder=StubPromptBuilder(
+            create_provider_request()
+        ),
+        provider=StubProvider(response),
+    )
+
+    result = service.reason(
+        create_reasoning_request()
+    )
+
+    assert result.proposed_changes[0].anchor_text is None
+
+
+def test_reasoning_service_rejects_invalid_anchor_text() -> None:
+    """Verify anchor text must be a string or null."""
+
+    response = create_valid_provider_response()
+    response.structured_output[
+        "proposed_changes"
+    ][0]["anchor_text"] = 123
+
+    service = ReasoningService(
+        prompt_builder=StubPromptBuilder(
+            create_provider_request()
+        ),
+        provider=StubProvider(response),
+    )
+
+    result = service.reason(
+        create_reasoning_request()
+    )
+
+    assert result.status == ReasoningStatus.FAILED
+    assert result.error_message == (
+        "anchor_text must be a string or null."
+    )
 
 
 def test_reasoning_service_converts_prompt_builder_error() -> None:

@@ -24,6 +24,35 @@ from project0.models.documentation_workflow_models import (
 )
 
 
+def apply_documentation_change(
+    original_content: str,
+    proposed_content: str,
+    anchor_text: str | None,
+) -> str:
+    """Create resulting documentation content from a proposed edit."""
+
+    if anchor_text is None:
+        return proposed_content
+
+    occurrences = original_content.count(anchor_text)
+
+    if occurrences == 0:
+        raise ValueError(
+            "The documentation anchor text was not found."
+        )
+
+    if occurrences > 1:
+        raise ValueError(
+            "The documentation anchor text is ambiguous."
+        )
+
+    return original_content.replace(
+        anchor_text,
+        proposed_content,
+        1,
+    )
+
+
 class RepositoryUpdateService:
     """Apply approved Markdown changes within a repository."""
 
@@ -96,11 +125,17 @@ class RepositoryUpdateService:
             )
 
         try:
+            updated_content = apply_documentation_change(
+                original_content=current_content,
+                proposed_content=proposal.proposed_content,
+                anchor_text=proposal.anchor_text,
+            )
+
             self._write_atomically(
                 file_path=file_path,
-                content=proposal.proposed_content,
+                content=updated_content,
             )
-        except OSError as exc:
+        except (OSError, ValueError) as exc:
             return self._failed_result(
                 proposal=proposal,
                 message=f"Unable to update the documentation file: {exc}",

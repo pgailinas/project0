@@ -102,6 +102,22 @@ def test_documentation_change_proposal_preserves_values() -> None:
     assert proposal.original_content == "# Original\n"
     assert proposal.proposed_content == "# Updated\n"
     assert proposal.rationale == "Update the heading."
+    assert proposal.anchor_text is None
+
+
+def test_documentation_change_proposal_preserves_anchor_text() -> None:
+    """DocumentationChangeProposal preserves supplied anchor text."""
+
+    proposal = DocumentationChangeProposal(
+        repository_path="docs/index.md",
+        original_content="# Original\n",
+        proposed_content="Updated content.\n",
+        rationale="Update the section content.",
+        anchor_text="## Phase 8",
+        proposal_id="proposal-002",
+    )
+
+    assert proposal.anchor_text == "## Phase 8"
 
 
 def test_documentation_review_defaults() -> None:

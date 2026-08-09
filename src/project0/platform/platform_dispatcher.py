@@ -49,9 +49,6 @@ from project0.repository.repository_service import RepositoryService
 from project0.repository.repository_update_service import (
     RepositoryUpdateService,
 )
-from project0.validation.documentation_consistency_validator import (
-    DocumentationConsistencyValidator,
-)
 from project0.validation.link_validator import LinkValidator
 from project0.validation.markdown_validator import MarkdownValidator
 from project0.validation.mkdocs_validator import MkDocsValidator
@@ -240,7 +237,6 @@ def _create_documentation_workflow(
             MarkdownValidator(repository_root),
             LinkValidator(repository_root),
             MkDocsValidator(repository_root),
-            DocumentationConsistencyValidator(repository_root),
         )
     )
 

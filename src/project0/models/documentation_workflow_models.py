@@ -57,6 +57,7 @@ class DocumentationChangeProposal:
     original_content: str
     proposed_content: str
     rationale: str
+    anchor_text: str | None = None
     proposal_id: str = field(default_factory=lambda: str(uuid4()))
 
 

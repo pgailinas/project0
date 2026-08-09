@@ -36,6 +36,14 @@ class DocumentationChangeOperation(StrEnum):
     DELETE = "delete"
 
 
+class DocumentationEditType(StrEnum):
+    """Supported documentation edit types."""
+
+    INSERT = "insert"
+    REPLACE = "replace"
+    DELETE = "delete"
+
+
 @dataclass(frozen=True, slots=True)
 class DocumentationImpact:
     """A repository documentation impact identified by reasoning."""
@@ -48,13 +56,14 @@ class DocumentationImpact:
 
 @dataclass(frozen=True, slots=True)
 class ProposedDocumentationChange:
-    """A proposed change to one repository document."""
+    """A proposed documentation edit to one repository document."""
 
     document_path: Path
     operation: DocumentationChangeOperation
     rationale: str
     proposed_content: str
     section: str | None = None
+    anchor_text: str | None = None
     confidence: float | None = None
 
 

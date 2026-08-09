@@ -2,6 +2,13 @@
 
 {% block page_title %}Documentation Agent{% endblock %}
 
+{% block page_styles %}
+<link
+    rel="stylesheet"
+    href="/agents/documentation/css/documentation_agent.css"
+>
+{% endblock %}
+
 {% block breadcrumb %}
 <nav class="breadcrumb" aria-label="Breadcrumb">
     <a href="/">Project0</a>
@@ -137,7 +144,27 @@
             </div>
         </div>
 
+        {% if page.page_status.value == "review_required" %}
+        <div class="review-request-summary">
+            <div>
+                <h3>Requested Change</h3>
+                <p>{{ page.request_form.user_request }}</p>
+            </div>
+
+            {% if page.request_form.target_paths %}
+            <div>
+                <h3>Target Documentation</h3>
+                <ul class="review-target-paths">
+                    {% for path in page.request_form.target_paths %}
+                    <li><code>{{ path }}</code></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
         <form
+            id="documentation-request-form"
             class="documentation-request-form"
             method="post"
             action="/agents/documentation/request"
@@ -171,12 +198,38 @@
                 </p>
             </div>
 
-            <div class="form-actions">
-                <button class="button button--primary" type="submit">
-                    Submit Documentation Request
+            <div class="form-actions documentation-request-actions">
+                <button
+                    id="documentation-request-submit"
+                    class="button button--primary"
+                    type="submit"
+                >
+                    <span class="documentation-request-submit__label">
+                        Submit Documentation Request
+                    </span>
                 </button>
+
+                <div
+                    id="documentation-processing"
+                    class="documentation-processing"
+                    aria-live="polite"
+                    aria-hidden="true"
+                >
+                    <div
+                        class="documentation-processing__indicator"
+                        aria-hidden="true"
+                    >
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span class="documentation-processing__message">
+                        Running AI reasoning and validation...
+                    </span>
+                </div>
             </div>
         </form>
+        {% endif %}
     </section>
 
     {% if page.preliminary_validation %}
@@ -215,6 +268,35 @@
         </dl>
 
         {% if page.preliminary_validation.messages %}
+        {% if page.page_status.value == "review_required" %}
+        <details class="validation-details">
+            <summary>
+                Show validation details
+                ({{ page.preliminary_validation.messages | length }})
+            </summary>
+            <div class="validation-results">
+                {% for message in page.preliminary_validation.messages %}
+                <article class="validation-result">
+                    <header>
+                        <strong>{{ message.validator_name }}</strong>
+                        <span>{{ message.severity | title }}</span>
+                    </header>
+                    <p>{{ message.message }}</p>
+
+                    {% if message.repository_path %}
+                    <p class="validation-location">
+                        {{ message.repository_path }}
+                        {% if message.line_number %}
+                        :{{ message.line_number }}
+                        {% endif %}
+                    </p>
+                    {% endif %}
+                </article>
+                {% endfor %}
+            </div>
+        </details>
+        {% else %}
+        {% if page.preliminary_validation.messages %}
         <div class="validation-results">
             {% for message in page.preliminary_validation.messages %}
             <article class="validation-result">
@@ -236,6 +318,8 @@
             {% endfor %}
         </div>
         {% endif %}
+        {% endif %}
+        {% endif %}
     </section>
     {% endif %}
 
@@ -253,6 +337,16 @@
             </div>
         </div>
 
+        {% if page.page_status.value == "review_required" %}
+        <div class="review-guidance">
+            <strong>Approval applies the change shown below.</strong>
+            <p>
+                Review the target, rationale, and exact difference before
+                choosing a decision.
+            </p>
+        </div>
+        {% endif %}
+
         <div class="proposal-list">
             {% for proposal in page.proposals %}
             <article
@@ -261,10 +355,16 @@
             >
                 <header class="proposal-card__header">
                     <div>
+                        <p class="proposal-card__number">
+                            Proposed Change {{ loop.index }} of {{ page.proposals | length }}
+                        </p>
                         <h3 id="proposal-title-{{ loop.index }}">
                             {{ proposal.repository_path }}
                         </h3>
-                        <p>{{ proposal.rationale }}</p>
+                        <div class="proposal-rationale">
+                            <strong>Rationale</strong>
+                            <p>{{ proposal.rationale }}</p>
+                        </div>
                     </div>
 
                     {% if proposal.selected_decision %}
@@ -317,6 +417,7 @@
                     <div class="form-field">
                         <label for="feedback-{{ loop.index }}">
                             Review feedback
+                            <span class="form-label-optional">(optional)</span>
                         </label>
                         <textarea
                             id="feedback-{{ loop.index }}"
@@ -325,6 +426,11 @@
                             placeholder="Optional feedback for revise, reject, or skip decisions."
                         ></textarea>
                     </div>
+
+                    <p class="review-decision-help">
+                        Approve applies this proposal. Revise, Reject, and Skip
+                        do not apply the displayed change.
+                    </p>
 
                     <div class="review-actions">
                         <button
@@ -476,4 +582,62 @@
     </section>
     {% endif %}
 </section>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("documentation-request-form");
+
+    if (!form) {
+        return;
+    }
+
+    form.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        const submitButton = document.getElementById(
+            "documentation-request-submit"
+        );
+        const submitLabel = submitButton?.querySelector(
+            ".documentation-request-submit__label"
+        );
+        const processingPanel = document.getElementById(
+            "documentation-processing"
+        );
+        const workflowProgress = document.querySelector(
+            ".workflow-progress"
+        );
+
+        if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.setAttribute("aria-disabled", "true");
+        }
+
+        if (submitLabel) {
+            submitLabel.textContent = "Processing...";
+        }
+
+        if (processingPanel) {
+            processingPanel.classList.add(
+                "documentation-processing--active"
+            );
+            processingPanel.setAttribute("aria-hidden", "false");
+        }
+
+        if (workflowProgress) {
+            workflowProgress.classList.add(
+                "workflow-progress--client-processing"
+            );
+        }
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                form.submit();
+            });
+        });
+    });
+});
+</script>
 {% endblock %}

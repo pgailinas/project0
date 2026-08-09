@@ -205,6 +205,7 @@ def _validation_result(
 def _update_change(
     repository_path: str = "docs/index.md",
     proposed_content: str = "# Updated\n",
+    anchor_text: str | None = None,
 ) -> ProposedDocumentationChange:
     """Create an update reasoning proposal."""
 
@@ -213,6 +214,7 @@ def _update_change(
         operation=DocumentationChangeOperation.UPDATE,
         rationale="Update the document.",
         proposed_content=proposed_content,
+        anchor_text=anchor_text,
     )
 
 
@@ -325,6 +327,41 @@ def test_approved_update_completes_workflow(tmp_path: Path) -> None:
     assert result.summary.applied_count == 1
     assert result.git_diff == "diff output"
     assert result.error_message is None
+
+
+def test_anchor_text_is_propagated_to_workflow_proposal(
+    tmp_path: Path,
+) -> None:
+    """Reasoning anchor text is preserved in workflow proposals."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text("# Original\n## Existing Section\n", encoding="utf-8")
+
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(
+                _update_change(
+                    anchor_text="## Existing Section",
+                ),
+            )
+        ),
+        validation_results=(
+            _validation_result(ValidationStatus.PASSED),
+        ),
+    )[0]
+
+    state = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Update documentation.",
+            workflow_id="workflow-anchor-text",
+        )
+    )
+
+    assert state.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+    assert len(state.proposals) == 1
+    assert state.proposals[0].anchor_text == "## Existing Section"
 
 
 def test_context_and_reasoning_request_are_forwarded(

@@ -105,6 +105,13 @@ def _build_templates(tmp_path: Path) -> Jinja2Templates:
                 <h1>{{ page.status_message }}</h1>
                 <p id="status">{{ page.page_status.value }}</p>
                 <p id="active-navigation">{{ active_navigation }}</p>
+                <p id="active-page">{{ active_page }}</p>
+                <p id="project-name">{{ project_name }}</p>
+                {% for agent in agents %}
+                <p class="dashboard-agent">
+                    {{ agent.name }}:{{ agent.available }}
+                </p>
+                {% endfor %}
                 {% if page.workflow_id %}
                 <p id="workflow-id">{{ page.workflow_id }}</p>
                 {% endif %}
@@ -193,6 +200,10 @@ def test_documentation_agent_home_route(tmp_path: Path) -> None:
         '<p id="active-navigation">documentation-agent</p>'
         in response.text
     )
+    assert '<p id="active-page">agent:documentation</p>' in response.text
+    assert '<p id="project-name">Project0</p>' in response.text
+    assert "Documentation Agent:True" in response.text
+    assert "Research Agent:False" in response.text
     assert service.received_request is None
     assert service.received_review is None
 

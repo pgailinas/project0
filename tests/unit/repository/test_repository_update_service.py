@@ -22,6 +22,7 @@ from project0.models.documentation_workflow_models import (
 )
 from project0.repository.repository_update_service import (
     RepositoryUpdateService,
+    apply_documentation_change,
 )
 
 
@@ -30,6 +31,7 @@ def _proposal(
     repository_path: str = "docs/index.md",
     original_content: str = "# Original\n",
     proposed_content: str = "# Updated\n",
+    anchor_text: str | None = None,
     proposal_id: str = "proposal-001",
 ) -> DocumentationChangeProposal:
     """Create a standard documentation change proposal."""
@@ -38,6 +40,7 @@ def _proposal(
         repository_path=repository_path,
         original_content=original_content,
         proposed_content=proposed_content,
+        anchor_text=anchor_text,
         rationale="Update the documentation.",
         proposal_id=proposal_id,
     )
@@ -53,6 +56,28 @@ def _review(
     return DocumentationReview(
         proposal_id=proposal_id,
         decision=decision,
+    )
+
+
+def test_apply_documentation_change_creates_candidate_content() -> None:
+    """The shared edit helper creates the expected candidate content."""
+
+    original = (
+        "# Documentation\n\n"
+        "## Phase 8\n\n"
+        "Existing text.\n"
+    )
+
+    candidate = apply_documentation_change(
+        original_content=original,
+        proposed_content="Updated text.",
+        anchor_text="Existing text.",
+    )
+
+    assert candidate == (
+        "# Documentation\n\n"
+        "## Phase 8\n\n"
+        "Updated text.\n"
     )
 
 
@@ -77,6 +102,119 @@ def test_approved_markdown_change_is_applied(tmp_path: Path) -> None:
     assert result.applied_at.tzinfo is UTC
     assert result.error_message is None
     assert file_path.read_text(encoding="utf-8") == "# Updated\n"
+
+
+def test_anchored_change_updates_only_target_content(
+    tmp_path: Path,
+) -> None:
+    """An anchored proposal updates only the targeted location."""
+
+    file_path = tmp_path / "docs/index.md"
+    file_path.parent.mkdir()
+
+    original = (
+        "# Documentation\n\n"
+        "## Phase 8\n\n"
+        "Existing text.\n\n"
+        "## Phase 9\n\n"
+        "Unchanged text.\n"
+    )
+
+    file_path.write_text(
+        original,
+        encoding="utf-8",
+    )
+
+    service = RepositoryUpdateService(tmp_path)
+
+    result = service.apply(
+        proposal=_proposal(
+            original_content=original,
+            proposed_content="Updated Phase 8 text.",
+            anchor_text="Existing text.",
+        ),
+        review=_review(),
+    )
+
+    assert result.status is ChangeApplicationStatus.APPLIED
+    assert file_path.read_text(encoding="utf-8") == (
+        "# Documentation\n\n"
+        "## Phase 8\n\n"
+        "Updated Phase 8 text.\n\n"
+        "## Phase 9\n\n"
+        "Unchanged text.\n"
+    )
+
+
+def test_missing_anchor_text_fails(
+    tmp_path: Path,
+) -> None:
+    """An anchored proposal fails when the anchor is absent."""
+
+    file_path = tmp_path / "docs/index.md"
+    file_path.parent.mkdir()
+    file_path.write_text(
+        "# Original\n",
+        encoding="utf-8",
+    )
+
+    service = RepositoryUpdateService(tmp_path)
+
+    result = service.apply(
+        proposal=_proposal(
+            anchor_text="## Missing Section",
+        ),
+        review=_review(),
+    )
+
+    assert result.status is ChangeApplicationStatus.FAILED
+    assert result.error_message == (
+        "Unable to update the documentation file: "
+        "The documentation anchor text was not found."
+    )
+
+
+
+def test_duplicate_anchor_text_fails(
+    tmp_path: Path,
+) -> None:
+    """An ambiguous anchor does not update the document."""
+
+    file_path = tmp_path / "docs/index.md"
+    file_path.parent.mkdir()
+
+    original = (
+        "# Documentation\n\n"
+        "## Phase 8\n\n"
+        "First occurrence.\n\n"
+        "## Phase 8\n\n"
+        "Second occurrence.\n"
+    )
+
+    file_path.write_text(
+        original,
+        encoding="utf-8",
+    )
+
+    service = RepositoryUpdateService(tmp_path)
+
+    result = service.apply(
+        proposal=_proposal(
+            original_content=original,
+            proposed_content="Updated content.",
+            anchor_text="## Phase 8",
+        ),
+        review=_review(),
+    )
+
+    assert result.status is ChangeApplicationStatus.FAILED
+    assert result.error_message == (
+        "Unable to update the documentation file: "
+        "The documentation anchor text is ambiguous."
+    )
+    assert file_path.read_text(encoding="utf-8") == original
+
+
 
 
 @pytest.mark.parametrize(

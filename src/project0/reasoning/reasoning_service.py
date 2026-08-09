@@ -267,6 +267,10 @@ class ReasoningService:
                         "proposed_content",
                     ),
                     section=section,
+                    anchor_text=self._parse_optional_string(
+                        mapping.get("anchor_text"),
+                        "anchor_text",
+                    ),
                     confidence=self._parse_confidence(
                         mapping.get("confidence")
                     ),
@@ -296,6 +300,23 @@ class ReasoningService:
             )
 
         return tuple(items)
+
+    def _parse_optional_string(
+        self,
+        value: Any,
+        field_name: str,
+    ) -> str | None:
+        """Parse an optional string value."""
+
+        if value is None:
+            return None
+
+        if not isinstance(value, str):
+            raise TypeError(
+                f"{field_name} must be a string or null."
+            )
+
+        return value
 
     def _parse_confidence(
         self,
