@@ -975,6 +975,12 @@ The implemented context workflow follows this sequence:
 
 The Documentation Workflow extends this interaction model by coordinating the Knowledge Service, Reasoning Service, Validation Service, Review Coordinator, Repository Update Service, and Git Diff Service into a complete documentation update pipeline.
 
+The completed Phase 8 Documentation Agent User Interface provides a human-in-the-loop workflow hosted within the Dashboard Framework. The workflow supports documentation request submission, AI-generated documentation proposals, preliminary validation, individual proposal review, approval decisions, repository application, final validation, Git diff generation, and completion reporting.
+
+The Dashboard Framework remains responsible for the shared application shell, including navigation, context, and Work Area hosting. The Documentation Agent provides only agent-specific workflow interactions within the Dashboard Work Area. Documentation Agent UI styling and behavior remain isolated from Dashboard Framework presentation components.
+
+Approved documentation changes are applied only through the Repository Update Service. The UI review representation may provide focused diffs for readability while preserving the complete candidate document and repository update behavior.
+
 ---
 
 ## 7. Design Constraints

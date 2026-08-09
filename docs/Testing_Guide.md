@@ -1,8 +1,8 @@
 # Testing Guide
 
-**Version:** 0.2  
+**Version:** 0.3  
 **Owner:** Project0  
-**Last Updated:** 2026-08-06
+**Last Updated:** 2026-08-09
 
 ---
 
@@ -96,9 +96,22 @@ Current test categories include:
 - Documentation Workflow Services
 - Shared Models
 - Dashboard Framework
+- Documentation Agent UI Services
 - Integration Workflows
 
-As additional platform services are implemented, corresponding test suites should be added.
+Testing additionally validates the complete Documentation Agent
+user workflow, including:
+
+- Dashboard-hosted Documentation Agent rendering.
+- Documentation request submission.
+- AI reasoning and documentation proposal generation.
+- Preliminary validation and review workflow behavior.
+- Approval-controlled repository updates.
+- Final validation execution.
+- Git diff generation and workflow completion reporting.
+
+As additional platform services are implemented, corresponding test
+suites should be added.
 
 ---
 
@@ -268,7 +281,9 @@ Successful execution should report all tests passing with no unexpected warnings
 Current validated implementation:
 
 - Dashboard Framework unit and integration tests passing
-- 524 automated tests passing
+- Documentation Agent UI unit and workflow validation passing
+- Complete Documentation Agent workflow validation passing
+- 639 automated tests passing
 - Comprehensive unit test coverage
 - End-to-end integration workflow validation
 

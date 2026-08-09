@@ -1,8 +1,8 @@
 # Dashboard Design
 
-**Version:** 0.5  
+**Version:** 0.6  
 **Owner:** Project0  
-**Last Updated:** 2026-08-06
+**Last Updated:** 2026-08-09
 
 ---
 
@@ -281,7 +281,21 @@ The Documentation Agent is the first implemented Dashboard Agent. Agent interfac
 
 Agent workflows communicate through the Platform Dispatcher and reuse existing Project0 services.
 
-Agent-specific features such as documentation review, validation presentation, repository updates, and Git diff display are outside the Dashboard Framework and belong in the applicable Agent Interface Design document.
+The completed Documentation Agent workflow demonstrates the
+Dashboard integration model:
+
+- Documentation request submission within the Dashboard Work Area.
+- AI reasoning and proposal generation through existing platform services.
+- Preliminary validation and proposal review.
+- User approval before repository modification.
+- Final validation, Git diff generation, and completion reporting.
+
+The Dashboard Framework continues to own the shared application shell,
+navigation, context toolbar region, and Work Area hosting.
+Agent-specific features such as documentation review, validation
+presentation, repository updates, focused diff display, and workflow
+controls remain outside the Dashboard Framework and belong in the
+applicable Agent Interface Design document.
 
 ---
 

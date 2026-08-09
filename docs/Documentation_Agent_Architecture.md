@@ -1,8 +1,8 @@
 # Documentation Agent Architecture
 
-**Version:** 0.4  
+**Version:** 0.5  
 **Owner:** Project0  
-**Last Updated:** 2026-08-06
+**Last Updated:** 2026-08-09
 
 ---
 
@@ -46,7 +46,21 @@ within the Dashboard Work Area and integrates deterministic repository
 knowledge, AI reasoning, validation, user review, approved repository
 updates, and Git diff generation through the Platform Dispatcher.
 
-```mermaid
+The completed Phase 8 implementation establishes a human-in-the-loop
+Documentation Agent workflow. The workflow begins with a documentation
+request, generates AI-assisted documentation proposals, performs
+preliminary validation, presents individual proposals for review,
+applies only approved changes, performs final validation, generates Git
+diff summaries, and returns a structured completion result.
+
+The Dashboard Framework remains responsible for the shared application
+shell, navigation, context, and Work Area hosting. Documentation Agent
+components provide only agent-specific workflow behavior and interfaces.
+The browser-facing review experience may use focused diff presentation
+for readability while preserving complete candidate documents and
+repository update behavior.
+
+``` mermaid
 flowchart TD
     UI["Dashboard Framework"]
     A["Application Entry Point<br/><small>main.py</small>"]
