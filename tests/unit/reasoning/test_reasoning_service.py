@@ -15,6 +15,7 @@ from pathlib import Path
 
 from project0.models.reasoning_models import (
     DocumentationChangeOperation,
+    DocumentationEditType,
     ProviderRequest,
     ProviderResponse,
     ReasoningRequest,
@@ -146,6 +147,7 @@ def create_valid_provider_response(
                     ),
                     "section": "Component Specifications",
                     "anchor_text": "## Component Specifications",
+                    "edit_type": "replace",
                     "confidence": 0.9,
                 }
             ],
@@ -290,6 +292,10 @@ def test_reasoning_service_parses_proposed_changes() -> None:
     )
     assert change.section == "Component Specifications"
     assert change.anchor_text == "## Component Specifications"
+    assert (
+        change.edit_type
+        == DocumentationEditType.REPLACE
+    )
     assert change.confidence == 0.9
 
 
@@ -674,6 +680,32 @@ def test_reasoning_service_rejects_invalid_operation() -> None:
     assert result.error_message == (
         "Unsupported documentation change operation: rename"
     )
+
+
+def test_reasoning_service_rejects_invalid_edit_type() -> None:
+    """Verify unsupported edit types become failures."""
+
+    response = create_valid_provider_response()
+    response.structured_output[
+        "proposed_changes"
+    ][0]["edit_type"] = "append"
+
+    service = ReasoningService(
+        prompt_builder=StubPromptBuilder(
+            create_provider_request()
+        ),
+        provider=StubProvider(response),
+    )
+
+    result = service.reason(
+        create_reasoning_request()
+    )
+
+    assert result.status == ReasoningStatus.FAILED
+    assert result.error_message == (
+        "Unsupported documentation edit type: append"
+    )
+
 
 
 def test_reasoning_service_rejects_invalid_section() -> None:

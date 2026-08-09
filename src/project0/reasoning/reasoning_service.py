@@ -21,6 +21,7 @@ from project0.interfaces.reasoning_interfaces import (
 )
 from project0.models.reasoning_models import (
     DocumentationChangeOperation,
+    DocumentationEditType,
     DocumentationImpact,
     ProposedDocumentationChange,
     ProviderResponse,
@@ -239,6 +240,21 @@ class ReasoningService:
                     f"{operation_value}"
                 ) from error
 
+            edit_type_value = self._require_string(
+                mapping,
+                "edit_type",
+            )
+
+            try:
+                edit_type = DocumentationEditType(
+                    edit_type_value
+                )
+            except ValueError as error:
+                raise ValueError(
+                    "Unsupported documentation edit type: "
+                    f"{edit_type_value}"
+                ) from error
+
             section = mapping.get("section")
 
             if section is not None and not isinstance(
@@ -271,6 +287,7 @@ class ReasoningService:
                         mapping.get("anchor_text"),
                         "anchor_text",
                     ),
+                    edit_type=edit_type,
                     confidence=self._parse_confidence(
                         mapping.get("confidence")
                     ),

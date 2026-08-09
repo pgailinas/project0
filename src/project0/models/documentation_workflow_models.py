@@ -40,6 +40,13 @@ class ReviewDecision(StrEnum):
     SKIP = "skip"
 
 
+class DocumentationAnchorMode(StrEnum):
+    """How documentation anchor text is interpreted during updates."""
+
+    REPLACE = "replace"
+    INSERT_AFTER = "insert_after"
+
+
 class ChangeApplicationStatus(StrEnum):
     """Supported documentation change application states."""
 
@@ -58,6 +65,7 @@ class DocumentationChangeProposal:
     proposed_content: str
     rationale: str
     anchor_text: str | None = None
+    anchor_mode: DocumentationAnchorMode = DocumentationAnchorMode.REPLACE
     proposal_id: str = field(default_factory=lambda: str(uuid4()))
 
 

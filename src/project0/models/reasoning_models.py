@@ -64,6 +64,7 @@ class ProposedDocumentationChange:
     proposed_content: str
     section: str | None = None
     anchor_text: str | None = None
+    edit_type: DocumentationEditType = DocumentationEditType.REPLACE
     confidence: float | None = None
 
 

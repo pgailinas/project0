@@ -15,6 +15,7 @@ from pathlib import Path
 
 from project0.models.reasoning_models import (
     DocumentationChangeOperation,
+    DocumentationEditType,
     ProviderResponse,
     ReasoningRequest,
     ReasoningStatus,
@@ -59,6 +60,7 @@ def create_provider_response(
                         "docs/Documentation_Agent_Design.md"
                     ),
                     "operation": "update",
+                    "edit_type": "replace",
                     "rationale": (
                         "Document the implemented Reasoning Service."
                     ),
@@ -302,6 +304,10 @@ def test_reasoning_service_flow_parses_proposed_change() -> None:
         "Document the implemented Reasoning Service."
     )
     assert change.section == "Component Specifications"
+    assert (
+        change.edit_type
+        == DocumentationEditType.REPLACE
+    )
     assert change.confidence == 0.9
     assert (
         "Coordinates provider-neutral reasoning."

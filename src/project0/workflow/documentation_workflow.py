@@ -30,6 +30,7 @@ from project0.interfaces.validation_interfaces import (
 from project0.models.documentation_workflow_models import (
     AppliedDocumentationChange,
     ChangeApplicationStatus,
+    DocumentationAnchorMode,
     DocumentationChangeProposal,
     DocumentationReview,
     DocumentationWorkflowRequest,
@@ -41,6 +42,7 @@ from project0.models.documentation_workflow_models import (
 )
 from project0.models.reasoning_models import (
     DocumentationChangeOperation,
+    DocumentationEditType,
     ReasoningRequest,
     ReasoningResult,
     ReasoningStatus,
@@ -401,17 +403,23 @@ class DocumentationWorkflow:
 
             original_content = file_path.read_text(encoding="utf-8")
 
-            proposals.append(
-                DocumentationChangeProposal(
-                    repository_path=repository_path,
-                    original_content=original_content,
-                    proposed_content=(
-                        proposed_change.proposed_content
-                    ),
-                    rationale=proposed_change.rationale,
-                    anchor_text=proposed_change.anchor_text,
-                )
+            proposal = DocumentationChangeProposal(
+                repository_path=repository_path,
+                original_content=original_content,
+                proposed_content=(
+                proposed_change.proposed_content
+                ),
+                rationale=proposed_change.rationale,
+                anchor_text=proposed_change.anchor_text,
+                anchor_mode=(
+                    DocumentationAnchorMode.INSERT_AFTER
+                    if proposed_change.edit_type
+                    is DocumentationEditType.INSERT
+                    else DocumentationAnchorMode.REPLACE
+                ),
             )
+
+            proposals.append(proposal)
 
         return tuple(proposals), tuple(warnings)
 

@@ -16,6 +16,7 @@ import pytest
 
 from project0.models.documentation_workflow_models import (
     ChangeApplicationStatus,
+    DocumentationAnchorMode,
     DocumentationChangeProposal,
     DocumentationReview,
     ReviewDecision,
@@ -79,6 +80,31 @@ def test_apply_documentation_change_creates_candidate_content() -> None:
         "## Phase 8\n\n"
         "Updated text.\n"
     )
+
+
+def test_apply_documentation_change_insert_after_anchor_preserves_heading() -> None:
+    """An insert-after change preserves the Markdown anchor text."""
+
+    original = (
+        "# Documentation\n\n"
+        "Implemented:\n\n"
+        "- Existing item.\n"
+    )
+
+    candidate = apply_documentation_change(
+        original_content=original,
+        proposed_content="- New item.",
+        anchor_text="Implemented:",
+        anchor_mode=DocumentationAnchorMode.INSERT_AFTER,
+    )
+
+    assert candidate == (
+        "# Documentation\n\n"
+        "Implemented:\n\n"
+        "- New item.\n"
+        "- Existing item.\n"
+    )
+
 
 
 def test_approved_markdown_change_is_applied(tmp_path: Path) -> None:

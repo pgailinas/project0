@@ -30,6 +30,7 @@ from project0.agents.documentation.documentation_agent_view_models import (
     ValidationResultView,
 )
 from project0.models.documentation_workflow_models import (
+    DocumentationAnchorMode,
     DocumentationReview,
     DocumentationWorkflowStatus,
     ReviewDecision,
@@ -407,11 +408,22 @@ class DocumentationAgentUIService:
                 default=None,
             )
         )
+        anchor_mode_value = self._read_value(
+            proposal,
+            "anchor_mode",
+            default=None,
+        )
+        anchor_mode = (
+            DocumentationAnchorMode(str(anchor_mode_value))
+            if anchor_mode_value is not None
+            else None
+        )
 
         candidate_content = apply_documentation_change(
             original_content=original_content,
             proposed_content=proposed_content,
             anchor_text=anchor_text,
+            anchor_mode=anchor_mode,
         )
 
         original_lines = original_content.splitlines()
@@ -424,6 +436,12 @@ class DocumentationAgentUIService:
         for line in ndiff(original_lines, proposed_lines):
             prefix = line[:2]
             content = line[2:]
+
+            # Avoid displaying artificial blank additions created by diff
+            # mechanics. The underlying document content remains unchanged;
+            # this only improves browser-facing review presentation.
+            if prefix == "+ " and content == "":
+                continue
 
             if prefix == "  ":
                 old_line_number += 1

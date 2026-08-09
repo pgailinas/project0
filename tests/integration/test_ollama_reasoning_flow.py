@@ -21,6 +21,7 @@ import pytest
 
 from project0.models.reasoning_models import (
     DocumentationChangeOperation,
+    DocumentationEditType,
     ReasoningRequest,
     ReasoningStatus,
 )
@@ -54,6 +55,7 @@ def create_ollama_response() -> dict[str, Any]:
             {
                 "document_path": "docs/Implementation_Status.md",
                 "operation": "update",
+                "edit_type": "replace",
                 "rationale": (
                     "Document the addition of local Ollama reasoning."
                 ),
@@ -206,6 +208,10 @@ def test_ollama_reasoning_flow_parses_documentation_change(
         == DocumentationChangeOperation.UPDATE
     )
     assert change.section == "Phase 8"
+    assert (
+        change.edit_type
+        == DocumentationEditType.REPLACE
+    )
     assert change.confidence == 0.9
     assert (
         "Local Ollama reasoning provider integration is in progress."

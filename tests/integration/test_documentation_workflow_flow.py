@@ -23,6 +23,7 @@ from project0.models.documentation_workflow_models import (
 )
 from project0.models.reasoning_models import (
     DocumentationChangeOperation,
+    DocumentationEditType,
     ProposedDocumentationChange,
     ReasoningRequest,
     ReasoningResult,
@@ -162,6 +163,7 @@ class FileContentValidator:
 def _update_change(
     repository_path: str,
     proposed_content: str,
+    edit_type: DocumentationEditType = DocumentationEditType.REPLACE,
 ) -> ProposedDocumentationChange:
     """Create a deterministic update proposal."""
 
@@ -170,6 +172,7 @@ def _update_change(
         operation=DocumentationChangeOperation.UPDATE,
         rationale="Update the documentation.",
         proposed_content=proposed_content,
+        edit_type=edit_type,
     )
 
 
@@ -295,6 +298,41 @@ def test_approved_change_updates_file_and_returns_diff(
     assert result.git_diff == (
         "diff --git a/docs/index.md b/docs/index.md"
     )
+
+
+def test_insert_edit_type_reaches_repository_application(
+    tmp_path: Path,
+) -> None:
+    """Insert edit intent reaches the repository update layer."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text(
+        "Implemented:\n\n- Existing item.\n",
+        encoding="utf-8",
+    )
+
+    workflow = _create_workflow(
+        tmp_path,
+        StubReasoningService(
+            proposed_changes=(
+                _update_change(
+                    "docs/index.md",
+                    "- New item.",
+                ),
+            )
+        ),
+    )
+
+    state = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Insert documentation.",
+            workflow_id="workflow-insert-flow",
+        )
+    )
+
+    assert state.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+
 
 
 def test_rejected_change_does_not_modify_repository(

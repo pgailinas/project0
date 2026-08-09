@@ -237,6 +237,67 @@ def test_submit_request_maps_review_ready_workflow_result() -> None:
     assert page.has_warnings is True
 
 
+def test_submit_request_creates_insert_after_difference() -> None:
+    """An insert-after proposal should preserve the anchor line."""
+
+    original = (
+        "# Documentation\n\n"
+        "Implemented:\n\n"
+        "- Existing item.\n\n"
+        "## Phase 9\n\n"
+        "- Future item.\n"
+    )
+
+    workflow = FakeWorkflow(
+        result={
+            "workflow_id": "workflow-insert-after",
+            "status": "review_required",
+            "proposals": (
+                {
+                    "proposal_id": "proposal-1",
+                    "repository_path": "docs/Implementation_Status.md",
+                    "rationale": "Add the Ollama implementation status.",
+                    "original_content": original,
+                    "proposed_content": (
+                        "- Local Ollama reasoning provider integration completed"
+                    ),
+                    "anchor_text": "Implemented:",
+                    "anchor_mode": "insert_after",
+                },
+            ),
+        }
+    )
+    service = DocumentationAgentUIService(workflow=workflow)
+
+    page = service.submit_request("Update the implementation status.")
+
+    difference = page.proposals[0].difference
+
+    assert difference is not None
+
+    removed_lines = tuple(
+        line.content
+        for line in difference.lines
+        if line.line_type is DifferenceLineType.REMOVED
+    )
+    added_lines = tuple(
+        line.content
+        for line in difference.lines
+        if line.line_type is DifferenceLineType.ADDED
+    )
+
+    assert removed_lines == ()
+    assert (
+        "- Local Ollama reasoning provider integration completed"
+        in added_lines
+    )
+    assert any(
+        line.content == "Implemented:"
+        and line.line_type is DifferenceLineType.CONTEXT
+        for line in difference.lines
+    )
+
+
 def test_submit_request_creates_surgical_anchored_difference() -> None:
     """An anchored proposal should diff the resulting candidate document."""
 

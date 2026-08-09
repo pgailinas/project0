@@ -399,6 +399,7 @@ def test_response_schema_defines_change_shape() -> None:
         "proposed_content",
         "section",
         "anchor_text",
+        "edit_type",
         "confidence",
     ]
 
@@ -412,6 +413,15 @@ def test_response_schema_defines_change_shape() -> None:
     )
 
     assert "anchor_text" in change_schema["properties"]
+
+    assert (
+        change_schema["properties"]["edit_type"]["enum"]
+        == [
+            "insert",
+            "replace",
+            "delete",
+        ]
+    )
 
 
 def test_response_schema_allows_nullable_confidence() -> None:

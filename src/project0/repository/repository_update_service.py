@@ -18,6 +18,7 @@ import tempfile
 from project0.models.documentation_workflow_models import (
     AppliedDocumentationChange,
     ChangeApplicationStatus,
+    DocumentationAnchorMode,
     DocumentationChangeProposal,
     DocumentationReview,
     ReviewDecision,
@@ -28,6 +29,7 @@ def apply_documentation_change(
     original_content: str,
     proposed_content: str,
     anchor_text: str | None,
+    anchor_mode: DocumentationAnchorMode = DocumentationAnchorMode.REPLACE,
 ) -> str:
     """Create resulting documentation content from a proposed edit."""
 
@@ -44,6 +46,24 @@ def apply_documentation_change(
     if occurrences > 1:
         raise ValueError(
             "The documentation anchor text is ambiguous."
+        )
+
+    if anchor_mode is DocumentationAnchorMode.INSERT_AFTER:
+        insertion = f"{anchor_text}\n\n{proposed_content}"
+
+        if proposed_content.lstrip().startswith("- "):
+            insertion = f"{anchor_text}\n\n{proposed_content}"
+
+        updated_content = original_content.replace(
+            anchor_text,
+            insertion,
+            1,
+        )
+
+        return updated_content.replace(
+            f"{proposed_content}\n\n-",
+            f"{proposed_content}\n-",
+            1,
         )
 
     return original_content.replace(
@@ -129,6 +149,7 @@ class RepositoryUpdateService:
                 original_content=current_content,
                 proposed_content=proposal.proposed_content,
                 anchor_text=proposal.anchor_text,
+                anchor_mode=proposal.anchor_mode,
             )
 
             self._write_atomically(

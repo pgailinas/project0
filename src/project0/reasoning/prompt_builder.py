@@ -205,6 +205,7 @@ class PromptBuilder:
                             "proposed_content",
                             "section",
                             "anchor_text",
+                            "edit_type",
                             "confidence",
                         ],
                         "properties": {
@@ -244,6 +245,14 @@ class PromptBuilder:
                                         "type": "null",
                                     },
                                 ]
+                            },
+                            "edit_type": {
+                                "type": "string",
+                                "enum": [
+                                    "insert",
+                                    "replace",
+                                    "delete",
+                                ],
                             },
                             "confidence": confidence_schema,
                         },
