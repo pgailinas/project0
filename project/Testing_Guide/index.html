@@ -13,6 +13,10 @@
         <link rel="canonical" href="https://pgailinas.github.io/project0/project/Testing_Guide/">
       
       
+        <link rel="prev" href="../Development_Environment/">
+      
+      
+        <link rel="next" href="../Documentation_Standards/">
       
       
         
@@ -280,20 +284,20 @@
       
   
   
+    
   
   
+  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
@@ -303,7 +307,7 @@
   <span class="md-ellipsis">
     
   
-    Core Project Documentation
+    Project0
   
 
     
@@ -314,12 +318,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
   
-    Core Project Documentation
+    Project0
   
 
           </label>
@@ -332,7 +336,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Project_Charter.md" class="md-nav__link">
+      <a href="../Project_Charter/" class="md-nav__link">
         
   
   
@@ -360,7 +364,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Development_Environment.md" class="md-nav__link">
+      <a href="../Development_Environment/" class="md-nav__link">
         
   
   
@@ -385,10 +389,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../Testing_Guide.md" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing Guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -404,6 +435,335 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-testing-philosophy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Testing Philosophy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-test-organization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Test Organization
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Test Organization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-unit-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Unit Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-integration-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Integration Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-current-test-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Current Test Coverage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-running-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Running Tests
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Running Tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-unit-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Unit Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repository
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#knowledge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Knowledge
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#platform" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Platform
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dashboard
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Models
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reasoning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reasoning
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-integration-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 Integration Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-run-complete-test-suites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 Run Complete Test Suites
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-frequently-used-pytest-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Frequently Used Pytest Options
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-expected-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Expected Results
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-adding-new-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Adding New Tests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-test-naming-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Test Naming Conventions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-future-enhancements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Future Enhancements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -416,14 +776,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Dashboard_Design.md" class="md-nav__link">
+      <a href="../Documentation_Standards/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Dashboard Design
+    Documentation Standards
   
 
     
@@ -444,35 +804,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Documentation_Standards.md" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Document Standards
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../Project_Directory_Structure.md" class="md-nav__link">
+      <a href="../Project_Directory_Structure/" class="md-nav__link">
         
   
   
@@ -480,6 +812,62 @@
     
   
     Project Directory Structure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Implementation_Roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Implementation Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Implementation_Status/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Implementation Status
   
 
     
@@ -527,7 +915,7 @@
   <span class="md-ellipsis">
     
   
-    Platform Design
+    Platform
   
 
     
@@ -543,7 +931,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Platform Design
+    Platform
   
 
           </label>
@@ -556,14 +944,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Shared_Data_Models_and_Error_Contracts.md" class="md-nav__link">
+      <a href="../../platform/Dashboard_Design/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Shared Data Models and Error Contracts
+    Dashboard Design
   
 
     
@@ -584,7 +972,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Component_Communication_Design.md" class="md-nav__link">
+      <a href="../../platform/Component_Communication_Design/" class="md-nav__link">
         
   
   
@@ -612,42 +1000,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Implementation_Roadmap.md" class="md-nav__link">
+      <a href="../../platform/Shared_Data_Models_and_Error_Contracts/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Implementation Roadmap
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../Implementation_Status.md" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Implementation Status
+    Shared Data Models and Error Contracts
   
 
     
@@ -724,7 +1084,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Documentation_Agent_Charter.md" class="md-nav__link">
+      <a href="../../agents/documentation/Documentation_Agent_Charter.md" class="md-nav__link">
         
   
   
@@ -752,7 +1112,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Documentation_Agent_Functional_Spec.md" class="md-nav__link">
+      <a href="../../agents/documentation/Documentation_Agent_Functional_Spec.md" class="md-nav__link">
         
   
   
@@ -780,7 +1140,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Documentation_Agent_Architecture.md" class="md-nav__link">
+      <a href="../../agents/documentation/Documentation_Agent_Architecture.md" class="md-nav__link">
         
   
   
@@ -808,7 +1168,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Documentation_Agent_Design.md" class="md-nav__link">
+      <a href="../../agents/documentation/Documentation_Agent_Design.md" class="md-nav__link">
         
   
   
@@ -836,7 +1196,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Documentation_Agent_Interface_Design.md" class="md-nav__link">
+      <a href="../../agents/documentation/Documentation_Agent_Interface_Design.md" class="md-nav__link">
         
   
   
@@ -864,7 +1224,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Documentation_Agent_Testing_Guide.md" class="md-nav__link">
+      <a href="../../agents/documentation/Documentation_Agent_Testing_Guide.md" class="md-nav__link">
         
   
   
