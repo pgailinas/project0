@@ -43,10 +43,12 @@ Project0 documentation is organized into the following categories.
 
 | Document                                                   | Description                                                                                                           |
 | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| [**Documentation Agent Charter**](Documentation_Agent_Charter.md) | Defines the mission, vision, scope, operating principles, authority boundaries, and success criteria of the Documentation Agent. |
 | [**Documentation Agent Functional Spec**](Documentation_Agent_Functional_Spec.md)     | Defines the required capabilities, behavior, inputs, outputs, and workflows of the Documentation Agent.                                              |
 | [**Documentation Agent Architecture**](Documentation_Agent_Architecture.md) | Describes the high-level architecture, workflow, and major system components.                                         |
 | [**Documentation Agent Design**](Documentation_Agent_Design.md)             | Defines the detailed responsibilities, interfaces, inputs, outputs, and dependencies of each architectural component. |
 | [**Documentation Agent Interface Design**](Documentation_Agent_Interface_Design.md) | Defines the user interface, workflow screens, review interactions, validation presentation, and user experience for the Documentation Agent within the Project0 Dashboard. |
+| [**Documentation Agent Testing Guide**](Documentation_Agent_Testing_Guide.md) | Defines Documentation Agent-specific testing, including workflow behavior, review decisions, repository safety, validation, local AI provider testing, browser acceptance testing, regression testing, and completion criteria. |
 
 ---
 

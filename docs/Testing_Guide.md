@@ -83,7 +83,7 @@ Typical characteristics include:
 
 ## 5. Current Test Coverage
 
-Current test categories include:
+Current Project0 platform test categories include:
 
 - Common
 - Configuration
@@ -93,25 +93,17 @@ Current test categories include:
 - Knowledge Services
 - Reasoning Services
 - Validation Services
-- Documentation Workflow Services
 - Shared Models
 - Dashboard Framework
-- Documentation Agent UI Services
-- Integration Workflows
+- Platform Integration Workflows
 
-Testing additionally validates the complete Documentation Agent
-user workflow, including:
+This guide defines testing for reusable Project0 platform components and the Dashboard Framework.
 
-- Dashboard-hosted Documentation Agent rendering.
-- Documentation request submission.
-- AI reasoning and documentation proposal generation.
-- Preliminary validation and review workflow behavior.
-- Approval-controlled repository updates.
-- Final validation execution.
-- Git diff generation and workflow completion reporting.
+Agent-specific behavior, workflows, acceptance criteria, and end-to-end scenarios are documented in the applicable `<Agent>_Testing_Guide.md`.
 
-As additional platform services are implemented, corresponding test
-suites should be added.
+Shared Project0 services may also be exercised by agent integration tests. Those agent-level tests verify the agent's use of the shared service and do not replace the platform-level tests defined by this guide.
+
+As additional reusable platform services are implemented, corresponding test suites should be added.
 
 ---
 
@@ -124,6 +116,8 @@ All commands assume the current working directory is the Project0 repository roo
 ### 6.1 Unit Tests
 
 ### Repository
+
+Repository tests in this guide verify reusable Project0 repository infrastructure. Agent-specific tests may exercise these services as dependencies but should document agent-specific repository behavior in the applicable Agent Testing Guide.
 
 ```bash
 python -m pytest tests/unit/repository/test_repository_service.py -v
@@ -148,8 +142,6 @@ python -m pytest tests/unit/common/test_startup_validation.py -v
 
 ```bash
 python -m pytest tests/unit/workflow/test_workflow_engine.py -v
-python -m pytest tests/unit/workflow/test_review_coordinator.py -v
-python -m pytest tests/unit/workflow/test_documentation_workflow.py -v
 ```
 
 ### Knowledge
@@ -186,10 +178,11 @@ python -m pytest tests/unit/models/test_workflow_models.py -v
 python -m pytest tests/unit/models/test_knowledge_models.py -v
 python -m pytest tests/unit/models/test_reasoning_models.py -v
 python -m pytest tests/unit/models/test_validation_models.py -v
-python -m pytest tests/unit/models/test_documentation_workflow_models.py -v
 ```
 
 ### Reasoning
+
+Reasoning tests in this guide verify reusable Project0 reasoning infrastructure, provider abstraction, and deterministic reasoning behavior. Agent-specific prompt behavior and interpretation of reasoning results belong in the applicable Agent Testing Guide.
 
 ```bash
 python -m pytest tests/unit/reasoning/test_prompt_builder.py -v
@@ -218,7 +211,6 @@ python -m pytest tests/integration/test_platform_dispatcher_flow.py -v
 python -m pytest tests/integration/test_knowledge_service_flow.py -v
 python -m pytest tests/integration/test_reasoning_service_flow.py -v
 python -m pytest tests/integration/test_validation_service_flow.py -v
-python -m pytest tests/integration/test_documentation_workflow_flow.py -v
 python -m pytest tests/integration/test_dashboard_flow.py -v
 ```
 
@@ -276,18 +268,21 @@ python -m pytest path/to/test_file.py::test_name -v
 
 ## 8. Expected Results
 
-Successful execution should report all tests passing with no unexpected warnings or failures.
+Successful Project0 platform test execution should report all applicable tests passing with no unexpected warnings or failures.
 
-Current validated implementation:
+Current Project0 validation expectations include:
 
-- Dashboard Framework unit and integration tests passing
-- Documentation Agent UI unit and workflow validation passing
-- Complete Documentation Agent workflow validation passing
-- 639 automated tests passing
-- Comprehensive unit test coverage
-- End-to-end integration workflow validation
+- Project0 platform unit tests passing.
+- Dashboard Framework unit and integration tests passing.
+- Shared platform integration workflows passing.
+- Complete Project0 regression suite passing.
+- No unexpected warnings or failures.
 
-As Project0 evolves, the total number of tests will continue to increase. Documentation should be updated periodically to reflect significant testing milestones.
+Agent-specific validation results, behavioral acceptance criteria, and completion requirements are defined by the applicable `<Agent>_Testing_Guide.md`.
+
+The complete Project0 regression suite includes both platform and agent tests. Passing the complete suite therefore remains required before repository-wide changes are considered validated.
+
+As Project0 evolves, the total number of tests will continue to increase. Documentation should be updated periodically to reflect significant platform testing milestones.
 
 ---
 
@@ -351,5 +346,9 @@ Future improvements may include:
 
 ## 12. Summary
 
-The Project0 testing framework provides a deterministic, maintainable foundation for validating platform behavior. Comprehensive unit and integration testing now validates the complete Documentation Agent workflow, including reasoning integration, validation, review coordination, repository updates, Git diff generation, and platform startup while maintaining confidence in system correctness.
-
+The Project0 testing framework provides a deterministic, maintainable
+foundation for validating platform behavior. Unit and integration
+testing verifies shared Project0 services, platform interactions,
+Dashboard Framework behavior, and overall regression stability while
+agent-specific testing remains defined by the applicable Agent Testing
+Guide.

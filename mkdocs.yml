@@ -55,10 +55,12 @@ nav:
       - Implementation Roadmap: Implementation_Roadmap.md
       - Implementation Status: Implementation_Status.md
   - Documentation Agent:
+      - Documentation Agent Charter: Documentation_Agent_Charter.md
       - Documentation Agent Functional Spec: Documentation_Agent_Functional_Spec.md
       - Documentation Agent Architecture: Documentation_Agent_Architecture.md
       - Documentation Agent Design: Documentation_Agent_Design.md
       - Documentation Agent Interface Design: Documentation_Agent_Interface_Design.md
+      - Documentation Agent Testing Guide: Documentation_Agent_Testing_Guide.md
 
 markdown_extensions:
   - attr_list
