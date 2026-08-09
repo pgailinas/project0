@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://pgailinas.github.io/project0/Shared_Data_Models_and_Error_Contracts/">
+        <link rel="canonical" href="https://pgailinas.github.io/project0/Documentation_Agent_Charter/">
       
       
-        <link rel="prev" href="../Project_Directory_Structure/">
+        <link rel="prev" href="../Implementation_Status/">
       
       
-        <link rel="next" href="../Component_Communication_Design/">
+        <link rel="next" href="../Documentation_Agent_Functional_Spec/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Shared Data Models and Error Contracts - Project0</title>
+        <title>Documentation Agent Charter - Project0</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#shared-data-models-and-error-contracts" class="md-skip">
+        <a href="#documentation-agent-charter" class="md-skip">
           Skip to content
         </a>
       
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Shared Data Models and Error Contracts
+              Documentation Agent Charter
             
           </span>
         </div>
@@ -508,20 +508,20 @@
       
   
   
-    
   
   
-  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
@@ -542,7 +542,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -557,37 +557,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Shared Data Models and Error Contracts
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../Shared_Data_Models_and_Error_Contracts/" class="md-nav__link">
         
   
   
@@ -603,308 +576,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#1-purpose" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        1. Purpose
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="1. Purpose">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#objective" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Objective
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#scope" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Scope
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#2-design-principles" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. Design Principles
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#3-shared-model-overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Shared Model Overview
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#4-core-data-models" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Core Data Models
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4. Core Data Models">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#user-request" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        User Request
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#workflow-state" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Workflow State
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#component-request" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Component Request
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#component-result" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Component Result
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#repository-context" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Repository Context
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#proposed-documentation-change" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Proposed Documentation Change
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#validation-result" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Validation Result
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#user-review-decision" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        User Review Decision
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#completion-summary" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Completion Summary
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#5-error-contract" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. Error Contract
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="5. Error Contract">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#error-detail" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Error Detail
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#6-error-categories" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        6. Error Categories
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#7-error-severity" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        7. Error Severity
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#8-error-handling-rules" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8. Error Handling Rules
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#9-model-relationships" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9. Model Relationships
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#10-design-constraints" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        10. Design Constraints
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#11-future-considerations" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        11. Future Considerations
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#12-related-documents" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        12. Related Documents
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1005,20 +676,20 @@
       
   
   
+    
   
   
+  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
           <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
@@ -1039,7 +710,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1054,10 +725,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../Documentation_Agent_Charter/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Agent Charter
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1073,6 +771,291 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-mission" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Mission
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-vision" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Vision
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Scope
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Scope">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-in-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 In Scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-out-of-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Out of Scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-operating-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Operating Principles
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Operating Principles">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#repository-grounding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repository Grounding
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#human-in-the-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Human-in-the-Loop
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#minimum-necessary-change" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Minimum Necessary Change
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deterministic-before-ai" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deterministic Before AI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#continuous-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Continuous Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modular-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Modular Architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reuse-before-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reuse Before Build
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#local-first-and-vendor-neutral" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local-First and Vendor-Neutral
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation-by-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation by Default
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-relationship-to-project0" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Relationship to Project0
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-human-authority-and-repository-safety" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Human Authority and Repository Safety
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-success-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Success Criteria
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-future-direction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Future Direction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-document-authority" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Document Authority
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-related-documents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Related Documents
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1260,14 +1243,58 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="1. Purpose">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-mission" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Mission
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-vision" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Vision
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Scope
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Scope">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#objective" class="md-nav__link">
+  <a href="#51-in-scope" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Objective
+        5.1 In Scope
       
     </span>
   </a>
@@ -1275,10 +1302,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#scope" class="md-nav__link">
+  <a href="#52-out-of-scope" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Scope
+        5.2 Out of Scope
       
     </span>
   </a>
@@ -1291,44 +1318,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-design-principles" class="md-nav__link">
+  <a href="#6-operating-principles" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Design Principles
+        6. Operating Principles
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#3-shared-model-overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Shared Model Overview
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#4-core-data-models" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Core Data Models
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4. Core Data Models">
+    <nav class="md-nav" aria-label="6. Operating Principles">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#user-request" class="md-nav__link">
+  <a href="#repository-grounding" class="md-nav__link">
     <span class="md-ellipsis">
       
-        User Request
+        Repository Grounding
       
     </span>
   </a>
@@ -1336,10 +1341,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#workflow-state" class="md-nav__link">
+  <a href="#human-in-the-loop" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Workflow State
+        Human-in-the-Loop
       
     </span>
   </a>
@@ -1347,10 +1352,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#component-request" class="md-nav__link">
+  <a href="#minimum-necessary-change" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Component Request
+        Minimum Necessary Change
       
     </span>
   </a>
@@ -1358,10 +1363,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#component-result" class="md-nav__link">
+  <a href="#deterministic-before-ai" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Component Result
+        Deterministic Before AI
       
     </span>
   </a>
@@ -1369,10 +1374,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#repository-context" class="md-nav__link">
+  <a href="#continuous-validation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Repository Context
+        Continuous Validation
       
     </span>
   </a>
@@ -1380,10 +1385,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#proposed-documentation-change" class="md-nav__link">
+  <a href="#modular-architecture" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Proposed Documentation Change
+        Modular Architecture
       
     </span>
   </a>
@@ -1391,10 +1396,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#validation-result" class="md-nav__link">
+  <a href="#reuse-before-build" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Validation Result
+        Reuse Before Build
       
     </span>
   </a>
@@ -1402,10 +1407,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#user-review-decision" class="md-nav__link">
+  <a href="#local-first-and-vendor-neutral" class="md-nav__link">
     <span class="md-ellipsis">
       
-        User Review Decision
+        Local-First and Vendor-Neutral
       
     </span>
   </a>
@@ -1413,10 +1418,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#completion-summary" class="md-nav__link">
+  <a href="#documentation-by-default" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Completion Summary
+        Documentation by Default
       
     </span>
   </a>
@@ -1429,38 +1434,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-error-contract" class="md-nav__link">
+  <a href="#7-relationship-to-project0" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. Error Contract
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="5. Error Contract">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#error-detail" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Error Detail
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#6-error-categories" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        6. Error Categories
+        7. Relationship to Project0
       
     </span>
   </a>
@@ -1468,10 +1445,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#7-error-severity" class="md-nav__link">
+  <a href="#8-human-authority-and-repository-safety" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7. Error Severity
+        8. Human Authority and Repository Safety
       
     </span>
   </a>
@@ -1479,10 +1456,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#8-error-handling-rules" class="md-nav__link">
+  <a href="#9-success-criteria" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8. Error Handling Rules
+        9. Success Criteria
       
     </span>
   </a>
@@ -1490,10 +1467,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#9-model-relationships" class="md-nav__link">
+  <a href="#10-future-direction" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9. Model Relationships
+        10. Future Direction
       
     </span>
   </a>
@@ -1501,21 +1478,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#10-design-constraints" class="md-nav__link">
+  <a href="#11-document-authority" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10. Design Constraints
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#11-future-considerations" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        11. Future Considerations
+        11. Document Authority
       
     </span>
   </a>
@@ -1550,7 +1516,7 @@
 
 
   
-    <a href="https://github.com/pgailinas/project0/edit/main/docs/Shared_Data_Models_and_Error_Contracts.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/pgailinas/project0/edit/main/docs/Documentation_Agent_Charter.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -1558,464 +1524,244 @@
   
 
 
-<h1 id="shared-data-models-and-error-contracts">Shared Data Models and Error Contracts</h1>
-<p><strong>Version:</strong> 0.2<br />
+<h1 id="documentation-agent-charter">Documentation Agent Charter</h1>
+<p><strong>Version:</strong> 0.1<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-06</p>
+<strong>Last Updated:</strong> 2026-08-1</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
-<h3 id="objective">Objective</h3>
-<p>Define the shared data models and error contracts used by Documentation Agent components.</p>
-<h3 id="scope">Scope</h3>
-<p>Specify the common information exchanged between components, the minimum required fields for each shared model, and the standard error information exchanged between components. Implementation-specific classes, serialization formats, and provider-specific details are intentionally excluded.</p>
+<p>Establish the mission, scope, operating principles, authority
+boundaries, and success criteria for the Project0 Documentation Agent.</p>
+<p>The Documentation Agent exists to maintain synchronization between
+software repositories and their documentation while minimizing manual
+effort and preserving documentation quality through controlled,
+reviewable updates.</p>
+<p>This charter defines the high-level intent of the Documentation Agent.
+Detailed functional behavior, architecture, component design, and
+interface contracts are defined in their respective authoritative
+documents.</p>
 <hr />
-<h2 id="2-design-principles">2. Design Principles</h2>
+<h2 id="2-mission">2. Mission</h2>
+<p>Provide an AI-assisted, human-controlled capability that identifies
+documentation impact, proposes accurate and minimal documentation
+updates, validates proposed changes, and applies only explicitly
+approved changes to repository documentation.</p>
+<p>The Documentation Agent supports Project0's broader mission of using
+specialized AI agents within structured development workflows while
+preserving human decision authority and professional software
+engineering quality.</p>
+<hr />
+<h2 id="3-vision">3. Vision</h2>
+<p>Make accurate, current, repository-grounded documentation a normal and
+integrated part of software development rather than a separate manual
+maintenance activity.</p>
+<p>The Documentation Agent should demonstrate how a specialized Project0 AI
+agent can combine deterministic platform services, AI reasoning,
+continuous validation, and human approval checkpoints within a reusable
+AI-native development framework.</p>
+<hr />
+<h2 id="4-objectives">4. Objectives</h2>
+<p>The Documentation Agent shall:</p>
 <ul>
-<li>Shared models shall use consistent terminology.</li>
-<li>Models shall contain only information required for component communication.</li>
-<li>Components shall remain independent of each other's internal structures.</li>
-<li>Models shall remain technology independent.</li>
-<li>Errors shall be represented as structured data.</li>
-<li>Shared models and error contracts shall be independently testable.</li>
+<li>Maintain synchronization between repository state and project
+    documentation.</li>
+<li>Reduce the manual effort required to identify and perform
+    documentation updates.</li>
+<li>Use repository content as the authoritative source of project
+    knowledge.</li>
+<li>Identify documentation affected by repository changes or explicit
+    documentation requests.</li>
+<li>Produce accurate, minimal, style-preserving documentation proposals.</li>
+<li>Explain the rationale for proposed documentation changes.</li>
+<li>Validate proposed changes before human approval.</li>
+<li>Present proposed changes clearly for individual human review.</li>
+<li>Apply only explicitly approved documentation changes.</li>
+<li>Perform final validation after approved changes are applied.</li>
+<li>Provide a final Git diff so applied repository changes remain
+    reviewable and traceable.</li>
+<li>Reuse generic Project0 platform services and interfaces wherever
+    practical.</li>
+<li>Preserve architectural separation between reusable Project0
+    infrastructure and Documentation Agent-specific behavior.</li>
 </ul>
 <hr />
-<h2 id="3-shared-model-overview">3. Shared Model Overview</h2>
-<p>The Documentation Agent uses the following shared models:</p>
+<h2 id="5-scope">5. Scope</h2>
+<h3 id="51-in-scope">5.1 In Scope</h3>
+<p>The Documentation Agent is responsible for:</p>
 <ul>
-<li>User Request</li>
-<li>Workflow State</li>
-<li>Component Request</li>
-<li>Component Result</li>
-<li>Repository Context</li>
-<li>Proposed Documentation Change</li>
-<li>Validation Result</li>
-<li>User Review Decision</li>
-<li>Completion Summary</li>
-<li>Error Detail</li>
+<li>Markdown documentation maintained in a local Git repository.</li>
+<li>Documentation impact analysis.</li>
+<li>Repository-grounded documentation context.</li>
+<li>AI-assisted documentation reasoning.</li>
+<li>File-by-file documentation proposals.</li>
+<li>Human review of proposed documentation changes.</li>
+<li>Approve, revise, reject, and skip review decisions.</li>
+<li>Application of approved documentation changes through controlled
+    repository services.</li>
+<li>Markdown, link, MkDocs, and documentation consistency validation.</li>
+<li>Final Git diff generation.</li>
+<li>Documentation workflow results and activity reporting.</li>
+<li>Interaction through the reusable Project0 Dashboard Framework.</li>
+</ul>
+<h3 id="52-out-of-scope">5.2 Out of Scope</h3>
+<p>The Documentation Agent shall not:</p>
+<ul>
+<li>Modify application source code.</li>
+<li>Commit, push, merge, or open pull requests.</li>
+<li>Override human review decisions.</li>
+<li>Apply documentation changes without required approval.</li>
+<li>Modify files outside the approved documentation scope.</li>
+<li>Treat AI model memory or retrieved excerpts as more authoritative
+    than repository content.</li>
+<li>Invent unsupported project information.</li>
+<li>Operate as a continuously monitoring autonomous repository service.</li>
+<li>Own or embed Documentation Agent business logic within the Dashboard
+    Framework.</li>
+<li>Replace deterministic repository, workflow, or validation operations
+    with AI reasoning when deterministic processing is sufficient.</li>
 </ul>
 <hr />
-<h2 id="4-core-data-models">4. Core Data Models</h2>
-<h3 id="user-request">User Request</h3>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Purpose</td>
-<td>Represents a documentation request submitted by the user.</td>
-</tr>
-<tr>
-<td>Required Fields</td>
-<td>Request ID, description, timestamp</td>
-</tr>
-<tr>
-<td>Optional Fields</td>
-<td>Target files, user constraints</td>
-</tr>
-<tr>
-<td>Produced By</td>
-<td>Dashboard Framework</td>
-</tr>
-<tr>
-<td>Consumed By</td>
-<td>Platform Dispatcher, Workflow Engine, Knowledge Service, Reasoning Service</td>
-</tr>
-</tbody>
-</table>
+<h2 id="6-operating-principles">6. Operating Principles</h2>
+<p>The Documentation Agent shall follow these principles:</p>
+<h3 id="repository-grounding">Repository Grounding</h3>
+<p>Repository documentation and repository content are the authoritative
+sources of project knowledge. AI-generated proposals remain
+non-authoritative until approved and applied.</p>
+<h3 id="human-in-the-loop">Human-in-the-Loop</h3>
+<p>Human authority is preserved for documentation changes. Proposed changes
+shall be reviewable, and required approval shall occur before repository
+modification.</p>
+<h3 id="minimum-necessary-change">Minimum Necessary Change</h3>
+<p>Documentation updates should make the smallest change necessary to
+satisfy the request while preserving unrelated content, document
+structure, terminology, and style.</p>
+<h3 id="deterministic-before-ai">Deterministic Before AI</h3>
+<p>Repository access, workflow coordination, context handling, validation,
+and repository modification should use deterministic services whenever
+AI reasoning is not required.</p>
+<h3 id="continuous-validation">Continuous Validation</h3>
+<p>Proposed documentation changes shall be validated before approval, and
+applied changes shall undergo final validation before workflow
+completion.</p>
+<h3 id="modular-architecture">Modular Architecture</h3>
+<p>Documentation Agent-specific behavior shall remain separate from
+reusable Project0 platform infrastructure and shall communicate through
+defined interfaces and shared models.</p>
+<h3 id="reuse-before-build">Reuse Before Build</h3>
+<p>Existing Project0 services, established open-source tools, and reusable
+framework capabilities shall be used whenever practical rather than
+duplicated within the Documentation Agent.</p>
+<h3 id="local-first-and-vendor-neutral">Local-First and Vendor-Neutral</h3>
+<p>Local and open technologies are preferred where practical, and AI
+reasoning capabilities shall remain abstracted so that provider
+implementations can change without redefining the agent.</p>
+<h3 id="documentation-by-default">Documentation by Default</h3>
+<p>Documentation is living project knowledge and shall remain synchronized
+with the repository state while following Project0 Documentation
+Standards.</p>
 <hr />
-<h3 id="workflow-state">Workflow State</h3>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Purpose</td>
-<td>Represents the current workflow.</td>
-</tr>
-<tr>
-<td>Required Fields</td>
-<td>Workflow ID, request, status, current step, created, updated</td>
-</tr>
-<tr>
-<td>Optional Fields</td>
-<td>Repository context, proposed changes, validation results</td>
-</tr>
-<tr>
-<td>Produced By</td>
-<td>Workflow Engine</td>
-</tr>
-<tr>
-<td>Consumed By</td>
-<td>Workflow Engine</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Design Notes</strong></p>
+<h2 id="7-relationship-to-project0">7. Relationship to Project0</h2>
+<p>The Documentation Agent is a specialized AI agent operating within the
+Project0 AI-native software development framework.</p>
+<p>Project0 provides reusable platform capabilities such as repository
+access, workflow execution, knowledge retrieval, AI reasoning
+abstraction, validation, shared models and interfaces, platform
+dispatch, and the Dashboard Framework.</p>
+<p>The Documentation Agent composes these capabilities into a
+documentation-specific workflow. It shall not redefine generic platform
+responsibilities solely to satisfy agent-specific requirements.</p>
+<p>The Dashboard Framework provides the shared application shell,
+navigation, context, and Work Area hosting. The Documentation Agent owns
+only its agent-specific workflow interactions and presentation within
+the Dashboard Work Area.</p>
+<p>The Documentation Agent also serves as the first reference
+implementation for evaluating whether Project0 infrastructure can
+support additional specialized AI agents through reusable platform
+contracts.</p>
+<hr />
+<h2 id="8-human-authority-and-repository-safety">8. Human Authority and Repository Safety</h2>
+<p>Repository modification is a controlled action.</p>
+<p>The Documentation Agent shall:</p>
 <ul>
-<li>The Workflow Engine owns workflow state.</li>
-<li>Other components receive only the information needed to perform their work.</li>
+<li>Present proposed documentation changes before they are applied.</li>
+<li>Require the defined human approval decision before applying a
+    proposal.</li>
+<li>Apply only approved documentation changes.</li>
+<li>Preserve unrelated repository content.</li>
+<li>Restrict modifications to approved repository paths.</li>
+<li>Use controlled repository update services for documentation
+    modification.</li>
+<li>Perform validation after repository changes are applied.</li>
+<li>Provide a final Git diff for human inspection.</li>
+<li>Report failures rather than silently continuing when repository
+    integrity or validation cannot be established.</li>
+</ul>
+<p>AI reasoning may recommend documentation changes but does not
+independently possess authority to modify the repository.</p>
+<hr />
+<h2 id="9-success-criteria">9. Success Criteria</h2>
+<p>The Documentation Agent is successful when it can:</p>
+<ul>
+<li>Correctly determine documentation impact from repository changes or
+    explicit user requests.</li>
+<li>Select appropriate repository documentation and context.</li>
+<li>Generate accurate, relevant, and minimal documentation proposals.</li>
+<li>Preserve unrelated document content and established documentation
+    style.</li>
+<li>Explain why each proposed change is appropriate.</li>
+<li>Present sufficient information for an informed human review
+    decision.</li>
+<li>Apply only individually approved documentation changes.</li>
+<li>Leave rejected, skipped, unrelated, and out-of-scope content
+    unchanged.</li>
+<li>Detect documentation defects through deterministic validation.</li>
+<li>Complete final validation after repository modification.</li>
+<li>Produce an accurate Git diff of applied changes.</li>
+<li>Fail safely when a requested change cannot be applied reliably.</li>
+<li>Operate through Project0's reusable platform architecture without
+    embedding Documentation Agent-specific responsibilities into shared
+    platform components.</li>
 </ul>
 <hr />
-<h3 id="component-request">Component Request</h3>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Purpose</td>
-<td>Represents a request from the Workflow Engine to another component.</td>
-</tr>
-<tr>
-<td>Required Fields</td>
-<td>Request ID, workflow ID, target component, operation, payload</td>
-</tr>
-<tr>
-<td>Optional Fields</td>
-<td>Request metadata</td>
-</tr>
-<tr>
-<td>Produced By</td>
-<td>Workflow Engine</td>
-</tr>
-<tr>
-<td>Consumed By</td>
-<td>Repository Tools, Knowledge Service, Validation Engine, Reasoning Service</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h3 id="component-result">Component Result</h3>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Purpose</td>
-<td>Represents a standard component response.</td>
-</tr>
-<tr>
-<td>Required Fields</td>
-<td>Request ID, workflow ID, source component, status, payload</td>
-</tr>
-<tr>
-<td>Optional Fields</td>
-<td>Warnings, error detail</td>
-</tr>
-<tr>
-<td>Produced By</td>
-<td>Repository Tools, Knowledge Service, Validation Engine, Reasoning Service</td>
-</tr>
-<tr>
-<td>Consumed By</td>
-<td>Workflow Engine</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Status Values:</strong> Success, Partial Success, Failed, Skipped</p>
-<hr />
-<h3 id="repository-context">Repository Context</h3>
-<p>| Property | Description |
-| Purpose | Represents repository information required for analysis. |
-| Required Fields | Repository ID, root, relevant files, retrieved content, repository status |
-| Optional Fields | Changed files, Git diff |
-| Produced By | Repository Tools, Knowledge Service |
-| Consumed By | Workflow Engine, Reasoning Service, Validation Engine |</p>
-<hr />
-<h3 id="proposed-documentation-change">Proposed Documentation Change</h3>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Purpose</td>
-<td>Represents one proposed documentation update.</td>
-</tr>
-<tr>
-<td>Required Fields</td>
-<td>Change ID, target file, type, proposed content, explanation, review status</td>
-</tr>
-<tr>
-<td>Optional Fields</td>
-<td>Original content, source references, validation results</td>
-</tr>
-<tr>
-<td>Produced By</td>
-<td>Reasoning Service, Workflow Engine</td>
-</tr>
-<tr>
-<td>Consumed By</td>
-<td>Workflow Engine, Validation Engine, Repository Tools, User Review</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Change Types:</strong> Create, Update, Delete, Rename, Move</p>
-<p><strong>Review Status:</strong> Pending, Approved, Revision Requested, Rejected, Skipped, Applied</p>
-<hr />
-<h3 id="validation-result">Validation Result</h3>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Purpose</td>
-<td>Represents the outcome of a validation operation.</td>
-</tr>
-<tr>
-<td>Required Fields</td>
-<td>Validation ID, type, status, message</td>
-</tr>
-<tr>
-<td>Optional Fields</td>
-<td>Findings, warnings</td>
-</tr>
-<tr>
-<td>Produced By</td>
-<td>Validation Engine</td>
-</tr>
-<tr>
-<td>Consumed By</td>
-<td>Workflow Engine, User Review</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Status Values:</strong> Passed, Passed with Warnings, Failed, Not Run</p>
-<hr />
-<h3 id="user-review-decision">User Review Decision</h3>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Purpose</td>
-<td>Represents the user's decision for one proposed change.</td>
-</tr>
-<tr>
-<td>Required Fields</td>
-<td>Decision ID, change ID, decision, timestamp</td>
-</tr>
-<tr>
-<td>Optional Fields</td>
-<td>Revision instructions</td>
-</tr>
-<tr>
-<td>Produced By</td>
-<td>User Review</td>
-</tr>
-<tr>
-<td>Consumed By</td>
-<td>Workflow Engine</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Decision Values:</strong> Approve, Revise, Reject, Skip</p>
-<hr />
-<h3 id="completion-summary">Completion Summary</h3>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Purpose</td>
-<td>Represents the final workflow outcome.</td>
-</tr>
-<tr>
-<td>Required Fields</td>
-<td>Workflow ID, status, completion timestamp, summary</td>
-</tr>
-<tr>
-<td>Optional Fields</td>
-<td>Validation summary, final Git diff</td>
-</tr>
-<tr>
-<td>Produced By</td>
-<td>Workflow Engine</td>
-</tr>
-<tr>
-<td>Consumed By</td>
-<td>User</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="5-error-contract">5. Error Contract</h2>
-<h3 id="error-detail">Error Detail</h3>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Purpose</td>
-<td>Represents a structured component error.</td>
-</tr>
-<tr>
-<td>Required Fields</td>
-<td>Error code, category, message, source component, recoverable</td>
-</tr>
-<tr>
-<td>Optional Fields</td>
-<td>Related file, suggested action</td>
-</tr>
-<tr>
-<td>Produced By</td>
-<td>Any component</td>
-</tr>
-<tr>
-<td>Consumed By</td>
-<td>Workflow Engine</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="6-error-categories">6. Error Categories</h2>
-<table>
-<thead>
-<tr>
-<th>Category</th>
-<th>Typical Examples</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Request</td>
-<td>Missing target, unsupported request</td>
-</tr>
-<tr>
-<td>Repository</td>
-<td>File not found, Git failure</td>
-</tr>
-<tr>
-<td>Knowledge</td>
-<td>Missing context</td>
-</tr>
-<tr>
-<td>Reasoning</td>
-<td>AI unavailable, invalid response</td>
-</tr>
-<tr>
-<td>Validation</td>
-<td>Markdown or MkDocs failure</td>
-</tr>
-<tr>
-<td>Review</td>
-<td>Invalid review decision</td>
-</tr>
-<tr>
-<td>Workflow</td>
-<td>Invalid workflow state</td>
-</tr>
-<tr>
-<td>System</td>
-<td>Configuration or dependency failure</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="7-error-severity">7. Error Severity</h2>
-<table>
-<thead>
-<tr>
-<th>Severity</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Information</td>
-<td>Continue normally</td>
-</tr>
-<tr>
-<td>Warning</td>
-<td>Continue with attention</td>
-</tr>
-<tr>
-<td>Error</td>
-<td>Current operation fails</td>
-</tr>
-<tr>
-<td>Critical</td>
-<td>Stop workflow</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="8-error-handling-rules">8. Error Handling Rules</h2>
+<h2 id="10-future-direction">10. Future Direction</h2>
+<p>Future evolution may improve the Documentation Agent without changing
+this charter's core human-controlled and repository-grounded principles.</p>
+<p>Potential directions include:</p>
 <ul>
-<li>Components shall return structured error information.</li>
-<li>Components shall not silently ignore errors.</li>
-<li>The Workflow Engine determines workflow response.</li>
-<li>Validation failures prevent affected changes from being applied.</li>
-<li>User-visible errors shall explain the problem and the next available action.</li>
+<li>Improved documentation impact analysis.</li>
+<li>Semantic repository retrieval.</li>
+<li>Larger coordinated multi-document updates.</li>
+<li>Additional AI reasoning providers.</li>
+<li>Improved proposal and diff presentation.</li>
+<li>Additional deterministic validators.</li>
+<li>More sophisticated revision workflows.</li>
+<li>Repository event awareness.</li>
+<li>Optional automation around documentation workflows while preserving
+    defined human authority.</li>
+<li>Lessons and reusable patterns that support development of additional
+    Project0 AI agents.</li>
 </ul>
+<p>Future capabilities shall be introduced through the appropriate
+functional, architectural, and design documents rather than being
+assumed by this charter.</p>
 <hr />
-<h2 id="9-model-relationships">9. Model Relationships</h2>
-<ol>
-<li>User Request starts a Workflow State.</li>
-<li>Workflow Engine creates Component Requests.</li>
-<li>Components return Component Results.</li>
-<li>Repository Tools and Knowledge Service produce Repository Context.</li>
-<li>Reasoning Service produces Proposed Documentation Changes.</li>
-<li>Validation Engine produces Validation Results.</li>
-<li>User Review produces User Review Decisions.</li>
-<li>Repository Update Service applies approved changes.</li>
-<li>Documentation Workflow produces the Completion Summary.</li>
-<li>Any component may return an Error Detail.</li>
-</ol>
-<hr />
-<h2 id="10-design-constraints">10. Design Constraints</h2>
-<ul>
-<li>Models shall remain vendor neutral.</li>
-<li>Identifiers shall be unique within a workflow.</li>
-<li>Optional fields shall not be required for interoperability.</li>
-<li>Models shall support future serialization.</li>
-<li>Changes should preserve backward compatibility whenever practical.</li>
-</ul>
-<hr />
-<h2 id="11-future-considerations">11. Future Considerations</h2>
-<ul>
-<li>Dashboard-aware request models</li>
-<li>Python data classes</li>
-<li>Enumerations</li>
-<li>Schema validation</li>
-<li>JSON serialization</li>
-<li>Persistent workflow state</li>
-<li>Structured logging</li>
-</ul>
+<h2 id="11-document-authority">11. Document Authority</h2>
+<p>This charter defines the high-level purpose, mission, scope, principles,
+and authority boundaries of the Documentation Agent.</p>
+<p>Detailed requirements and implementation-independent behavior are
+defined by the <strong>Documentation Agent Functional Specification</strong>.</p>
+<p>The high-level component organization is defined by the <strong>Documentation
+Agent Architecture</strong>.</p>
+<p>Internal component responsibilities and interactions are defined by the
+<strong>Documentation Agent Component Design</strong> and related interface design
+documentation.</p>
+<p>Repository-wide documentation requirements are defined by
+<strong>Documentation Standards</strong>.</p>
+<p>Project-wide mission, vision, principles, and objectives remain governed
+by the <strong>Project Charter</strong>.</p>
+<p>Where lower-level Documentation Agent documents conflict with this
+charter, the conflict should be resolved explicitly rather than silently
+redefining the agent's mission or authority boundaries.</p>
 <hr />
 <h2 id="12-related-documents">12. Related Documents</h2>
 <ul>
@@ -2023,8 +1769,8 @@
 <li>Documentation Standards</li>
 <li>Documentation Agent Functional Specification</li>
 <li>Documentation Agent Architecture</li>
-<li>Documentation Agent Design</li>
-<li>Implementation Roadmap</li>
+<li>Documentation Agent Component Design</li>
+<li>Documentation Agent Interface Design</li>
 </ul>
 
 

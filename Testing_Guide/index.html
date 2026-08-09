@@ -1084,6 +1084,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../Documentation_Agent_Charter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Agent Charter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../Documentation_Agent_Functional_Spec/" class="md-nav__link">
         
   
@@ -1176,6 +1204,34 @@
     
   
     Documentation Agent Interface Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Documentation_Agent_Testing_Guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Agent Testing Guide
   
 
     
@@ -1557,9 +1613,9 @@
 
 
 <h1 id="testing-guide">Testing Guide</h1>
-<p><strong>Version:</strong> 0.2<br />
+<p><strong>Version:</strong> 0.3<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-06</p>
+<strong>Last Updated:</strong> 2026-08-09</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <p>This document describes the testing strategy used throughout the Project0 platform and provides the standard procedures for executing, extending, and maintaining the automated test suite.</p>
@@ -1620,7 +1676,7 @@
 </ul>
 <hr />
 <h2 id="5-current-test-coverage">5. Current Test Coverage</h2>
-<p>Current test categories include:</p>
+<p>Current Project0 platform test categories include:</p>
 <ul>
 <li>Common</li>
 <li>Configuration</li>
@@ -1630,18 +1686,21 @@
 <li>Knowledge Services</li>
 <li>Reasoning Services</li>
 <li>Validation Services</li>
-<li>Documentation Workflow Services</li>
 <li>Shared Models</li>
 <li>Dashboard Framework</li>
-<li>Integration Workflows</li>
+<li>Platform Integration Workflows</li>
 </ul>
-<p>As additional platform services are implemented, corresponding test suites should be added.</p>
+<p>This guide defines testing for reusable Project0 platform components and the Dashboard Framework.</p>
+<p>Agent-specific behavior, workflows, acceptance criteria, and end-to-end scenarios are documented in the applicable <code>&lt;Agent&gt;_Testing_Guide.md</code>.</p>
+<p>Shared Project0 services may also be exercised by agent integration tests. Those agent-level tests verify the agent's use of the shared service and do not replace the platform-level tests defined by this guide.</p>
+<p>As additional reusable platform services are implemented, corresponding test suites should be added.</p>
 <hr />
 <h2 id="6-running-tests">6. Running Tests</h2>
 <p>All commands assume the current working directory is the Project0 repository root.</p>
 <hr />
 <h3 id="61-unit-tests">6.1 Unit Tests</h3>
 <h3 id="repository">Repository</h3>
+<p>Repository tests in this guide verify reusable Project0 repository infrastructure. Agent-specific tests may exercise these services as dependencies but should document agent-specific repository behavior in the applicable Agent Testing Guide.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/repository/test_repository_service.py<span class="w"> </span>-v
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/repository/test_repository_update_service.py<span class="w"> </span>-v
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/repository/test_git_diff_service.py<span class="w"> </span>-v
@@ -1655,8 +1714,6 @@
 </span></code></pre></div>
 <h3 id="workflow">Workflow</h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/workflow/test_workflow_engine.py<span class="w"> </span>-v
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/workflow/test_review_coordinator.py<span class="w"> </span>-v
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/workflow/test_documentation_workflow.py<span class="w"> </span>-v
 </span></code></pre></div>
 <h3 id="knowledge">Knowledge</h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/knowledge/test_context_builder.py<span class="w"> </span>-v
@@ -1681,9 +1738,9 @@
 </span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/models/test_knowledge_models.py<span class="w"> </span>-v
 </span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/models/test_reasoning_models.py<span class="w"> </span>-v
 </span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/models/test_validation_models.py<span class="w"> </span>-v
-</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/models/test_documentation_workflow_models.py<span class="w"> </span>-v
 </span></code></pre></div>
 <h3 id="reasoning">Reasoning</h3>
+<p>Reasoning tests in this guide verify reusable Project0 reasoning infrastructure, provider abstraction, and deterministic reasoning behavior. Agent-specific prompt behavior and interpretation of reasoning results belong in the applicable Agent Testing Guide.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/reasoning/test_prompt_builder.py<span class="w"> </span>-v
 </span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/reasoning/test_reasoning_service.py<span class="w"> </span>-v
 </span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/reasoning/providers/test_stub_provider.py<span class="w"> </span>-v
@@ -1703,8 +1760,7 @@
 </span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/test_knowledge_service_flow.py<span class="w"> </span>-v
 </span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/test_reasoning_service_flow.py<span class="w"> </span>-v
 </span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/test_validation_service_flow.py<span class="w"> </span>-v
-</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/test_documentation_workflow_flow.py<span class="w"> </span>-v
-</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/test_dashboard_flow.py<span class="w"> </span>-v
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/test_dashboard_flow.py<span class="w"> </span>-v
 </span></code></pre></div>
 <hr />
 <h3 id="63-run-complete-test-suites">6.3 Run Complete Test Suites</h3>
@@ -1733,15 +1789,18 @@
 </span></code></pre></div>
 <hr />
 <h2 id="8-expected-results">8. Expected Results</h2>
-<p>Successful execution should report all tests passing with no unexpected warnings or failures.</p>
-<p>Current validated implementation:</p>
+<p>Successful Project0 platform test execution should report all applicable tests passing with no unexpected warnings or failures.</p>
+<p>Current Project0 validation expectations include:</p>
 <ul>
-<li>Dashboard Framework unit and integration tests passing</li>
-<li>524 automated tests passing</li>
-<li>Comprehensive unit test coverage</li>
-<li>End-to-end integration workflow validation</li>
+<li>Project0 platform unit tests passing.</li>
+<li>Dashboard Framework unit and integration tests passing.</li>
+<li>Shared platform integration workflows passing.</li>
+<li>Complete Project0 regression suite passing.</li>
+<li>No unexpected warnings or failures.</li>
 </ul>
-<p>As Project0 evolves, the total number of tests will continue to increase. Documentation should be updated periodically to reflect significant testing milestones.</p>
+<p>Agent-specific validation results, behavioral acceptance criteria, and completion requirements are defined by the applicable <code>&lt;Agent&gt;_Testing_Guide.md</code>.</p>
+<p>The complete Project0 regression suite includes both platform and agent tests. Passing the complete suite therefore remains required before repository-wide changes are considered validated.</p>
+<p>As Project0 evolves, the total number of tests will continue to increase. Documentation should be updated periodically to reflect significant platform testing milestones.</p>
 <hr />
 <h2 id="9-adding-new-tests">9. Adding New Tests</h2>
 <p>Each new production component should include corresponding automated tests.</p>
@@ -1785,7 +1844,12 @@
 </ul>
 <hr />
 <h2 id="12-summary">12. Summary</h2>
-<p>The Project0 testing framework provides a deterministic, maintainable foundation for validating platform behavior. Comprehensive unit and integration testing now validates the complete Documentation Agent workflow, including reasoning integration, validation, review coordination, repository updates, Git diff generation, and platform startup while maintaining confidence in system correctness.</p>
+<p>The Project0 testing framework provides a deterministic, maintainable
+foundation for validating platform behavior. Unit and integration
+testing verifies shared Project0 services, platform interactions,
+Dashboard Framework behavior, and overall regression stability while
+agent-specific testing remains defined by the applicable Agent Testing
+Guide.</p>
 
 
 

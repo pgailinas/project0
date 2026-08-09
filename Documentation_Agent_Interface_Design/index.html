@@ -16,6 +16,8 @@
         <link rel="prev" href="../Documentation_Agent_Design/">
       
       
+        <link rel="next" href="../Documentation_Agent_Testing_Guide/">
+      
       
         
       
@@ -726,6 +728,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../Documentation_Agent_Charter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Agent Charter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../Documentation_Agent_Functional_Spec/" class="md-nav__link">
         
   
@@ -892,6 +922,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#phase-8-alignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 8 Alignment
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -901,6 +942,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Documentation_Agent_Testing_Guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Agent Testing Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -962,6 +1031,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#phase-8-alignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 8 Alignment
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -993,9 +1073,9 @@
 
 
 <h1 id="documentation-agent-interface-design">Documentation Agent Interface Design</h1>
-<p><strong>Version:</strong> 0.1<br />
+<p><strong>Version:</strong> 0.2<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-06</p>
+<strong>Last Updated:</strong> 2026-08-09</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="phase-7-alignment">Phase 7 Alignment</h3>
@@ -1006,6 +1086,18 @@ infrastructure, while Documentation Agent interfaces define only the
 contracts between Documentation Agent components. The Dashboard
 Framework remains architecturally separate from Documentation Agent
 business logic.</p>
+<h3 id="phase-8-alignment">Phase 8 Alignment</h3>
+<p>The Documentation Agent interfaces continue to define contracts between
+Documentation Agent components while remaining separate from Dashboard
+Framework presentation responsibilities.</p>
+<p>The completed Phase 8 workflow adds human-in-the-loop documentation
+interactions hosted within the Dashboard Work Area. The Dashboard Framework
+continues to provide the shared application shell, navigation, and hosting
+infrastructure. Documentation Agent interfaces define only agent-specific
+workflow interactions, including documentation request processing, review
+coordination, repository update coordination, and workflow result handling.</p>
+<p>Agent-specific UI behavior and presentation details remain outside these
+interfaces and are implemented by the Documentation Agent UI components.</p>
 
 
 
