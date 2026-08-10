@@ -44,7 +44,7 @@ def test_knowledge_service_flow_selects_requested_document(
 
     create_markdown_file(
         tmp_path,
-        "docs/Project_Charter.md",
+        "docs/project/Project_Charter.md",
         "# Project Charter\n\n"
         "Defines the Project0 purpose and scope.\n",
     )
@@ -192,14 +192,14 @@ def test_knowledge_service_flow_includes_baseline_documents(
 
     charter = create_markdown_file(
         tmp_path,
-        "docs/Project_Charter.md",
+        "docs/project/Project_Charter.md",
         "# Project Charter\n\n"
         "Defines the project purpose.\n",
     )
 
     standards = create_markdown_file(
         tmp_path,
-        "docs/Documentation_Standards.md",
+        "docs/project/Documentation_Standards.md",
         "# Documentation Standards\n\n"
         "Defines Markdown documentation rules.\n",
     )

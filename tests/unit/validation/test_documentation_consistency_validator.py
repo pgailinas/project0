@@ -30,26 +30,26 @@ def _write_required_documents(
     """Create the default required documentation set."""
 
     documents = {
-        "docs/Project_Charter.md": "# Project Charter\n",
-        "docs/Documentation_Standards.md": "# Documentation Standards\n",
-        "docs/Documentation_Agent_Functional_Spec.md": (
+        "docs/project/Project_Charter.md": "# Project Charter\n",
+        "docs/project/Documentation_Standards.md": "# Documentation Standards\n",
+        "docs/agents/documentation/Documentation_Agent_Functional_Spec.md": (
             "# Documentation Agent Functional Specification\n"
         ),
-        "docs/Documentation_Agent_Architecture.md": (
+        "docs/agents/documentation/Documentation_Agent_Architecture.md": (
             "# Documentation Agent Architecture\n"
         ),
-        "docs/Documentation_Agent_Design.md": (
+        "docs/agents/documentation/Documentation_Agent_Design.md": (
             "# Documentation Agent Component Design\n"
         ),
-        "docs/Component_Communication_Design.md": (
+        "docs/platform/Component_Communication_Design.md": (
             "# Component Communication Design\n"
         ),
-        "docs/Shared_Data_Models_and_Error_Contracts.md": (
+        "docs/platform/Shared_Data_Models_and_Error_Contracts.md": (
             "# Shared Data Models and Error Contracts\n"
         ),
-        "docs/Implementation_Roadmap.md": roadmap_content,
-        "docs/Implementation_Status.md": status_content,
-        "docs/Project_Directory_Structure.md": (
+        "docs/project/Implementation_Roadmap.md": roadmap_content,
+        "docs/project/Implementation_Status.md": status_content,
+        "docs/project/Project_Directory_Structure.md": (
             "# Project Directory Structure\n"
         ),
     }
@@ -247,7 +247,7 @@ def test_missing_roadmap_phase_headings_fails(tmp_path: Path) -> None:
     assert len(result.issues) == 1
     assert result.issues[0].code == "roadmap-phases-not-found"
     assert result.issues[0].repository_path == (
-        "docs/Implementation_Roadmap.md"
+        "docs/project/Implementation_Roadmap.md"
     )
 
 
@@ -278,7 +278,7 @@ def test_missing_status_phase_references_produces_warning(
     assert len(result.issues) == 1
     assert result.issues[0].code == "status-phases-not-found"
     assert result.issues[0].repository_path == (
-        "docs/Implementation_Status.md"
+        "docs/project/Implementation_Status.md"
     )
 
 
@@ -374,8 +374,8 @@ def test_missing_roadmap_or_status_skips_cross_document_check(
     validator = DocumentationConsistencyValidator(
         repository_root=tmp_path,
         required_document_paths=(
-            "docs/Implementation_Roadmap.md",
-            "docs/Implementation_Status.md",
+            "docs/project/Implementation_Roadmap.md",
+            "docs/project/Implementation_Status.md",
         ),
     )
 

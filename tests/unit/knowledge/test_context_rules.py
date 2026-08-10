@@ -153,10 +153,10 @@ def test_update_documentation_rule_includes_standards() -> None:
     ]
 
     assert (
-        "docs/Documentation_Standards.md"
+        "docs/project/Documentation_Standards.md"
         in rule.required_patterns
     )
-    assert "docs/Project_Charter.md" in rule.required_patterns
+    assert "docs/project/Project_Charter.md" in rule.required_patterns
     assert "docs/*Architecture*.md" in rule.required_patterns
 
 
@@ -166,11 +166,11 @@ def test_implement_component_rule_includes_platform_documents() -> None:
     ]
 
     assert (
-        "docs/Shared_Data_Models_and_Error_Contracts.md"
+        "docs/platform/Shared_Data_Models_and_Error_Contracts.md"
         in rule.optional_patterns
     )
     assert (
-        "docs/Component_Communication_Design.md"
+        "docs/platform/Component_Communication_Design.md"
         in rule.optional_patterns
     )
 
@@ -181,7 +181,7 @@ def test_validate_documentation_rule_includes_standards() -> None:
     ]
 
     assert (
-        "docs/Documentation_Standards.md"
+        "docs/project/Documentation_Standards.md"
         in rule.required_patterns
     )
     assert "docs/*.md" in rule.required_patterns

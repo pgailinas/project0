@@ -26,8 +26,8 @@ class DocumentSelector:
     """Select repository documents for a knowledge request."""
 
     _BASELINE_DOCUMENTS = (
-        Path("docs/Project_Charter.md"),
-        Path("docs/Documentation_Standards.md"),
+        Path("docs/project/Project_Charter.md"),
+        Path("docs/project/Documentation_Standards.md"),
     )
 
     _STOP_WORDS = {

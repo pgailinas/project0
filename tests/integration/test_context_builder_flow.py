@@ -85,8 +85,8 @@ def test_context_builder_flow_packages_project_documentation() -> None:
     }
 
     assert "README.md" in relative_paths
-    assert "docs/Project_Charter.md" in relative_paths
-    assert "docs/Implementation_Roadmap.md" in relative_paths
+    assert "docs/project/Project_Charter.md" in relative_paths
+    assert "docs/project/Implementation_Roadmap.md" in relative_paths
 
     assert context_package.source_count == len(
         context_package.documents
@@ -134,7 +134,7 @@ def test_context_builder_flow_preserves_document_metadata() -> None:
     project_charter = next(
         document
         for document in context_package.documents
-        if document.relative_path == "docs/Project_Charter.md"
+        if document.relative_path == "docs/project/Project_Charter.md"
     )
 
     assert project_charter.content.strip()
@@ -205,6 +205,6 @@ def test_context_builder_flow_selects_component_documents() -> None:
     }
 
     assert "README.md" in relative_paths
-    assert "docs/Project_Charter.md" in relative_paths
-    assert "docs/Implementation_Roadmap.md" in relative_paths
-    assert "docs/Component_Communication_Design.md" in relative_paths
+    assert "docs/project/Project_Charter.md" in relative_paths
+    assert "docs/project/Implementation_Roadmap.md" in relative_paths
+    assert "docs/platform/Component_Communication_Design.md" in relative_paths

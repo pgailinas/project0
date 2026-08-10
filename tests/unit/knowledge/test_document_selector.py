@@ -409,12 +409,12 @@ def test_select_documents_includes_baseline_documents() -> None:
     """Verify selection of standard baseline project documents."""
 
     charter = create_document(
-        "docs/Project_Charter.md",
+        "docs/project/Project_Charter.md",
         "Project Charter",
     )
 
     standards = create_document(
-        "docs/Documentation_Standards.md",
+        "docs/project/Documentation_Standards.md",
         "Documentation Standards",
     )
 
@@ -455,7 +455,7 @@ def test_select_documents_does_not_duplicate_baseline_match() -> None:
     """Verify a matched baseline document is selected only once."""
 
     charter = create_document(
-        "docs/Project_Charter.md",
+        "docs/project/Project_Charter.md",
         "Project Charter",
         tags=("project",),
     )

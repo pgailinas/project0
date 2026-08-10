@@ -25,16 +25,16 @@ from project0.models.validation_models import (
 
 
 DEFAULT_REQUIRED_DOCUMENTS = (
-    "docs/Project_Charter.md",
-    "docs/Documentation_Standards.md",
-    "docs/Documentation_Agent_Functional_Spec.md",
-    "docs/Documentation_Agent_Architecture.md",
-    "docs/Documentation_Agent_Design.md",
-    "docs/Component_Communication_Design.md",
-    "docs/Shared_Data_Models_and_Error_Contracts.md",
-    "docs/Implementation_Roadmap.md",
-    "docs/Implementation_Status.md",
-    "docs/Project_Directory_Structure.md",
+    "docs/project/Project_Charter.md",
+    "docs/project/Documentation_Standards.md",
+    "docs/agents/documentation/Documentation_Agent_Functional_Spec.md",
+    "docs/agents/documentation/Documentation_Agent_Architecture.md",
+    "docs/agents/documentation/Documentation_Agent_Design.md",
+    "docs/platform/Component_Communication_Design.md",
+    "docs/platform/Shared_Data_Models_and_Error_Contracts.md",
+    "docs/project/Implementation_Roadmap.md",
+    "docs/project/Implementation_Status.md",
+    "docs/project/Project_Directory_Structure.md",
 )
 
 
@@ -118,8 +118,8 @@ class DocumentationConsistencyValidator:
 
         issues: list[ValidationIssue] = []
 
-        roadmap_path = self._repository_root / "docs/Implementation_Roadmap.md"
-        status_path = self._repository_root / "docs/Implementation_Status.md"
+        roadmap_path = self._repository_root / "docs/project/Implementation_Roadmap.md"
+        status_path = self._repository_root / "docs/project/Implementation_Status.md"
 
         if not roadmap_path.is_file() or not status_path.is_file():
             return issues
@@ -150,7 +150,7 @@ class DocumentationConsistencyValidator:
                         "No implementation phase headings were found in "
                         "Implementation_Roadmap.md."
                     ),
-                    repository_path="docs/Implementation_Roadmap.md",
+                    repository_path="docs/project/Implementation_Roadmap.md",
                 )
             )
             return issues
@@ -165,7 +165,7 @@ class DocumentationConsistencyValidator:
                         "No implementation phase references were found in "
                         "Implementation_Status.md."
                     ),
-                    repository_path="docs/Implementation_Status.md",
+                    repository_path="docs/project/Implementation_Status.md",
                 )
             )
             return issues
@@ -184,7 +184,7 @@ class DocumentationConsistencyValidator:
                             "implementation status but is not defined in "
                             "the roadmap."
                         ),
-                        repository_path="docs/Implementation_Status.md",
+                        repository_path="docs/project/Implementation_Status.md",
                         line_number=line_number,
                     )
                 )
@@ -203,7 +203,7 @@ class DocumentationConsistencyValidator:
                             f'in the status document and "{roadmap_name}" '
                             "in the roadmap."
                         ),
-                        repository_path="docs/Implementation_Status.md",
+                        repository_path="docs/project/Implementation_Status.md",
                         line_number=line_number,
                     )
                 )

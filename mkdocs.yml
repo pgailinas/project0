@@ -42,25 +42,28 @@ theme:
 
 nav:
   - Welcome to Project0: index.md
-  - Core Project Documentation:
-      - Project Charter: Project_Charter.md
-      - Development Environment: Development_Environment.md
-      - Testing Guide: Testing_Guide.md
-      - Dashboard Design: Dashboard_Design.md
-      - Document Standards: Documentation_Standards.md
-      - Project Directory Structure: Project_Directory_Structure.md
-  - Platform Design:
-      - Shared Data Models and Error Contracts: Shared_Data_Models_and_Error_Contracts.md
-      - Component Communication Design: Component_Communication_Design.md
-      - Implementation Roadmap: Implementation_Roadmap.md
-      - Implementation Status: Implementation_Status.md
+
+  - Project0:
+      - Project Charter: project/Project_Charter.md
+      - Development Environment: project/Development_Environment.md
+      - Testing Guide: project/Testing_Guide.md
+      - Documentation Standards: project/Documentation_Standards.md
+      - Project Directory Structure: project/Project_Directory_Structure.md
+      - Implementation Roadmap: project/Implementation_Roadmap.md
+      - Implementation Status: project/Implementation_Status.md
+
+  - Platform:
+      - Dashboard Design: platform/Dashboard_Design.md
+      - Component Communication Design: platform/Component_Communication_Design.md
+      - Shared Data Models and Error Contracts: platform/Shared_Data_Models_and_Error_Contracts.md
+
   - Documentation Agent:
-      - Documentation Agent Charter: Documentation_Agent_Charter.md
-      - Documentation Agent Functional Spec: Documentation_Agent_Functional_Spec.md
-      - Documentation Agent Architecture: Documentation_Agent_Architecture.md
-      - Documentation Agent Design: Documentation_Agent_Design.md
-      - Documentation Agent Interface Design: Documentation_Agent_Interface_Design.md
-      - Documentation Agent Testing Guide: Documentation_Agent_Testing_Guide.md
+      - Documentation Agent Charter: agents/documentation/Documentation_Agent_Charter.md
+      - Documentation Agent Functional Spec: agents/documentation/Documentation_Agent_Functional_Spec.md
+      - Documentation Agent Architecture: agents/documentation/Documentation_Agent_Architecture.md
+      - Documentation Agent Design: agents/documentation/Documentation_Agent_Design.md
+      - Documentation Agent Interface Design: agents/documentation/Documentation_Agent_Interface_Design.md
+      - Documentation Agent Testing Guide: agents/documentation/Documentation_Agent_Testing_Guide.md
 
 markdown_extensions:
   - attr_list

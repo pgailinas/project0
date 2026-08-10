@@ -61,12 +61,12 @@ DEFAULT_CONTEXT_RULES: dict[ContextWorkflowType, ContextRule] = {
         workflow_type=ContextWorkflowType.UPDATE_DOCUMENTATION,
         required_patterns=(
             "README.md",
-            "docs/Documentation_Standards.md",
-            "docs/Project_Charter.md",
+            "docs/project/Documentation_Standards.md",
+            "docs/project/Project_Charter.md",
             "docs/*Architecture*.md",
             "docs/*Design*.md",
-            "docs/Implementation_Roadmap.md",
-            "docs/Implementation_Status.md",
+            "docs/project/Implementation_Roadmap.md",
+            "docs/project/Implementation_Status.md",
         ),
         excluded_paths=(
             "docs/archive",
@@ -80,17 +80,17 @@ DEFAULT_CONTEXT_RULES: dict[ContextWorkflowType, ContextRule] = {
         workflow_type=ContextWorkflowType.IMPLEMENT_COMPONENT,
         required_patterns=(
             "README.md",
-            "docs/Project_Charter.md",
+            "docs/project/Project_Charter.md",
             "docs/*Architecture*.md",
             "docs/*Design*.md",
-            "docs/Implementation_Roadmap.md",
-            "docs/Implementation_Status.md",
+            "docs/project/Implementation_Roadmap.md",
+            "docs/project/Implementation_Status.md",
         ),
         optional_patterns=(
-            "docs/Development_Environment.md",
-            "docs/Project_Directory_Structure.md",
-            "docs/Shared_Data_Models_and_Error_Contracts.md",
-            "docs/Component_Communication_Design.md",
+            "docs/project/Development_Environment.md",
+            "docs/project/Project_Directory_Structure.md",
+            "docs/platform/Shared_Data_Models_and_Error_Contracts.md",
+            "docs/platform/Component_Communication_Design.md",
         ),
         excluded_paths=(
             "docs/archive",
@@ -104,7 +104,7 @@ DEFAULT_CONTEXT_RULES: dict[ContextWorkflowType, ContextRule] = {
         workflow_type=ContextWorkflowType.VALIDATE_DOCUMENTATION,
         required_patterns=(
             "README.md",
-            "docs/Documentation_Standards.md",
+            "docs/project/Documentation_Standards.md",
             "docs/*.md",
         ),
         excluded_paths=(
