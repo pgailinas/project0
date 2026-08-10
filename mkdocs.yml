@@ -56,6 +56,8 @@ nav:
       - Dashboard Design: platform/Dashboard_Design.md
       - Component Communication Design: platform/Component_Communication_Design.md
       - Shared Data Models and Error Contracts: platform/Shared_Data_Models_and_Error_Contracts.md
+      - Project0 Test Plan: platform/Project0_Test_Plan.md
+      - Project0 Test Results: platform/Project0_Test_Results.md
 
   - Documentation Agent:
       - Documentation Agent Charter: agents/documentation/Documentation_Agent_Charter.md
@@ -64,6 +66,8 @@ nav:
       - Documentation Agent Design: agents/documentation/Documentation_Agent_Design.md
       - Documentation Agent Interface Design: agents/documentation/Documentation_Agent_Interface_Design.md
       - Documentation Agent Testing Guide: agents/documentation/Documentation_Agent_Testing_Guide.md
+      - Documentation Agent Test Plan: agents/documentation/Documentation_Agent_Test_Plan.md
+      - Documentation Agent Test Results: agents/documentation/Documentation_Agent_Test_Results.md
 
 markdown_extensions:
   - attr_list
