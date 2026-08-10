@@ -427,16 +427,3 @@ This document defines the Project0 platform user experience.
 
 Each AI agent shall provide its own Interface Design document describing agent-specific pages and interactions while conforming to the Dashboard Design.
 
----
-
-## 16. Related Documents
-
-* Project Charter
-* Documentation Standards
-* Documentation Agent Functional Specification
-* Documentation Agent Architecture
-* Documentation Agent Design
-* Component Communication Design
-* Testing Guide
-* Project Directory Structure
-* Documentation Agent Interface Design

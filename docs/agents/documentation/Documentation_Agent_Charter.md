@@ -79,9 +79,7 @@ The Documentation Agent shall:
 
 ## 5. Scope
 
-### 5.1 In Scope
-
-The Documentation Agent is responsible for:
+**In Scope**: The Documentation Agent is responsible for:
 
 - Markdown documentation maintained in a local Git repository.
 - Documentation impact analysis.
@@ -90,16 +88,13 @@ The Documentation Agent is responsible for:
 - File-by-file documentation proposals.
 - Human review of proposed documentation changes.
 - Approve, revise, reject, and skip review decisions.
-- Application of approved documentation changes through controlled
-  repository services.
+- Application of approved documentation changes through controlled repository services.
 - Markdown, link, MkDocs, and documentation consistency validation.
 - Final Git diff generation.
 - Documentation workflow results and activity reporting.
 - Interaction through the reusable Project0 Dashboard Framework.
 
-### 5.2 Out of Scope
-
-The Documentation Agent shall not:
+**Out of Scope**: The Documentation Agent SHALL NOT:
 
 - Modify application source code.
 - Commit, push, merge, or open pull requests.
@@ -121,59 +116,27 @@ The Documentation Agent shall not:
 
 The Documentation Agent shall follow these principles:
 
-### Repository Grounding
+- **Repository Grounding**: Repository documentation and repository content are the authoritative sources of project knowledge. AI-generated proposals remain non-authoritative until approved and applied.
 
-Repository documentation and repository content are the authoritative
-sources of project knowledge. AI-generated proposals remain
-non-authoritative until approved and applied.
+- **Human-in-the-Loop**: Human authority is preserved for documentation changes. Proposed changes shall be reviewable, and required approval shall occur before repository modification.
 
-### Human-in-the-Loop
+- **Minimum Necessary Change**: Documentation updates should make the smallest change necessary to satisfy the request while preserving unrelated content, document structure, terminology, and style.
 
-Human authority is preserved for documentation changes. Proposed changes
-shall be reviewable, and required approval shall occur before repository
-modification.
-
-### Minimum Necessary Change
-
-Documentation updates should make the smallest change necessary to
-satisfy the request while preserving unrelated content, document
-structure, terminology, and style.
-
-### Deterministic Before AI
-
-Repository access, workflow coordination, context handling, validation,
-and repository modification should use deterministic services whenever
+- **Deterministic Before AI**: Repository access, workflow coordination, context handling, validation, and repository modification should use deterministic services whenever
 AI reasoning is not required.
 
-### Continuous Validation
+- **Continuous Validation**: Proposed documentation changes shall be validated before approval, and applied changes shall undergo final validation before workflow completion.
 
-Proposed documentation changes shall be validated before approval, and
-applied changes shall undergo final validation before workflow
-completion.
-
-### Modular Architecture
-
-Documentation Agent-specific behavior shall remain separate from
-reusable Project0 platform infrastructure and shall communicate through
+- **Modular Architecture**: Documentation Agent-specific behavior shall remain separate from reusable Project0 platform infrastructure and shall communicate through
 defined interfaces and shared models.
 
-### Reuse Before Build
+- **Reuse Before Build**: Existing Project0 services, established open-source tools, and reusable framework capabilities shall be used whenever practical rather than duplicated within the Documentation Agent.
 
-Existing Project0 services, established open-source tools, and reusable
-framework capabilities shall be used whenever practical rather than
-duplicated within the Documentation Agent.
+- **Local-First and Vendor-Neutral**: Local and open technologies are preferred where practical, and AI
+reasoning capabilities shall remain abstracted so that provider implementations can change without redefining the agent.
 
-### Local-First and Vendor-Neutral
-
-Local and open technologies are preferred where practical, and AI
-reasoning capabilities shall remain abstracted so that provider
-implementations can change without redefining the agent.
-
-### Documentation by Default
-
-Documentation is living project knowledge and shall remain synchronized
-with the repository state while following Project0 Documentation
-Standards.
+- **Documentation by Default**: Documentation is living project knowledge and shall remain synchronized
+with the repository state while following Project0 Documentation Standards.
 
 ---
 
@@ -304,16 +267,3 @@ Where lower-level Documentation Agent documents conflict with this
 charter, the conflict should be resolved explicitly rather than silently
 redefining the agent's mission or authority boundaries.
 
----
-
-## 12. Related Documents
-
-- Project Charter
-- Documentation Standards
-- Documentation Agent Functional Specification
-- Documentation Agent Architecture
-- Documentation Agent Component Design
-- Documentation Agent Interface Design
-- Documentation_Agent_Test_Plan
-- Documentation_Agent_Test_Plan
-- Documentation Agent Test Results

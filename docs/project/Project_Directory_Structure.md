@@ -2,7 +2,7 @@
 
 **Version:** 0.4  
 **Owner:** Project0  
-**Last Updated:** 2026-08-09
+**Last Updated:** 2026-08-10
 
 ---
 ## Overview
@@ -39,7 +39,9 @@ project0/
 │   ├── platform/
 │   │   ├── Dashboard_Design.md
 │   │   ├── Component_Communication_Design.md
-│   │   └── Shared_Data_Models_and_Error_Contracts.md
+│   │   ├── Shared_Data_Models_and_Error_Contracts.md
+│   │   ├── Project0_Test_Plan.md
+│   │   └── Project0_Test_Results.md
 │   │
 │   └── agents/
 │       │
@@ -49,7 +51,9 @@ project0/
 │       │   ├── Documentation_Agent_Architecture.md
 │       │   ├── Documentation_Agent_Design.md
 │       │   ├── Documentation_Agent_Interface_Design.md
-│       │   └── Documentation_Agent_Testing_Guide.md
+│       │   ├── Documentation_Agent_Testing_Guide.md
+│       │   ├── Documentation_Agent_Test_Plan.md
+│       │   └── Documentation_Agent_Test_Results.md
 │       │
 │       └── research/ (planned)
 │           ├── Research_Agent_Charter.md (planned)
@@ -57,9 +61,12 @@ project0/
 │           ├── Research_Agent_Architecture.md (planned)
 │           ├── Research_Agent_Design.md (planned)
 │           ├── Research_Agent_Interface_Design.md (planned)
-│           └── Research_Agent_Testing_Guide.md (planned)
+│           ├── Research_Agent_Testing_Guide.md (planned)
+│           ├── Research_Agent_Test_Plan.md (planned)
+│           └── Research_Agent_Test_Results.md (planned)
 │
 ├── src/
+│   │
 │   └── project0/
 │       ├── agents/
 │       │   └── documentation/
@@ -80,21 +87,31 @@ project0/
 │       └── workflow/
 │
 ├── tests/
+│   │
+│   ├── unit/
+│   │   ├── agents/
+│   │   │   ├── documentation/
+│   │   │   └── research/ (planned)
+│   │   ├── common/
+│   │   ├── config/
+│   │   ├── dashboard/
+│   │   ├── knowledge/
+│   │   ├── models/
+│   │   ├── platform/
+│   │   ├── reasoning/
+│   │   ├── repository/
+│   │   ├── validation/
+│   │   └── workflow/
+│   │
 │   ├── integration/
-│   └── unit/
-│       ├── agents/
-│       │   ├── documentation/
-│       │   └── research/ (planned)
-│       ├── common/
-│       ├── config/
-│       ├── dashboard/
-│       ├── knowledge/
-│       ├── models/
+│   │   ├── platform/
+│   │   └── agents/
+│   │
+│   └── acceptance/
 │       ├── platform/
-│       ├── reasoning/
-│       ├── repository/
-│       ├── validation/
-│       └── workflow/
+│       └── agents/
+│           ├── documentation/
+│           └── research/ (planned)
 │
 ├── mkdocs.yml
 ├── pyproject.toml
@@ -110,7 +127,7 @@ project0/
 |-----------|---------|
 | `docs/` | Authoritative Markdown documentation organized into Project0-wide, reusable platform, and agent-specific documentation, and used as the source for GitHub Pages. |
 | `src/` | Python implementation of reusable Project0 platform services, the Dashboard Framework, shared infrastructure, and specialized AI agents. |
-| `tests/` | Unit and integration tests organized by architectural component and workflow validation. |
+| `tests/` | Automated verification organized into unit, integration, and acceptance tests covering reusable platform services, AI agent behavior, user workflows, and system-level validation. |
 | `README.md` | GitHub repository landing page. |
 | `mkdocs.yml` | Material for MkDocs configuration. |
 | `pyproject.toml` | Python project configuration and dependencies. |
@@ -119,6 +136,8 @@ project0/
 ## Relationship Between Documentation and Implementation
 
 Implementation within `src/` follows the project architecture. Material for MkDocs generates the GitHub Pages website directly from the Markdown documents stored in `docs/`. The generated HTML is a published representation of the documentation and is not the authoritative source.
+
+Automated acceptance tests are organized separately from implementation code and verify complete user-facing workflows, platform capabilities, and agent behavior using the contracts defined by the platform and agent architectures.
 
 The Dashboard Framework is implemented within the `src/project0/dashboard/` package and provides the reusable browser-based user interface used by Project0 services and future AI agents.
 

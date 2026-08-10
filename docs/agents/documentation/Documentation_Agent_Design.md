@@ -999,17 +999,3 @@ Approved documentation changes are applied only through the Repository Update Se
 * Proposed documentation changes shall be processed individually through the review workflow.
 * Approved documentation changes shall undergo final validation before completion.
 
----
-
-## 8. Related Documents
-
-* Project Charter
-* Documentation Standards
-* Documentation Agent Functional Specification
-* Documentation Agent Architecture
-* Component Communication Design
-* Shared Data Models and Error Contracts
-* Implementation Roadmap
-* Implementation Status
-* Project Directory Structure
-

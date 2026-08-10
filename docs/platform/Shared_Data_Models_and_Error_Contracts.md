@@ -255,13 +255,3 @@ The Documentation Agent uses the following shared models:
 - Persistent workflow state
 - Structured logging
 
----
-
-## 12. Related Documents
-
-- Project Charter
-- Documentation Standards
-- Documentation Agent Functional Specification
-- Documentation Agent Architecture
-- Documentation Agent Design
-- Implementation Roadmap

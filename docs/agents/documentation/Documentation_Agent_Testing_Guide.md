@@ -1,8 +1,8 @@
 # Documentation Agent Testing Guide
 
-**Version:** 0.1\
-**Owner:** Project0\
-**Last Updated:** 2026-08-09
+**Version:** 0.1  
+**Owner:** Project0  
+**Last Updated:** 2026-08-09  
 
 ---
 
@@ -443,19 +443,7 @@ Future Documentation Agent testing may include:
 
 ---
 
-## 14. Related Documents
-
-- Testing Guide
-- Documentation Agent Charter
-- Documentation Agent Functional Specification
-- Documentation Agent Architecture
-- Documentation Agent Component Design
-- Documentation Agent Interface Design
-- Documentation Standards
-
----
-
-## 15. Summary
+## 14. Summary
 
 Documentation Agent testing verifies the behavior required to demonstrate that the agent performs AI-assisted documentation work accurately, safely, predictably, and under human control.
 

@@ -443,17 +443,3 @@ Future versions may introduce:
 - Additional validation services
 - Asynchronous workflow execution
 
----
-
-## 8. Related Documents
-
-- Project Charter
-- Documentation Standards
-- Documentation Agent Functional Specification
-- Documentation Agent Design
-- Component Communication Design
-- Shared Data Models and Error Contracts
-- Implementation Roadmap
-- Implementation Status
-- Project Directory Structure
-

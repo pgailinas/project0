@@ -141,10 +141,20 @@ class FakeDocumentationWorkflow:
         }
 
 
+def _project_root() -> Path:
+    """Locate the repository root containing pyproject.toml."""
+
+    for parent in Path(__file__).resolve().parents:
+        if (parent / "pyproject.toml").exists():
+            return parent
+
+    raise RuntimeError("Unable to locate Project0 repository root")
+
+
 def _template_directories() -> list[str]:
     """Return shared Dashboard and Documentation Agent template paths."""
 
-    source_root = Path(__file__).resolve().parents[2] / "src" / "project0"
+    source_root = _project_root() / "src" / "project0"
 
     return [
         str(source_root / "dashboard" / "templates"),

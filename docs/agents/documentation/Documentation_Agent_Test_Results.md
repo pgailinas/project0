@@ -425,18 +425,4 @@ This document shall be updated when:
 * new validation requirements are added
 * Documentation Agent completion criteria are revised
 
----
-
-# 12. Related Documents
-
-* Project Charter
-* Documentation Standards
-* Documentation Agent Charter
-* Documentation Agent Functional Specification
-* Documentation Agent Architecture
-* Documentation Agent Design
-* Documentation Agent Interface Design
-* Documentation Agent Testing Guide
-* Documentation Agent Test Plan
-
 

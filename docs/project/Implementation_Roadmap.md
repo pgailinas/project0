@@ -294,14 +294,3 @@ Future implementation efforts may include:
 * Dashboard plugin architecture.
 * Additional agent interface implementations.
 
----
-
-## 9. Related Documents
-
-* Project Charter
-* Documentation Standards
-* Documentation Agent Functional Specification
-* Documentation Agent Architecture
-* Documentation Agent Component Design
-
-

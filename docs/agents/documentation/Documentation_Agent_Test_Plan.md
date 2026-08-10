@@ -489,18 +489,3 @@ Future versions may include:
 * Automated acceptance execution
 * Agent comparison testing
 
----
-
-# 13. Related Documents
-
-* Project Charter
-* Documentation Standards
-* Documentation Agent Charter
-* Documentation Agent Functional Specification
-* Documentation Agent Architecture
-* Documentation Agent Design
-* Documentation Agent Interface Design
-* Documentation Agent Testing Guide
-
-
-
