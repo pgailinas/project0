@@ -1,18 +1,20 @@
 # Documentation Agent Test Results
 
-**Version:** 0.1  
+**Version:** 0.3  
 **Owner:** Project0  
-**Last Updated:** 2026-08-10  
+**Last Updated:** 2026-08-11  
 
 ---
 
 # Executive Summary
 
-This document records the acceptance testing results for the Project0 Documentation Agent.
+This document records the testing results for the Project0 Documentation Agent across integration, browser acceptance, exploratory AI, and regression validation activities.
 
 The Documentation Agent Test Plan defines the required verification scenarios necessary to demonstrate that the Documentation Agent can safely analyze documentation requests, generate repository-grounded documentation proposals, validate proposed changes, and apply only explicitly approved updates.
 
-This document records execution status, observed results, discovered issues, and final acceptance decisions.
+This document records execution status, observed results, discovered issues, and current validation decisions.
+
+Verification scenario identifiers such as `DA-FUN-001` remain stable across testing layers. Result evidence identifies the testing layer separately, using `INT` for integration coverage and `UI` for browser acceptance coverage.
 
 The document is intended to remain a living engineering record throughout Documentation Agent completion and future maintenance.
 
@@ -41,42 +43,69 @@ The document is intended to remain a living engineering record throughout Docume
 
 ---
 
-# 2. Acceptance Status Summary
+# 2. Validation Status Summary
 
 | Category                       | Status      | Notes                                       |
 | ------------------------------ | ----------- | ------------------------------------------- |
-| Functional Acceptance          | In Progress | Behavioral testing underway                 |
-| Safety Acceptance              | In Progress | Repository protection verification required |
-| AI Reasoning Acceptance        | In Progress | Local reasoning integration implemented     |
-| Documentation Compliance       | In Progress | Standards verification underway             |
-| Platform Boundary Verification | In Progress | Architecture review ongoing                 |
-| Regression Testing             | Passed      | 639 automated tests passing                 |
+| Functional Integration        | In Progress | Initial high-level workflow scenarios completed |
+| Safety Integration            | In Progress | Core safety scenarios completed |
+| AI Reasoning Verification     | In Progress | Provider integration completed; additional AI safety scenarios remain |
+| Browser Acceptance            | Not Started | Playwright-based UI acceptance automation not yet established |
+| Documentation Compliance      | In Progress | Standards verification underway |
+| Platform Boundary Verification | In Progress | Architecture review ongoing |
+| Regression Testing            | Passed | 647 passed, 7 skipped |
 
 ---
 
 # 3. Automated Regression Results
 
-## Regression Test Execution
+## Documentation Agent End-to-End Integration Execution
 
-Command:
-
-```bash
-pytest
-```
-
-Result:
+### Command:
 
 ```text
-639 passed
+python -m pytest tests/integration/agents/documentation/test_documentation_agent_end_to_end_flow.py -v
 ```
 
-Status:
+### Result:
 
-**PASS**
+7 passed, 7 skipped
+
+### Status:
+
+PASS
+
+These scenarios were reclassified from acceptance tests to integration tests because they exercise Project0 through Python APIs such as the platform dispatcher and Documentation Workflow rather than through the browser/UI boundary.
+
+Executed integration scenarios:
+
+INT-DA-FUN-001
+INT-DA-FUN-002
+INT-DA-FUN-003
+INT-DA-FUN-005
+INT-DA-SAF-001
+INT-DA-SAF-003
+INT-DA-AI-001
+
+## Complete Project0 Regression Execution
+
+### Command:
+
+```text
+python -m pytest
+```
+
+### Result:
+
+647 passed, 7 skipped
+
+### Status:
+
+PASS
 
 ---
 
-# 4. Functional Acceptance Results
+# 4. Functional Integration Results
 
 ## DA-FUN-001: Documentation Request Processing
 
@@ -84,45 +113,76 @@ Status:
 
 Verify that a user can submit a documentation request through the Documentation Agent interface.
 
+### Verification Evidence
+
+* Integration: PASS
+* UI Acceptance: NOT YET IMPLEMENTED
+
 ### Status
 
-NOT EXECUTED
+PASS
 
 ### Result
 
-Pending acceptance testing.
+Integration test verified that a documentation request creates a reviewable workflow.
 
-### Notes
+Verified:
+
+* Documentation request accepted.
+* Repository-grounded proposal generated.
+* Workflow transitioned to review-required state.
+
+Related integration test:
+
+```text
+test_INT_DA_FUN_001_documentation_request_processing
+```
 
 ---
 
-# DA-FUN-002: Documentation Proposal Generation
+## DA-FUN-002: Documentation Proposal Generation
 
 ### Objective
 
 Verify that the Documentation Agent generates repository-grounded documentation proposals.
 
+### Verification Evidence
+
+* Integration: PASS
+* UI Acceptance: NOT YET IMPLEMENTED
+
 ### Status
 
-NOT EXECUTED
+PASS
 
-### Result
+Verified:
 
-Pending acceptance testing.
+* Proposal generated from reasoning provider output.
+* Target document identified.
+* Proposed content produced.
 
-### Notes
+Related integration test:
+
+```text
+test_INT_DA_FUN_002_documentation_proposal_generation
+```
 
 ---
 
-# DA-FUN-003: Surgical Documentation Editing
+## DA-FUN-003: Surgical Documentation Editing
 
 ### Objective
 
 Verify that documentation changes preserve existing content and correctly handle targeted edits.
 
+### Verification Evidence
+
+* Integration: PASS
+* UI Acceptance: NOT YET IMPLEMENTED
+
 ### Status
 
-PARTIAL PASS
+PASS (Partial Scope)
 
 ### Result
 
@@ -147,19 +207,24 @@ PASS
 
 ---
 
-# DA-FUN-004: Multi-Document Documentation Update
+## DA-FUN-004: Multi-Document Documentation Update
 
 ### Objective
 
 Verify handling of requests affecting multiple documentation artifacts.
 
+### Verification Evidence
+
+* Integration: DEFERRED or covered outside this scenario module as noted below
+* UI Acceptance: NOT YET IMPLEMENTED
+
 ### Status
 
-NOT EXECUTED
+DEFERRED
 
 ### Result
 
-Pending acceptance testing.
+Pending implementation and/or appropriate verification at the assigned testing layer.
 
 ---
 
@@ -169,95 +234,146 @@ Pending acceptance testing.
 
 Verify that documentation updates modify only the required content.
 
-### Status
+### Verification Evidence
 
-NOT EXECUTED
-
-### Result
-
-Pending acceptance testing.
-
----
-
-# 5. Safety Acceptance Results
-
----
-
-# DA-SAF-001: Rejected Proposal Protection
-
-### Objective
-
-Verify repository protection when a proposal is rejected.
-
-### Status
-
-NOT EXECUTED
-
-### Result
-
-Pending acceptance testing.
-
----
-
-# DA-SAF-002: Unauthorized Modification Prevention
-
-### Objective
-
-Verify that only approved documentation scope is modified.
-
-### Status
-
-NOT EXECUTED
-
-### Result
-
-Pending acceptance testing.
-
----
-
-# DA-SAF-003: Invalid Change Handling
-
-### Objective
-
-Verify invalid documentation changes are detected and blocked.
-
-### Status
-
-NOT EXECUTED
-
-### Result
-
-Pending acceptance testing.
-
----
-
-# DA-SAF-004: Baseline Documentation Handling
-
-### Objective
-
-Verify repository baseline documents remain optional context.
+* Integration: PASS
+* UI Acceptance: NOT YET IMPLEMENTED
 
 ### Status
 
 PASS
 
+Verified:
+
+* Proposed change limited to intended documentation target.
+* No unrelated repository changes included.
+
+Related integration test:
+
+```text
+test_INT_DA_FUN_005_minimal_change_verification
+```
+
+---
+
+# 5. Safety Integration Results
+
+---
+
+## DA-SAF-001: Rejected Proposal Protection
+
+### Objective
+
+Verify repository protection when a proposal is rejected.
+
+### Verification Evidence
+
+* Integration: PASS
+* UI Acceptance: NOT YET IMPLEMENTED
+
+### Status
+
+PASS
+
+Verified:
+
+* Rejected proposals do not apply repository changes.
+* Review rejection is recorded correctly.
+
+Related integration test:
+
+```text
+test_INT_DA_SAF_001_rejected_proposal_protection
+```
+
+---
+
+## DA-SAF-002: Unauthorized Modification Prevention
+
+### Objective
+
+Verify that only approved documentation scope is modified.
+
+### Verification Evidence
+
+* Integration: DEFERRED or covered outside this scenario module as noted below
+* UI Acceptance: NOT YET IMPLEMENTED
+
+### Status
+
+DEFERRED
+
 ### Result
 
-Repository baseline documentation was identified as repository-specific configuration rather than a reusable agent requirement.
-
-The Documentation Agent framework no longer relies on hard-coded baseline document paths.
+Pending implementation and/or appropriate verification at the assigned testing layer.
 
 ---
 
-# 6. AI Reasoning Acceptance Results
+## DA-SAF-003: Invalid Change Handling
+
+### Objective
+
+Verify invalid documentation changes are detected and blocked.
+
+### Verification Evidence
+
+* Integration: PASS
+* UI Acceptance: NOT YET IMPLEMENTED
+
+### Status
+
+PASS
+
+Verified:
+
+* Invalid documentation requests are rejected safely.
+* Workflow does not apply invalid changes.
+
+Related integration test:
+
+```text
+test_INT_DA_SAF_003_invalid_change_handling
+```
 
 ---
 
-# DA-AI-001: Reasoning Provider Integration
+## DA-SAF-004: Baseline Documentation Handling
+
+### Objective
+
+Verify repository baseline documents remain optional context.
+
+### Verification Evidence
+
+* Integration: DEFERRED or covered outside this scenario module as noted below
+* UI Acceptance: NOT YET IMPLEMENTED
+
+### Status
+
+DEFERRED
+
+### Result
+
+The architectural requirement has been identified and the Documentation Agent framework no longer relies on hard-coded baseline document paths.
+
+The corresponding scenario remains explicitly skipped/deferred in the current high-level integration suite.
+
+---
+
+# 6. AI Reasoning Verification Results
+
+---
+
+## DA-AI-001: Reasoning Provider Integration
 
 ### Objective
 
 Verify Documentation Agent integration with the configured reasoning provider.
+
+### Verification Evidence
+
+* Integration: PASS
+* UI Acceptance: NOT YET IMPLEMENTED
 
 ### Status
 
@@ -281,27 +397,37 @@ test_ollama_reasoning_flow.py
 
 ---
 
-# DA-AI-002: Unsupported Information Prevention
+## DA-AI-002: Unsupported Information Prevention
 
 ### Objective
 
 Verify that unsupported project information is not introduced.
 
+### Verification Evidence
+
+* Integration: DEFERRED or covered outside this scenario module as noted below
+* UI Acceptance: NOT YET IMPLEMENTED
+
 ### Status
 
-NOT EXECUTED
+DEFERRED
 
 ### Result
 
-Pending acceptance testing.
+Pending implementation and/or appropriate verification at the assigned testing layer.
 
 ---
 
-# DA-AI-003: Invalid AI Output Handling
+## DA-AI-003: Invalid AI Output Handling
 
 ### Objective
 
 Verify safe handling of invalid AI responses.
+
+### Verification Evidence
+
+* Integration: DEFERRED or covered outside this scenario module as noted below
+* UI Acceptance: NOT YET IMPLEMENTED
 
 ### Status
 
@@ -309,9 +435,15 @@ PARTIAL PASS
 
 ### Result
 
-Validation and normalization handling implemented.
+Implemented:
 
-Additional acceptance scenarios required.
+* AI output validation handling.
+* Confidence normalization.
+* Invalid response protection paths.
+
+Remaining:
+
+* Verification scenarios for malformed AI responses at the appropriate deterministic or exploratory testing layer.
 
 ---
 
@@ -319,11 +451,16 @@ Additional acceptance scenarios required.
 
 ---
 
-# DA-DOC-001: Documentation Standards Compliance
+## DA-DOC-001: Documentation Standards Compliance
 
 ### Objective
 
 Verify Documentation Agent updates follow Project0 Documentation Standards.
+
+### Verification Evidence
+
+* Integration: DEFERRED or covered outside this scenario module as noted below
+* UI Acceptance: NOT YET IMPLEMENTED
 
 ### Status
 
@@ -342,11 +479,16 @@ Verified:
 
 ---
 
-# DA-DOC-002: Source Documentation Compliance
+## DA-DOC-002: Source Documentation Compliance
 
 ### Objective
 
 Verify Project0 source documentation requirements.
+
+### Verification Evidence
+
+* Integration: DEFERRED or covered outside this scenario module as noted below
+* UI Acceptance: NOT YET IMPLEMENTED
 
 ### Status
 
@@ -364,11 +506,16 @@ Additional verification required.
 
 ---
 
-# DA-ARCH-001: Agent and Platform Separation
+## DA-ARCH-001: Agent and Platform Separation
 
 ### Objective
 
 Verify separation between reusable platform infrastructure and Documentation Agent behavior.
+
+### Verification Evidence
+
+* Integration: DEFERRED or covered outside this scenario module as noted below
+* UI Acceptance: NOT YET IMPLEMENTED
 
 ### Status
 
@@ -395,23 +542,30 @@ Verified:
 
 ---
 
-# 10. Acceptance Decision
+# 10. Validation Decision
 
 ## Current Status
 
-**Documentation Agent Acceptance: IN PROGRESS**
+**Documentation Agent Validation: IN PROGRESS**
 
 The Documentation Agent has demonstrated:
 
-* successful end-to-end workflow implementation
+* successful end-to-end workflow integration
 * repository-grounded reasoning integration
 * controlled documentation update behavior
 * successful automated regression testing
+* 7 high-level integration scenarios passed
+* 7 high-level integration scenarios skipped/deferred
+* 647 passed, 7 skipped in the complete Project0 regression suite
+* 0 automated failures
 
-Remaining acceptance activities focus on:
+Browser acceptance testing has not yet been established. The next acceptance activity is to introduce Playwright for Python and begin incremental UI automation through the actual Dashboard-hosted Documentation Agent interface.
 
-* behavioral acceptance scenarios
-* repository safety verification
+Remaining validation activities focus on:
+
+* browser/UI acceptance scenarios
+* additional repository safety verification
+* exploratory AI quality verification
 * final documentation compliance review
 
 ---
@@ -420,7 +574,7 @@ Remaining acceptance activities focus on:
 
 This document shall be updated when:
 
-* acceptance scenarios are executed
+* integration or browser acceptance scenarios are executed
 * defects are discovered or resolved
 * new validation requirements are added
 * Documentation Agent completion criteria are revised

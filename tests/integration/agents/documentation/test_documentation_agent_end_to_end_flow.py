@@ -1,24 +1,26 @@
 # ============================================================
-# Project0 - Documentation Agent Acceptance Tests
+# Project0 - Documentation Agent End-to-End Integration Tests
 #
-# File: test_documentation_agent_acceptance.py
+# File: test_documentation_agent_end_to_end_flow.py
 #
 # Purpose:
-#    Automated acceptance tests aligned with:
+#    High-level integration tests aligned with:
 #        Documentation_Agent_Test_Plan.md
 #
 # These tests exercise the Documentation Agent through the
 # Platform Dispatcher boundary using deterministic reasoning
 # provider behavior.
 #
-# Test IDs follow the Test Plan directly:
-#    DA-FUN-*  Functional Acceptance
-#    DA-SAF-*  Safety Acceptance
-#    DA-AI-*   AI Reasoning Acceptance
+# Verification scenario IDs follow the Test Plan directly:
+#    DA-FUN-*  Functional Verification
+#    DA-SAF-*  Safety Verification
+#    DA-AI-*   AI Reasoning Verification
 #    DA-DOC-*  Documentation Compliance
 #    DA-ARCH-* Platform Boundary
 #
-# Implemented acceptance IDs:
+# Integration test function names add the INT layer prefix.
+#
+# Implemented integration scenario IDs:
 #    DA-FUN-001
 #    DA-FUN-002
 #    DA-FUN-003
@@ -28,7 +30,7 @@
 #    DA-SAF-003
 #    DA-AI-001
 #
-# Deferred IDs require additional acceptance fixtures:
+# Deferred IDs require additional integration fixtures:
 #    DA-SAF-004
 #    DA-AI-002
 #    DA-AI-003
@@ -36,8 +38,9 @@
 #    DA-DOC-002
 #    DA-ARCH-001
 #
-# The acceptance layer verifies user-visible behavior and safety
-# contracts rather than individual service implementation details.
+# These tests verify assembled workflow behavior through Python/service
+# boundaries. Browser/UI acceptance testing is maintained separately
+# under tests/acceptance/agents/documentation/.
 #
 # ============================================================
 
@@ -63,7 +66,7 @@ from project0.platform.platform_dispatcher import create_platform_dispatcher
 def _create_reasoning_provider(
     repository_path: str,
 ) -> StubReasoningProvider:
-    """Create deterministic reasoning output for acceptance tests."""
+    """Create deterministic reasoning output for integration tests."""
 
     return StubReasoningProvider(
         response=ProviderResponse(
@@ -81,7 +84,7 @@ def _create_reasoning_provider(
                         "document_path": repository_path,
                         "summary": "Documentation update",
                         "rationale": (
-                            "Acceptance test documentation update."
+                            "Integration test documentation update."
                         ),
                     }
                 ],
@@ -90,11 +93,11 @@ def _create_reasoning_provider(
                         "document_path": repository_path,
                         "operation": "update",
                         "rationale": (
-                            "Acceptance test documentation update."
+                            "Integration test documentation update."
                         ),
                         "proposed_content": (
                             "# Updated Documentation\\n\\n"
-                            "Acceptance test content.\\n"
+                            "Integration test content.\\n"
                         ),
                         "anchor_text": "Implemented:",
                         "edit_type": "insert",
@@ -121,7 +124,7 @@ def documentation_repository(tmp_path: Path) -> Path:
 
     (tmp_path / "mkdocs.yml").write_text(
         """
-site_name: Acceptance Test Documentation
+site_name: Integration Test Documentation
 
 nav:
   - Test: project/Test.md
@@ -163,7 +166,7 @@ def _create_dispatcher(
     return dispatcher, provider
 
 
-def test_DA_FUN_001_documentation_request_processing(
+def test_INT_DA_FUN_001_documentation_request_processing(
     documentation_repository: Path,
     monkeypatch,
 ):
@@ -187,7 +190,7 @@ def test_DA_FUN_001_documentation_request_processing(
     assert state.proposals
 
 
-def test_DA_FUN_002_documentation_proposal_generation(
+def test_INT_DA_FUN_002_documentation_proposal_generation(
     documentation_repository: Path,
     monkeypatch,
 ):
@@ -213,7 +216,7 @@ def test_DA_FUN_002_documentation_proposal_generation(
     assert proposal.proposed_content
 
 
-def test_DA_FUN_003_surgical_documentation_editing(
+def test_INT_DA_FUN_003_surgical_documentation_editing(
     documentation_repository: Path,
     monkeypatch,
 ):
@@ -236,7 +239,7 @@ def test_DA_FUN_003_surgical_documentation_editing(
     assert proposal.anchor_text == "Implemented:"
 
 
-def test_DA_FUN_004_multi_document_documentation_update(
+def test_INT_DA_FUN_004_multi_document_documentation_update(
     documentation_repository: Path,
 ):
     """
@@ -249,7 +252,7 @@ def test_DA_FUN_004_multi_document_documentation_update(
     )
 
 
-def test_DA_FUN_005_minimal_change_verification(
+def test_INT_DA_FUN_005_minimal_change_verification(
     documentation_repository: Path,
     monkeypatch,
 ):
@@ -270,7 +273,7 @@ def test_DA_FUN_005_minimal_change_verification(
     assert len(state.proposals) == 1
 
 
-def test_DA_SAF_001_rejected_proposal_protection(
+def test_INT_DA_SAF_001_rejected_proposal_protection(
     documentation_repository: Path,
     monkeypatch,
 ):
@@ -302,7 +305,7 @@ def test_DA_SAF_001_rejected_proposal_protection(
     assert result.summary.applied_count == 0
 
 
-def test_DA_SAF_003_invalid_change_handling(
+def test_INT_DA_SAF_003_invalid_change_handling(
     monkeypatch,
 ):
     """
@@ -318,7 +321,7 @@ def test_DA_SAF_003_invalid_change_handling(
         )
 
 
-def test_DA_AI_001_reasoning_provider_integration(
+def test_INT_DA_AI_001_reasoning_provider_integration(
     documentation_repository: Path,
     monkeypatch,
 ):
@@ -340,42 +343,42 @@ def test_DA_AI_001_reasoning_provider_integration(
 
 
 @pytest.mark.skip(
-    reason="Requires baseline documentation acceptance fixture."
+    reason="Requires baseline documentation integration fixture."
 )
-def test_DA_SAF_004_baseline_documentation_handling():
+def test_INT_DA_SAF_004_baseline_documentation_handling():
     pass
 
 
 @pytest.mark.skip(
     reason="Requires unsupported-information reasoning fixture."
 )
-def test_DA_AI_002_unsupported_information_prevention():
+def test_INT_DA_AI_002_unsupported_information_prevention():
     pass
 
 
 @pytest.mark.skip(
     reason="Requires invalid AI output fixture."
 )
-def test_DA_AI_003_invalid_ai_output_handling():
+def test_INT_DA_AI_003_invalid_ai_output_handling():
     pass
 
 
 @pytest.mark.skip(
-    reason="Requires documentation validation acceptance fixture."
+    reason="Requires documentation validation integration fixture."
 )
-def test_DA_DOC_001_documentation_standards_compliance():
+def test_INT_DA_DOC_001_documentation_standards_compliance():
     pass
 
 
 @pytest.mark.skip(
-    reason="Requires source documentation validation acceptance fixture."
+    reason="Requires source documentation validation integration fixture."
 )
-def test_DA_DOC_002_source_documentation_compliance():
+def test_INT_DA_DOC_002_source_documentation_compliance():
     pass
 
 
 @pytest.mark.skip(
     reason="Requires architecture dependency validation tooling."
 )
-def test_DA_ARCH_001_agent_platform_separation():
+def test_INT_DA_ARCH_001_agent_platform_separation():
     pass

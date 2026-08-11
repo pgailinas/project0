@@ -1,18 +1,18 @@
 # Documentation Agent Test Plan
 
-**Version:** 0.1  
+**Version:** 0.3  
 **Owner:** Project0  
-**Last Updated:** 2026-08-10  
+**Last Updated:** 2026-08-11  
 
 ---
 
 # Executive Summary
 
-This document defines the acceptance criteria and verification strategy for the Project0 Documentation Agent.
+This document defines the verification criteria and test strategy for the Project0 Documentation Agent across unit, integration, browser acceptance, and exploratory AI testing.
 
 The purpose of this test plan is to demonstrate that the Documentation Agent can safely identify documentation impact, generate repository-grounded documentation proposals, validate proposed changes, and apply only explicitly approved updates while preserving repository integrity.
 
-The Documentation Agent is the first reference implementation of a Project0 AI Agent. Successful completion of this test plan establishes a reusable acceptance approach for future Project0 agents.
+The Documentation Agent is the first reference implementation of a Project0 AI Agent. Successful completion of this test plan establishes a reusable layered testing approach for future Project0 agents.
 
 ---
 
@@ -22,14 +22,24 @@ The Documentation Agent Test Plan establishes the required verification activiti
 
 This document defines:
 
-* acceptance objectives
+* verification objectives
 * functional verification scenarios
 * safety requirements
 * AI reasoning verification
 * documentation compliance requirements
+* browser acceptance requirements
 * completion criteria
 
 Detailed test execution procedures are defined in the **Documentation Agent Testing Guide**.
+
+Verification scenario identifiers such as `DA-FUN-001`, `DA-SAF-001`, and `DA-AI-001` identify the behavior being verified and are independent of the testing layer used to provide evidence.
+
+Automated test names add a testing-layer prefix when a scenario is implemented at a specific layer:
+
+* `INT` — integration verification through assembled Project0 Python/service boundaries
+* `UI` — browser acceptance verification through the Dashboard/UI boundary
+
+For example, `DA-FUN-001` may be verified by both `INT-DA-FUN-001` and `UI-DA-FUN-001` without creating separate requirement identifiers.
 
 ---
 
@@ -80,7 +90,7 @@ This test plan does not evaluate:
 
 ---
 
-# 4. Acceptance Principles
+# 4. Verification Principles
 
 ## Repository Grounding
 
@@ -131,11 +141,16 @@ Agent-specific responsibilities shall not be embedded into shared platform compo
 
 ---
 
-# 5. Functional Acceptance Tests
+# 5. Functional Verification Scenarios
 
 ---
 
 ## DA-FUN-001: Documentation Request Processing
+
+### Verification Layers
+
+* Integration
+* UI Acceptance where applicable
 
 ### Objective
 
@@ -156,6 +171,11 @@ A valid documentation request completes successfully and produces a proposal.
 ---
 
 # DA-FUN-002: Documentation Proposal Generation
+
+### Verification Layers
+
+* Integration
+* UI Acceptance where applicable
 
 ### Objective
 
@@ -181,6 +201,11 @@ The proposed changes satisfy the request without unsupported content.
 
 # DA-FUN-003: Surgical Documentation Editing
 
+### Verification Layers
+
+* Integration
+* UI Acceptance where applicable
+
 ### Objective
 
 Verify that documentation changes preserve existing content.
@@ -205,6 +230,11 @@ The generated difference contains only the intended modification.
 
 # DA-FUN-004: Multi-Document Documentation Update
 
+### Verification Layers
+
+* Integration
+* UI Acceptance where applicable
+
 ### Objective
 
 Verify handling of changes affecting multiple documentation artifacts.
@@ -220,6 +250,11 @@ All proposed updates are relevant and complete.
 ---
 
 # DA-FUN-005: Minimal Change Verification
+
+### Verification Layers
+
+* Integration
+* UI Acceptance where applicable
 
 ### Objective
 
@@ -239,11 +274,16 @@ No unrelated modifications appear in the final Git difference.
 
 ---
 
-# 6. Safety Acceptance Tests
+# 6. Safety Verification Scenarios
 
 ---
 
 # DA-SAF-001: Rejected Proposal Protection
+
+### Verification Layers
+
+* Integration
+* UI Acceptance where applicable
 
 ### Objective
 
@@ -260,6 +300,11 @@ Repository state remains unchanged.
 ---
 
 # DA-SAF-002: Unauthorized Modification Prevention
+
+### Verification Layers
+
+* Integration
+* UI Acceptance where applicable
 
 ### Objective
 
@@ -281,6 +326,11 @@ All modifications remain within approved scope.
 
 # DA-SAF-003: Invalid Change Handling
 
+### Verification Layers
+
+* Integration
+* UI Acceptance where applicable
+
 ### Objective
 
 Verify that invalid documentation changes are detected.
@@ -297,6 +347,11 @@ Invalid changes are reported and not applied.
 
 # DA-SAF-004: Baseline Documentation Handling
 
+### Verification Layers
+
+* Integration
+* UI Acceptance where applicable
+
 ### Objective
 
 Verify that repository baseline documents remain optional context.
@@ -311,11 +366,16 @@ Missing baseline documents do not cause reusable framework failure.
 
 ---
 
-# 7. AI Reasoning Acceptance Tests
+# 7. AI Reasoning Verification Scenarios
 
 ---
 
 # DA-AI-001: Reasoning Provider Integration
+
+### Verification Layers
+
+* Integration
+* UI Acceptance where applicable
 
 ### Objective
 
@@ -332,6 +392,11 @@ A valid reasoning response is returned and processed.
 ---
 
 # DA-AI-002: Unsupported Information Prevention
+
+### Verification Layers
+
+* Integration
+* UI Acceptance where applicable
 
 ### Objective
 
@@ -353,6 +418,11 @@ Unsupported information is not included in approved documentation.
 
 # DA-AI-003: Invalid AI Output Handling
 
+### Verification Layers
+
+* Integration
+* UI Acceptance where applicable
+
 ### Objective
 
 Verify safe handling of unusable AI responses.
@@ -367,11 +437,16 @@ Repository modification does not occur.
 
 ---
 
-# 8. Documentation Compliance Tests
+# 8. Documentation Compliance Verification
 
 ---
 
 # DA-DOC-001: Documentation Standards Compliance
+
+### Verification Layers
+
+* Integration
+* UI Acceptance where applicable
 
 ### Objective
 
@@ -394,6 +469,11 @@ Documentation changes conform to established standards.
 
 # DA-DOC-002: Source Documentation Compliance
 
+### Verification Layers
+
+* Integration
+* UI Acceptance where applicable
+
 ### Objective
 
 Verify compliance with Project0 source documentation requirements.
@@ -408,11 +488,58 @@ Source files contain required ownership and purpose information.
 
 ---
 
-# 9. Platform Boundary Tests
+
+# 9. Browser Acceptance Testing
+
+Browser acceptance testing verifies that a real user can successfully operate the Documentation Agent through the Project0 Dashboard.
+
+Acceptance tests shall enter through the actual browser/UI boundary rather than directly calling Project0 Python APIs such as `create_platform_dispatcher()`, `run_documentation_workflow()`, or `submit_documentation_review()`.
+
+The intended browser automation tool is Playwright for Python with pytest. Initial coverage should use Chromium only.
+
+Acceptance automation should be introduced incrementally and should eventually verify:
+
+* Documentation Agent page renders.
+* Documentation request input is available.
+* Target documentation path input is available.
+* Submit Documentation Request control is available.
+* Request submission produces the visible Processing state.
+* Review and proposal information is presented.
+* Reject workflow completes without repository modification.
+* Approve workflow applies the intended repository change.
+* Visible workflow results agree with repository effects where applicable.
+
+Playwright automatic waiting should be preferred over arbitrary sleep calls because local reasoning execution time may vary.
+
+---
+
+# 10. Exploratory AI Testing
+
+Real local-model testing remains separate from deterministic automated acceptance testing.
+
+Exploratory AI testing may require human judgment for:
+
+* factual grounding
+* proposal usefulness
+* appropriateness of edits
+* unsupported information
+* hallucination detection
+* rationale quality
+
+Real Ollama/qwen2.5:7b execution should therefore complement, rather than replace, deterministic unit, integration, and browser acceptance testing.
+
+---
+
+# 11. Platform Boundary Tests
 
 ---
 
 # DA-ARCH-001: Agent and Platform Separation
+
+### Verification Layers
+
+* Integration
+* UI Acceptance where applicable
 
 ### Objective
 
@@ -428,28 +555,29 @@ No Documentation Agent-specific responsibilities are embedded into shared platfo
 
 ---
 
-# 10. Regression Acceptance Criteria
+# 12. Regression Criteria
 
 The Documentation Agent is considered stable when:
 
-* automated tests pass
+* automated unit tests pass
 * integration tests pass
-* acceptance scenarios pass
+* required browser acceptance scenarios pass
 * documentation builds successfully
 * repository safety behavior is verified
 
 Current regression baseline:
 
-```
-pytest
+```text
+python -m pytest
 
-Expected:
-639 passed
+647 passed, 7 skipped
 ```
+
+The seven currently implemented high-level Documentation Agent workflow scenarios are integration tests because they exercise the assembled platform through Python APIs rather than through the browser/UI boundary. Seven additional scenarios remain explicitly skipped/deferred.
 
 ---
 
-# 11. Completion Criteria
+# 13. Completion Criteria
 
 The Documentation Agent may be considered complete when:
 
@@ -478,11 +606,11 @@ The Documentation Agent may be considered complete when:
 
 ---
 
-# 12. Future Extensions
+# 14. Future Extensions
 
 Future versions may include:
 
-* Browser automation acceptance testing
+* Expanded Playwright browser acceptance testing
 * Documentation quality metrics
 * Expanded AI evaluation scenarios
 * Additional reasoning providers

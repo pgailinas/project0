@@ -1,8 +1,8 @@
 # Testing Guide
 
-**Version:** 0.3  
+**Version:** 0.4  
 **Owner:** Project0  
-**Last Updated:** 2026-08-09
+**Last Updated:** 2026-08-11
 
 ---
 
@@ -44,13 +44,15 @@ Project0 follows several fundamental testing principles.
 
 ## 4. Test Organization
 
-The repository organizes automated tests into two primary categories.
+The repository organizes automated tests into three primary categories.
 
-```
+```text
 tests/
 ├── unit/
 │
 ├── integration/
+│
+├── acceptance/
 │
 └── resources/
 ```
@@ -79,6 +81,20 @@ Typical characteristics include:
 * Workflow validation
 * End-to-end execution of platform services
 
+### 4.3 Acceptance Tests
+
+Acceptance tests verify externally observable system behavior through the same boundary used by the intended user.
+
+Typical characteristics include:
+
+* User-visible workflow verification
+* Execution through the actual application boundary
+* Browser/UI automation for Dashboard-hosted agents
+* Validation of externally meaningful behavior
+* Separation from direct Python/service API integration testing
+
+Acceptance testing complements rather than replaces unit and integration testing.
+
 ---
 
 ## 5. Current Test Coverage
@@ -99,7 +115,7 @@ Current Project0 platform test categories include:
 
 This guide defines testing for reusable Project0 platform components and the Dashboard Framework.
 
-Agent-specific behavior, workflows, acceptance criteria, and end-to-end scenarios are documented in the applicable `<Agent>_Testing_Guide.md`.
+Agent-specific behavior, workflows, acceptance criteria, integration scenarios, and browser/UI acceptance scenarios are documented in the applicable `<Agent>_Testing_Guide.md`.
 
 Shared Project0 services may also be exercised by agent integration tests. Those agent-level tests verify the agent's use of the shared service and do not replace the platform-level tests defined by this guide.
 
@@ -205,18 +221,32 @@ python -m pytest tests/unit/validation/test_validation_service.py -v
 ### 6.2 Integration Tests
 
 ```bash
-python -m pytest tests/integration/test_core_platform_flow.py -v
-python -m pytest tests/integration/test_context_builder_flow.py -v
-python -m pytest tests/integration/test_platform_dispatcher_flow.py -v
-python -m pytest tests/integration/test_knowledge_service_flow.py -v
-python -m pytest tests/integration/test_reasoning_service_flow.py -v
-python -m pytest tests/integration/test_validation_service_flow.py -v
-python -m pytest tests/integration/test_dashboard_flow.py -v
+python -m pytest tests/integration/platform/test_core_platform_flow.py -v
+python -m pytest tests/integration/platform/test_context_builder_flow.py -v
+python -m pytest tests/integration/platform/test_platform_dispatcher_flow.py -v
+python -m pytest tests/integration/platform/test_knowledge_service_flow.py -v
+python -m pytest tests/integration/platform/test_reasoning_service_flow.py -v
+python -m pytest tests/integration/platform/test_validation_service_flow.py -v
+python -m pytest tests/integration/platform/test_dashboard_flow.py -v
 ```
+
+Agent-specific integration tests are maintained under the applicable agent integration directory and documented in the applicable `<Agent>_Testing_Guide.md`.
 
 ---
 
-### 6.3 Run Complete Test Suites
+### 6.3 Acceptance Tests
+
+Run all acceptance tests:
+
+```bash
+python -m pytest tests/acceptance
+```
+
+Agent-specific acceptance commands and browser automation requirements are defined by the applicable `<Agent>_Testing_Guide.md`.
+
+---
+
+### 6.4 Run Complete Test Suites
 
 Run all unit tests:
 
@@ -228,6 +258,12 @@ Run all integration tests:
 
 ```bash
 python -m pytest tests/integration
+```
+
+Run all acceptance tests:
+
+```bash
+python -m pytest tests/acceptance
 ```
 
 Run the complete Project0 test suite:
@@ -296,8 +332,9 @@ Recommended practice:
 2. Create unit tests.
 3. Execute unit tests.
 4. Add integration tests where appropriate.
-5. Verify the complete test suite.
-6. Commit production code and tests together.
+5. Add acceptance tests for externally meaningful user behavior where appropriate.
+6. Verify the complete test suite.
+7. Commit production code and tests together.
 
 ---
 
@@ -327,6 +364,35 @@ test_missing_file_returns_error()
 
 Test names should describe observable behavior rather than implementation details.
 
+For tests that provide evidence for a verification scenario defined by an agent test plan, the scenario identifier remains independent of the testing layer. The test function name adds a layer prefix.
+
+Integration scenario naming:
+
+```text
+test_INT_<scenario_id>_<expected_behavior>()
+```
+
+Browser/UI acceptance scenario naming:
+
+```text
+test_UI_<scenario_id>_<expected_behavior>()
+```
+
+For example:
+
+```text
+test_INT_DA_FUN_001_documentation_request_processing()
+
+test_UI_DA_FUN_001_documentation_request_processing()
+```
+
+Layer prefixes:
+
+* `INT` — integration verification through assembled Project0 Python/service boundaries.
+* `UI` — browser/UI acceptance verification through the actual application boundary.
+
+Scenario identifiers such as `DA-FUN-001` are owned by the applicable agent test plan and should remain stable when the same behavior is verified at multiple testing layers.
+
 ---
 
 ## 11. Future Enhancements
@@ -347,8 +413,8 @@ Future improvements may include:
 ## 12. Summary
 
 The Project0 testing framework provides a deterministic, maintainable
-foundation for validating platform behavior. Unit and integration
-testing verifies shared Project0 services, platform interactions,
-Dashboard Framework behavior, and overall regression stability while
-agent-specific testing remains defined by the applicable Agent Testing
-Guide.
+foundation for validating platform behavior. Unit, integration, and
+acceptance testing verify component behavior, shared Project0 service
+interactions, externally observable workflows, Dashboard Framework
+behavior, and overall regression stability while agent-specific testing
+remains defined by the applicable Agent Testing Guide.

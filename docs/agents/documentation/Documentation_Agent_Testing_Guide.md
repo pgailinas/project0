@@ -1,8 +1,8 @@
 # Documentation Agent Testing Guide
 
-**Version:** 0.1  
+**Version:** 0.4  
 **Owner:** Project0  
-**Last Updated:** 2026-08-09  
+**Last Updated:** 2026-08-11  
 
 ---
 
@@ -68,15 +68,55 @@ Relevant locations include:
 ```text
 tests/
 ├── unit/
-│   ├── agents/documentation/
+│   ├── agents/
+│   │   └── documentation/
 │   ├── models/
 │   ├── reasoning/
 │   ├── repository/
 │   ├── validation/
 │   └── workflow/
 │
-└── integration/
+├── integration/
+│   ├── agents/
+│   │   └── documentation/
+│   └── platform/
+│
+└── acceptance/
+    └── agents/
+        └── documentation/
 ```
+
+Documentation Agent acceptance tests are maintained separately from unit and integration tests under `tests/acceptance/agents/documentation/`.
+
+Acceptance tests verify Documentation Agent behavior through the actual browser/UI boundary. They should interact with the Dashboard-hosted Documentation Agent as a user would, rather than calling Project0 Python APIs such as the platform dispatcher or Documentation Workflow directly.
+
+High-level workflow tests that assemble real Project0 services but enter through Python APIs belong under `tests/integration/agents/documentation/`.
+
+### 4.1 Verification Scenario and Test Naming
+
+Documentation Agent verification scenario identifiers describe the behavior being verified and do not identify a testing layer.
+
+Examples:
+
+```text
+DA-FUN-001
+DA-SAF-001
+DA-AI-001
+```
+
+Automated tests that provide evidence for a scenario add a testing-layer prefix to the test function name:
+
+```text
+test_INT_DA_FUN_001_documentation_request_processing
+test_UI_DA_FUN_001_documentation_request_processing
+```
+
+The supported layer prefixes are:
+
+- `INT` — integration tests that exercise assembled Project0 and Documentation Agent components through Python/service boundaries.
+- `UI` — browser acceptance tests that exercise the Documentation Agent through the Dashboard/UI boundary.
+
+This convention allows one verification scenario to receive evidence from more than one testing layer without creating duplicate scenario identifiers.
 
 ---
 
@@ -272,14 +312,65 @@ Generic Validation Service infrastructure is tested according to `Testing_Guide.
 Run Documentation Agent-specific integration tests:
 
 ```bash
-python -m pytest tests/integration/test_documentation_workflow_flow.py -v
+python -m pytest tests/integration/agents/documentation/test_documentation_workflow_flow.py -v
+python -m pytest tests/integration/agents/documentation/test_documentation_agent_ui_flow.py -v
+python -m pytest tests/integration/agents/documentation/test_documentation_agent_end_to_end_flow.py -v
+python -m pytest tests/integration/agents/documentation -v
+```
+
+The `test_documentation_agent_end_to_end_flow.py` module contains high-level Documentation Agent workflow scenarios that exercise real Project0 service composition through Python APIs. These scenarios are integration tests because they enter through the platform/workflow API boundary rather than through a browser.
+
+Scenario-oriented test functions in this module use the `INT` layer prefix, for example:
+
+```text
+test_INT_DA_FUN_001_documentation_request_processing
 ```
 
 Additional Documentation Agent integration modules should be included as they are added.
 
 Documentation Agent integration with the Dashboard Framework should be verified through agent-specific integration scenarios. Project0-wide Dashboard Framework integration testing is governed by `Testing_Guide.md`.
 
-### 6.8 Complete Project0 Regression Test
+### 6.8 Documentation Agent Acceptance Tests
+
+Documentation Agent acceptance tests belong under:
+
+```text
+tests/acceptance/agents/documentation/
+```
+
+Acceptance tests shall verify Documentation Agent behavior through the actual Dashboard/browser boundary.
+
+The intended acceptance automation tool is Playwright for Python with pytest. Initial automated browser coverage should use Chromium only.
+
+Scenario-oriented Playwright test functions shall use the `UI` layer prefix, for example:
+
+```text
+test_UI_DA_FUN_001_documentation_request_processing
+```
+
+Acceptance automation should be introduced incrementally. Initial scenarios should verify:
+
+- Documentation Agent page renders.
+- Documentation request field is available.
+- Target documentation path field is available.
+- Submit Documentation Request button is available.
+- Request submission produces the visible Processing state.
+- Review/proposal UI is presented.
+- Reject workflow operates correctly.
+- Approve workflow operates correctly.
+- Repository effects are verified where applicable.
+
+Playwright automatic waiting should be preferred over arbitrary sleep calls because local reasoning execution time may vary.
+
+The acceptance suite is distinct from unit and integration testing:
+
+- Unit tests verify individual component behavior.
+- Integration tests verify cooperation between assembled Project0 and Documentation Agent components.
+- Acceptance tests verify that a real user can successfully operate the Documentation Agent through the browser/UI boundary.
+
+Acceptance scenarios that are not yet automated shall not be treated as passed acceptance requirements.
+
+### 6.9 Complete Project0 Regression Test
 
 After Documentation Agent-specific tests pass, run the complete Project0 suite:
 
@@ -293,16 +384,15 @@ The complete Project0 regression suite is governed by `Testing_Guide.md`.
 
 ---
 
-## 7. Exploratory and Browser Acceptance Testing
+## 7. Browser Acceptance and Exploratory AI Testing
 
-Automated tests are necessary but do not fully evaluate the quality of
-AI-generated documentation proposals or the usability of the human
-review workflow.
+Automated unit and integration tests are necessary but do not fully evaluate the user-visible workflow or the quality of AI-generated documentation proposals.
 
-Browser-based exploratory testing should therefore be performed using
-realistic documentation requests.
+Browser acceptance testing should therefore verify the user workflow through the actual Dashboard-hosted Documentation Agent interface.
 
-Recommended scenarios include:
+Exploratory AI testing should remain a separate qualitative activity because real Ollama/qwen2.5:7b output may vary and may require human judgment for factual grounding, proposal quality, hallucination detection, rationale usefulness, and appropriateness of edits.
+
+Representative browser and exploratory scenarios include:
 
 - Insert a new bullet beneath an existing section or anchor.
 - Replace an existing sentence.
@@ -375,6 +465,7 @@ version when:
 
 - Documentation Agent unit tests pass.
 - Documentation workflow integration tests pass.
+- Required Documentation Agent acceptance scenarios pass.
 - Documentation Agent integration with the Dashboard Framework has been verified.
 - Complete Project0 regression tests pass.
 - Representative insert and replace operations have been verified.
@@ -400,8 +491,9 @@ When a Documentation Agent defect is discovered:
 5. Run the focused test.
 6. Run the applicable component test suite.
 7. Run Documentation Agent integration tests.
-8. Run the complete Project0 regression suite.
-9. Repeat the relevant browser or local-provider scenario when applicable.
+8. Run applicable Documentation Agent acceptance tests.
+9. Run the complete Project0 regression suite.
+10. Repeat the relevant browser or local-provider scenario when applicable.
 
 Previously corrected defects should remain represented by regression
 tests whenever practical.
@@ -410,16 +502,20 @@ tests whenever practical.
 
 ## 12. Current Validation Baseline
 
-At the time this guide was created, the Documentation Agent-specific validation baseline includes:
+At the time of this update, the Documentation Agent-specific validation baseline includes:
 
 - Documentation Agent UI unit tests passing.
 - Documentation workflow unit tests passing.
 - Documentation Agent workflow integration tests passing.
+- High-level Documentation Agent end-to-end workflow integration scenarios passing.
 - Documentation Agent integration with the Dashboard Work Area verified.
 - Human review workflow behavior exercised.
 - Controlled repository update behavior verified.
 - Preliminary and final validation behavior verified.
 - Local reasoning-provider behavior exercised through Documentation Agent workflows.
+- Seven implemented high-level workflow scenarios passing as integration tests; seven additional scenarios remain explicitly skipped/deferred.
+- Playwright-based browser acceptance automation not yet established.
+- Complete Project0 regression baseline: 647 passed, 7 skipped.
 
 The complete Project0 regression suite must also pass before Documentation Agent changes are committed.
 
@@ -431,7 +527,8 @@ Project0-wide test counts, Dashboard Framework validation status, and shared pla
 
 Future Documentation Agent testing may include:
 
-- Expanded automated browser testing.
+- Playwright-based browser acceptance testing.
+- Expanded automated browser coverage.
 - Additional multi-document workflow scenarios.
 - Automated repository integrity fixtures.
 - AI-provider evaluation datasets.
