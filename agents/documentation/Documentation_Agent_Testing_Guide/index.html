@@ -1021,6 +1021,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="4. Test Organization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-verification-scenario-and-test-naming" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Verification Scenario and Test Naming
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1218,10 +1235,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#68-complete-project0-regression-test" class="md-nav__link">
+  <a href="#68-documentation-agent-acceptance-tests" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6.8 Complete Project0 Regression Test
+        6.8 Documentation Agent Acceptance Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#69-complete-project0-regression-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.9 Complete Project0 Regression Test
       
     </span>
   </a>
@@ -1234,10 +1262,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#7-exploratory-and-browser-acceptance-testing" class="md-nav__link">
+  <a href="#7-browser-acceptance-and-exploratory-ai-testing" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7. Exploratory and Browser Acceptance Testing
+        7. Browser Acceptance and Exploratory AI Testing
       
     </span>
   </a>
@@ -1461,6 +1489,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="4. Test Organization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-verification-scenario-and-test-naming" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Verification Scenario and Test Naming
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1658,10 +1703,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#68-complete-project0-regression-test" class="md-nav__link">
+  <a href="#68-documentation-agent-acceptance-tests" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6.8 Complete Project0 Regression Test
+        6.8 Documentation Agent Acceptance Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#69-complete-project0-regression-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.9 Complete Project0 Regression Test
       
     </span>
   </a>
@@ -1674,10 +1730,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#7-exploratory-and-browser-acceptance-testing" class="md-nav__link">
+  <a href="#7-browser-acceptance-and-exploratory-ai-testing" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7. Exploratory and Browser Acceptance Testing
+        7. Browser Acceptance and Exploratory AI Testing
       
     </span>
   </a>
@@ -1787,9 +1843,9 @@
 
 
 <h1 id="documentation-agent-testing-guide">Documentation Agent Testing Guide</h1>
-<p><strong>Version:</strong> 0.1<br />
+<p><strong>Version:</strong> 0.4<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-09  </p>
+<strong>Last Updated:</strong> 2026-08-11  </p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <p>This document defines the testing strategy, test coverage, execution
@@ -1839,15 +1895,43 @@ control.</p>
 <p>Relevant locations include:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>tests/
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── unit/
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│   ├── agents/documentation/
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│   ├── models/
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│   ├── reasoning/
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│   ├── repository/
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│   ├── validation/
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│   └── workflow/
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>└── integration/
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│   ├── agents/
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│   │   └── documentation/
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│   ├── models/
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│   ├── reasoning/
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│   ├── repository/
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│   ├── validation/
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│   └── workflow/
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>├── integration/
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│   ├── agents/
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│   │   └── documentation/
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│   └── platform/
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>└── acceptance/
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    └── agents/
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>        └── documentation/
 </span></code></pre></div>
+<p>Documentation Agent acceptance tests are maintained separately from unit and integration tests under <code>tests/acceptance/agents/documentation/</code>.</p>
+<p>Acceptance tests verify Documentation Agent behavior through the actual browser/UI boundary. They should interact with the Dashboard-hosted Documentation Agent as a user would, rather than calling Project0 Python APIs such as the platform dispatcher or Documentation Workflow directly.</p>
+<p>High-level workflow tests that assemble real Project0 services but enter through Python APIs belong under <code>tests/integration/agents/documentation/</code>.</p>
+<h3 id="41-verification-scenario-and-test-naming">4.1 Verification Scenario and Test Naming</h3>
+<p>Documentation Agent verification scenario identifiers describe the behavior being verified and do not identify a testing layer.</p>
+<p>Examples:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>DA-FUN-001
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>DA-SAF-001
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>DA-AI-001
+</span></code></pre></div>
+<p>Automated tests that provide evidence for a scenario add a testing-layer prefix to the test function name:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>test_INT_DA_FUN_001_documentation_request_processing
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>test_UI_DA_FUN_001_documentation_request_processing
+</span></code></pre></div>
+<p>The supported layer prefixes are:</p>
+<ul>
+<li><code>INT</code> — integration tests that exercise assembled Project0 and Documentation Agent components through Python/service boundaries.</li>
+<li><code>UI</code> — browser acceptance tests that exercise the Documentation Agent through the Dashboard/UI boundary.</li>
+</ul>
+<p>This convention allows one verification scenario to receive evidence from more than one testing layer without creating duplicate scenario identifiers.</p>
 <hr />
 <h2 id="5-documentation-agent-test-coverage">5. Documentation Agent Test Coverage</h2>
 <p>Current Documentation Agent testing includes the following areas.</p>
@@ -1938,47 +2022,47 @@ repository change to be applied.</p>
 </ul>
 <h3 id="58-end-to-end-workflow">5.8 End-to-End Workflow</h3>
 <p>Integration testing should exercise the complete path:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Documentation Request
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>        ↓
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>Platform Dispatcher
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>        ↓
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>Documentation Workflow
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>        ↓
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>Knowledge / Context
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>        ↓
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>Reasoning
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>        ↓
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>Preliminary Validation
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>        ↓
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>Human Review Decision
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>        ↓
-</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>Repository Update
-</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>        ↓
-</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>Final Validation
-</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>        ↓
-</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>Git Diff
-</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>        ↓
-</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>Workflow Result
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Documentation Request
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>        ↓
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>Platform Dispatcher
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>        ↓
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>Documentation Workflow
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>        ↓
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>Knowledge / Context
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>        ↓
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>Reasoning
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>        ↓
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>Preliminary Validation
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>        ↓
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>Human Review Decision
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>        ↓
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>Repository Update
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>        ↓
+</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>Final Validation
+</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>        ↓
+</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>Git Diff
+</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>        ↓
+</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>Workflow Result
 </span></code></pre></div>
 <hr />
 <h2 id="6-running-documentation-agent-tests">6. Running Documentation Agent Tests</h2>
 <p>All commands assume the current working directory is the Project0
 repository root.</p>
 <h3 id="61-documentation-agent-ui-unit-tests">6.1 Documentation Agent UI Unit Tests</h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/agents/documentation/test_documentation_agent_ui_service.py<span class="w"> </span>-v
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/agents/documentation/test_documentation_agent_ui_service.py<span class="w"> </span>-v
 </span></code></pre></div>
 <p>Run other Documentation Agent unit test modules in the same directory as
 applicable.</p>
 <h3 id="62-documentation-workflow-unit-tests">6.2 Documentation Workflow Unit Tests</h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/workflow/test_review_coordinator.py<span class="w"> </span>-v
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/workflow/test_documentation_workflow.py<span class="w"> </span>-v
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/workflow/test_review_coordinator.py<span class="w"> </span>-v
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/workflow/test_documentation_workflow.py<span class="w"> </span>-v
 </span></code></pre></div>
 <h3 id="63-repository-update-and-git-diff-tests">6.3 Repository Update and Git Diff Tests</h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/repository/test_repository_update_service.py<span class="w"> </span>-v
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/repository/test_git_diff_service.py<span class="w"> </span>-v
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/repository/test_repository_update_service.py<span class="w"> </span>-v
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/repository/test_git_diff_service.py<span class="w"> </span>-v
 </span></code></pre></div>
 <h3 id="64-documentation-workflow-models">6.4 Documentation Workflow Models</h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/models/test_documentation_workflow_models.py<span class="w"> </span>-v
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/models/test_documentation_workflow_models.py<span class="w"> </span>-v
 </span></code></pre></div>
 <h3 id="65-documentation-reasoning-tests">6.5 Documentation Reasoning Tests</h3>
 <p>Run Documentation Agent-specific prompt, proposal, and reasoning-integration tests applicable to the change being validated.</p>
@@ -1996,24 +2080,58 @@ applicable.</p>
 <p>Generic Validation Service infrastructure is tested according to <code>Testing_Guide.md</code> and is exercised again by the complete Project0 regression suite.</p>
 <h3 id="67-integration-tests">6.7 Integration Tests</h3>
 <p>Run Documentation Agent-specific integration tests:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/test_documentation_workflow_flow.py<span class="w"> </span>-v
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/agents/documentation/test_documentation_workflow_flow.py<span class="w"> </span>-v
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/agents/documentation/test_documentation_agent_ui_flow.py<span class="w"> </span>-v
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/agents/documentation/test_documentation_agent_end_to_end_flow.py<span class="w"> </span>-v
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/agents/documentation<span class="w"> </span>-v
+</span></code></pre></div>
+<p>The <code>test_documentation_agent_end_to_end_flow.py</code> module contains high-level Documentation Agent workflow scenarios that exercise real Project0 service composition through Python APIs. These scenarios are integration tests because they enter through the platform/workflow API boundary rather than through a browser.</p>
+<p>Scenario-oriented test functions in this module use the <code>INT</code> layer prefix, for example:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>test_INT_DA_FUN_001_documentation_request_processing
 </span></code></pre></div>
 <p>Additional Documentation Agent integration modules should be included as they are added.</p>
 <p>Documentation Agent integration with the Dashboard Framework should be verified through agent-specific integration scenarios. Project0-wide Dashboard Framework integration testing is governed by <code>Testing_Guide.md</code>.</p>
-<h3 id="68-complete-project0-regression-test">6.8 Complete Project0 Regression Test</h3>
+<h3 id="68-documentation-agent-acceptance-tests">6.8 Documentation Agent Acceptance Tests</h3>
+<p>Documentation Agent acceptance tests belong under:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>tests/acceptance/agents/documentation/
+</span></code></pre></div>
+<p>Acceptance tests shall verify Documentation Agent behavior through the actual Dashboard/browser boundary.</p>
+<p>The intended acceptance automation tool is Playwright for Python with pytest. Initial automated browser coverage should use Chromium only.</p>
+<p>Scenario-oriented Playwright test functions shall use the <code>UI</code> layer prefix, for example:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>test_UI_DA_FUN_001_documentation_request_processing
+</span></code></pre></div>
+<p>Acceptance automation should be introduced incrementally. Initial scenarios should verify:</p>
+<ul>
+<li>Documentation Agent page renders.</li>
+<li>Documentation request field is available.</li>
+<li>Target documentation path field is available.</li>
+<li>Submit Documentation Request button is available.</li>
+<li>Request submission produces the visible Processing state.</li>
+<li>Review/proposal UI is presented.</li>
+<li>Reject workflow operates correctly.</li>
+<li>Approve workflow operates correctly.</li>
+<li>Repository effects are verified where applicable.</li>
+</ul>
+<p>Playwright automatic waiting should be preferred over arbitrary sleep calls because local reasoning execution time may vary.</p>
+<p>The acceptance suite is distinct from unit and integration testing:</p>
+<ul>
+<li>Unit tests verify individual component behavior.</li>
+<li>Integration tests verify cooperation between assembled Project0 and Documentation Agent components.</li>
+<li>Acceptance tests verify that a real user can successfully operate the Documentation Agent through the browser/UI boundary.</li>
+</ul>
+<p>Acceptance scenarios that are not yet automated shall not be treated as passed acceptance requirements.</p>
+<h3 id="69-complete-project0-regression-test">6.9 Complete Project0 Regression Test</h3>
 <p>After Documentation Agent-specific tests pass, run the complete Project0 suite:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest
 </span></code></pre></div>
 <p>This final regression run verifies that Documentation Agent changes have not introduced regressions into shared Project0 platform services, the Dashboard Framework, other agents, or integration workflows.</p>
 <p>The complete Project0 regression suite is governed by <code>Testing_Guide.md</code>.</p>
 <hr />
-<h2 id="7-exploratory-and-browser-acceptance-testing">7. Exploratory and Browser Acceptance Testing</h2>
-<p>Automated tests are necessary but do not fully evaluate the quality of
-AI-generated documentation proposals or the usability of the human
-review workflow.</p>
-<p>Browser-based exploratory testing should therefore be performed using
-realistic documentation requests.</p>
-<p>Recommended scenarios include:</p>
+<h2 id="7-browser-acceptance-and-exploratory-ai-testing">7. Browser Acceptance and Exploratory AI Testing</h2>
+<p>Automated unit and integration tests are necessary but do not fully evaluate the user-visible workflow or the quality of AI-generated documentation proposals.</p>
+<p>Browser acceptance testing should therefore verify the user workflow through the actual Dashboard-hosted Documentation Agent interface.</p>
+<p>Exploratory AI testing should remain a separate qualitative activity because real Ollama/qwen2.5:7b output may vary and may require human judgment for factual grounding, proposal quality, hallucination detection, rationale usefulness, and appropriateness of edits.</p>
+<p>Representative browser and exploratory scenarios include:</p>
 <ul>
 <li>Insert a new bullet beneath an existing section or anchor.</li>
 <li>Replace an existing sentence.</li>
@@ -2076,6 +2194,7 @@ version when:</p>
 <ul>
 <li>Documentation Agent unit tests pass.</li>
 <li>Documentation workflow integration tests pass.</li>
+<li>Required Documentation Agent acceptance scenarios pass.</li>
 <li>Documentation Agent integration with the Dashboard Framework has been verified.</li>
 <li>Complete Project0 regression tests pass.</li>
 <li>Representative insert and replace operations have been verified.</li>
@@ -2099,6 +2218,7 @@ version when:</p>
 <li>Run the focused test.</li>
 <li>Run the applicable component test suite.</li>
 <li>Run Documentation Agent integration tests.</li>
+<li>Run applicable Documentation Agent acceptance tests.</li>
 <li>Run the complete Project0 regression suite.</li>
 <li>Repeat the relevant browser or local-provider scenario when applicable.</li>
 </ol>
@@ -2106,16 +2226,20 @@ version when:</p>
 tests whenever practical.</p>
 <hr />
 <h2 id="12-current-validation-baseline">12. Current Validation Baseline</h2>
-<p>At the time this guide was created, the Documentation Agent-specific validation baseline includes:</p>
+<p>At the time of this update, the Documentation Agent-specific validation baseline includes:</p>
 <ul>
 <li>Documentation Agent UI unit tests passing.</li>
 <li>Documentation workflow unit tests passing.</li>
 <li>Documentation Agent workflow integration tests passing.</li>
+<li>High-level Documentation Agent end-to-end workflow integration scenarios passing.</li>
 <li>Documentation Agent integration with the Dashboard Work Area verified.</li>
 <li>Human review workflow behavior exercised.</li>
 <li>Controlled repository update behavior verified.</li>
 <li>Preliminary and final validation behavior verified.</li>
 <li>Local reasoning-provider behavior exercised through Documentation Agent workflows.</li>
+<li>Seven implemented high-level workflow scenarios passing as integration tests; seven additional scenarios remain explicitly skipped/deferred.</li>
+<li>Playwright-based browser acceptance automation not yet established.</li>
+<li>Complete Project0 regression baseline: 647 passed, 7 skipped.</li>
 </ul>
 <p>The complete Project0 regression suite must also pass before Documentation Agent changes are committed.</p>
 <p>Project0-wide test counts, Dashboard Framework validation status, and shared platform testing requirements are governed by <code>Testing_Guide.md</code> and should not be duplicated in this document.</p>
@@ -2123,7 +2247,8 @@ tests whenever practical.</p>
 <h2 id="13-future-testing-enhancements">13. Future Testing Enhancements</h2>
 <p>Future Documentation Agent testing may include:</p>
 <ul>
-<li>Expanded automated browser testing.</li>
+<li>Playwright-based browser acceptance testing.</li>
+<li>Expanded automated browser coverage.</li>
 <li>Additional multi-document workflow scenarios.</li>
 <li>Automated repository integrity fixtures.</li>
 <li>AI-provider evaluation datasets.</li>

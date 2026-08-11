@@ -1058,27 +1058,35 @@
 
 
 <h1 id="documentation-agent-test-plan">Documentation Agent Test Plan</h1>
-<p><strong>Version:</strong> 0.1<br />
+<p><strong>Version:</strong> 0.3<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-10  </p>
+<strong>Last Updated:</strong> 2026-08-11  </p>
 <hr />
 <h1 id="executive-summary">Executive Summary</h1>
-<p>This document defines the acceptance criteria and verification strategy for the Project0 Documentation Agent.</p>
+<p>This document defines the verification criteria and test strategy for the Project0 Documentation Agent across unit, integration, browser acceptance, and exploratory AI testing.</p>
 <p>The purpose of this test plan is to demonstrate that the Documentation Agent can safely identify documentation impact, generate repository-grounded documentation proposals, validate proposed changes, and apply only explicitly approved updates while preserving repository integrity.</p>
-<p>The Documentation Agent is the first reference implementation of a Project0 AI Agent. Successful completion of this test plan establishes a reusable acceptance approach for future Project0 agents.</p>
+<p>The Documentation Agent is the first reference implementation of a Project0 AI Agent. Successful completion of this test plan establishes a reusable layered testing approach for future Project0 agents.</p>
 <hr />
 <h1 id="1-purpose">1. Purpose</h1>
 <p>The Documentation Agent Test Plan establishes the required verification activities before the Documentation Agent can be considered complete.</p>
 <p>This document defines:</p>
 <ul>
-<li>acceptance objectives</li>
+<li>verification objectives</li>
 <li>functional verification scenarios</li>
 <li>safety requirements</li>
 <li>AI reasoning verification</li>
 <li>documentation compliance requirements</li>
+<li>browser acceptance requirements</li>
 <li>completion criteria</li>
 </ul>
 <p>Detailed test execution procedures are defined in the <strong>Documentation Agent Testing Guide</strong>.</p>
+<p>Verification scenario identifiers such as <code>DA-FUN-001</code>, <code>DA-SAF-001</code>, and <code>DA-AI-001</code> identify the behavior being verified and are independent of the testing layer used to provide evidence.</p>
+<p>Automated test names add a testing-layer prefix when a scenario is implemented at a specific layer:</p>
+<ul>
+<li><code>INT</code> — integration verification through assembled Project0 Python/service boundaries</li>
+<li><code>UI</code> — browser acceptance verification through the Dashboard/UI boundary</li>
+</ul>
+<p>For example, <code>DA-FUN-001</code> may be verified by both <code>INT-DA-FUN-001</code> and <code>UI-DA-FUN-001</code> without creating separate requirement identifiers.</p>
 <hr />
 <h1 id="2-test-objectives">2. Test Objectives</h1>
 <p>The Documentation Agent shall demonstrate the ability to:</p>
@@ -1120,7 +1128,7 @@
 <li>Autonomous repository operation without human approval</li>
 </ul>
 <hr />
-<h1 id="4-acceptance-principles">4. Acceptance Principles</h1>
+<h1 id="4-verification-principles">4. Verification Principles</h1>
 <h2 id="repository-grounding">Repository Grounding</h2>
 <p>Documentation Agent proposals shall be based on repository content and configured documentation context.</p>
 <p>AI-generated content shall remain non-authoritative until reviewed and approved.</p>
@@ -1149,9 +1157,14 @@
 <p>Documentation Agent functionality shall remain separate from reusable Project0 platform infrastructure.</p>
 <p>Agent-specific responsibilities shall not be embedded into shared platform components.</p>
 <hr />
-<h1 id="5-functional-acceptance-tests">5. Functional Acceptance Tests</h1>
+<h1 id="5-functional-verification-scenarios">5. Functional Verification Scenarios</h1>
 <hr />
 <h2 id="da-fun-001-documentation-request-processing">DA-FUN-001: Documentation Request Processing</h2>
+<h3 id="verification-layers">Verification Layers</h3>
+<ul>
+<li>Integration</li>
+<li>UI Acceptance where applicable</li>
+</ul>
 <h3 id="objective">Objective</h3>
 <p>Verify that a user can submit a documentation request through the Documentation Agent interface.</p>
 <h3 id="expected-behavior">Expected Behavior</h3>
@@ -1165,6 +1178,11 @@
 <p>A valid documentation request completes successfully and produces a proposal.</p>
 <hr />
 <h1 id="da-fun-002-documentation-proposal-generation">DA-FUN-002: Documentation Proposal Generation</h1>
+<h3 id="verification-layers_1">Verification Layers</h3>
+<ul>
+<li>Integration</li>
+<li>UI Acceptance where applicable</li>
+</ul>
 <h3 id="objective_1">Objective</h3>
 <p>Verify that the Documentation Agent generates repository-grounded documentation proposals.</p>
 <h3 id="test-scenario">Test Scenario</h3>
@@ -1180,6 +1198,11 @@
 <p>The proposed changes satisfy the request without unsupported content.</p>
 <hr />
 <h1 id="da-fun-003-surgical-documentation-editing">DA-FUN-003: Surgical Documentation Editing</h1>
+<h3 id="verification-layers_2">Verification Layers</h3>
+<ul>
+<li>Integration</li>
+<li>UI Acceptance where applicable</li>
+</ul>
 <h3 id="objective_2">Objective</h3>
 <p>Verify that documentation changes preserve existing content.</p>
 <h3 id="test-scenario_1">Test Scenario</h3>
@@ -1195,6 +1218,11 @@
 <p>The generated difference contains only the intended modification.</p>
 <hr />
 <h1 id="da-fun-004-multi-document-documentation-update">DA-FUN-004: Multi-Document Documentation Update</h1>
+<h3 id="verification-layers_3">Verification Layers</h3>
+<ul>
+<li>Integration</li>
+<li>UI Acceptance where applicable</li>
+</ul>
 <h3 id="objective_3">Objective</h3>
 <p>Verify handling of changes affecting multiple documentation artifacts.</p>
 <h3 id="expected-behavior_3">Expected Behavior</h3>
@@ -1203,6 +1231,11 @@
 <p>All proposed updates are relevant and complete.</p>
 <hr />
 <h1 id="da-fun-005-minimal-change-verification">DA-FUN-005: Minimal Change Verification</h1>
+<h3 id="verification-layers_4">Verification Layers</h3>
+<ul>
+<li>Integration</li>
+<li>UI Acceptance where applicable</li>
+</ul>
 <h3 id="objective_4">Objective</h3>
 <p>Verify adherence to the minimum necessary change principle.</p>
 <h3 id="expected-behavior_4">Expected Behavior</h3>
@@ -1215,9 +1248,14 @@
 <h3 id="pass-criteria_4">Pass Criteria</h3>
 <p>No unrelated modifications appear in the final Git difference.</p>
 <hr />
-<h1 id="6-safety-acceptance-tests">6. Safety Acceptance Tests</h1>
+<h1 id="6-safety-verification-scenarios">6. Safety Verification Scenarios</h1>
 <hr />
 <h1 id="da-saf-001-rejected-proposal-protection">DA-SAF-001: Rejected Proposal Protection</h1>
+<h3 id="verification-layers_5">Verification Layers</h3>
+<ul>
+<li>Integration</li>
+<li>UI Acceptance where applicable</li>
+</ul>
 <h3 id="objective_5">Objective</h3>
 <p>Verify repository protection when a reviewer rejects a proposal.</p>
 <h3 id="expected-behavior_5">Expected Behavior</h3>
@@ -1226,6 +1264,11 @@
 <p>Repository state remains unchanged.</p>
 <hr />
 <h1 id="da-saf-002-unauthorized-modification-prevention">DA-SAF-002: Unauthorized Modification Prevention</h1>
+<h3 id="verification-layers_6">Verification Layers</h3>
+<ul>
+<li>Integration</li>
+<li>UI Acceptance where applicable</li>
+</ul>
 <h3 id="objective_6">Objective</h3>
 <p>Verify that the Documentation Agent modifies only approved documentation scope.</p>
 <h3 id="expected-behavior_6">Expected Behavior</h3>
@@ -1239,6 +1282,11 @@
 <p>All modifications remain within approved scope.</p>
 <hr />
 <h1 id="da-saf-003-invalid-change-handling">DA-SAF-003: Invalid Change Handling</h1>
+<h3 id="verification-layers_7">Verification Layers</h3>
+<ul>
+<li>Integration</li>
+<li>UI Acceptance where applicable</li>
+</ul>
 <h3 id="objective_7">Objective</h3>
 <p>Verify that invalid documentation changes are detected.</p>
 <h3 id="expected-behavior_7">Expected Behavior</h3>
@@ -1247,6 +1295,11 @@
 <p>Invalid changes are reported and not applied.</p>
 <hr />
 <h1 id="da-saf-004-baseline-documentation-handling">DA-SAF-004: Baseline Documentation Handling</h1>
+<h3 id="verification-layers_8">Verification Layers</h3>
+<ul>
+<li>Integration</li>
+<li>UI Acceptance where applicable</li>
+</ul>
 <h3 id="objective_8">Objective</h3>
 <p>Verify that repository baseline documents remain optional context.</p>
 <h3 id="expected-behavior_8">Expected Behavior</h3>
@@ -1254,9 +1307,14 @@
 <h3 id="pass-criteria_8">Pass Criteria</h3>
 <p>Missing baseline documents do not cause reusable framework failure.</p>
 <hr />
-<h1 id="7-ai-reasoning-acceptance-tests">7. AI Reasoning Acceptance Tests</h1>
+<h1 id="7-ai-reasoning-verification-scenarios">7. AI Reasoning Verification Scenarios</h1>
 <hr />
 <h1 id="da-ai-001-reasoning-provider-integration">DA-AI-001: Reasoning Provider Integration</h1>
+<h3 id="verification-layers_9">Verification Layers</h3>
+<ul>
+<li>Integration</li>
+<li>UI Acceptance where applicable</li>
+</ul>
 <h3 id="objective_9">Objective</h3>
 <p>Verify integration between Documentation Agent workflows and the configured reasoning provider.</p>
 <h3 id="expected-behavior_9">Expected Behavior</h3>
@@ -1265,6 +1323,11 @@
 <p>A valid reasoning response is returned and processed.</p>
 <hr />
 <h1 id="da-ai-002-unsupported-information-prevention">DA-AI-002: Unsupported Information Prevention</h1>
+<h3 id="verification-layers_10">Verification Layers</h3>
+<ul>
+<li>Integration</li>
+<li>UI Acceptance where applicable</li>
+</ul>
 <h3 id="objective_10">Objective</h3>
 <p>Verify that the Documentation Agent does not invent unsupported project information.</p>
 <h3 id="test-scenario_2">Test Scenario</h3>
@@ -1275,6 +1338,11 @@
 <p>Unsupported information is not included in approved documentation.</p>
 <hr />
 <h1 id="da-ai-003-invalid-ai-output-handling">DA-AI-003: Invalid AI Output Handling</h1>
+<h3 id="verification-layers_11">Verification Layers</h3>
+<ul>
+<li>Integration</li>
+<li>UI Acceptance where applicable</li>
+</ul>
 <h3 id="objective_11">Objective</h3>
 <p>Verify safe handling of unusable AI responses.</p>
 <h3 id="expected-behavior_11">Expected Behavior</h3>
@@ -1282,9 +1350,14 @@
 <h3 id="pass-criteria_11">Pass Criteria</h3>
 <p>Repository modification does not occur.</p>
 <hr />
-<h1 id="8-documentation-compliance-tests">8. Documentation Compliance Tests</h1>
+<h1 id="8-documentation-compliance-verification">8. Documentation Compliance Verification</h1>
 <hr />
 <h1 id="da-doc-001-documentation-standards-compliance">DA-DOC-001: Documentation Standards Compliance</h1>
+<h3 id="verification-layers_12">Verification Layers</h3>
+<ul>
+<li>Integration</li>
+<li>UI Acceptance where applicable</li>
+</ul>
 <h3 id="objective_12">Objective</h3>
 <p>Verify that Documentation Agent updates follow Project0 Documentation Standards.</p>
 <h3 id="expected-behavior_12">Expected Behavior</h3>
@@ -1299,6 +1372,11 @@
 <p>Documentation changes conform to established standards.</p>
 <hr />
 <h1 id="da-doc-002-source-documentation-compliance">DA-DOC-002: Source Documentation Compliance</h1>
+<h3 id="verification-layers_13">Verification Layers</h3>
+<ul>
+<li>Integration</li>
+<li>UI Acceptance where applicable</li>
+</ul>
 <h3 id="objective_13">Objective</h3>
 <p>Verify compliance with Project0 source documentation requirements.</p>
 <h3 id="expected-behavior_13">Expected Behavior</h3>
@@ -1306,9 +1384,45 @@
 <h3 id="pass-criteria_13">Pass Criteria</h3>
 <p>Source files contain required ownership and purpose information.</p>
 <hr />
-<h1 id="9-platform-boundary-tests">9. Platform Boundary Tests</h1>
+<h1 id="9-browser-acceptance-testing">9. Browser Acceptance Testing</h1>
+<p>Browser acceptance testing verifies that a real user can successfully operate the Documentation Agent through the Project0 Dashboard.</p>
+<p>Acceptance tests shall enter through the actual browser/UI boundary rather than directly calling Project0 Python APIs such as <code>create_platform_dispatcher()</code>, <code>run_documentation_workflow()</code>, or <code>submit_documentation_review()</code>.</p>
+<p>The intended browser automation tool is Playwright for Python with pytest. Initial coverage should use Chromium only.</p>
+<p>Acceptance automation should be introduced incrementally and should eventually verify:</p>
+<ul>
+<li>Documentation Agent page renders.</li>
+<li>Documentation request input is available.</li>
+<li>Target documentation path input is available.</li>
+<li>Submit Documentation Request control is available.</li>
+<li>Request submission produces the visible Processing state.</li>
+<li>Review and proposal information is presented.</li>
+<li>Reject workflow completes without repository modification.</li>
+<li>Approve workflow applies the intended repository change.</li>
+<li>Visible workflow results agree with repository effects where applicable.</li>
+</ul>
+<p>Playwright automatic waiting should be preferred over arbitrary sleep calls because local reasoning execution time may vary.</p>
+<hr />
+<h1 id="10-exploratory-ai-testing">10. Exploratory AI Testing</h1>
+<p>Real local-model testing remains separate from deterministic automated acceptance testing.</p>
+<p>Exploratory AI testing may require human judgment for:</p>
+<ul>
+<li>factual grounding</li>
+<li>proposal usefulness</li>
+<li>appropriateness of edits</li>
+<li>unsupported information</li>
+<li>hallucination detection</li>
+<li>rationale quality</li>
+</ul>
+<p>Real Ollama/qwen2.5:7b execution should therefore complement, rather than replace, deterministic unit, integration, and browser acceptance testing.</p>
+<hr />
+<h1 id="11-platform-boundary-tests">11. Platform Boundary Tests</h1>
 <hr />
 <h1 id="da-arch-001-agent-and-platform-separation">DA-ARCH-001: Agent and Platform Separation</h1>
+<h3 id="verification-layers_14">Verification Layers</h3>
+<ul>
+<li>Integration</li>
+<li>UI Acceptance where applicable</li>
+</ul>
 <h3 id="objective_14">Objective</h3>
 <p>Verify that Documentation Agent responsibilities remain separate from Project0 platform responsibilities.</p>
 <h3 id="expected-behavior_14">Expected Behavior</h3>
@@ -1316,23 +1430,23 @@
 <h3 id="pass-criteria_14">Pass Criteria</h3>
 <p>No Documentation Agent-specific responsibilities are embedded into shared platform components.</p>
 <hr />
-<h1 id="10-regression-acceptance-criteria">10. Regression Acceptance Criteria</h1>
+<h1 id="12-regression-criteria">12. Regression Criteria</h1>
 <p>The Documentation Agent is considered stable when:</p>
 <ul>
-<li>automated tests pass</li>
+<li>automated unit tests pass</li>
 <li>integration tests pass</li>
-<li>acceptance scenarios pass</li>
+<li>required browser acceptance scenarios pass</li>
 <li>documentation builds successfully</li>
 <li>repository safety behavior is verified</li>
 </ul>
 <p>Current regression baseline:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pytest
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>python -m pytest
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Expected:
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>639 passed
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>647 passed, 7 skipped
 </span></code></pre></div>
+<p>The seven currently implemented high-level Documentation Agent workflow scenarios are integration tests because they exercise the assembled platform through Python APIs rather than through the browser/UI boundary. Seven additional scenarios remain explicitly skipped/deferred.</p>
 <hr />
-<h1 id="11-completion-criteria">11. Completion Criteria</h1>
+<h1 id="13-completion-criteria">13. Completion Criteria</h1>
 <p>The Documentation Agent may be considered complete when:</p>
 <h2 id="functional">Functional</h2>
 <ul>
@@ -1358,10 +1472,10 @@
 <li>Acceptance results are recorded.</li>
 </ul>
 <hr />
-<h1 id="12-future-extensions">12. Future Extensions</h1>
+<h1 id="14-future-extensions">14. Future Extensions</h1>
 <p>Future versions may include:</p>
 <ul>
-<li>Browser automation acceptance testing</li>
+<li>Expanded Playwright browser acceptance testing</li>
 <li>Documentation quality metrics</li>
 <li>Expanded AI evaluation scenarios</li>
 <li>Additional reasoning providers</li>

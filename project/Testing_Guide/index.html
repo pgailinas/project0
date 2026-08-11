@@ -518,6 +518,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#43-acceptance-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Acceptance Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -679,10 +690,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#63-run-complete-test-suites" class="md-nav__link">
+  <a href="#63-acceptance-tests" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6.3 Run Complete Test Suites
+        6.3 Acceptance Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#64-run-complete-test-suites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.4 Run Complete Test Suites
       
     </span>
   </a>
@@ -1453,6 +1475,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#43-acceptance-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Acceptance Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1614,10 +1647,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#63-run-complete-test-suites" class="md-nav__link">
+  <a href="#63-acceptance-tests" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6.3 Run Complete Test Suites
+        6.3 Acceptance Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#64-run-complete-test-suites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.4 Run Complete Test Suites
       
     </span>
   </a>
@@ -1721,9 +1765,9 @@
 
 
 <h1 id="testing-guide">Testing Guide</h1>
-<p><strong>Version:</strong> 0.3<br />
+<p><strong>Version:</strong> 0.4<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-09</p>
+<strong>Last Updated:</strong> 2026-08-11</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <p>This document describes the testing strategy used throughout the Project0 platform and provides the standard procedures for executing, extending, and maintaining the automated test suite.</p>
@@ -1754,13 +1798,15 @@
 </ul>
 <hr />
 <h2 id="4-test-organization">4. Test Organization</h2>
-<p>The repository organizes automated tests into two primary categories.</p>
+<p>The repository organizes automated tests into three primary categories.</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>tests/
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── unit/
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── integration/
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>└── resources/
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>├── acceptance/
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>└── resources/
 </span></code></pre></div>
 <h3 id="41-unit-tests">4.1 Unit Tests</h3>
 <p>Unit tests verify the behavior of a single component in isolation.</p>
@@ -1782,6 +1828,17 @@
 <li>Workflow validation</li>
 <li>End-to-end execution of platform services</li>
 </ul>
+<h3 id="43-acceptance-tests">4.3 Acceptance Tests</h3>
+<p>Acceptance tests verify externally observable system behavior through the same boundary used by the intended user.</p>
+<p>Typical characteristics include:</p>
+<ul>
+<li>User-visible workflow verification</li>
+<li>Execution through the actual application boundary</li>
+<li>Browser/UI automation for Dashboard-hosted agents</li>
+<li>Validation of externally meaningful behavior</li>
+<li>Separation from direct Python/service API integration testing</li>
+</ul>
+<p>Acceptance testing complements rather than replaces unit and integration testing.</p>
 <hr />
 <h2 id="5-current-test-coverage">5. Current Test Coverage</h2>
 <p>Current Project0 platform test categories include:</p>
@@ -1799,7 +1856,7 @@
 <li>Platform Integration Workflows</li>
 </ul>
 <p>This guide defines testing for reusable Project0 platform components and the Dashboard Framework.</p>
-<p>Agent-specific behavior, workflows, acceptance criteria, and end-to-end scenarios are documented in the applicable <code>&lt;Agent&gt;_Testing_Guide.md</code>.</p>
+<p>Agent-specific behavior, workflows, acceptance criteria, integration scenarios, and browser/UI acceptance scenarios are documented in the applicable <code>&lt;Agent&gt;_Testing_Guide.md</code>.</p>
 <p>Shared Project0 services may also be exercised by agent integration tests. Those agent-level tests verify the agent's use of the shared service and do not replace the platform-level tests defined by this guide.</p>
 <p>As additional reusable platform services are implemented, corresponding test suites should be added.</p>
 <hr />
@@ -1862,38 +1919,48 @@
 </span></code></pre></div>
 <hr />
 <h3 id="62-integration-tests">6.2 Integration Tests</h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/test_core_platform_flow.py<span class="w"> </span>-v
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/test_context_builder_flow.py<span class="w"> </span>-v
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/test_platform_dispatcher_flow.py<span class="w"> </span>-v
-</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/test_knowledge_service_flow.py<span class="w"> </span>-v
-</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/test_reasoning_service_flow.py<span class="w"> </span>-v
-</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/test_validation_service_flow.py<span class="w"> </span>-v
-</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/test_dashboard_flow.py<span class="w"> </span>-v
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/platform/test_core_platform_flow.py<span class="w"> </span>-v
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/platform/test_context_builder_flow.py<span class="w"> </span>-v
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/platform/test_platform_dispatcher_flow.py<span class="w"> </span>-v
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/platform/test_knowledge_service_flow.py<span class="w"> </span>-v
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/platform/test_reasoning_service_flow.py<span class="w"> </span>-v
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/platform/test_validation_service_flow.py<span class="w"> </span>-v
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/platform/test_dashboard_flow.py<span class="w"> </span>-v
 </span></code></pre></div>
+<p>Agent-specific integration tests are maintained under the applicable agent integration directory and documented in the applicable <code>&lt;Agent&gt;_Testing_Guide.md</code>.</p>
 <hr />
-<h3 id="63-run-complete-test-suites">6.3 Run Complete Test Suites</h3>
+<h3 id="63-acceptance-tests">6.3 Acceptance Tests</h3>
+<p>Run all acceptance tests:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/acceptance
+</span></code></pre></div>
+<p>Agent-specific acceptance commands and browser automation requirements are defined by the applicable <code>&lt;Agent&gt;_Testing_Guide.md</code>.</p>
+<hr />
+<h3 id="64-run-complete-test-suites">6.4 Run Complete Test Suites</h3>
 <p>Run all unit tests:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit
 </span></code></pre></div>
 <p>Run all integration tests:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration
+</span></code></pre></div>
+<p>Run all acceptance tests:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/acceptance
 </span></code></pre></div>
 <p>Run the complete Project0 test suite:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest
 </span></code></pre></div>
 <hr />
 <h2 id="7-frequently-used-pytest-options">7. Frequently Used Pytest Options</h2>
 <p>Verbose output:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>-v
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>-v
 </span></code></pre></div>
 <p>Stop after the first failure:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>-x
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>-x
 </span></code></pre></div>
 <p>Display the slowest tests:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>--durations<span class="o">=</span><span class="m">10</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>--durations<span class="o">=</span><span class="m">10</span>
 </span></code></pre></div>
 <p>Run a specific test function:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>path/to/test_file.py::test_name<span class="w"> </span>-v
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>path/to/test_file.py::test_name<span class="w"> </span>-v
 </span></code></pre></div>
 <hr />
 <h2 id="8-expected-results">8. Expected Results</h2>
@@ -1918,25 +1985,44 @@
 <li>Create unit tests.</li>
 <li>Execute unit tests.</li>
 <li>Add integration tests where appropriate.</li>
+<li>Add acceptance tests for externally meaningful user behavior where appropriate.</li>
 <li>Verify the complete test suite.</li>
 <li>Commit production code and tests together.</li>
 </ol>
 <hr />
 <h2 id="10-test-naming-conventions">10. Test Naming Conventions</h2>
 <p>Recommended file naming:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>test_&lt;component&gt;.py
+<div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>test_&lt;component&gt;.py
 </span></code></pre></div>
 <p>Recommended function naming:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>test_&lt;expected_behavior&gt;()
+<div class="language-text highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>test_&lt;expected_behavior&gt;()
 </span></code></pre></div>
 <p>Examples:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>test_repository_service.py
-</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>
-</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>test_repository_reads_markdown()
-</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>
-</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>test_missing_file_returns_error()
+<div class="language-text highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>test_repository_service.py
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>test_repository_reads_markdown()
+</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>
+</span><span id="__span-23-5"><a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>test_missing_file_returns_error()
 </span></code></pre></div>
 <p>Test names should describe observable behavior rather than implementation details.</p>
+<p>For tests that provide evidence for a verification scenario defined by an agent test plan, the scenario identifier remains independent of the testing layer. The test function name adds a layer prefix.</p>
+<p>Integration scenario naming:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>test_INT_&lt;scenario_id&gt;_&lt;expected_behavior&gt;()
+</span></code></pre></div>
+<p>Browser/UI acceptance scenario naming:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>test_UI_&lt;scenario_id&gt;_&lt;expected_behavior&gt;()
+</span></code></pre></div>
+<p>For example:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>test_INT_DA_FUN_001_documentation_request_processing()
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>
+</span><span id="__span-26-3"><a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>test_UI_DA_FUN_001_documentation_request_processing()
+</span></code></pre></div>
+<p>Layer prefixes:</p>
+<ul>
+<li><code>INT</code> — integration verification through assembled Project0 Python/service boundaries.</li>
+<li><code>UI</code> — browser/UI acceptance verification through the actual application boundary.</li>
+</ul>
+<p>Scenario identifiers such as <code>DA-FUN-001</code> are owned by the applicable agent test plan and should remain stable when the same behavior is verified at multiple testing layers.</p>
 <hr />
 <h2 id="11-future-enhancements">11. Future Enhancements</h2>
 <p>Future improvements may include:</p>
@@ -1953,11 +2039,11 @@
 <hr />
 <h2 id="12-summary">12. Summary</h2>
 <p>The Project0 testing framework provides a deterministic, maintainable
-foundation for validating platform behavior. Unit and integration
-testing verifies shared Project0 services, platform interactions,
-Dashboard Framework behavior, and overall regression stability while
-agent-specific testing remains defined by the applicable Agent Testing
-Guide.</p>
+foundation for validating platform behavior. Unit, integration, and
+acceptance testing verify component behavior, shared Project0 service
+interactions, externally observable workflows, Dashboard Framework
+behavior, and overall regression stability while agent-specific testing
+remains defined by the applicable Agent Testing Guide.</p>
 
 
 
