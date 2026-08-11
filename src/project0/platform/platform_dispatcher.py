@@ -16,7 +16,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from project0.common.startup_validation import validate_startup
-from project0.config.settings import SETTINGS
+from project0.config.settings import SETTINGS, ProjectSettings
 from project0.interfaces.context_builder_interfaces import (
     ContextBuilderInterface,
 )
@@ -150,12 +150,20 @@ def create_platform_dispatcher(
     reasoning_provider: ReasoningProviderProtocol | None = None,
     reasoning_model_name: str | None = None,
     review_decision_provider: ReviewDecisionProvider | None = None,
+    settings: ProjectSettings | None = None,
 ) -> PlatformDispatcher:
-    """Validate startup and assemble the default Project0 platform."""
+    """Validate startup and assemble the default Project0 platform.
 
-    validate_startup(SETTINGS)
+    A custom settings object may be supplied for isolated test
+    environments. When omitted, the shared Project0 SETTINGS instance
+    is used.
+    """
 
-    repository_root = SETTINGS.project_root
+    resolved_settings = settings or SETTINGS
+
+    validate_startup(resolved_settings)
+
+    repository_root = resolved_settings.project_root
 
     repository = RepositoryService(
         repository_root=repository_root

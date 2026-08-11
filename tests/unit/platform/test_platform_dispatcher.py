@@ -18,6 +18,7 @@ from uuid import UUID
 
 import pytest
 
+from project0.config.settings import ProjectSettings
 from project0.models.context_models import ContextWorkflowType
 from project0.models.documentation_workflow_models import (
     DocumentationChangeProposal,
@@ -35,6 +36,7 @@ from project0.models.workflow_models import (
 from project0.platform.platform_dispatcher import (
     PlatformDispatcher,
     _create_documentation_workflow,
+    create_platform_dispatcher,
 )
 
 
@@ -688,3 +690,30 @@ def test_create_documentation_workflow_uses_generic_validators(
         "mkdocs",
     )
     assert "documentation_consistency" not in validator_names
+
+
+def test_create_platform_dispatcher_accepts_custom_settings(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    """Custom settings are passed to dispatcher construction."""
+
+    settings = ProjectSettings(
+        project_root=tmp_path,
+        docs_dir=tmp_path / "docs",
+        source_dir=tmp_path / "src",
+        tests_dir=tmp_path / "tests",
+    )
+
+    monkeypatch.setattr(
+        "project0.platform.platform_dispatcher.validate_startup",
+        Mock(),
+    )
+
+    dispatcher = create_platform_dispatcher(
+        reasoning_provider=Mock(),
+        reasoning_model_name="stub-model",
+        settings=settings,
+    )
+
+    assert dispatcher.repository.repository_root == tmp_path
