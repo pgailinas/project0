@@ -1843,7 +1843,7 @@
 
 
 <h1 id="documentation-agent-testing-guide">Documentation Agent Testing Guide</h1>
-<p><strong>Version:</strong> 0.4<br />
+<p><strong>Version:</strong> 0.5<br />
 <strong>Owner:</strong> Project0<br />
 <strong>Last Updated:</strong> 2026-08-11  </p>
 <hr />
@@ -1932,6 +1932,8 @@ control.</p>
 <li><code>UI</code> — browser acceptance tests that exercise the Documentation Agent through the Dashboard/UI boundary.</li>
 </ul>
 <p>This convention allows one verification scenario to receive evidence from more than one testing layer without creating duplicate scenario identifiers.</p>
+<p>Individual browser acceptance cases that provide evidence for the same scenario use documented case suffixes such as <code>UI-DA-FUN-001-A</code> and <code>UI-DA-FUN-001-B</code>. The suffix distinguishes documented UI cases without changing the stable <code>DA-*</code> scenario identifier. Python test function names remain descriptive and do not require the case suffix.</p>
+<p>Each documented UI acceptance case shall define its test ID, test name, purpose, preconditions, test steps, expected results, and automated test function.</p>
 <hr />
 <h2 id="5-documentation-agent-test-coverage">5. Documentation Agent Test Coverage</h2>
 <p>Current Documentation Agent testing includes the following areas.</p>
@@ -2113,6 +2115,13 @@ applicable.</p>
 <li>Repository effects are verified where applicable.</li>
 </ul>
 <p>Playwright automatic waiting should be preferred over arbitrary sleep calls because local reasoning execution time may vary.</p>
+<p>Shared Project0 acceptance infrastructure belongs in <code>tests/acceptance/conftest.py</code>. It may provide <code>--ui-slowmo=&lt;milliseconds&gt;</code> to pass a human-observation delay to Playwright <code>slow_mo</code>. This delay shall not be used for synchronization.</p>
+<p>Standard execution modes include:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/acceptance/agents/documentation<span class="w"> </span>-v
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/acceptance/agents/documentation<span class="w"> </span>-v<span class="w"> </span>-s<span class="w"> </span>--headed
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/acceptance/agents/documentation<span class="w"> </span>-v<span class="w"> </span>-s<span class="w"> </span>--headed<span class="w"> </span>--ui-slowmo<span class="o">=</span><span class="m">750</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="nv">PWDEBUG</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/acceptance/agents/documentation<span class="w"> </span>-v<span class="w"> </span>-s<span class="w"> </span>--headed
+</span></code></pre></div>
 <p>The acceptance suite is distinct from unit and integration testing:</p>
 <ul>
 <li>Unit tests verify individual component behavior.</li>
@@ -2122,7 +2131,7 @@ applicable.</p>
 <p>Acceptance scenarios that are not yet automated shall not be treated as passed acceptance requirements.</p>
 <h3 id="69-complete-project0-regression-test">6.9 Complete Project0 Regression Test</h3>
 <p>After Documentation Agent-specific tests pass, run the complete Project0 suite:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest
 </span></code></pre></div>
 <p>This final regression run verifies that Documentation Agent changes have not introduced regressions into shared Project0 platform services, the Dashboard Framework, other agents, or integration workflows.</p>
 <p>The complete Project0 regression suite is governed by <code>Testing_Guide.md</code>.</p>
@@ -2238,7 +2247,7 @@ tests whenever practical.</p>
 <li>Preliminary and final validation behavior verified.</li>
 <li>Local reasoning-provider behavior exercised through Documentation Agent workflows.</li>
 <li>Seven implemented high-level workflow scenarios passing as integration tests; seven additional scenarios remain explicitly skipped/deferred.</li>
-<li>Playwright-based browser acceptance automation not yet established.</li>
+<li>Playwright-based Chromium browser acceptance automation established; initial page-render scenario passing.</li>
 <li>Complete Project0 regression baseline: 647 passed, 7 skipped.</li>
 </ul>
 <p>The complete Project0 regression suite must also pass before Documentation Agent changes are committed.</p>
@@ -2247,7 +2256,6 @@ tests whenever practical.</p>
 <h2 id="13-future-testing-enhancements">13. Future Testing Enhancements</h2>
 <p>Future Documentation Agent testing may include:</p>
 <ul>
-<li>Playwright-based browser acceptance testing.</li>
 <li>Expanded automated browser coverage.</li>
 <li>Additional multi-document workflow scenarios.</li>
 <li>Automated repository integrity fixtures.</li>

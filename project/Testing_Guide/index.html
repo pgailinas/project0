@@ -1765,7 +1765,7 @@
 
 
 <h1 id="testing-guide">Testing Guide</h1>
-<p><strong>Version:</strong> 0.4<br />
+<p><strong>Version:</strong> 0.5<br />
 <strong>Owner:</strong> Project0<br />
 <strong>Last Updated:</strong> 2026-08-11</p>
 <hr />
@@ -1933,6 +1933,8 @@
 <p>Run all acceptance tests:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/acceptance
 </span></code></pre></div>
+<p>Project0 browser acceptance infrastructure may define the custom pytest option <code>--ui-slowmo=&lt;milliseconds&gt;</code>. The option passes the requested delay to Playwright <code>slow_mo</code> for human observation. A value of <code>0</code> preserves full-speed execution.</p>
+<p>Shared interpretation of this option belongs in <code>tests/acceptance/conftest.py</code>. Slow-motion execution is an observation aid only; it shall not be used for synchronization or change acceptance criteria.</p>
 <p>Agent-specific acceptance commands and browser automation requirements are defined by the applicable <code>&lt;Agent&gt;_Testing_Guide.md</code>.</p>
 <hr />
 <h3 id="64-run-complete-test-suites">6.4 Run Complete Test Suites</h3>
@@ -1961,6 +1963,12 @@
 </span></code></pre></div>
 <p>Run a specific test function:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>path/to/test_file.py::test_name<span class="w"> </span>-v
+</span></code></pre></div>
+<p>Run browser acceptance tests visibly:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/acceptance<span class="w"> </span>-v<span class="w"> </span>-s<span class="w"> </span>--headed
+</span></code></pre></div>
+<p>Run browser acceptance tests visibly with a 750 millisecond observation delay:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/acceptance<span class="w"> </span>-v<span class="w"> </span>-s<span class="w"> </span>--headed<span class="w"> </span>--ui-slowmo<span class="o">=</span><span class="m">750</span>
 </span></code></pre></div>
 <hr />
 <h2 id="8-expected-results">8. Expected Results</h2>
@@ -1992,30 +2000,30 @@
 <hr />
 <h2 id="10-test-naming-conventions">10. Test Naming Conventions</h2>
 <p>Recommended file naming:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>test_&lt;component&gt;.py
+<div class="language-text highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>test_&lt;component&gt;.py
 </span></code></pre></div>
 <p>Recommended function naming:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>test_&lt;expected_behavior&gt;()
+<div class="language-text highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>test_&lt;expected_behavior&gt;()
 </span></code></pre></div>
 <p>Examples:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>test_repository_service.py
-</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>
-</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>test_repository_reads_markdown()
-</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>
-</span><span id="__span-23-5"><a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>test_missing_file_returns_error()
+<div class="language-text highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>test_repository_service.py
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>
+</span><span id="__span-25-3"><a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a>test_repository_reads_markdown()
+</span><span id="__span-25-4"><a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a>
+</span><span id="__span-25-5"><a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a>test_missing_file_returns_error()
 </span></code></pre></div>
 <p>Test names should describe observable behavior rather than implementation details.</p>
 <p>For tests that provide evidence for a verification scenario defined by an agent test plan, the scenario identifier remains independent of the testing layer. The test function name adds a layer prefix.</p>
 <p>Integration scenario naming:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>test_INT_&lt;scenario_id&gt;_&lt;expected_behavior&gt;()
+<div class="language-text highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>test_INT_&lt;scenario_id&gt;_&lt;expected_behavior&gt;()
 </span></code></pre></div>
 <p>Browser/UI acceptance scenario naming:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>test_UI_&lt;scenario_id&gt;_&lt;expected_behavior&gt;()
+<div class="language-text highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>test_UI_&lt;scenario_id&gt;_&lt;expected_behavior&gt;()
 </span></code></pre></div>
 <p>For example:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>test_INT_DA_FUN_001_documentation_request_processing()
-</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>
-</span><span id="__span-26-3"><a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>test_UI_DA_FUN_001_documentation_request_processing()
+<div class="language-text highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>test_INT_DA_FUN_001_documentation_request_processing()
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>
+</span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>test_UI_DA_FUN_001_documentation_request_processing()
 </span></code></pre></div>
 <p>Layer prefixes:</p>
 <ul>

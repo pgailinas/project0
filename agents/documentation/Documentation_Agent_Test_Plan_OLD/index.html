@@ -10,13 +10,9 @@
       
       
       
-        <link rel="canonical" href="https://pgailinas.github.io/project0/agents/documentation/Documentation_Agent_Test_Plan/">
+        <link rel="canonical" href="https://pgailinas.github.io/project0/agents/documentation/Documentation_Agent_Test_Plan_OLD/">
       
       
-        <link rel="prev" href="../Documentation_Agent_Testing_Guide/">
-      
-      
-        <link rel="next" href="../Documentation_Agent_Test_Results/">
       
       
         
@@ -728,20 +724,18 @@
       
   
   
-    
   
   
-  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
         
           
           <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
@@ -762,7 +756,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -945,19 +939,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../Documentation_Agent_Test_Plan/" class="md-nav__link">
         
   
   
@@ -973,7 +958,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -1049,7 +1033,7 @@
 
 
   
-    <a href="https://github.com/pgailinas/project0/edit/main/docs/agents/documentation/Documentation_Agent_Test_Plan.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/pgailinas/project0/edit/main/docs/agents/documentation/Documentation_Agent_Test_Plan_OLD.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -1058,7 +1042,7 @@
 
 
 <h1 id="documentation-agent-test-plan">Documentation Agent Test Plan</h1>
-<p><strong>Version:</strong> 0.5<br />
+<p><strong>Version:</strong> 0.4<br />
 <strong>Owner:</strong> Project0<br />
 <strong>Last Updated:</strong> 2026-08-11  </p>
 <hr />
@@ -1420,298 +1404,16 @@
 <h3 id="automation">Automation</h3>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>test_UI_DA_FUN_001_documentation_agent_page_renders
 </span></code></pre></div>
-<h2 id="ui-da-fun-001-b-documentation-request-form-accepts-input">UI-DA-FUN-001-B: Documentation Request Form Accepts Input</h2>
-<h3 id="verification-scenario_1">Verification Scenario</h3>
-<p><code>DA-FUN-001</code></p>
-<h3 id="purpose_1">Purpose</h3>
-<p>Verify that a user can enter a documentation request and target documentation path through the Documentation Agent interface.</p>
-<h3 id="preconditions_1">Preconditions</h3>
+<h2 id="planned-incremental-ui-coverage">Planned Incremental UI Coverage</h2>
+<p>Additional browser acceptance cases should verify:</p>
 <ul>
-<li>Project0 Dashboard is running at <code>127.0.0.1:8001</code>.</li>
-<li>Playwright for Python is installed.</li>
-<li>Playwright Chromium browser support is installed.</li>
-<li>Documentation Agent request page is available.</li>
+<li>Documentation request and target path inputs accept user data.</li>
+<li>Request submission produces the visible Processing state.</li>
+<li>Review and proposal information is presented.</li>
+<li>Reject workflow completes without repository modification.</li>
+<li>Approve workflow applies the intended repository change.</li>
+<li>Visible workflow results agree with repository effects where applicable.</li>
 </ul>
-<h3 id="test-steps_1">Test Steps</h3>
-<ol>
-<li>Open <code>/agents/documentation</code> through Chromium.</li>
-<li>Enter a documentation request in the Documentation Request field.</li>
-<li>Enter a valid repository-relative documentation path in the Target Documentation Paths field.</li>
-<li>Read both field values through the browser.</li>
-</ol>
-<h3 id="expected-results_1">Expected Results</h3>
-<ul>
-<li>Documentation Request field accepts the entered request.</li>
-<li>Target Documentation Paths field accepts the entered path.</li>
-<li>Entered values remain unchanged in their respective fields.</li>
-<li>No browser or application error prevents user input.</li>
-</ul>
-<h3 id="automation_1">Automation</h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>test_UI_DA_FUN_001_documentation_request_form_accepts_input
-</span></code></pre></div>
-<h2 id="ui-da-fun-001-c-documentation-request-submission-starts-processing">UI-DA-FUN-001-C: Documentation Request Submission Starts Processing</h2>
-<h3 id="verification-scenario_2">Verification Scenario</h3>
-<p><code>DA-FUN-001</code></p>
-<h3 id="purpose_2">Purpose</h3>
-<p>Verify that a user can submit a valid Documentation Agent request through the browser interface.</p>
-<h3 id="preconditions_2">Preconditions</h3>
-<ul>
-<li>Project0 Dashboard is running at <code>127.0.0.1:8001</code>.</li>
-<li>Documentation Agent request page is available.</li>
-<li>A valid documentation request and target documentation path are available.</li>
-<li>The configured reasoning provider is available when required by the running workflow.</li>
-</ul>
-<h3 id="test-steps_2">Test Steps</h3>
-<ol>
-<li>Open <code>/agents/documentation</code>.</li>
-<li>Enter a valid documentation request.</li>
-<li>Enter a valid target documentation path.</li>
-<li>Click Submit Documentation Request.</li>
-<li>Observe the request interface immediately after submission.</li>
-</ol>
-<h3 id="expected-results_2">Expected Results</h3>
-<ul>
-<li>The submit action is accepted.</li>
-<li>The Submit Documentation Request button changes to the Processing state where implemented.</li>
-<li>The visible processing indicator is displayed where implemented.</li>
-<li>The browser remains within the Documentation Agent workflow.</li>
-<li>No immediate browser or application error is displayed.</li>
-</ul>
-<h3 id="automation_2">Automation</h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>test_UI_DA_FUN_001_documentation_request_submission_starts_processing
-</span></code></pre></div>
-<h2 id="ui-da-fun-002-a-review-proposal-is-presented">UI-DA-FUN-002-A: Review Proposal Is Presented</h2>
-<h3 id="verification-scenario_3">Verification Scenario</h3>
-<p><code>DA-FUN-002</code></p>
-<h3 id="purpose_3">Purpose</h3>
-<p>Verify that a submitted documentation request produces a reviewable proposal through the browser interface.</p>
-<h3 id="preconditions_3">Preconditions</h3>
-<ul>
-<li>Project0 Dashboard is running.</li>
-<li>A valid Documentation Agent request can be processed.</li>
-<li>The configured reasoning provider is available.</li>
-<li>The requested documentation target exists.</li>
-</ul>
-<h3 id="test-steps_3">Test Steps</h3>
-<ol>
-<li>Submit a valid documentation request through the browser.</li>
-<li>Wait for the Documentation Agent workflow to reach the review state.</li>
-<li>Inspect the review page.</li>
-</ol>
-<h3 id="expected-results_3">Expected Results</h3>
-<ul>
-<li>A reviewable documentation proposal is displayed.</li>
-<li>The target documentation path is displayed.</li>
-<li>Proposed documentation changes are displayed.</li>
-<li>Preliminary validation status is displayed.</li>
-<li>Repository difference information is displayed when available.</li>
-<li>Review controls are available.</li>
-</ul>
-<h3 id="automation_3">Automation</h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>test_UI_DA_FUN_002_review_proposal_is_presented
-</span></code></pre></div>
-<h2 id="ui-da-saf-001-a-rejected-proposal-leaves-repository-unchanged">UI-DA-SAF-001-A: Rejected Proposal Leaves Repository Unchanged</h2>
-<h3 id="verification-scenario_4">Verification Scenario</h3>
-<p><code>DA-SAF-001</code></p>
-<h3 id="purpose_4">Purpose</h3>
-<p>Verify through the browser workflow that rejecting a proposal does not apply repository changes.</p>
-<h3 id="preconditions_4">Preconditions</h3>
-<ul>
-<li>Project0 Dashboard is running.</li>
-<li>A reviewable Documentation Agent proposal has been generated.</li>
-<li>The target file content is known before the test.</li>
-</ul>
-<h3 id="test-steps_4">Test Steps</h3>
-<ol>
-<li>Submit a valid documentation request through the browser.</li>
-<li>Wait for the review page.</li>
-<li>Record or verify the target repository content before review completion.</li>
-<li>Select Reject.</li>
-<li>Submit the review decision.</li>
-<li>Inspect the visible workflow result.</li>
-<li>Verify the target repository content.</li>
-</ol>
-<h3 id="expected-results_4">Expected Results</h3>
-<ul>
-<li>The rejection decision is accepted.</li>
-<li>The workflow reports rejection or equivalent non-applied completion state.</li>
-<li>The proposed documentation change is not applied.</li>
-<li>Target repository content remains unchanged.</li>
-</ul>
-<h3 id="automation_4">Automation</h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>test_UI_DA_SAF_001_rejected_proposal_leaves_repository_unchanged
-</span></code></pre></div>
-<h2 id="ui-da-fun-005-a-approved-change-matches-visible-proposal">UI-DA-FUN-005-A: Approved Change Matches Visible Proposal</h2>
-<h3 id="verification-scenario_5">Verification Scenario</h3>
-<p><code>DA-FUN-005</code></p>
-<h3 id="purpose_5">Purpose</h3>
-<p>Verify that an approved browser workflow applies only the proposed documentation change.</p>
-<h3 id="preconditions_5">Preconditions</h3>
-<ul>
-<li>Project0 Dashboard is running.</li>
-<li>A reviewable Documentation Agent proposal has been generated.</li>
-<li>The target repository content is known before approval.</li>
-</ul>
-<h3 id="test-steps_5">Test Steps</h3>
-<ol>
-<li>Submit a valid documentation request through the browser.</li>
-<li>Wait for the review page.</li>
-<li>Inspect the proposed change and repository difference.</li>
-<li>Select Approve.</li>
-<li>Submit the review decision.</li>
-<li>Wait for workflow completion.</li>
-<li>Inspect the resulting repository content and final difference.</li>
-</ol>
-<h3 id="expected-results_5">Expected Results</h3>
-<ul>
-<li>Approval is accepted.</li>
-<li>The intended documentation change is applied.</li>
-<li>Unrelated document content remains unchanged.</li>
-<li>The final repository difference matches the approved change.</li>
-<li>The workflow reports successful completion or the applicable completed-with-warning state.</li>
-</ul>
-<h3 id="automation_5">Automation</h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>test_UI_DA_FUN_005_approved_change_matches_visible_proposal
-</span></code></pre></div>
-<h2 id="ui-da-saf-002-a-approved-workflow-does-not-modify-unrelated-files">UI-DA-SAF-002-A: Approved Workflow Does Not Modify Unrelated Files</h2>
-<h3 id="verification-scenario_6">Verification Scenario</h3>
-<p><code>DA-SAF-002</code></p>
-<h3 id="purpose_6">Purpose</h3>
-<p>Verify through the browser workflow that approval does not modify files outside the approved documentation scope.</p>
-<h3 id="preconditions_6">Preconditions</h3>
-<ul>
-<li>Project0 Dashboard is running.</li>
-<li>A reviewable Documentation Agent proposal has been generated.</li>
-<li>Unrelated repository files are available for comparison.</li>
-</ul>
-<h3 id="test-steps_6">Test Steps</h3>
-<ol>
-<li>Record the content or repository state of unrelated files.</li>
-<li>Submit and approve a valid Documentation Agent request through the browser.</li>
-<li>Wait for workflow completion.</li>
-<li>Compare unrelated repository files with their pre-test state.</li>
-</ol>
-<h3 id="expected-results_6">Expected Results</h3>
-<ul>
-<li>Only the approved documentation scope is modified.</li>
-<li>Unrelated source files remain unchanged.</li>
-<li>Unrelated configuration remains unchanged.</li>
-<li>Unrelated documentation remains unchanged.</li>
-</ul>
-<h3 id="automation_6">Automation</h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>test_UI_DA_SAF_002_approved_workflow_preserves_unrelated_files
-</span></code></pre></div>
-<h2 id="ui-da-saf-003-a-invalid-request-is-reported-safely">UI-DA-SAF-003-A: Invalid Request Is Reported Safely</h2>
-<h3 id="verification-scenario_7">Verification Scenario</h3>
-<p><code>DA-SAF-003</code></p>
-<h3 id="purpose_7">Purpose</h3>
-<p>Verify that invalid browser input is reported safely and does not result in an unintended repository modification.</p>
-<h3 id="preconditions_7">Preconditions</h3>
-<ul>
-<li>Project0 Dashboard is running.</li>
-<li>Documentation Agent request page is available.</li>
-</ul>
-<h3 id="test-steps_7">Test Steps</h3>
-<ol>
-<li>Open <code>/agents/documentation</code>.</li>
-<li>Submit invalid or incomplete request input.</li>
-<li>Observe the resulting browser state.</li>
-<li>Verify repository state where applicable.</li>
-</ol>
-<h3 id="expected-results_7">Expected Results</h3>
-<ul>
-<li>Invalid input is rejected or reported to the user.</li>
-<li>The workflow does not enter an inappropriate successful completion state.</li>
-<li>No unintended repository modification occurs.</li>
-<li>The Documentation Agent remains usable after the error.</li>
-</ul>
-<h3 id="automation_7">Automation</h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>test_UI_DA_SAF_003_invalid_request_is_reported_safely
-</span></code></pre></div>
-<h2 id="ui-da-fun-004-a-multi-document-proposal-is-presented">UI-DA-FUN-004-A: Multi-Document Proposal Is Presented</h2>
-<h3 id="verification-scenario_8">Verification Scenario</h3>
-<p><code>DA-FUN-004</code></p>
-<h3 id="purpose_8">Purpose</h3>
-<p>Verify that a request affecting multiple documentation targets can be represented correctly through the browser review workflow.</p>
-<h3 id="preconditions_8">Preconditions</h3>
-<ul>
-<li>Project0 Dashboard is running.</li>
-<li>Multiple valid target documentation files are available.</li>
-<li>The configured reasoning behavior supports a multi-document proposal.</li>
-</ul>
-<h3 id="test-steps_8">Test Steps</h3>
-<ol>
-<li>Submit a documentation request affecting multiple target paths.</li>
-<li>Wait for the review state.</li>
-<li>Inspect the proposed changes and target-path presentation.</li>
-</ol>
-<h3 id="expected-results_8">Expected Results</h3>
-<ul>
-<li>All relevant target documents are represented.</li>
-<li>Proposed changes are associated with the correct target documents.</li>
-<li>Review information remains understandable for multiple documentation changes.</li>
-<li>No unrelated target is introduced.</li>
-</ul>
-<h3 id="automation_8">Automation</h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>test_UI_DA_FUN_004_multi_document_proposal_is_presented
-</span></code></pre></div>
-<h2 id="ui-da-ai-002-a-unsupported-feature-request-does-not-produce-unsupported-approved-content">UI-DA-AI-002-A: Unsupported Feature Request Does Not Produce Unsupported Approved Content</h2>
-<h3 id="verification-scenario_9">Verification Scenario</h3>
-<p><code>DA-AI-002</code></p>
-<h3 id="purpose_9">Purpose</h3>
-<p>Verify through the browser workflow that a request for unsupported project information does not result in unsupported documentation being applied.</p>
-<h3 id="preconditions_9">Preconditions</h3>
-<ul>
-<li>Project0 Dashboard is running.</li>
-<li>A request can be constructed for a feature not supported by repository evidence.</li>
-<li>The configured reasoning provider is available.</li>
-</ul>
-<h3 id="test-steps_9">Test Steps</h3>
-<ol>
-<li>Submit a request to document a nonexistent or unsupported feature.</li>
-<li>Wait for the resulting review or error state.</li>
-<li>Inspect the generated proposal or reported limitation.</li>
-<li>Do not approve unsupported content.</li>
-<li>Verify repository state.</li>
-</ol>
-<h3 id="expected-results_9">Expected Results</h3>
-<ul>
-<li>Unsupported project information is not silently applied.</li>
-<li>Insufficient evidence, warning, validation failure, or equivalent safe behavior is visible where applicable.</li>
-<li>Repository content remains free of unsupported approved documentation.</li>
-</ul>
-<h3 id="automation_9">Automation</h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>test_UI_DA_AI_002_unsupported_feature_request_fails_safely
-</span></code></pre></div>
-<h2 id="ui-da-fun-001-d-visible-workflow-result-is-presented">UI-DA-FUN-001-D: Visible Workflow Result Is Presented</h2>
-<h3 id="verification-scenario_10">Verification Scenario</h3>
-<p><code>DA-FUN-001</code></p>
-<h3 id="purpose_10">Purpose</h3>
-<p>Verify that the browser displays a clear final workflow result after a completed review decision.</p>
-<h3 id="preconditions_10">Preconditions</h3>
-<ul>
-<li>Project0 Dashboard is running.</li>
-<li>A Documentation Agent request has reached the review state.</li>
-<li>A supported review decision can be submitted.</li>
-</ul>
-<h3 id="test-steps_10">Test Steps</h3>
-<ol>
-<li>Submit a valid documentation request.</li>
-<li>Wait for the review page.</li>
-<li>Submit a supported review decision.</li>
-<li>Wait for the workflow result page or completed state.</li>
-<li>Inspect the visible completion information.</li>
-</ol>
-<h3 id="expected-results_10">Expected Results</h3>
-<ul>
-<li>A clear workflow result is displayed.</li>
-<li>The result corresponds to the submitted review decision.</li>
-<li>Completion status and summary information are visible where implemented.</li>
-<li>The browser does not remain indefinitely in the Processing state.</li>
-</ul>
-<h3 id="automation_10">Automation</h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>test_UI_DA_FUN_001_visible_workflow_result_is_presented
-</span></code></pre></div>
 <p>Playwright automatic waiting should be preferred over arbitrary sleep calls because local reasoning execution time may vary. Project0 <code>--ui-slowmo</code> may be used to slow headed browser actions for human observation, but it shall not be used for synchronization or alter expected results.</p>
 <hr />
 <h1 id="10-exploratory-ai-testing">10. Exploratory AI Testing</h1>
@@ -1752,9 +1454,9 @@
 <li>repository safety behavior is verified</li>
 </ul>
 <p>Current regression baseline:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>python -m pytest
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>648 passed, 7 skipped
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>python -m pytest
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>647 passed, 7 skipped
 </span></code></pre></div>
 <p>The seven currently implemented high-level Documentation Agent workflow scenarios are integration tests because they exercise the assembled platform through Python APIs rather than through the browser/UI boundary. Seven additional scenarios remain explicitly skipped/deferred.</p>
 <hr />
