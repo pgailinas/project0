@@ -1845,7 +1845,7 @@
 <h1 id="documentation-agent-testing-guide">Documentation Agent Testing Guide</h1>
 <p><strong>Version:</strong> 0.5<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-11  </p>
+<strong>Last Updated:</strong> 2026-08-12  </p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <p>This document defines the testing strategy, test coverage, execution
@@ -1914,6 +1914,12 @@ control.</p>
 </span></code></pre></div>
 <p>Documentation Agent acceptance tests are maintained separately from unit and integration tests under <code>tests/acceptance/agents/documentation/</code>.</p>
 <p>Acceptance tests verify Documentation Agent behavior through the actual browser/UI boundary. They should interact with the Dashboard-hosted Documentation Agent as a user would, rather than calling Project0 Python APIs such as the platform dispatcher or Documentation Workflow directly.</p>
+<p>Documentation Agent UI acceptance tests are separated by user-facing workflow responsibility:</p>
+<ul>
+<li><code>test_documentation_agent_ui_request_acceptance.py</code> — request entry and general browser workflow.</li>
+<li><code>test_documentation_agent_ui_review_acceptance.py</code> — proposal and review presentation.</li>
+<li><code>test_documentation_agent_ui_approval_acceptance.py</code> — approval, rejection, and repository-change behavior.</li>
+</ul>
 <p>High-level workflow tests that assemble real Project0 services but enter through Python APIs belong under <code>tests/integration/agents/documentation/</code>.</p>
 <h3 id="41-verification-scenario-and-test-naming">4.1 Verification Scenario and Test Naming</h3>
 <p>Documentation Agent verification scenario identifiers describe the behavior being verified and do not identify a testing layer.</p>
@@ -2248,7 +2254,7 @@ tests whenever practical.</p>
 <li>Local reasoning-provider behavior exercised through Documentation Agent workflows.</li>
 <li>Seven implemented high-level workflow scenarios passing as integration tests; seven additional scenarios remain explicitly skipped/deferred.</li>
 <li>Playwright-based Chromium browser acceptance automation established; initial page-render scenario passing.</li>
-<li>Complete Project0 regression baseline: 647 passed, 7 skipped.</li>
+<li>Complete Project0 regression baseline: 648 passed, 7 skipped.</li>
 </ul>
 <p>The complete Project0 regression suite must also pass before Documentation Agent changes are committed.</p>
 <p>Project0-wide test counts, Dashboard Framework validation status, and shared platform testing requirements are governed by <code>Testing_Guide.md</code> and should not be duplicated in this document.</p>

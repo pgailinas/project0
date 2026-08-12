@@ -1557,9 +1557,9 @@
 
 
 <h1 id="implementation-roadmap">Implementation Roadmap</h1>
-<p><strong>Version:</strong> 0.3<br />
+<p><strong>Version:</strong> 0.4<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-06</p>
+<strong>Last Updated:</strong> 2026-08-12</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="objective">Objective</h3>
@@ -1798,6 +1798,13 @@
 <li>Expanded validation capabilities.</li>
 <li>Research Agent.</li>
 <li>Additional specialized AI agents.</li>
+<li>Project0 reusable AI worker/skill framework.</li>
+<li>Maintain a common Project0 library of specialized AI worker definitions available to any agent.</li>
+<li>Define worker files by specialized function, such as <code>repository_analyst.md</code>, <code>documentation_reviewer.md</code>, <code>source_researcher.md</code>, <code>source_evaluator.md</code>, and <code>technical_writer.md</code>.</li>
+<li>Keep worker definitions distinct from deterministic Project0 services and components.</li>
+<li>Allow agents to select and compose appropriate workers with Project0 services for their workflows.</li>
+<li>Load only worker definitions relevant to the current task rather than the complete worker library.</li>
+<li>Evaluate external <code>SKILL.md</code> compatibility or import as a future extension.</li>
 <li>Dashboard plugin architecture.</li>
 <li>Additional agent interface implementations.</li>
 </ul>
