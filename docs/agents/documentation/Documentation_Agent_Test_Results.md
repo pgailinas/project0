@@ -1,6 +1,6 @@
 # Documentation Agent Test Results
 
-**Version:** 0.3  
+**Version:** 0.4  
 **Owner:** Project0  
 **Last Updated:** 2026-08-11  
 
@@ -36,6 +36,8 @@ The document is intended to remain a living engineering record throughout Docume
 | Python               | 3.12.13                 |
 | Environment          | project0                |
 | Test Framework       | pytest 9.1.1            |
+| Browser Automation   | pytest-playwright 0.9.0 / Playwright 1.62.0 |
+| Acceptance Browser   | Chromium                 |
 | Dashboard            | FastAPI                 |
 | Documentation System | MkDocs Material         |
 | Reasoning Provider   | Ollama                  |
@@ -50,10 +52,10 @@ The document is intended to remain a living engineering record throughout Docume
 | Functional Integration        | In Progress | Initial high-level workflow scenarios completed |
 | Safety Integration            | In Progress | Core safety scenarios completed |
 | AI Reasoning Verification     | In Progress | Provider integration completed; additional AI safety scenarios remain |
-| Browser Acceptance            | Not Started | Playwright-based UI acceptance automation not yet established |
+| Browser Acceptance            | In Progress | Initial Playwright Chromium acceptance case passing |
 | Documentation Compliance      | In Progress | Standards verification underway |
 | Platform Boundary Verification | In Progress | Architecture review ongoing |
-| Regression Testing            | Passed | 647 passed, 7 skipped |
+| Regression Testing            | Passed | 648 passed, 7 skipped |
 
 ---
 
@@ -87,6 +89,34 @@ INT-DA-SAF-001
 INT-DA-SAF-003
 INT-DA-AI-001
 
+## Documentation Agent Browser Acceptance Execution
+
+### Command:
+
+```text
+python -m pytest tests/acceptance/agents/documentation/test_documentation_agent_browser_acceptance.py -v
+```
+
+### Result:
+
+1 passed
+
+### Status:
+
+PASS
+
+Executed browser acceptance case:
+
+`UI-DA-FUN-001-A`
+
+Related automated test:
+
+```text
+test_UI_DA_FUN_001_documentation_agent_page_renders
+```
+
+Observed headed execution with `-v -s --headed` also passed. The test confirmed that the Documentation Agent page, request field, target documentation paths field, and Submit Documentation Request button are visible through Chromium.
+
 ## Complete Project0 Regression Execution
 
 ### Command:
@@ -97,7 +127,7 @@ python -m pytest
 
 ### Result:
 
-647 passed, 7 skipped
+648 passed, 7 skipped
 
 ### Status:
 
@@ -116,7 +146,7 @@ Verify that a user can submit a documentation request through the Documentation 
 ### Verification Evidence
 
 * Integration: PASS
-* UI Acceptance: NOT YET IMPLEMENTED
+* UI Acceptance: PASS (initial page-render scope)
 
 ### Status
 
@@ -125,6 +155,8 @@ PASS
 ### Result
 
 Integration test verified that a documentation request creates a reviewable workflow.
+
+Browser acceptance case `UI-DA-FUN-001-A` verified that the Documentation Agent request interface renders through Chromium with the required request controls visible.
 
 Verified:
 
@@ -556,10 +588,10 @@ The Documentation Agent has demonstrated:
 * successful automated regression testing
 * 7 high-level integration scenarios passed
 * 7 high-level integration scenarios skipped/deferred
-* 647 passed, 7 skipped in the complete Project0 regression suite
+* 648 passed, 7 skipped in the complete Project0 regression suite
 * 0 automated failures
 
-Browser acceptance testing has not yet been established. The next acceptance activity is to introduce Playwright for Python and begin incremental UI automation through the actual Dashboard-hosted Documentation Agent interface.
+Browser acceptance testing has now been established with Playwright for Python and Chromium. Initial case `UI-DA-FUN-001-A` passes through the actual Dashboard-hosted Documentation Agent interface. Additional UI cases remain to be implemented incrementally.
 
 Remaining validation activities focus on:
 

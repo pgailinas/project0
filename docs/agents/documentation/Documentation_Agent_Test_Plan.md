@@ -1,6 +1,6 @@
 # Documentation Agent Test Plan
 
-**Version:** 0.3  
+**Version:** 0.4  
 **Owner:** Project0  
 **Last Updated:** 2026-08-11  
 
@@ -497,19 +497,59 @@ Acceptance tests shall enter through the actual browser/UI boundary rather than 
 
 The intended browser automation tool is Playwright for Python with pytest. Initial coverage should use Chromium only.
 
-Acceptance automation should be introduced incrementally and should eventually verify:
+Acceptance automation should be introduced incrementally. Individual UI test cases use a case identifier while remaining mapped to the stable verification scenario.
 
-* Documentation Agent page renders.
-* Documentation request input is available.
-* Target documentation path input is available.
-* Submit Documentation Request control is available.
+## UI-DA-FUN-001-A: Documentation Agent Page Renders
+
+### Verification Scenario
+
+`DA-FUN-001`
+
+### Purpose
+
+Verify that the Documentation Agent request interface is accessible through the Project0 Dashboard.
+
+### Preconditions
+
+* Project0 Dashboard is running at `127.0.0.1:8001`.
+* Playwright for Python is installed.
+* Playwright Chromium browser support is installed.
+
+### Test Steps
+
+1. Open `/agents/documentation` through Chromium.
+2. Locate the Documentation Agent heading.
+3. Locate the Documentation Request field.
+4. Locate the Target Documentation Paths field.
+5. Locate the Submit Documentation Request button.
+
+### Expected Results
+
+* Documentation Agent page loads successfully.
+* Documentation Agent heading is visible.
+* Documentation Request field is visible.
+* Target Documentation Paths field is visible.
+* Submit Documentation Request button is visible.
+* No browser or application error prevents use of the request interface.
+
+### Automation
+
+```text
+test_UI_DA_FUN_001_documentation_agent_page_renders
+```
+
+## Planned Incremental UI Coverage
+
+Additional browser acceptance cases should verify:
+
+* Documentation request and target path inputs accept user data.
 * Request submission produces the visible Processing state.
 * Review and proposal information is presented.
 * Reject workflow completes without repository modification.
 * Approve workflow applies the intended repository change.
 * Visible workflow results agree with repository effects where applicable.
 
-Playwright automatic waiting should be preferred over arbitrary sleep calls because local reasoning execution time may vary.
+Playwright automatic waiting should be preferred over arbitrary sleep calls because local reasoning execution time may vary. Project0 `--ui-slowmo` may be used to slow headed browser actions for human observation, but it shall not be used for synchronization or alter expected results.
 
 ---
 

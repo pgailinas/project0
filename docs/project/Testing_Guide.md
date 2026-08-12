@@ -1,6 +1,6 @@
 # Testing Guide
 
-**Version:** 0.4  
+**Version:** 0.5  
 **Owner:** Project0  
 **Last Updated:** 2026-08-11
 
@@ -242,6 +242,10 @@ Run all acceptance tests:
 python -m pytest tests/acceptance
 ```
 
+Project0 browser acceptance infrastructure may define the custom pytest option `--ui-slowmo=<milliseconds>`. The option passes the requested delay to Playwright `slow_mo` for human observation. A value of `0` preserves full-speed execution.
+
+Shared interpretation of this option belongs in `tests/acceptance/conftest.py`. Slow-motion execution is an observation aid only; it shall not be used for synchronization or change acceptance criteria.
+
 Agent-specific acceptance commands and browser automation requirements are defined by the applicable `<Agent>_Testing_Guide.md`.
 
 ---
@@ -298,6 +302,18 @@ Run a specific test function:
 
 ```bash
 python -m pytest path/to/test_file.py::test_name -v
+```
+
+Run browser acceptance tests visibly:
+
+```bash
+python -m pytest tests/acceptance -v -s --headed
+```
+
+Run browser acceptance tests visibly with a 750 millisecond observation delay:
+
+```bash
+python -m pytest tests/acceptance -v -s --headed --ui-slowmo=750
 ```
 
 ---

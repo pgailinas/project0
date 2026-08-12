@@ -1,6 +1,6 @@
 # Documentation Agent Testing Guide
 
-**Version:** 0.4  
+**Version:** 0.5  
 **Owner:** Project0  
 **Last Updated:** 2026-08-11  
 
@@ -117,6 +117,10 @@ The supported layer prefixes are:
 - `UI` — browser acceptance tests that exercise the Documentation Agent through the Dashboard/UI boundary.
 
 This convention allows one verification scenario to receive evidence from more than one testing layer without creating duplicate scenario identifiers.
+
+Individual browser acceptance cases that provide evidence for the same scenario use documented case suffixes such as `UI-DA-FUN-001-A` and `UI-DA-FUN-001-B`. The suffix distinguishes documented UI cases without changing the stable `DA-*` scenario identifier. Python test function names remain descriptive and do not require the case suffix.
+
+Each documented UI acceptance case shall define its test ID, test name, purpose, preconditions, test steps, expected results, and automated test function.
 
 ---
 
@@ -362,6 +366,17 @@ Acceptance automation should be introduced incrementally. Initial scenarios shou
 
 Playwright automatic waiting should be preferred over arbitrary sleep calls because local reasoning execution time may vary.
 
+Shared Project0 acceptance infrastructure belongs in `tests/acceptance/conftest.py`. It may provide `--ui-slowmo=<milliseconds>` to pass a human-observation delay to Playwright `slow_mo`. This delay shall not be used for synchronization.
+
+Standard execution modes include:
+
+```bash
+python -m pytest tests/acceptance/agents/documentation -v
+python -m pytest tests/acceptance/agents/documentation -v -s --headed
+python -m pytest tests/acceptance/agents/documentation -v -s --headed --ui-slowmo=750
+PWDEBUG=1 python -m pytest tests/acceptance/agents/documentation -v -s --headed
+```
+
 The acceptance suite is distinct from unit and integration testing:
 
 - Unit tests verify individual component behavior.
@@ -514,7 +529,7 @@ At the time of this update, the Documentation Agent-specific validation baseline
 - Preliminary and final validation behavior verified.
 - Local reasoning-provider behavior exercised through Documentation Agent workflows.
 - Seven implemented high-level workflow scenarios passing as integration tests; seven additional scenarios remain explicitly skipped/deferred.
-- Playwright-based browser acceptance automation not yet established.
+- Playwright-based Chromium browser acceptance automation established; initial page-render scenario passing.
 - Complete Project0 regression baseline: 647 passed, 7 skipped.
 
 The complete Project0 regression suite must also pass before Documentation Agent changes are committed.
@@ -527,7 +542,6 @@ Project0-wide test counts, Dashboard Framework validation status, and shared pla
 
 Future Documentation Agent testing may include:
 
-- Playwright-based browser acceptance testing.
 - Expanded automated browser coverage.
 - Additional multi-document workflow scenarios.
 - Automated repository integrity fixtures.
