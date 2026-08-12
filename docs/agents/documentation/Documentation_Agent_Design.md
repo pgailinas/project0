@@ -1,8 +1,8 @@
 # Documentation Agent Component Design
 
-**Version:** 0.5  
+**Version:** 0.6  
 **Owner:** Project0  
-**Last Updated:** 2026-08-06
+**Last Updated:** 2026-08-11
 
 ---
 
@@ -58,6 +58,12 @@ Work Area:
 - Context Formatter
 - Shared Interfaces
 - Shared Data Models
+- Validation Service
+- Reasoning Service
+- Review Coordinator
+- Repository Update Service
+- Git Diff Service
+- Documentation Workflow
 
 The Platform Dispatcher provides the platform-level entry point. It creates workflow tasks and submits them to the Workflow Engine. The Workflow Engine executes those tasks and returns structured workflow results.
 
@@ -71,13 +77,13 @@ The Validation Service, Reasoning Service, Review Coordinator, Repository Update
 
 ## 4. Component Specifications
 
-### Platform Dispatcher
+### 4.1 Platform Dispatcher
 
-### Purpose
+#### Purpose
 
 Provide the platform-level entry point for assembling services and dispatching workflows.
 
-### Responsibilities
+#### Responsibilities
 
 * Validate platform startup through the configured settings.
 * Assemble the default Repository Service, Context Builder, and Workflow Engine.
@@ -87,15 +93,15 @@ Provide the platform-level entry point for assembling services and dispatching w
 * Assemble the Documentation Workflow.
 * Dispatch Documentation Workflows.
 
-### Interfaces
+#### Interfaces
 
-#### Provides
+##### Provides
 
 * Create default platform dispatcher.
 * Run context workflow.
 * Run documentation workflow.
 
-#### Consumes
+##### Consumes
 
 * Repository Interface.
 * Context Builder Interface.
@@ -103,7 +109,7 @@ Provide the platform-level entry point for assembling services and dispatching w
 * Context workflow models.
 * Workflow task and result models.
 
-### Design Notes
+#### Design Notes
 
 * Coordinates platform services without implementing their internal behavior.
 * Depends on typed interfaces for injected services.
@@ -112,7 +118,7 @@ Provide the platform-level entry point for assembling services and dispatching w
 * Documentation workflows coordinate reasoning, validation, review, repository updates, and Git diff generation through dedicated services.
 * Does not implement component behavior directly.
 
-### Inputs
+#### Inputs
 
 * Context identifier
 * Context workflow type
@@ -120,19 +126,19 @@ Provide the platform-level entry point for assembling services and dispatching w
 * Optional workflow identifier
 * Documentation workflow request
 
-### Outputs
+#### Outputs
 
 * Workflow Execution Result
 * Documentation Workflow Result
 
-### Required Services
+#### Required Services
 
 * Repository Interface
 * Context Builder Interface
 * Knowledge Interface
 * Workflow Interface
 
-### Future Considerations
+#### Future Considerations
 
 * Additional workflow dispatch
 * Additional agent and service routing
@@ -140,14 +146,14 @@ Provide the platform-level entry point for assembling services and dispatching w
 
 ---
 
-### Dashboard Framework
+### 4.2 Dashboard Framework
 
-### Purpose
+#### Purpose
 
 Provide the reusable browser-based user interface for Project0 services
 and AI agents.
 
-### Responsibilities
+#### Responsibilities
 
 - Provide the common dashboard layout.
 - Host Documentation Agent pages within the shared framework.
@@ -159,7 +165,7 @@ and AI agents.
 - Provide the Dashboard Work Area for Documentation Agent interaction.
 - Remain independent of Documentation Agent business logic.
 
-### Design Notes
+#### Design Notes
 
 - Implemented using FastAPI and Jinja2 templates.
 - The Project Overview is the default platform-level Work Area and contains Project0 status information.
@@ -171,13 +177,13 @@ and AI agents.
 
 ---
 
-### Workflow Engine
+### 4.3 Workflow Engine
 
-### Purpose
+#### Purpose
 
 Execute Project0 workflow tasks sequentially and return structured execution results.
 
-### Responsibilities
+#### Responsibilities
 
 * Validate workflow requests.
 * Assign or preserve workflow identifiers.
@@ -188,21 +194,21 @@ Execute Project0 workflow tasks sequentially and return structured execution res
 * Publish workflow and task lifecycle events when an event publisher is configured.
 * Return a structured Workflow Execution Result.
 
-### Interfaces
+#### Interfaces
 
-#### Provides
+##### Provides
 
 * Execute workflow.
 * Return workflow status.
 * Return task execution results.
 * Publish workflow and task events.
 
-#### Consumes
+##### Consumes
 
 * Workflow Task models.
 * Workflow Event Publisher Interface.
 
-### Design Notes
+#### Design Notes
 
 * Uses synchronous, in-process execution.
 * Does not directly access repository content.
@@ -211,23 +217,23 @@ Execute Project0 workflow tasks sequentially and return structured execution res
 * Returns immutable workflow and task result models.
 * Supports an optional event publisher through a typed interface.
 
-### Inputs
+#### Inputs
 
 * Workflow name
 * Workflow tasks
 * Optional workflow identifier
 
-### Outputs
+#### Outputs
 
 * Workflow Execution Result
 * Task Execution Results
 * Workflow and task lifecycle events
 
-### Required Services
+#### Required Services
 
 * None
 
-### Future Considerations
+#### Future Considerations
 
 * Conditional workflow paths
 * Retry policies
@@ -237,13 +243,13 @@ Execute Project0 workflow tasks sequentially and return structured execution res
 
 ---
 
-### Repository Service
+### 4.4 Repository Service
 
-### Purpose
+#### Purpose
 
 Provide deterministic, read-only access to repository content.
 
-### Responsibilities
+#### Responsibilities
 
 * Discover supported repository files.
 * Discover Markdown documentation files.
@@ -253,21 +259,21 @@ Provide deterministic, read-only access to repository content.
 * Preserve repository file metadata.
 * Return structured repository results and errors.
 
-### Interfaces
+#### Interfaces
 
-#### Provides
+##### Provides
 
 * List repository files.
 * List documentation files.
 * Read one repository file.
 * Read multiple repository files.
 
-#### Consumes
+##### Consumes
 
 * Local repository.
 * Local file system.
 
-### Design Notes
+#### Design Notes
 
 * Performs deterministic repository operations only.
 * Does not make documentation decisions.
@@ -277,13 +283,13 @@ Provide deterministic, read-only access to repository content.
 * Returns partial batch results when some files cannot be read.
 * Implements the Repository Interface structurally.
 
-### Inputs
+#### Inputs
 
 * Repository-relative paths
 * Optional extension filters
 * Repository query criteria
 
-### Outputs
+#### Outputs
 
 * Repository file metadata
 * Repository list results
@@ -291,24 +297,24 @@ Provide deterministic, read-only access to repository content.
 * Batch file results
 * Structured repository errors
 
-### External Dependencies
+#### External Dependencies
 
 * Local file system
 
-### Future Considerations
+#### Future Considerations
 
 * Git status inspection
 * Additional version-control systems
 
 ---
 
-### Context Builder
+### 4.5 Context Builder
 
-### Purpose
+#### Purpose
 
 Assemble workflow-specific repository documentation into a structured Context Package.
 
-### Responsibilities
+#### Responsibilities
 
 * Discover available documentation through the Repository Interface.
 * Obtain workflow-specific criteria from the Context Rule Registry.
@@ -319,20 +325,20 @@ Assemble workflow-specific repository documentation into a structured Context Pa
 * Preserve successful partial reads.
 * Convert repository read errors into context warnings.
 
-### Interfaces
+#### Interfaces
 
-#### Provides
+##### Provides
 
 * Build documentation context.
 
-#### Consumes
+##### Consumes
 
 * Repository Interface.
 * Context Rule Registry.
 * Context Filter.
 * Context and workflow models.
 
-### Design Notes
+#### Design Notes
 
 * Depends on the Repository Interface rather than Repository Service directly.
 * Does not perform semantic ranking.
@@ -341,21 +347,21 @@ Assemble workflow-specific repository documentation into a structured Context Pa
 * Returns failed context packages when repository discovery fails.
 * Returns completed-with-warning packages for empty selections or partial reads.
 
-### Inputs
+#### Inputs
 
 * Context identifier
 * Context workflow type
 
-### Outputs
+#### Outputs
 
 * Context Package
 
-### Required Services
+#### Required Services
 
 * Repository Interface
 * Context Rule Registry
 
-### Future Considerations
+#### Future Considerations
 
 * Semantic retrieval
 * Relevance ranking
@@ -364,13 +370,13 @@ Assemble workflow-specific repository documentation into a structured Context Pa
 
 ---
 
-### Context Rule Registry
+### 4.6 Context Rule Registry
 
-### Purpose
+#### Purpose
 
 Define and resolve workflow-specific document-selection policies.
 
-### Responsibilities
+#### Responsibilities
 
 * Maintain Context Rules by workflow type.
 * Resolve a Context Rule for a requested workflow.
@@ -378,35 +384,35 @@ Define and resolve workflow-specific document-selection policies.
 * Provide default rules for supported workflow types.
 * Report requests for unregistered workflow types.
 
-### Interfaces
+#### Interfaces
 
-#### Provides
+##### Provides
 
 * Retrieve Context Rule.
 * Retrieve Context Filter criteria.
 
-#### Consumes
+##### Consumes
 
 * Context workflow type.
 * Context Rule definitions.
 
-### Design Notes
+#### Design Notes
 
 * Uses deterministic rules.
 * Separates context policy from context assembly.
 * Preserves the order of required and optional patterns.
 * Returns copied default-rule dictionaries to prevent accidental global modification.
 
-### Inputs
+#### Inputs
 
 * Context workflow type
 
-### Outputs
+#### Outputs
 
 * Context Rule
 * Context Filter criteria
 
-### Future Considerations
+#### Future Considerations
 
 * Project-specific rule configuration
 * User-defined workflow rules
@@ -415,13 +421,13 @@ Define and resolve workflow-specific document-selection policies.
 
 ---
 
-### Context Filter
+### 4.7 Context Filter
 
-### Purpose
+#### Purpose
 
 Apply deterministic file-selection criteria to discovered repository files.
 
-### Responsibilities
+#### Responsibilities
 
 * Filter documentation and non-documentation files.
 * Filter by extension.
@@ -430,36 +436,36 @@ Apply deterministic file-selection criteria to discovered repository files.
 * Normalize slash and backslash path formats.
 * Return selected files in deterministic order.
 
-### Interfaces
+#### Interfaces
 
-#### Provides
+##### Provides
 
 * Match one repository file.
 * Apply criteria to repository files.
 * Return filtered repository files.
 
-#### Consumes
+##### Consumes
 
 * Repository file metadata.
 * Context Filter criteria.
 
-### Design Notes
+#### Design Notes
 
 * Does not read repository files.
 * Does not determine workflow policy.
 * Applies criteria supplied by the Context Rule Registry.
 * Produces deterministic ordering for repeatable context packages.
 
-### Inputs
+#### Inputs
 
 * Repository files
 * Context Filter criteria
 
-### Outputs
+#### Outputs
 
 * Selected repository files
 
-### Future Considerations
+#### Future Considerations
 
 * File-size criteria
 * Modified-date criteria
@@ -468,13 +474,13 @@ Apply deterministic file-selection criteria to discovered repository files.
 
 ---
 
-### Knowledge Service
+### 4.8 Knowledge Service
 
-### Purpose
+#### Purpose
 
 Coordinate deterministic repository knowledge retrieval.
 
-### Responsibilities
+#### Responsibilities
 
 * Discover repository Markdown documentation.
 * Parse repository documents.
@@ -484,13 +490,13 @@ Coordinate deterministic repository knowledge retrieval.
 * Preserve structured warnings.
 * Return immutable Knowledge Results.
 
-### Interfaces
+#### Interfaces
 
-#### Provides
+##### Provides
 
 * Build repository knowledge.
 
-#### Consumes
+##### Consumes
 
 * Document Parser.
 * Document Index.
@@ -498,29 +504,29 @@ Coordinate deterministic repository knowledge retrieval.
 * Context Formatter.
 * Knowledge models.
 
-### Design Notes
+#### Design Notes
 
 * Coordinates knowledge components without implementing their internal behavior.
 * Uses dependency injection for parser, index, selector, and formatter.
 * Performs deterministic processing only.
 * Returns immutable Knowledge Results.
 
-### Inputs
+#### Inputs
 
 * Knowledge Request
 
-### Outputs
+#### Outputs
 
 * Knowledge Result
 
-### Required Services
+#### Required Services
 
 * Document Parser
 * Document Index
 * Document Selector
 * Context Formatter
 
-### Future Considerations
+#### Future Considerations
 
 * Semantic retrieval
 * Embedding generation
@@ -528,13 +534,13 @@ Coordinate deterministic repository knowledge retrieval.
 
 ---
 
-### Document Parser
+### 4.9 Document Parser
 
-### Purpose
+#### Purpose
 
 Parse Markdown documentation into structured repository models.
 
-### Responsibilities
+#### Responsibilities
 
 * Parse Markdown documents.
 * Extract document metadata.
@@ -543,17 +549,17 @@ Parse Markdown documentation into structured repository models.
 * Preserve repository paths.
 * Return immutable Document Records.
 
-### Interfaces
+#### Interfaces
 
-#### Provides
+##### Provides
 
 * Parse repository document.
 
-#### Consumes
+##### Consumes
 
 * Repository Markdown.
 
-### Design Notes
+#### Design Notes
 
 * Performs deterministic parsing.
 * Does not perform document selection.
@@ -561,40 +567,40 @@ Parse Markdown documentation into structured repository models.
 
 ---
 
-### Document Index
+### 4.10 Document Index
 
-### Purpose
+#### Purpose
 
 Maintain deterministic access to parsed repository documents.
 
-### Responsibilities
+#### Responsibilities
 
 * Build the document index.
 * Retrieve documents by repository path.
 * Preserve deterministic ordering.
 * Detect duplicate repository paths.
 
-### Interfaces
+#### Interfaces
 
-#### Provides
+##### Provides
 
 * Build document index.
 * Retrieve indexed documents.
 * Retrieve document by path.
 
-#### Consumes
+##### Consumes
 
 * Parsed Document Records.
 
 ---
 
-### Document Selector
+### 4.11 Document Selector
 
-### Purpose
+#### Purpose
 
 Select repository documentation relevant to a Knowledge Request.
 
-### Responsibilities
+#### Responsibilities
 
 * Match explicit repository paths.
 * Match deterministic search terms.
@@ -604,51 +610,51 @@ Select repository documentation relevant to a Knowledge Request.
 * Rank selected documents.
 * Preserve deterministic ordering.
 
-### Interfaces
+#### Interfaces
 
-#### Provides
+##### Provides
 
 * Select repository documents.
 
-#### Consumes
+##### Consumes
 
 * Knowledge Request.
 * Document Records.
 
 ---
 
-### Context Formatter
+### 4.12 Context Formatter
 
-### Purpose
+#### Purpose
 
 Format selected repository documents into deterministic context.
 
-### Responsibilities
+#### Responsibilities
 
 * Format repository documents.
 * Preserve supplied document ordering.
 * Produce deterministic context.
 * Preserve repository content.
 
-### Interfaces
+#### Interfaces
 
-#### Provides
+##### Provides
 
 * Format repository context.
 
-#### Consumes
+##### Consumes
 
 * Selected Document Records.
 
 ---
 
-### Shared Interfaces
+### 4.13 Shared Interfaces
 
-### Purpose
+#### Purpose
 
 Define stable public contracts between Project0 components.
 
-### Implemented Interfaces
+#### Implemented Interfaces
 
 * Repository Interface
 * Workflow Interface
@@ -662,7 +668,7 @@ Define stable public contracts between Project0 components.
 * Repository Update Interface
 * Git Diff Interface
 
-### Design Notes
+#### Design Notes
 
 * Interfaces use Python structural protocols.
 * Concrete implementations do not require explicit inheritance.
@@ -671,13 +677,13 @@ Define stable public contracts between Project0 components.
 
 ---
 
-### Shared Data Models
+### 4.14 Shared Data Models
 
-### Purpose
+#### Purpose
 
 Define immutable information exchanged between Project0 components.
 
-### Context Models
+#### Context Models
 
 * Context Workflow Type
 * Context Build Status
@@ -685,7 +691,7 @@ Define immutable information exchanged between Project0 components.
 * Context Document
 * Context Package
 
-### Knowledge Models
+#### Knowledge Models
 
 * Knowledge Request
 * Document Heading
@@ -695,7 +701,7 @@ Define immutable information exchanged between Project0 components.
 * Document Selection
 * Knowledge Result
 
-### Validation Models
+#### Validation Models
 
 * Validation Request
 * Validation Issue
@@ -704,7 +710,7 @@ Define immutable information exchanged between Project0 components.
 * Validation Status
 * Validation Severity
 
-### Workflow Models
+#### Workflow Models
 
 * Workflow Status
 * Task Status
@@ -712,7 +718,7 @@ Define immutable information exchanged between Project0 components.
 * Task Execution Result
 * Workflow Execution Result
 
-### Documentation Workflow Models
+#### Documentation Workflow Models
 
 * Documentation Workflow Request
 * Documentation Workflow Result
@@ -722,7 +728,7 @@ Define immutable information exchanged between Project0 components.
 * Documentation Review
 * Applied Documentation Change
 
-### Design Notes
+#### Design Notes
 
 * Models use immutable dataclasses where practical.
 * Status values use string enumerations.
@@ -732,13 +738,13 @@ Define immutable information exchanged between Project0 components.
 
 ---
 
-### Validation Service
+### 4.15 Validation Service
 
-### Purpose
+#### Purpose
 
 Coordinate deterministic repository validation through independently testable validators.
 
-### Responsibilities
+#### Responsibilities
 
 * Coordinate configured validators.
 * Aggregate validator results.
@@ -746,21 +752,21 @@ Coordinate deterministic repository validation through independently testable va
 * Isolate validator execution failures.
 * Return immutable Validation Results.
 
-### Interfaces
+#### Interfaces
 
-#### Provides
+##### Provides
 
 * Execute repository validation.
 * Aggregate validator results.
 * Return Validation Results.
 
-#### Consumes
+##### Consumes
 
 * Validation Interface.
 * Validator Interface.
 * Validation models.
 
-### Design Notes
+#### Design Notes
 
 * Coordinates validation components without implementing validation logic.
 * Uses dependency injection for configured validators.
@@ -768,26 +774,26 @@ Coordinate deterministic repository validation through independently testable va
 * Returns immutable Validation Results and Validator Results.
 * Supports future validator expansion without modifying service logic.
 
-### Inputs
+#### Inputs
 
 * Validation Request
 
-### Outputs
+#### Outputs
 
 * Validation Result
 
-### Required Services
+#### Required Services
 
 * Markdown Validator
 * Link Validator
 * MkDocs Validator
 * Documentation Consistency Validator
 
-### Implementation Status
+#### Implementation Status
 
 Implemented in Phase 5.
 
-### Future Considerations
+#### Future Considerations
 
 * Semantic Validator
 * Repository Structure Validator
@@ -797,63 +803,63 @@ Implemented in Phase 5.
 
 ---
 
-### Reasoning Service
+### 4.16 Reasoning Service
 
-### Purpose
+#### Purpose
 
 Perform AI-assisted documentation reasoning.
 
-### Responsibilities
+#### Responsibilities
 
 - Analyze repository changes and documentation impact.
 - Generate proposed documentation updates.
 - Explain proposed documentation changes.
 
-### Interfaces
+#### Interfaces
 
-#### Provides
+##### Provides
 
 - Analyze documentation impact.
 - Generate proposed documentation updates.
 - Explain proposed documentation changes.
 
-#### Consumes
+##### Consumes
 
 - Repository context.
 - User requests.
 - Documentation standards.
 
-### Design Notes
+#### Design Notes
 
 - Performs only tasks requiring AI-assisted reasoning.
 - Does not directly read or write repository files.
 - Produces proposed changes for validation and user review.
 - Uses repository context supplied by the Knowledge Service.
 
-### Inputs
+#### Inputs
 
 - Repository context
 - User requests
 
-### Outputs
+#### Outputs
 
 - Proposed documentation updates
 - Documentation impact explanations
 
-### Required Services
+#### Required Services
 
 - Knowledge Service
 - AI Reasoning Provider
 
-### External Dependencies
+#### External Dependencies
 
 - AI reasoning provider
 
-### Implementation Status
+#### Implementation Status
 
 Implemented in Phase 4 and integrated into the Documentation Workflow in Phase 6.
 
-### Future Considerations
+#### Future Considerations
 
 - Multiple reasoning providers
 - Model routing
@@ -861,36 +867,36 @@ Implemented in Phase 4 and integrated into the Documentation Workflow in Phase 6
 
 ---
 
-### Review Coordinator
+### 4.17 Review Coordinator
 
-### Purpose
+#### Purpose
 
 Coordinate user review of individual documentation changes.
 
-### Responsibilities
+#### Responsibilities
 
 * Process Approve, Revise, Reject, and Skip decisions.
 * Produce immutable review results.
 
-### Interfaces
+#### Interfaces
 
-#### Provides
+##### Provides
 
 * Review documentation proposal.
 
-#### Consumes
+##### Consumes
 
 * Documentation Workflow models.
 
 ---
 
-### Repository Update Service
+### 4.18 Repository Update Service
 
-### Purpose
+#### Purpose
 
 Apply approved documentation changes.
 
-### Responsibilities
+#### Responsibilities
 
 * Apply approved Markdown updates.
 * Preserve repository integrity.
@@ -898,13 +904,13 @@ Apply approved documentation changes.
 
 ---
 
-### Git Diff Service
+### 4.19 Git Diff Service
 
-### Purpose
+#### Purpose
 
 Generate Git diffs for approved documentation updates.
 
-### Responsibilities
+#### Responsibilities
 
 * Generate repository diffs.
 * Restrict output to modified files.
@@ -912,20 +918,20 @@ Generate Git diffs for approved documentation updates.
 
 ---
 
-### Documentation Workflow
+### 4.20 Documentation Workflow
 
-### Purpose
+#### Purpose
 
 Coordinate the complete Documentation Agent execution pipeline.
 
-### Responsibilities
+#### Responsibilities
 
 * Coordinate Knowledge, Reasoning, Validation, Review, Repository Update, and Git Diff services.
 * Preserve workflow state.
 * Produce immutable Documentation Workflow Results.
 * Support human-in-the-loop review before applying documentation changes.
 
-### Design Notes
+#### Design Notes
 
 * Documentation Workflow execution is initiated through the Platform Dispatcher.
 * Documentation Agent UI interactions are hosted by the Dashboard Framework.
