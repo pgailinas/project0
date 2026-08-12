@@ -1,11 +1,12 @@
 # ============================================================
-# Project0 - Documentation Agent
+# Project0 - Documentation Agent UI Request Acceptance Tests
 #
 # File: test_documentation_agent_browser_acceptance.py
 #
 # Purpose:
 #     Browser acceptance tests for the Documentation Agent
-#     through the Project0 Dashboard user interface.
+#     request and general workflow through the Project0 Dashboard
+#     user interface.
 #
 # ============================================================
 
@@ -55,3 +56,11 @@ def test_UI_DA_FUN_001_documentation_agent_page_renders(
             name="Submit Documentation Request",
         )
     ).to_be_visible()
+
+
+# Planned browser acceptance cases:
+#
+# UI-DA-FUN-001-B - Documentation Request Form Accepts Input
+# UI-DA-FUN-001-C - Documentation Request Submission Starts Processing
+# UI-DA-SAF-003-A - Invalid Request Is Reported Safely
+# UI-DA-FUN-001-D - Visible Workflow Result Is Presented

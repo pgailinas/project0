@@ -2,7 +2,7 @@
 
 **Version:** 0.5  
 **Owner:** Project0  
-**Last Updated:** 2026-08-11  
+**Last Updated:** 2026-08-12  
 
 ---
 
@@ -532,6 +532,12 @@ Verify that the Documentation Agent request interface is accessible through the 
 * Submit Documentation Request button is visible.
 * No browser or application error prevents use of the request interface.
 
+#### Automation File
+
+```text
+test_documentation_agent_ui_request_acceptance.py
+```
+
 #### Automation
 
 ```text
@@ -568,6 +574,12 @@ Verify that a user can enter a documentation request and target documentation pa
 * Target Documentation Paths field accepts the entered path.
 * Entered values remain unchanged in their respective fields.
 * No browser or application error prevents user input.
+
+#### Automation File
+
+```text
+test_documentation_agent_ui_request_acceptance.py
+```
 
 #### Automation
 
@@ -608,6 +620,12 @@ Verify that a user can submit a valid Documentation Agent request through the br
 * The browser remains within the Documentation Agent workflow.
 * No immediate browser or application error is displayed.
 
+#### Automation File
+
+```text
+test_documentation_agent_ui_request_acceptance.py
+```
+
 #### Automation
 
 ```text
@@ -645,6 +663,12 @@ Verify that a submitted documentation request produces a reviewable proposal thr
 * Preliminary validation status is displayed.
 * Repository difference information is displayed when available.
 * Review controls are available.
+
+#### Automation File
+
+```text
+test_documentation_agent_ui_review_acceptance.py
+```
 
 #### Automation
 
@@ -684,6 +708,12 @@ Verify through the browser workflow that rejecting a proposal does not apply rep
 * The workflow reports rejection or equivalent non-applied completion state.
 * The proposed documentation change is not applied.
 * Target repository content remains unchanged.
+
+#### Automation File
+
+```text
+test_documentation_agent_ui_approval_acceptance.py
+```
 
 #### Automation
 
@@ -725,6 +755,12 @@ Verify that an approved browser workflow applies only the proposed documentation
 * The final repository difference matches the approved change.
 * The workflow reports successful completion or the applicable completed-with-warning state.
 
+#### Automation File
+
+```text
+test_documentation_agent_ui_approval_acceptance.py
+```
+
 #### Automation
 
 ```text
@@ -761,6 +797,12 @@ Verify through the browser workflow that approval does not modify files outside 
 * Unrelated configuration remains unchanged.
 * Unrelated documentation remains unchanged.
 
+#### Automation File
+
+```text
+test_documentation_agent_ui_approval_acceptance.py
+```
+
 #### Automation
 
 ```text
@@ -796,6 +838,12 @@ Verify that invalid browser input is reported safely and does not result in an u
 * No unintended repository modification occurs.
 * The Documentation Agent remains usable after the error.
 
+#### Automation File
+
+```text
+test_documentation_agent_ui_request_acceptance.py
+```
+
 #### Automation
 
 ```text
@@ -830,6 +878,12 @@ Verify that a request affecting multiple documentation targets can be represente
 * Proposed changes are associated with the correct target documents.
 * Review information remains understandable for multiple documentation changes.
 * No unrelated target is introduced.
+
+#### Automation File
+
+```text
+test_documentation_agent_ui_review_acceptance.py
+```
 
 #### Automation
 
@@ -867,6 +921,12 @@ Verify through the browser workflow that a request for unsupported project infor
 * Insufficient evidence, warning, validation failure, or equivalent safe behavior is visible where applicable.
 * Repository content remains free of unsupported approved documentation.
 
+#### Automation File
+
+```text
+test_documentation_agent_ui_review_acceptance.py
+```
+
 #### Automation
 
 ```text
@@ -903,6 +963,12 @@ Verify that the browser displays a clear final workflow result after a completed
 * The result corresponds to the submitted review decision.
 * Completion status and summary information are visible where implemented.
 * The browser does not remain indefinitely in the Processing state.
+
+#### Automation File
+
+```text
+test_documentation_agent_ui_request_acceptance.py
+```
 
 #### Automation
 

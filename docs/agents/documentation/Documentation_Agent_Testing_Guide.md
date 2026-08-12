@@ -2,7 +2,7 @@
 
 **Version:** 0.5  
 **Owner:** Project0  
-**Last Updated:** 2026-08-11  
+**Last Updated:** 2026-08-12  
 
 ---
 
@@ -89,6 +89,12 @@ tests/
 Documentation Agent acceptance tests are maintained separately from unit and integration tests under `tests/acceptance/agents/documentation/`.
 
 Acceptance tests verify Documentation Agent behavior through the actual browser/UI boundary. They should interact with the Dashboard-hosted Documentation Agent as a user would, rather than calling Project0 Python APIs such as the platform dispatcher or Documentation Workflow directly.
+
+Documentation Agent UI acceptance tests are separated by user-facing workflow responsibility:
+
+- `test_documentation_agent_ui_request_acceptance.py` — request entry and general browser workflow.
+- `test_documentation_agent_ui_review_acceptance.py` — proposal and review presentation.
+- `test_documentation_agent_ui_approval_acceptance.py` — approval, rejection, and repository-change behavior.
 
 High-level workflow tests that assemble real Project0 services but enter through Python APIs belong under `tests/integration/agents/documentation/`.
 
@@ -530,7 +536,7 @@ At the time of this update, the Documentation Agent-specific validation baseline
 - Local reasoning-provider behavior exercised through Documentation Agent workflows.
 - Seven implemented high-level workflow scenarios passing as integration tests; seven additional scenarios remain explicitly skipped/deferred.
 - Playwright-based Chromium browser acceptance automation established; initial page-render scenario passing.
-- Complete Project0 regression baseline: 647 passed, 7 skipped.
+- Complete Project0 regression baseline: 648 passed, 7 skipped.
 
 The complete Project0 regression suite must also pass before Documentation Agent changes are committed.
 

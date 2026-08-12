@@ -1,8 +1,8 @@
 # Implementation Roadmap
 
-**Version:** 0.3  
+**Version:** 0.4  
 **Owner:** Project0  
-**Last Updated:** 2026-08-06
+**Last Updated:** 2026-08-12
 
 ---
 
@@ -291,6 +291,13 @@ Future implementation efforts may include:
 * Expanded validation capabilities.
 * Research Agent.
 * Additional specialized AI agents.
+* Project0 reusable AI worker/skill framework.
+  * Maintain a common Project0 library of specialized AI worker definitions available to any agent.
+  * Define worker files by specialized function, such as `repository_analyst.md`, `documentation_reviewer.md`, `source_researcher.md`, `source_evaluator.md`, and `technical_writer.md`.
+  * Keep worker definitions distinct from deterministic Project0 services and components.
+  * Allow agents to select and compose appropriate workers with Project0 services for their workflows.
+  * Load only worker definitions relevant to the current task rather than the complete worker library.
+  * Evaluate external `SKILL.md` compatibility or import as a future extension.
 * Dashboard plugin architecture.
 * Additional agent interface implementations.
 

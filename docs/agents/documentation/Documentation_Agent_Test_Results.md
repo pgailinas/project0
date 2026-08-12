@@ -94,7 +94,7 @@ INT-DA-AI-001
 #### Command:
 
 ```text
-python -m pytest tests/acceptance/agents/documentation/test_documentation_agent_browser_acceptance.py -v
+python -m pytest tests/acceptance/agents/documentation/test_documentation_agent_ui_request_acceptance.py -v
 ```
 
 #### Result:
