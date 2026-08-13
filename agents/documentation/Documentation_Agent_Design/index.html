@@ -5189,7 +5189,7 @@
 <h1 id="documentation-agent-component-design">Documentation Agent Component Design</h1>
 <p><strong>Version:</strong> 0.6<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-11</p>
+<strong>Last Updated:</strong> 2026-08-13</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="objective">Objective</h3>
@@ -5722,10 +5722,13 @@ and AI agents.</p>
 <h4 id="responsibilities_10">Responsibilities</h4>
 <ul>
 <li>Match explicit repository paths.</li>
+<li>Discover relevant documentation when explicit repository paths are
+  not provided.</li>
 <li>Match deterministic search terms.</li>
 <li>Match required tags.</li>
 <li>Match changed repository paths.</li>
-<li>Include baseline project documentation.</li>
+<li>Include baseline project documentation only when requested by the
+  workflow configuration.</li>
 <li>Rank selected documents.</li>
 <li>Preserve deterministic ordering.</li>
 </ul>
@@ -6000,28 +6003,39 @@ and AI agents.</p>
 <p>Coordinate the complete Documentation Agent execution pipeline.</p>
 <h4 id="responsibilities_17">Responsibilities</h4>
 <ul>
-<li>Coordinate Knowledge, Reasoning, Validation, Review, Repository Update, and Git Diff services.</li>
+<li>Coordinate Knowledge, Reasoning, Validation, Review, Repository</li>
+<li>Update, and Git Diff services.</li>
 <li>Preserve workflow state.</li>
 <li>Produce immutable Documentation Workflow Results.</li>
-<li>Support human-in-the-loop review before applying documentation changes.</li>
+<li>Support human-in-the-loop review before applying documentation
+  changes.</li>
 </ul>
 <h4 id="design-notes_13">Design Notes</h4>
 <ul>
-<li>Documentation Workflow execution is initiated through the Platform Dispatcher.</li>
-<li>Documentation Agent UI interactions are hosted by the Dashboard Framework.</li>
-<li>Proposed documentation changes are reviewed before repository updates are applied.</li>
+<li>Documentation Workflow execution is initiated through the Platform
+  Dispatcher.</li>
+<li>Documentation Agent UI interactions are hosted by the Dashboard
+  Framework.</li>
+<li>Proposed documentation changes are reviewed before repository
+  updates are applied.</li>
 </ul>
 <hr />
 <h2 id="5-interface-design-principles">5. Interface Design Principles</h2>
 <ul>
 <li>Interfaces shall remain technology independent.</li>
 <li>Components communicate only through public typed interfaces.</li>
-<li>Components shall not directly access another component's internal state.</li>
-<li>Components shall depend on interfaces rather than concrete implementations where practical.</li>
-<li>Interface contracts shall remain backward compatible whenever practical.</li>
-<li>Shared data models shall define information exchanged between components.</li>
-<li>Concrete implementations may satisfy interfaces through structural typing.</li>
-<li>Interfaces shall remain small and aligned with implemented component capabilities.</li>
+<li>Components shall not directly access another component's internal
+  state.</li>
+<li>Components shall depend on interfaces rather than concrete
+  implementations where practical.</li>
+<li>Interface contracts shall remain backward compatible whenever
+  practical.</li>
+<li>Shared data models shall define information exchanged between
+  components.</li>
+<li>Concrete implementations may satisfy interfaces through structural
+  typing.</li>
+<li>Interfaces shall remain small and aligned with implemented component
+  capabilities.</li>
 </ul>
 <hr />
 <h2 id="6-component-interactions">6. Component Interactions</h2>
@@ -6062,13 +6076,19 @@ and AI agents.</p>
 <li>Support future extensibility.</li>
 <li>Use typed interfaces between platform components.</li>
 <li>Use shared immutable models for component communication.</li>
-<li>Depend on interfaces rather than concrete implementations where practical.</li>
+<li>Depend on interfaces rather than concrete implementations where
+  practical.</li>
 <li>Preserve deterministic ordering of selected repository content.</li>
+<li>Empty documentation target paths shall trigger repository knowledge
+  discovery rather than implicit baseline document inclusion.</li>
 <li>Repository discovery remains read-only.</li>
-<li>Documentation modifications shall occur only through the Repository Update Service.</li>
+<li>Documentation modifications shall occur only through the Repository
+  Update Service.</li>
 <li>Human approval is required before documentation changes are applied.</li>
-<li>Proposed documentation changes shall be processed individually through the review workflow.</li>
-<li>Approved documentation changes shall undergo final validation before completion.</li>
+<li>Proposed documentation changes shall be processed individually
+  through the review workflow.</li>
+<li>Approved documentation changes shall undergo final validation before
+  completion.</li>
 </ul>
 
 

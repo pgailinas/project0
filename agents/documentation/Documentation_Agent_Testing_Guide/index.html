@@ -1064,6 +1064,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#511-documentation-discovery-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1.1 Documentation Discovery Behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#52-documentation-workflow" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1532,6 +1543,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#511-documentation-discovery-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1.1 Documentation Discovery Behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#52-documentation-workflow" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1845,7 +1867,7 @@
 <h1 id="documentation-agent-testing-guide">Documentation Agent Testing Guide</h1>
 <p><strong>Version:</strong> 0.5<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-12  </p>
+<strong>Last Updated:</strong> 2026-08-13</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <p>This document defines the testing strategy, test coverage, execution
@@ -1865,14 +1887,19 @@ control.</p>
 <ul>
 <li>Verify Documentation Agent-specific component behavior.</li>
 <li>Validate the complete documentation workflow.</li>
-<li>Confirm AI-generated proposals are correctly translated into controlled documentation operations.</li>
+<li>Confirm AI-generated proposals are correctly translated into
+  controlled documentation operations.</li>
 <li>Verify preliminary and final validation behavior.</li>
 <li>Confirm human review decisions control repository modification.</li>
-<li>Ensure approved changes are applied correctly and unrelated content remains unchanged.</li>
+<li>Ensure approved changes are applied correctly and unrelated content
+  remains unchanged.</li>
 <li>Verify repository failures and invalid proposals fail safely.</li>
 <li>Validate Dashboard-hosted Documentation Agent interaction.</li>
 <li>Detect regressions in previously corrected workflow behavior.</li>
-<li>Provide confidence before declaring the Documentation Agent complete.</li>
+<li>Verify document discovery behavior when target documentation paths
+  are not provided.</li>
+<li>Provide confidence before declaring the Documentation Agent
+  complete.</li>
 </ul>
 <hr />
 <h2 id="3-testing-principles">3. Testing Principles</h2>
@@ -1963,6 +1990,20 @@ control.</p>
 <li>Review-decision normalization and result mapping.</li>
 <li>Safe handling of unknown mapped values.</li>
 </ul>
+<h3 id="511-documentation-discovery-behavior">5.1.1 Documentation Discovery Behavior</h3>
+<p>Tests should verify optional target documentation path behavior:</p>
+<ul>
+<li>A documentation request may be submitted without target
+  documentation paths.</li>
+<li>Repository knowledge discovery identifies candidate documentation
+  when paths are omitted.</li>
+<li>Explicit target documentation paths continue to be supported.</li>
+<li>Baseline documentation is not automatically included solely because
+  target paths are empty.</li>
+<li>Discovery behavior produces reviewable workflow results.</li>
+</ul>
+<p>These tests should verify repository effects and workflow results where
+applicable.</p>
 <h3 id="52-documentation-workflow">5.2 Documentation Workflow</h3>
 <p>Documentation Agent workflow tests verify the agent-specific coordination of reusable Project0 services and Documentation Agent workflow components, including:</p>
 <ul>
@@ -2112,8 +2153,10 @@ applicable.</p>
 <ul>
 <li>Documentation Agent page renders.</li>
 <li>Documentation request field is available.</li>
-<li>Target documentation path field is available.</li>
+<li>Target documentation path field is available as an optional input.</li>
 <li>Submit Documentation Request button is available.</li>
+<li>Documentation requests without target paths are accepted and
+  processed through discovery where supported.</li>
 <li>Request submission produces the visible Processing state.</li>
 <li>Review/proposal UI is presented.</li>
 <li>Reject workflow operates correctly.</li>
@@ -2163,6 +2206,8 @@ applicable.</p>
 <li>Verify the final Git diff.</li>
 <li>Verify completion status and workflow summary.</li>
 <li>Verify that unrelated files remain unchanged.</li>
+<li>Verify that empty target documentation paths do not cause unintended
+  baseline document inclusion.</li>
 </ul>
 <p>Observed browser behavior should be compared with the actual repository
 content. Presentation artifacts shall not be assumed to represent
