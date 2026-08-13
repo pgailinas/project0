@@ -66,12 +66,11 @@ class OllamaReasoningProvider:
 
         LOGGER.debug(
             "Ollama request endpoint=%s model=%s system_length=%d "
-            "user_length=%d schema=%s",
+            "user_length=%d",
             endpoint,
             request.model_name,
             len(request.system_instructions),
             len(request.user_prompt),
-            request.response_schema,
         )
         start_time = time.time()
 
@@ -93,11 +92,6 @@ class OllamaReasoningProvider:
                 "Ollama request failed with HTTP status "
                 f"{error.response.status_code}."
             ) from error
-#        except httpx.RequestError as error:
-#            raise RuntimeError(
-#                "Ollama service could not be reached."
-#            ) from error
-
         except httpx.RequestError as error:
             raise RuntimeError(
                 f"Ollama service could not be reached: {type(error).__name__}: {error}"

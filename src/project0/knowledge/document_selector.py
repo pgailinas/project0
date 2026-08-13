@@ -56,6 +56,16 @@ class DocumentSelector:
         "with",
         "you",
         "your",
+        "add",
+        "change",
+        "changes",
+        "describe",
+        "document",
+        "documentation",
+        "new",
+        "update",
+        "updated",
+        "updating",
     }
 
     _EXPLICIT_PATH_SCORE = 100.0

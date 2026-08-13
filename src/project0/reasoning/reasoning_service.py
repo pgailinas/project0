@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -29,6 +30,9 @@ from project0.models.reasoning_models import (
     ReasoningResult,
     ReasoningStatus,
 )
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class ReasoningService:
@@ -341,6 +345,11 @@ class ReasoningService:
     ) -> float | None:
         """Parse and normalize an optional confidence value."""
 
+        LOGGER.debug(
+            "Raw reasoning confidence value: %r",
+            value,
+        )
+
         if value is None:
             return None
 
@@ -376,7 +385,10 @@ class ReasoningService:
 
         confidence = float(value)
 
-        if 10.0 < confidence <= 100.0:
+        if (
+            1.0 < confidence <= 100.0
+            and confidence.is_integer()
+        ):
             confidence /= 100.0
 
         return self._validate_confidence(

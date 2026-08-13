@@ -25,5 +25,9 @@ def configure_logging() -> None:
     logging.basicConfig(
         level=getattr(logging, SETTINGS.log_level.upper(), logging.INFO),
         format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+        force=True,
     )
+    
+    logging.getLogger("httpcore").setLevel(logging.WARNING)
+    logging.getLogger("httpx").setLevel(logging.WARNING)
     

@@ -24,6 +24,7 @@ from project0.agents.documentation.documentation_agent_routes import (
 from project0.agents.documentation.documentation_agent_ui_service import (
     DocumentationAgentUIService,
 )
+from project0.common.logging_config import configure_logging
 from project0.config.settings import SETTINGS
 from project0.dashboard.dashboard_routes import create_dashboard_router
 from project0.models.reasoning_models import ProviderResponse
@@ -161,6 +162,8 @@ def _create_reasoning_provider():
 
 def create_project0_dashboard_app() -> FastAPI:
     """Create the configured Project0 Dashboard application."""
+
+    configure_logging()
 
     reasoning_provider = _create_reasoning_provider()
 

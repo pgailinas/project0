@@ -46,6 +46,7 @@ def test_configure_logging_uses_configured_level(
     basic_config.assert_called_once_with(
         level=logging.DEBUG,
         format=EXPECTED_FORMAT,
+        force=True,
     )
 
 
@@ -70,6 +71,7 @@ def test_configure_logging_accepts_case_insensitive_level(
     basic_config.assert_called_once_with(
         level=logging.WARNING,
         format=EXPECTED_FORMAT,
+        force=True,
     )
 
 
@@ -94,6 +96,7 @@ def test_configure_logging_falls_back_to_info_for_invalid_level(
     basic_config.assert_called_once_with(
         level=logging.INFO,
         format=EXPECTED_FORMAT,
+        force=True,
     )
 
 
