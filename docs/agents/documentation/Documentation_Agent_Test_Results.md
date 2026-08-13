@@ -2,7 +2,7 @@
 
 **Version:** 0.4  
 **Owner:** Project0  
-**Last Updated:** 2026-08-11  
+**Last Updated:** 2026-08-13
 
 ---
 
@@ -55,7 +55,7 @@ The document is intended to remain a living engineering record throughout Docume
 | Browser Acceptance            | In Progress | Initial Playwright Chromium acceptance case passing |
 | Documentation Compliance      | In Progress | Standards verification underway |
 | Platform Boundary Verification | In Progress | Architecture review ongoing |
-| Regression Testing            | Passed | 648 passed, 7 skipped |
+| Regression Testing            | Passed | 657 passed, 7 skipped |
 
 ---
 
@@ -320,6 +320,42 @@ test_INT_DA_SAF_001_rejected_proposal_protection
 
 ---
 
+### 4.6 DA-FUN-006: Documentation Discovery Without Target Paths
+
+#### Objective
+
+Verify that the Documentation Agent can identify relevant documentation
+when target documentation paths are not provided.
+
+#### Verification Evidence
+
+* Integration: PASS
+* UI Acceptance: NOT YET IMPLEMENTED
+
+#### Status
+
+PASS
+
+#### Result
+
+Verified:
+
+* Documentation requests can be submitted without target documentation
+  paths.
+* Repository knowledge discovery is used to identify candidate
+  documentation.
+* Explicit target documentation paths remain supported.
+* Baseline documentation is not automatically included solely because
+  target paths are empty.
+
+Related regression coverage:
+
+``` text
+test_create_documentation_workflow_disables_baseline_documents_by_default
+```
+
+---
+
 ### 5.2 DA-SAF-002: Unauthorized Modification Prevention
 
 #### Objective
@@ -388,7 +424,9 @@ DEFERRED
 
 The architectural requirement has been identified and the Documentation Agent framework no longer relies on hard-coded baseline document paths.
 
-The corresponding scenario remains explicitly skipped/deferred in the current high-level integration suite.
+Documentation requests with empty target paths now perform document
+discovery without automatically including baseline documents unless
+explicitly requested by workflow configuration.
 
 ---
 

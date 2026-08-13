@@ -2,7 +2,7 @@
 
 **Version:** 0.5  
 **Owner:** Project0  
-**Last Updated:** 2026-08-12  
+**Last Updated:** 2026-08-13
 
 ---
 
@@ -30,14 +30,19 @@ Documentation Agent testing is intended to:
 
 - Verify Documentation Agent-specific component behavior.
 - Validate the complete documentation workflow.
-- Confirm AI-generated proposals are correctly translated into controlled documentation operations.
+- Confirm AI-generated proposals are correctly translated into
+  controlled documentation operations.
 - Verify preliminary and final validation behavior.
 - Confirm human review decisions control repository modification.
-- Ensure approved changes are applied correctly and unrelated content remains unchanged.
+- Ensure approved changes are applied correctly and unrelated content
+  remains unchanged.
 - Verify repository failures and invalid proposals fail safely.
 - Validate Dashboard-hosted Documentation Agent interaction.
 - Detect regressions in previously corrected workflow behavior.
-- Provide confidence before declaring the Documentation Agent complete.
+- Verify document discovery behavior when target documentation paths
+  are not provided.
+- Provide confidence before declaring the Documentation Agent
+  complete.
 
 ---
 
@@ -154,6 +159,22 @@ Tests verify:
 - Workflow exception handling.
 - Review-decision normalization and result mapping.
 - Safe handling of unknown mapped values.
+
+### 5.1.1 Documentation Discovery Behavior
+
+Tests should verify optional target documentation path behavior:
+
+- A documentation request may be submitted without target
+  documentation paths.
+- Repository knowledge discovery identifies candidate documentation
+  when paths are omitted.
+- Explicit target documentation paths continue to be supported.
+- Baseline documentation is not automatically included solely because
+  target paths are empty.
+- Discovery behavior produces reviewable workflow results.
+
+These tests should verify repository effects and workflow results where
+applicable.
 
 ### 5.2 Documentation Workflow
 
@@ -362,8 +383,10 @@ Acceptance automation should be introduced incrementally. Initial scenarios shou
 
 - Documentation Agent page renders.
 - Documentation request field is available.
-- Target documentation path field is available.
+- Target documentation path field is available as an optional input.
 - Submit Documentation Request button is available.
+- Documentation requests without target paths are accepted and
+  processed through discovery where supported.
 - Request submission produces the visible Processing state.
 - Review/proposal UI is presented.
 - Reject workflow operates correctly.
@@ -430,6 +453,8 @@ Representative browser and exploratory scenarios include:
 - Verify the final Git diff.
 - Verify completion status and workflow summary.
 - Verify that unrelated files remain unchanged.
+- Verify that empty target documentation paths do not cause unintended
+  baseline document inclusion.
 
 Observed browser behavior should be compared with the actual repository
 content. Presentation artifacts shall not be assumed to represent

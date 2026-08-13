@@ -2,7 +2,7 @@
 
 **Version:** 0.6  
 **Owner:** Project0  
-**Last Updated:** 2026-08-11
+**Last Updated:** 2026-08-13
 
 ---
 
@@ -44,26 +44,26 @@ Framework provides the shared user interface shell, while the Documentation
 Agent provides agent-specific workflows and interactions within the Dashboard
 Work Area:
 
-- Dashboard Framework
-- Platform Dispatcher
-- Workflow Engine
-- Repository Service
-- Context Builder
-- Context Rule Registry
-- Context Filter
-- Knowledge Service
-- Document Parser
-- Document Index
-- Document Selector
-- Context Formatter
-- Shared Interfaces
-- Shared Data Models
-- Validation Service
-- Reasoning Service
-- Review Coordinator
-- Repository Update Service
-- Git Diff Service
-- Documentation Workflow
+* Dashboard Framework
+* Platform Dispatcher
+* Workflow Engine
+* Repository Service
+* Context Builder
+* Context Rule Registry
+* Context Filter
+* Knowledge Service
+* Document Parser
+* Document Index
+* Document Selector
+* Context Formatter
+* Shared Interfaces
+* Shared Data Models
+* Validation Service
+* Reasoning Service
+* Review Coordinator
+* Repository Update Service
+* Git Diff Service
+* Documentation Workflow
 
 The Platform Dispatcher provides the platform-level entry point. It creates workflow tasks and submits them to the Workflow Engine. The Workflow Engine executes those tasks and returns structured workflow results.
 
@@ -155,25 +155,25 @@ and AI agents.
 
 #### Responsibilities
 
-- Provide the common dashboard layout.
-- Host Documentation Agent pages within the shared framework.
-- Render reusable templates.
-- Provide shared navigation, sidebar, context toolbar, and work area.
-- Keep the Sidebar focused on Agent and Workspace navigation.
-- Display Project0 status in the Project Overview Work Area.
-- Allow agent status, controls, and content to be displayed in the Work Area for the selected agent.
-- Provide the Dashboard Work Area for Documentation Agent interaction.
-- Remain independent of Documentation Agent business logic.
+* Provide the common dashboard layout.
+* Host Documentation Agent pages within the shared framework.
+* Render reusable templates.
+* Provide shared navigation, sidebar, context toolbar, and work area.
+* Keep the Sidebar focused on Agent and Workspace navigation.
+* Display Project0 status in the Project Overview Work Area.
+* Allow agent status, controls, and content to be displayed in the Work Area for the selected agent.
+* Provide the Dashboard Work Area for Documentation Agent interaction.
+* Remain independent of Documentation Agent business logic.
 
 #### Design Notes
 
-- Implemented using FastAPI and Jinja2 templates.
-- The Project Overview is the default platform-level Work Area and contains Project0 status information.
-- The Context Toolbar and Work Area reflect the currently selected platform or agent context.
-- Project0 status is not displayed persistently in the Sidebar.
-- The Documentation Agent is the first implemented agent hosted within the Dashboard Framework.
-- Agent-specific pages render within the Dashboard Work Area rather than operating as independent applications.
-- Serves as reusable platform infrastructure for future AI agents.
+* Implemented using FastAPI and Jinja2 templates.
+* The Project Overview is the default platform-level Work Area and contains Project0 status information.
+* The Context Toolbar and Work Area reflect the currently selected platform or agent context.
+* Project0 status is not displayed persistently in the Sidebar.
+* The Documentation Agent is the first implemented agent hosted within the Dashboard Framework.
+* Agent-specific pages render within the Dashboard Work Area rather than operating as independent applications.
+* Serves as reusable platform infrastructure for future AI agents.
 
 ---
 
@@ -603,10 +603,13 @@ Select repository documentation relevant to a Knowledge Request.
 #### Responsibilities
 
 * Match explicit repository paths.
+* Discover relevant documentation when explicit repository paths are
+  not provided.
 * Match deterministic search terms.
 * Match required tags.
 * Match changed repository paths.
-* Include baseline project documentation.
+* Include baseline project documentation only when requested by the
+  workflow configuration.
 * Rank selected documents.
 * Preserve deterministic ordering.
 
@@ -811,49 +814,49 @@ Perform AI-assisted documentation reasoning.
 
 #### Responsibilities
 
-- Analyze repository changes and documentation impact.
-- Generate proposed documentation updates.
-- Explain proposed documentation changes.
+* Analyze repository changes and documentation impact.
+* Generate proposed documentation updates.
+* Explain proposed documentation changes.
 
 #### Interfaces
 
 ##### Provides
 
-- Analyze documentation impact.
-- Generate proposed documentation updates.
-- Explain proposed documentation changes.
+* Analyze documentation impact.
+* Generate proposed documentation updates.
+* Explain proposed documentation changes.
 
 ##### Consumes
 
-- Repository context.
-- User requests.
-- Documentation standards.
+* Repository context.
+* User requests.
+* Documentation standards.
 
 #### Design Notes
 
-- Performs only tasks requiring AI-assisted reasoning.
-- Does not directly read or write repository files.
-- Produces proposed changes for validation and user review.
-- Uses repository context supplied by the Knowledge Service.
+* Performs only tasks requiring AI-assisted reasoning.
+* Does not directly read or write repository files.
+* Produces proposed changes for validation and user review.
+* Uses repository context supplied by the Knowledge Service.
 
 #### Inputs
 
-- Repository context
-- User requests
+* Repository context
+* User requests
 
 #### Outputs
 
-- Proposed documentation updates
-- Documentation impact explanations
+* Proposed documentation updates
+* Documentation impact explanations
 
 #### Required Services
 
-- Knowledge Service
-- AI Reasoning Provider
+* Knowledge Service
+* AI Reasoning Provider
 
 #### External Dependencies
 
-- AI reasoning provider
+* AI reasoning provider
 
 #### Implementation Status
 
@@ -861,9 +864,9 @@ Implemented in Phase 4 and integrated into the Documentation Workflow in Phase 6
 
 #### Future Considerations
 
-- Multiple reasoning providers
-- Model routing
-- Context-size management
+* Multiple reasoning providers
+* Model routing
+* Context-size management
 
 ---
 
@@ -926,16 +929,21 @@ Coordinate the complete Documentation Agent execution pipeline.
 
 #### Responsibilities
 
-* Coordinate Knowledge, Reasoning, Validation, Review, Repository Update, and Git Diff services.
+* Coordinate Knowledge, Reasoning, Validation, Review, Repository
+* Update, and Git Diff services.
 * Preserve workflow state.
 * Produce immutable Documentation Workflow Results.
-* Support human-in-the-loop review before applying documentation changes.
+* Support human-in-the-loop review before applying documentation
+  changes.
 
 #### Design Notes
 
-* Documentation Workflow execution is initiated through the Platform Dispatcher.
-* Documentation Agent UI interactions are hosted by the Dashboard Framework.
-* Proposed documentation changes are reviewed before repository updates are applied.
+* Documentation Workflow execution is initiated through the Platform
+  Dispatcher.
+* Documentation Agent UI interactions are hosted by the Dashboard
+  Framework.
+* Proposed documentation changes are reviewed before repository
+  updates are applied.
 
 ---
 
@@ -943,12 +951,18 @@ Coordinate the complete Documentation Agent execution pipeline.
 
 * Interfaces shall remain technology independent.
 * Components communicate only through public typed interfaces.
-* Components shall not directly access another component's internal state.
-* Components shall depend on interfaces rather than concrete implementations where practical.
-* Interface contracts shall remain backward compatible whenever practical.
-* Shared data models shall define information exchanged between components.
-* Concrete implementations may satisfy interfaces through structural typing.
-* Interfaces shall remain small and aligned with implemented component capabilities.
+* Components shall not directly access another component's internal
+  state.
+* Components shall depend on interfaces rather than concrete
+  implementations where practical.
+* Interface contracts shall remain backward compatible whenever
+  practical.
+* Shared data models shall define information exchanged between
+  components.
+* Concrete implementations may satisfy interfaces through structural
+  typing.
+* Interfaces shall remain small and aligned with implemented component
+  capabilities.
 
 ---
 
@@ -997,11 +1011,16 @@ Approved documentation changes are applied only through the Repository Update Se
 * Support future extensibility.
 * Use typed interfaces between platform components.
 * Use shared immutable models for component communication.
-* Depend on interfaces rather than concrete implementations where practical.
+* Depend on interfaces rather than concrete implementations where
+  practical.
 * Preserve deterministic ordering of selected repository content.
+* Empty documentation target paths shall trigger repository knowledge
+  discovery rather than implicit baseline document inclusion.
 * Repository discovery remains read-only.
-* Documentation modifications shall occur only through the Repository Update Service.
+* Documentation modifications shall occur only through the Repository
+  Update Service.
 * Human approval is required before documentation changes are applied.
-* Proposed documentation changes shall be processed individually through the review workflow.
-* Approved documentation changes shall undergo final validation before completion.
-
+* Proposed documentation changes shall be processed individually
+  through the review workflow.
+* Approved documentation changes shall undergo final validation before
+  completion.

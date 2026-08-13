@@ -2,7 +2,7 @@
 
 **Version:** 0.2  
 **Owner:** Project0  
-**Last Updated:** 2026-08-09
+**Last Updated:** 2026-08-13
 
 ---
 
@@ -25,11 +25,19 @@ Documentation Agent components while remaining separate from Dashboard
 Framework presentation responsibilities.
 
 The completed Phase 8 workflow adds human-in-the-loop documentation
-interactions hosted within the Dashboard Work Area. The Dashboard Framework
-continues to provide the shared application shell, navigation, and hosting
-infrastructure. Documentation Agent interfaces define only agent-specific
-workflow interactions, including documentation request processing, review
-coordination, repository update coordination, and workflow result handling.
+interactions hosted within the Dashboard Work Area. The Dashboard
+Framework continues to provide the shared application shell, navigation,
+and hosting infrastructure. Documentation Agent interfaces define only
+agent-specific workflow interactions, including documentation request
+processing, review coordination, repository update coordination, and
+workflow result handling.
+
+Documentation request processing supports optional target documentation
+paths. When target documentation paths are not provided, the
+Documentation Agent workflow uses repository knowledge discovery to
+identify candidate documentation for analysis. Agent interfaces remain
+independent of the specific document selection strategy used by the
+underlying services.
 
 Agent-specific UI behavior and presentation details remain outside these
 interfaces and are implemented by the Documentation Agent UI components.

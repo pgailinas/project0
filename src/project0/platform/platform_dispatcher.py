@@ -227,7 +227,7 @@ def _create_documentation_workflow(
                     Path(repository_path)
                     for repository_path in request.target_paths
                 ),
-                include_baseline_documents=True,
+                include_baseline_documents=False,
             )
         )
 

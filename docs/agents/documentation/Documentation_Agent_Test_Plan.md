@@ -2,7 +2,7 @@
 
 **Version:** 0.5  
 **Owner:** Project0  
-**Last Updated:** 2026-08-12  
+**Last Updated:** 2026-08-13
 
 ---
 
@@ -249,6 +249,38 @@ All proposed updates are relevant and complete.
 
 ---
 
+### 5.6 DA-FUN-006: Documentation Discovery Without Target Paths
+
+#### Verification Layers
+
+-   Integration
+-   UI Acceptance where applicable
+
+#### Objective
+
+Verify that the Documentation Agent can identify relevant documentation
+when the user does not provide target documentation paths.
+
+#### Test Scenario
+
+Submit a documentation request with no target documentation paths.
+
+#### Expected Behavior
+
+The Documentation Agent shall:
+
+-   accept the request without requiring target documentation paths
+-   use repository knowledge discovery to identify candidate
+    documentation
+-   generate proposals based on discovered repository documentation
+
+#### Pass Criteria
+
+Relevant documentation is identified through discovery and the workflow
+completes without requiring manually supplied document paths.
+
+---
+
 ### 5.5 DA-FUN-005: Minimal Change Verification
 
 #### Verification Layers
@@ -358,7 +390,10 @@ Verify that repository baseline documents remain optional context.
 
 #### Expected Behavior
 
-The Documentation Agent shall operate correctly without requiring specific repository baseline files.
+The Documentation Agent shall operate correctly without requiring
+specific repository baseline files. Baseline documents shall not be
+automatically included when target documentation paths are omitted
+unless explicitly requested by workflow configuration.
 
 #### Pass Criteria
 
@@ -565,7 +600,7 @@ Verify that a user can enter a documentation request and target documentation pa
 
 1. Open `/agents/documentation` through Chromium.
 2. Enter a documentation request in the Documentation Request field.
-3. Enter a valid repository-relative documentation path in the Target Documentation Paths field.
+3. Optionally enter a repository-relative documentation path in the Target Documentation Paths field.
 4. Read both field values through the browser.
 
 #### Expected Results

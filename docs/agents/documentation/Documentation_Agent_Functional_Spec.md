@@ -2,7 +2,7 @@
 
 **Version:** 0.3  
 **Owner:** Project0  
-**Last Updated:** 2026-08-05
+**Last Updated:** 2026-08-13
 
 ---
 
@@ -10,7 +10,9 @@
 
 ### Mission
 
-Maintain synchronization between the software repository and its documentation while minimizing manual effort and preserving documentation quality through controlled, reviewable updates.
+Maintain synchronization between the software repository and its
+documentation while minimizing manual effort and preserving
+documentation quality through controlled, reviewable updates.
 
 ### Scope
 
@@ -32,7 +34,11 @@ dashboard infrastructure.
 - Prefer deterministic validation over AI judgment.
 - Favor open-source, local-first technologies where practical.
 - Maintain a vendor-neutral architecture.
-- Documentation is maintained as living project knowledge and shall remain synchronized with the current repository state.
+- Documentation is maintained as living project knowledge and shall 
+  remain synchronized with the current repository state.
+- User-provided target documentation paths are optional; when omitted,
+  the agent shall determine relevant documentation through repository
+  knowledge discovery.
 
 ---
 
@@ -43,6 +49,7 @@ The Documentation Agent shall:
 - Analyze staged and unstaged repository changes.
 - Determine the documentation impact of repository changes.
 - Identify affected Markdown files.
+- Discover potentially affected documentation when target documentation paths are not provided.
 - Explain why each document is affected.
 - Propose the minimum necessary update for each affected file.
 - Present proposed changes for individual review.
@@ -53,26 +60,10 @@ The Documentation Agent shall:
 
 ---
 
-## 4. Out of Scope
-
-The Documentation Agent shall **not**:
-
-- Modify application source code.
-- Commit or push to Git.
-- Delete documentation without approval.
-- Invent project information.
-- Override human decisions.
-- Modify files outside the approved documentation scope.
-- Commit, push, merge, or open pull requests.
-- Apply bulk changes without individual file approval.
-- Treat retrieved excerpts or model memory as authoritative.
-- Operate continuously or automatically monitor the repository.
-
----
-
 ## 5. Inputs
 
 - User request
+- Optional target documentation paths
 - Local Git repository
 - Git status
 - Staged and unstaged Git diffs
@@ -82,19 +73,9 @@ The Documentation Agent shall **not**:
 - Project terminology and source-of-truth documentation
 - Dashboard Framework templates and shared documentation when affected by repository changes
 
----
-
-## 6. Outputs
-
-- Repository-change summary
-- Affected document list
-- Impact rationale for each document
-- Proposed file-by-file Markdown changes
-- Individual approval decisions
-- Validation report
-- Final Git diff
-- Activity log
-- Dashboard-aware documentation updates that preserve the shared Dashboard Framework architecture
+When target documentation paths are omitted, the Documentation Agent
+uses repository knowledge discovery to identify candidate documentation
+files.
 
 ---
 
@@ -104,6 +85,8 @@ The Documentation Agent shall **not**:
 User Request
       ↓
 Dashboard Framework (User Interface)
+      ↓
+Optional Target Documentation Paths
       ↓
 Git Repository Analysis
       ↓
@@ -130,38 +113,12 @@ Final Git Diff
 
 ---
 
-## 8. User Interaction
-
-For each proposed document update, the user may:
-
-- Preview
-- Approve
-- Revise
-- Reject
-- Skip
-
-The agent shall not apply a proposed file change until that file has been individually approved.
-
----
-
-## 9. Validation Requirements
-
-- Markdown structure validation
-- Internal link validation
-- Referenced file validation
-- MkDocs strict-build validation
-- Cross-document consistency validation
-- MkDocs navigation validation
-- Search for stale names, paths, and terminology
-- Verification that only approved files changed
-
----
-
 ## 10. Success Criteria
 
 The Documentation Agent is successful when it:
 
 - Correctly identifies documentation affected by repository changes.
+- Correctly discovers affected documentation when target paths are not provided.
 - Explains the relationship between each repository change and affected file.
 - Produces accurate, minimal, style-preserving updates.
 - Applies only individually approved file changes.
@@ -183,3 +140,4 @@ Not included in Version 1:
 - Automatic change monitoring
 - Git commit and pull-request support
 - Interactive dashboard visualizations for documentation review workflows
+

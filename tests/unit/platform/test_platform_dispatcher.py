@@ -642,6 +642,50 @@ def test_submit_documentation_review_returns_intermediate_state() -> None:
     assert result.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
 
 
+
+def test_create_documentation_workflow_disables_baseline_documents_by_default(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    """Documentation workflow should discover documents without baselines."""
+
+    reasoning_provider = Mock()
+    captured_requests = []
+
+    class FakeKnowledgeService:
+        def __init__(self, repository_root):
+            self.repository_root = repository_root
+
+        def build_knowledge(self, request):
+            captured_requests.append(request)
+
+            return Mock(context="documentation context")
+
+    monkeypatch.setattr(
+        "project0.platform.platform_dispatcher.KnowledgeService",
+        FakeKnowledgeService,
+    )
+
+    workflow = _create_documentation_workflow(
+        repository_root=tmp_path,
+        reasoning_provider=reasoning_provider,
+        reasoning_model_name="qwen2.5:7b",
+        review_decision_provider=None,
+    )
+
+    assert workflow is not None
+
+    workflow._context_provider(
+        Mock(
+            user_request="Update documentation.",
+            target_paths=(),
+        )
+    )
+
+    assert len(captured_requests) == 1
+    assert captured_requests[0].include_baseline_documents is False
+
+
 def test_create_documentation_workflow_uses_reasoning_model_name(
     tmp_path,
 ) -> None:
