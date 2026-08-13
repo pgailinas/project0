@@ -12,8 +12,11 @@
 from __future__ import annotations
 
 import json
+import logging
 from dataclasses import dataclass
 from typing import Any
+
+import time
 
 import httpx
 
@@ -21,6 +24,9 @@ from project0.models.reasoning_models import (
     ProviderRequest,
     ProviderResponse,
 )
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 @dataclass(slots=True)
@@ -58,6 +64,17 @@ class OllamaReasoningProvider:
             },
         }
 
+        LOGGER.debug(
+            "Ollama request endpoint=%s model=%s system_length=%d "
+            "user_length=%d schema=%s",
+            endpoint,
+            request.model_name,
+            len(request.system_instructions),
+            len(request.user_prompt),
+            request.response_schema,
+        )
+        start_time = time.time()
+
         try:
             response = httpx.post(
                 endpoint,
@@ -65,14 +82,25 @@ class OllamaReasoningProvider:
                 timeout=self.timeout_seconds,
             )
             response.raise_for_status()
+
+            LOGGER.debug(
+                "Ollama response completed in %.2f seconds",
+                time.time() - start_time,
+            )
+
         except httpx.HTTPStatusError as error:
             raise RuntimeError(
                 "Ollama request failed with HTTP status "
                 f"{error.response.status_code}."
             ) from error
+#        except httpx.RequestError as error:
+#            raise RuntimeError(
+#                "Ollama service could not be reached."
+#            ) from error
+
         except httpx.RequestError as error:
             raise RuntimeError(
-                "Ollama service could not be reached."
+                f"Ollama service could not be reached: {type(error).__name__}: {error}"
             ) from error
 
         try:

@@ -419,12 +419,28 @@ class DocumentationAgentUIService:
             else None
         )
 
-        candidate_content = apply_documentation_change(
-            original_content=original_content,
-            proposed_content=proposed_content,
-            anchor_text=anchor_text,
-            anchor_mode=anchor_mode,
-        )
+        try:
+            candidate_content = apply_documentation_change(
+                original_content=original_content,
+                proposed_content=proposed_content,
+                anchor_text=anchor_text,
+                anchor_mode=anchor_mode,
+            )
+
+        except ValueError as error:
+            return DocumentationDifferenceView(
+                repository_path=repository_path,
+                lines=(
+                    DifferenceLineView(
+                        line_type=DifferenceLineType.HEADER,
+                        content=(
+                            "Unable to generate documentation difference: "
+                            f"{error}"
+                        ),
+                    ),
+                ),
+                error_message=str(error),
+            )
 
         original_lines = original_content.splitlines()
         proposed_lines = candidate_content.splitlines()
@@ -545,6 +561,13 @@ class DocumentationAgentUIService:
                 )
             ),
             lines=lines,
+            error_message=self._normalize_optional_text(
+                self._read_value(
+                    difference,
+                    "error_message",
+                    default=None,
+                )
+            ),
         )
 
     def _map_summary(

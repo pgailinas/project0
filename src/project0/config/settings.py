@@ -13,6 +13,10 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
+from project0.config.constants import (
+    DEFAULT_OLLAMA_TIMEOUT_SECONDS,
+)
+
 
 @dataclass(frozen=True)
 class ProjectSettings:
@@ -26,7 +30,7 @@ class ProjectSettings:
     reasoning_provider: str = "ollama"
     ollama_model: str = "qwen2.5:7b"
     ollama_base_url: str = "http://127.0.0.1:11434"
-    ollama_timeout_seconds: float = 300.0
+    ollama_timeout_seconds: float = DEFAULT_OLLAMA_TIMEOUT_SECONDS
 
 
 def load_settings() -> ProjectSettings:
@@ -55,7 +59,7 @@ def load_settings() -> ProjectSettings:
         ollama_timeout_seconds=float(
             os.getenv(
                 "PROJECT0_OLLAMA_TIMEOUT_SECONDS",
-                "300.0",
+                str(DEFAULT_OLLAMA_TIMEOUT_SECONDS),
             )
         ),
     )

@@ -16,6 +16,9 @@ from pathlib import Path
 
 import pytest
 
+from project0.config.constants import (
+    DEFAULT_OLLAMA_TIMEOUT_SECONDS,
+)
 from project0.config.settings import (
     SETTINGS,
     ProjectSettings,
@@ -75,7 +78,7 @@ def test_project_settings_uses_default_reasoning_settings(
     assert settings.reasoning_provider == "ollama"
     assert settings.ollama_model == "qwen2.5:7b"
     assert settings.ollama_base_url == "http://127.0.0.1:11434"
-    assert settings.ollama_timeout_seconds == 300.0
+    assert settings.ollama_timeout_seconds == DEFAULT_OLLAMA_TIMEOUT_SECONDS
 
 
 def test_project_settings_is_immutable(
@@ -138,7 +141,7 @@ def test_load_settings_uses_default_reasoning_settings(
     assert settings.reasoning_provider == "ollama"
     assert settings.ollama_model == "qwen2.5:7b"
     assert settings.ollama_base_url == "http://127.0.0.1:11434"
-    assert settings.ollama_timeout_seconds == 300.0
+    assert settings.ollama_timeout_seconds == DEFAULT_OLLAMA_TIMEOUT_SECONDS
 
 
 def test_load_settings_uses_reasoning_environment_overrides(

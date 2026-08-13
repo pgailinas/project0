@@ -413,6 +413,44 @@ def test_submit_request_focuses_multiple_difference_hunks() -> None:
     assert "Line 20" not in contents
 
 
+
+def test_submit_request_handles_invalid_anchor_difference_failure() -> None:
+    """Invalid proposal anchors should create a review warning, not fail HTTP."""
+
+    workflow = FakeWorkflow(
+        result={
+            "workflow_id": "workflow-invalid-anchor",
+            "status": "review_required",
+            "proposals": (
+                {
+                    "proposal_id": "proposal-1",
+                    "repository_path": "docs/Example.md",
+                    "rationale": "Update a missing anchor.",
+                    "original_content": "Existing documentation.",
+                    "proposed_content": "New content.",
+                    "anchor_text": "Missing anchor",
+                },
+            ),
+        }
+    )
+
+    service = DocumentationAgentUIService(workflow=workflow)
+
+    page = service.submit_request(
+        "Update documentation."
+    )
+
+    assert page.page_status is DocumentationAgentPageStatus.REVIEW_REQUIRED
+    assert len(page.proposals) == 1
+
+    difference = page.proposals[0].difference
+
+    assert difference is not None
+    assert difference.error_message == (
+        "The documentation anchor text was not found."
+    )
+    assert difference.lines[0].line_type is DifferenceLineType.HEADER
+
 def test_submit_request_maps_completed_result() -> None:
     """A completed workflow should produce a completed page state."""
 

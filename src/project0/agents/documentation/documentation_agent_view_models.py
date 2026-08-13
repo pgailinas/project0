@@ -108,6 +108,7 @@ class DocumentationDifferenceView:
 
     repository_path: str
     lines: tuple[DifferenceLineView, ...] = ()
+    error_message: str | None = None
 
     @property
     def has_differences(self) -> bool:

@@ -435,6 +435,73 @@ def test_reasoning_service_allows_null_confidence() -> None:
     assert result.proposed_changes[0].confidence is None
 
 
+
+def test_reasoning_service_normalizes_percentage_confidence() -> None:
+    """Verify percentage confidence values are normalized."""
+
+    response = create_valid_provider_response()
+    response.structured_output[
+        "impacts"
+    ][0]["confidence"] = 95
+
+    service = ReasoningService(
+        prompt_builder=StubPromptBuilder(
+            create_provider_request()
+        ),
+        provider=StubProvider(response),
+    )
+
+    result = service.reason(
+        create_reasoning_request()
+    )
+
+    assert result.impacts[0].confidence == 0.95
+
+
+def test_reasoning_service_normalizes_percentage_string_confidence() -> None:
+    """Verify percentage string confidence values are normalized."""
+
+    response = create_valid_provider_response()
+    response.structured_output[
+        "impacts"
+    ][0]["confidence"] = "95%"
+
+    service = ReasoningService(
+        prompt_builder=StubPromptBuilder(
+            create_provider_request()
+        ),
+        provider=StubProvider(response),
+    )
+
+    result = service.reason(
+        create_reasoning_request()
+    )
+
+    assert result.impacts[0].confidence == 0.95
+
+
+def test_reasoning_service_normalizes_decimal_string_confidence() -> None:
+    """Verify decimal string confidence values are normalized."""
+
+    response = create_valid_provider_response()
+    response.structured_output[
+        "impacts"
+    ][0]["confidence"] = "0.95"
+
+    service = ReasoningService(
+        prompt_builder=StubPromptBuilder(
+            create_provider_request()
+        ),
+        provider=StubProvider(response),
+    )
+
+    result = service.reason(
+        create_reasoning_request()
+    )
+
+    assert result.impacts[0].confidence == 0.95
+
+
 def test_reasoning_service_allows_null_section() -> None:
     """Verify nullable proposed-change section parsing."""
 
@@ -782,6 +849,31 @@ def test_reasoning_service_rejects_out_of_range_confidence() -> None:
         "Confidence must be between 0.0 and 1.0."
     )
 
+
+
+def test_reasoning_service_rejects_small_out_of_range_confidence() -> None:
+    """Verify values above 1.0 but below percentage range are rejected."""
+
+    response = create_valid_provider_response()
+    response.structured_output[
+        "impacts"
+    ][0]["confidence"] = 1.5
+
+    service = ReasoningService(
+        prompt_builder=StubPromptBuilder(
+            create_provider_request()
+        ),
+        provider=StubProvider(response),
+    )
+
+    result = service.reason(
+        create_reasoning_request()
+    )
+
+    assert result.status == ReasoningStatus.FAILED
+    assert result.error_message == (
+        "Confidence must be between 0.0 and 1.0."
+    )
 
 def test_reasoning_service_rejects_non_string_assumptions() -> None:
     """Verify assumptions must contain strings only."""

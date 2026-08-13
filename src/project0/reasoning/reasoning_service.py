@@ -339,10 +339,35 @@ class ReasoningService:
         self,
         value: Any,
     ) -> float | None:
-        """Parse an optional confidence value."""
+        """Parse and normalize an optional confidence value."""
 
         if value is None:
             return None
+
+        if isinstance(value, str):
+            value = value.strip()
+
+            if value.endswith("%"):
+                value = value[:-1]
+
+                try:
+                    confidence = float(value) / 100.0
+                except ValueError as error:
+                    raise TypeError(
+                        "Confidence must be numeric or null."
+                    ) from error
+
+                return self._validate_confidence(
+                    confidence
+                )
+
+            try:
+                value = float(value)
+
+            except ValueError as error:
+                raise TypeError(
+                    "Confidence must be numeric or null."
+                ) from error
 
         if not isinstance(value, (int, float)):
             raise TypeError(
@@ -350,6 +375,19 @@ class ReasoningService:
             )
 
         confidence = float(value)
+
+        if 10.0 < confidence <= 100.0:
+            confidence /= 100.0
+
+        return self._validate_confidence(
+            confidence
+        )
+
+    def _validate_confidence(
+        self,
+        confidence: float,
+    ) -> float:
+        """Validate normalized confidence value."""
 
         if not 0.0 <= confidence <= 1.0:
             raise ValueError(

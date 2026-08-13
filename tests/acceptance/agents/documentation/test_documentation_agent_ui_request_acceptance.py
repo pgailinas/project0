@@ -58,9 +58,109 @@ def test_UI_DA_FUN_001_documentation_agent_page_renders(
     ).to_be_visible()
 
 
+def test_UI_DA_FUN_001_documentation_request_form_accepts_input(
+    page: Page,
+):
+    """
+    Verify that the Documentation Agent request form accepts
+    user input through the Project0 Dashboard UI.
+    """
+
+    page.goto(
+        "http://127.0.0.1:8001/agents/documentation"
+    )
+
+    request_field = page.get_by_placeholder(
+        "Describe the documentation change to make."
+    )
+
+    target_paths_field = page.get_by_placeholder(
+        "docs/implementation_status.md"
+    )
+
+    request_text = (
+        "Update the documentation to describe "
+        "the new testing workflow."
+    )
+
+    target_paths = (
+        "docs/agents/documentation/"
+        "Documentation_Agent_Testing_Guide.md"
+    )
+
+    request_field.fill(request_text)
+    target_paths_field.fill(target_paths)
+
+    expect(request_field).to_have_value(request_text)
+    expect(target_paths_field).to_have_value(target_paths)
+
+
+def test_UI_DA_FUN_001_documentation_request_submission_starts_processing(
+    page: Page,
+):
+    """
+    Verify that submitting a Documentation Agent request starts
+    the processing workflow through the Project0 Dashboard UI.
+    """
+
+    page.goto(
+        "http://127.0.0.1:8001/agents/documentation"
+    )
+
+    request_field = page.get_by_placeholder(
+        "Describe the documentation change to make."
+    )
+
+    target_paths_field = page.get_by_placeholder(
+        "docs/implementation_status.md"
+    )
+
+    request_field.fill(
+        "Update the documentation to describe "
+        "the new testing workflow."
+    )
+
+    target_paths_field.fill(
+        "docs/agents/documentation/"
+        "Documentation_Agent_Testing_Guide.md"
+    )
+
+    page.evaluate(
+        """
+        () => {
+            const form = document.getElementById(
+                "documentation-request-form"
+            );
+
+            form.submit = () => {};
+        }
+        """
+    )
+
+    page.get_by_role(
+        "button",
+        name="Submit Documentation Request",
+    ).click()
+
+    expect(
+        page.get_by_role(
+            "button",
+            name="Processing...",
+        )
+    ).to_be_visible(
+        timeout=10000
+    )
+
+    expect(
+        page.get_by_text(
+            "Running AI reasoning and validation..."
+        )
+    ).to_be_visible(
+        timeout=10000
+    )
+
+
 # Planned browser acceptance cases:
 #
-# UI-DA-FUN-001-B - Documentation Request Form Accepts Input
-# UI-DA-FUN-001-C - Documentation Request Submission Starts Processing
 # UI-DA-SAF-003-A - Invalid Request Is Reported Safely
 # UI-DA-FUN-001-D - Visible Workflow Result Is Presented

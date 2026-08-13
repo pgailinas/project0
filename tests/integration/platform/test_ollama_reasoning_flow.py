@@ -19,6 +19,10 @@ from typing import Any
 import httpx
 import pytest
 
+from project0.config.constants import (
+    DEFAULT_OLLAMA_TIMEOUT_SECONDS,
+)
+
 from project0.models.reasoning_models import (
     DocumentationChangeOperation,
     DocumentationEditType,
@@ -119,7 +123,9 @@ def create_reasoning_service() -> ReasoningService:
             temperature=0.0,
             maximum_output_tokens=4096,
         ),
-        provider=OllamaReasoningProvider(),
+        provider=OllamaReasoningProvider(
+            timeout_seconds=DEFAULT_OLLAMA_TIMEOUT_SECONDS,
+        ),
     )
 
 
@@ -300,6 +306,38 @@ def test_ollama_reasoning_flow_preserves_provider_metrics(
     }
 
 
+
+def test_ollama_reasoning_flow_uses_configured_timeout(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify configured Ollama timeout reaches the HTTP boundary."""
+
+    captured_timeout: float | None = None
+
+    def fake_post(
+        url: str,
+        *,
+        json: dict[str, Any],
+        timeout: float,
+    ) -> httpx.Response:
+        nonlocal captured_timeout
+
+        captured_timeout = timeout
+
+        return create_http_response()
+
+    monkeypatch.setattr(
+        httpx,
+        "post",
+        fake_post,
+    )
+
+    create_reasoning_service().reason(
+        create_reasoning_request()
+    )
+
+    assert captured_timeout == DEFAULT_OLLAMA_TIMEOUT_SECONDS
+
 def test_ollama_reasoning_flow_converts_provider_failure(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -329,6 +367,6 @@ def test_ollama_reasoning_flow_converts_provider_failure(
     assert result.proposed_changes == ()
     assert result.provider_name == "unknown"
     assert result.model_name == "unknown"
-    assert result.error_message == (
-        "Ollama service could not be reached."
+    assert result.error_message.startswith(
+        "Ollama service could not be reached:"
     )
