@@ -15,6 +15,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from uuid import uuid4
 
+import logging
+
 from project0.common.startup_validation import validate_startup
 from project0.config.settings import SETTINGS, ProjectSettings
 from project0.interfaces.context_builder_interfaces import (
@@ -59,6 +61,9 @@ from project0.workflow.review_coordinator import (
     ReviewDecisionProvider,
 )
 from project0.workflow.workflow_engine import WorkflowEngine
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 @dataclass(slots=True)
@@ -230,6 +235,33 @@ def _create_documentation_workflow(
                 include_baseline_documents=False,
             )
         )
+
+        LOGGER.debug(
+            "Knowledge documents selected for documentation workflow:"
+        )
+
+        LOGGER.debug(
+            "Documentation workflow knowledge selection for request: %s",
+            request.user_request,
+        )
+
+        for document in knowledge_result.selection.documents:
+            LOGGER.debug(
+                "Selected document: %s",
+                document.path,
+            )
+
+        LOGGER.debug(
+            "Knowledge document selection references:"
+        )
+
+        for reference in knowledge_result.selection.references:
+            LOGGER.debug(
+                "Document: %s score=%s matched_terms=%s",
+                reference.path,
+                reference.score,
+                reference.matched_terms,
+            )
 
         return knowledge_result.context
 

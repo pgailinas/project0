@@ -1,11 +1,11 @@
 # ============================================================
-# Project0 - Documentation Agent
+# Project0 - Project0 Settings
 #
 # File: settings.py
 #
 # Purpose:
 #     Define shared application configuration values used
-#     throughout the Documentation Agent.
+#     throughout Project0.
 #
 # ============================================================
 
@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from project0.config.constants import (
+    DEFAULT_LOG_LEVEL,
     DEFAULT_OLLAMA_TIMEOUT_SECONDS,
 )
 
@@ -26,7 +27,7 @@ class ProjectSettings:
     docs_dir: Path
     source_dir: Path
     tests_dir: Path
-    log_level: str = "INFO"
+    log_level: str = DEFAULT_LOG_LEVEL
     reasoning_provider: str = "ollama"
     ollama_model: str = "qwen2.5:7b"
     ollama_base_url: str = "http://127.0.0.1:11434"
@@ -43,7 +44,10 @@ def load_settings() -> ProjectSettings:
         docs_dir=project_root / "docs",
         source_dir=project_root / "src",
         tests_dir=project_root / "tests",
-        log_level="INFO",
+        log_level=os.getenv(
+            "PROJECT0_LOG_LEVEL",
+            DEFAULT_LOG_LEVEL,
+        ),
         reasoning_provider=os.getenv(
             "PROJECT0_REASONING_PROVIDER",
             "ollama",

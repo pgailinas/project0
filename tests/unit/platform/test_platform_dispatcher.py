@@ -659,7 +659,13 @@ def test_create_documentation_workflow_disables_baseline_documents_by_default(
         def build_knowledge(self, request):
             captured_requests.append(request)
 
-            return Mock(context="documentation context")
+            return Mock(
+                context="documentation context",
+                selection=Mock(
+                    documents=(),
+                    references=(),
+                ),
+            )
 
     monkeypatch.setattr(
         "project0.platform.platform_dispatcher.KnowledgeService",

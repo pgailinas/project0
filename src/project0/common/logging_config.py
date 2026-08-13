@@ -1,11 +1,10 @@
 # ============================================================
-# Project0 - Documentation Agent
+# Project0 - Project0 Platform Logging
 #
 # File: logging_config.py
 #
 # Purpose:
-#     Configure application-wide logging for the
-#     Documentation Agent.
+#     Configure application-wide logging for Project0.
 #
 # ============================================================
 
