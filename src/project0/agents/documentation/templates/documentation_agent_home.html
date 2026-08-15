@@ -144,7 +144,7 @@
             </div>
         </div>
 
-        {% if page.page_status.value == "review_required" %}
+        {% if page.page_status.value == "review_required" and page.proposals %}
         <div class="review-request-summary">
             <div>
                 <h3>Requested Change</h3>

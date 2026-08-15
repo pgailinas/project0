@@ -680,6 +680,42 @@ def test_submit_review_decision_normalizes_feedback_and_maps_result() -> None:
     assert page.proposals[0].feedback == "Looks correct."
 
 
+
+def test_submit_review_decision_revise_restores_request_context() -> None:
+    """Revise decisions should return the preserved request context."""
+
+    workflow = FakeWorkflow(
+        review_result={
+            "workflow_id": "workflow-revise",
+            "status": "review_required",
+            "user_request": "Update the documentation.",
+            "target_paths": (
+                "docs/Example.md",
+            ),
+            "proposals": (),
+        }
+    )
+    service = DocumentationAgentUIService(workflow=workflow)
+
+    page = service.submit_review_decision(
+        workflow_id="workflow-revise",
+        proposal_id="proposal-1",
+        decision=ReviewDecision.REVISE,
+        feedback="Please revise the proposed change.",
+    )
+
+    assert page.page_status is DocumentationAgentPageStatus.REVISION_REQUIRED
+    assert page.status_message == (
+        "Revise the documentation request and submit it again."
+    )
+    assert page.workflow_id == "workflow-revise"
+    assert page.request_form.user_request == (
+        "Update the documentation."
+    )
+    assert page.request_form.target_paths == (
+        "docs/Example.md",
+    )
+
 def test_submit_review_decision_converts_blank_feedback_to_none() -> None:
     """Blank review feedback should be submitted as None."""
 

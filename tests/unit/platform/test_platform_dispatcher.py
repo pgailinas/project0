@@ -106,6 +106,8 @@ def _documentation_workflow_state(
         workflow_id=workflow_id,
         status=DocumentationWorkflowStatus.REVIEW_REQUIRED,
         started_at=STARTED_AT,
+        user_request="Update the documentation.",
+        target_paths=("docs/index.md",),
         reasoning_result=None,
         proposals=(proposal,),
     )

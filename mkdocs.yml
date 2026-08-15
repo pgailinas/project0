@@ -44,10 +44,11 @@ nav:
 
   - Project0:
       - Project Charter: project/Project_Charter.md
-      - Development Environment: project/Development_Environment.md
-      - Testing Guide: project/Testing_Guide.md
-      - Documentation Standards: project/Documentation_Standards.md
       - Project Directory Structure: project/Project_Directory_Structure.md
+      - Development Environment: project/Development_Environment.md
+      - Development Standards: project/Development_Standards.md
+      - Documentation Standards: project/Documentation_Standards.md
+      - Testing Guide: project/Testing_Guide.md
       - Implementation Roadmap: project/Implementation_Roadmap.md
       - Implementation Status: project/Implementation_Status.md
 

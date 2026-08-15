@@ -179,6 +179,8 @@ class DocumentationWorkflow:
                 workflow_id=request.workflow_id,
                 status=DocumentationWorkflowStatus.REVIEW_REQUIRED,
                 started_at=started_at,
+                user_request=request.user_request,
+                target_paths=request.target_paths,
                 reasoning_result=reasoning_result,
                 proposals=proposals,
                 preliminary_validation=preliminary_validation,
@@ -235,11 +237,30 @@ class DocumentationWorkflow:
                 f"{review.proposal_id}"
             )
 
+        reviews = (*state.reviews, review)
+
+        if review.decision is ReviewDecision.REVISE:
+            revised_state = DocumentationWorkflowState(
+                workflow_id=state.workflow_id,
+                status=DocumentationWorkflowStatus.REVIEW_REQUIRED,
+                started_at=state.started_at,
+                user_request=state.user_request,
+                target_paths=state.target_paths,
+                reasoning_result=state.reasoning_result,
+                proposals=state.proposals,
+                reviews=reviews,
+                applied_changes=state.applied_changes,
+                preliminary_validation=state.preliminary_validation,
+                warnings=state.warnings,
+                error_message=state.error_message,
+            )
+            self._workflow_states[workflow_id] = revised_state
+            return revised_state
+
         applied_change = self._repository_update_service.apply(
             proposal,
             review,
         )
-        reviews = (*state.reviews, review)
         applied_changes = (*state.applied_changes, applied_change)
 
         if len(reviews) < len(state.proposals):
@@ -247,6 +268,8 @@ class DocumentationWorkflow:
                 workflow_id=state.workflow_id,
                 status=DocumentationWorkflowStatus.REVIEW_REQUIRED,
                 started_at=state.started_at,
+                user_request=state.user_request,
+                target_paths=state.target_paths,
                 reasoning_result=state.reasoning_result,
                 proposals=state.proposals,
                 reviews=reviews,

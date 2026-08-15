@@ -23,6 +23,7 @@ class DocumentationAgentPageStatus(StrEnum):
     READY = "ready"
     PROCESSING = "processing"
     REVIEW_REQUIRED = "review_required"
+    REVISION_REQUIRED = "revision_required"
     COMPLETED = "completed"
     COMPLETED_WITH_WARNINGS = "completed_with_warnings"
     FAILED = "failed"

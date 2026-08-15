@@ -2,7 +2,7 @@
 
 **Version:** 0.5  
 **Owner:** Project0  
-**Last Updated:** 2026-08-13
+**Last Updated:** 2026-08-15
 
 ---
 
@@ -228,7 +228,7 @@ The generated difference contains only the intended modification.
 
 ---
 
-### 5.4 DA-FUN-004: Multi-Document Documentation Update
+### 5.4 DA-FUN-004: Explicit Target Documentation Path Workflow
 
 #### Verification Layers
 
@@ -237,15 +237,49 @@ The generated difference contains only the intended modification.
 
 #### Objective
 
-Verify handling of changes affecting multiple documentation artifacts.
+Verify that when a user explicitly provides one or more target documentation paths, the Documentation Agent uses those documents as the knowledge context source.
+
+#### Test Scenario
+
+Submit a documentation request with one or more valid target documentation paths.
 
 #### Expected Behavior
 
-The Documentation Agent identifies all impacted documents.
+The Documentation Agent shall:
+
+* preserve the user-provided target documentation paths
+* use the specified documents as the requested knowledge context
+* generate a repository-grounded documentation proposal
+* display the target documents during review
 
 #### Pass Criteria
 
-All proposed updates are relevant and complete.
+The generated proposal is based on the specified target documentation paths and no unrelated documents are introduced as modification targets.
+
+---
+
+### 5.5 DA-FUN-005: Minimal Change Verification
+
+#### Verification Layers
+
+* Integration
+* UI Acceptance where applicable
+
+#### Objective
+
+Verify adherence to the minimum necessary change principle.
+
+#### Expected Behavior
+
+The generated difference:
+
+* contains required changes only
+* preserves unrelated sections
+* avoids unnecessary formatting changes
+
+#### Pass Criteria
+
+No unrelated modifications appear in the final Git difference.
 
 ---
 
@@ -278,31 +312,6 @@ The Documentation Agent shall:
 
 Relevant documentation is identified through discovery and the workflow
 completes without requiring manually supplied document paths.
-
----
-
-### 5.5 DA-FUN-005: Minimal Change Verification
-
-#### Verification Layers
-
-* Integration
-* UI Acceptance where applicable
-
-#### Objective
-
-Verify adherence to the minimum necessary change principle.
-
-#### Expected Behavior
-
-The generated difference:
-
-* contains required changes only
-* preserves unrelated sections
-* avoids unnecessary formatting changes
-
-#### Pass Criteria
-
-No unrelated modifications appear in the final Git difference.
 
 ---
 

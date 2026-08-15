@@ -333,6 +333,46 @@ def test_approved_update_completes_workflow(tmp_path: Path) -> None:
     assert result.error_message is None
 
 
+
+def test_revise_review_preserves_request_context(
+    tmp_path: Path,
+) -> None:
+    """A revise decision returns review state with request context."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text("# Original\n", encoding="utf-8")
+
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(_update_change(),)
+        ),
+        validation_results=(
+            _validation_result(ValidationStatus.PASSED),
+        ),
+    )[0]
+
+    state = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Update the documentation.",
+            target_paths=("docs/index.md",),
+            workflow_id="workflow-revise",
+        )
+    )
+
+    revised_state = workflow.submit_review(
+        state.workflow_id,
+        _review(state.proposals[0], ReviewDecision.REVISE),
+    )
+
+    assert revised_state.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+    assert revised_state.user_request == "Update the documentation."
+    assert revised_state.target_paths == ("docs/index.md",)
+    assert revised_state.reviews[0].decision is ReviewDecision.REVISE
+    assert revised_state.applied_changes == ()
+
+
 def test_anchor_text_is_propagated_to_workflow_proposal(
     tmp_path: Path,
 ) -> None:

@@ -143,9 +143,33 @@ class DocumentationAgentUIService:
                 workflow_id=workflow_id,
             )
 
+        if decision is ReviewDecision.REVISE:
+            request_form = DocumentationRequestForm(
+                user_request=str(
+                    self._read_value(
+                        review_result,
+                        "user_request",
+                        default="",
+                    )
+                ),
+                target_paths=tuple(
+                    str(path)
+                    for path in self._read_value(
+                        review_result,
+                        "target_paths",
+                        default=(),
+                    )
+                ),
+            )
+
         return self._map_workflow_result(
             workflow_result=review_result,
             request_form=request_form,
+            page_status_override=(
+                DocumentationAgentPageStatus.REVISION_REQUIRED
+                if decision is ReviewDecision.REVISE
+                else None
+            ),
         )
 
     def _build_request_form(
@@ -171,6 +195,7 @@ class DocumentationAgentUIService:
         self,
         workflow_result: object,
         request_form: DocumentationRequestForm,
+        page_status_override: DocumentationAgentPageStatus | None = None,
     ) -> DocumentationAgentPageView:
         """Convert a workflow result into a complete page view."""
 
@@ -212,11 +237,15 @@ class DocumentationAgentUIService:
             )
         )
 
-        page_status = self._determine_page_status(
-            workflow_result=workflow_result,
-            proposals=proposals,
-            warnings=warnings,
-            error_message=error_message,
+        page_status = (
+            page_status_override
+            if page_status_override is not None
+            else self._determine_page_status(
+                workflow_result=workflow_result,
+                proposals=proposals,
+                warnings=warnings,
+                error_message=error_message,
+            )
         )
 
         return DocumentationAgentPageView(
@@ -729,6 +758,9 @@ class DocumentationAgentUIService:
             ),
             DocumentationAgentPageStatus.REVIEW_REQUIRED: (
                 "Review the proposed documentation changes."
+            ),
+            DocumentationAgentPageStatus.REVISION_REQUIRED: (
+                "Revise the documentation request and submit it again."
             ),
             DocumentationAgentPageStatus.COMPLETED: (
                 "The documentation workflow completed successfully."

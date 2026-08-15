@@ -25,13 +25,15 @@ Project0 documentation is organized into the following categories.
 | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | [**Project Charter**](project/Project_Charter.md) | Defines the project vision, objectives, scope, deliverables, and success criteria. |
 
+| [**Project Directory Structure**](project/Project_Directory_Structure.md) | Defines the standard Project0 repository organization, directory layout, and purpose of each major project component. |
+
 | [**Development Environment**](project/Development_Environment.md) | Defines the standard Project0 development environment, installation, configuration, development workflow, and troubleshooting guidance. |
 
-| [**Testing Guide**](project/Testing_Guide.md) | Describes the Project0 testing strategy, test organization, execution procedures, naming conventions, and automated validation workflow for unit and integration testing. |
+| [**Development Standards**](project/Development_Standards.md) | Defines project-wide software development standards, coding practices, source organization, testing expectations, and implementation conventions. |
 
 | [**Documentation Standards**](project/Documentation_Standards.md) | Establishes project documentation conventions, organization, formatting, and maintenance standards. |
 
-| [**Project Directory Structure**](project/Project_Directory_Structure.md) | Defines the standard Project0 repository organization, directory layout, and purpose of each major project component. |
+| [**Testing Guide**](project/Testing_Guide.md) | Describes the Project0 testing strategy, test organization, execution procedures, naming conventions, and automated validation workflow for unit and integration testing. |
 
 | [**Implementation Roadmap**](project/Implementation_Roadmap.md) | Defines the planned implementation sequence, development phases, dependencies, deliverables, validation strategy, and success criteria. |
 

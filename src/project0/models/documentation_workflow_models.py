@@ -106,6 +106,8 @@ class DocumentationWorkflowState:
     workflow_id: str
     status: DocumentationWorkflowStatus
     started_at: datetime
+    user_request: str
+    target_paths: tuple[str, ...]
     reasoning_result: ReasoningResult | None
     proposals: tuple[DocumentationChangeProposal, ...]
     reviews: tuple[DocumentationReview, ...] = ()
