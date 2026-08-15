@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+import logging
 from pathlib import Path
 from typing import Sequence
 
@@ -24,6 +25,9 @@ from project0.models.knowledge_models import (
     KnowledgeRequest,
     KnowledgeResult,
 )
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class KnowledgeService:
@@ -65,8 +69,22 @@ class KnowledgeService:
             documents=self._index.list_documents(),
         )
 
+        LOGGER.debug(
+            "Knowledge selection: count=%d paths=%s",
+            len(selection.documents),
+            [
+                document.path.as_posix()
+                for document in selection.documents
+            ],
+        )
+
         context = self._formatter.format_documents(
             selection.documents
+        )
+
+        LOGGER.debug(
+            "Knowledge context size: characters=%d",
+            len(context),
         )
 
         warnings = (

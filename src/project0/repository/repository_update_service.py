@@ -13,7 +13,10 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from pathlib import Path
+import logging
 import tempfile
+
+logger = logging.getLogger(__name__)
 
 from project0.models.documentation_workflow_models import (
     AppliedDocumentationChange,
@@ -37,6 +40,12 @@ def apply_documentation_change(
         return proposed_content
 
     occurrences = original_content.count(anchor_text)
+
+    logger.debug(
+        "Anchor validation: anchor=%r occurrences=%s",
+        anchor_text,
+        occurrences,
+    )
 
     if occurrences == 0:
         raise ValueError(
