@@ -16,6 +16,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
+from project0.config.constants import KNOWLEDGE_MAXIMUM_DOCUMENTS
 
 
 @dataclass(frozen=True, slots=True)
@@ -74,7 +75,7 @@ class KnowledgeRequest:
     changed_paths: tuple[Path, ...] = ()
     required_tags: tuple[str, ...] = ()
     search_terms: tuple[str, ...] = ()
-    maximum_documents: int = 10
+    maximum_documents: int = KNOWLEDGE_MAXIMUM_DOCUMENTS
     include_baseline_documents: bool = True
     request_id: str = field(default_factory=lambda: str(uuid4()))
 

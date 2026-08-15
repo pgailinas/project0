@@ -11,6 +11,7 @@
 
 from datetime import datetime
 from pathlib import Path
+from project0.config.constants import KNOWLEDGE_MAXIMUM_DOCUMENTS
 
 from project0.models.knowledge_models import (
     DocumentHeading,
@@ -235,7 +236,7 @@ def test_knowledge_request_defaults() -> None:
     assert request.changed_paths == ()
     assert request.required_tags == ()
     assert request.search_terms == ()
-    assert request.maximum_documents == 10
+    assert request.maximum_documents == KNOWLEDGE_MAXIMUM_DOCUMENTS
     assert request.include_baseline_documents is True
     assert request.request_id
 
