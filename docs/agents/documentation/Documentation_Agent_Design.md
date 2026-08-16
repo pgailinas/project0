@@ -2,7 +2,7 @@
 
 **Version:** 0.6  
 **Owner:** Project0  
-**Last Updated:** 2026-08-13
+**Last Updated:** 2026-08-16
 
 ---
 
@@ -869,6 +869,25 @@ Implemented in Phase 4 and integrated into the Documentation Workflow in Phase 6
 * Context-size management
 
 ---
+
+### Revision Workflow Support
+
+The Documentation Workflow supports a revision path when a user requests changes to a generated proposal before approval.
+
+#### Responsibilities
+
+* Preserve the original documentation request context.
+* Preserve the original target documentation paths.
+* Return the user to an editable request state.
+* Accept appended or modified user instructions.
+* Resume normal reasoning and validation processing after resubmission.
+
+#### Design Notes
+
+* Revision does not apply the previous proposal.
+* Revision creates a new documentation reasoning cycle.
+* The original target documentation path remains the active scope unless future UI functionality explicitly allows modification.
+
 
 ### 4.17 Review Coordinator
 

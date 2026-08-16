@@ -2,7 +2,7 @@
 
 **Version:** 0.2  
 **Owner:** Project0  
-**Last Updated:** 2026-08-13
+**Last Updated:** 2026-08-16
 
 ---
 
@@ -41,3 +41,19 @@ underlying services.
 
 Agent-specific UI behavior and presentation details remain outside these
 interfaces and are implemented by the Documentation Agent UI components.
+
+---
+
+## Revision Workflow Interface Behavior
+
+Documentation Agent interfaces support revision of generated documentation requests through the workflow interaction contract.
+
+Revision behavior includes:
+
+* returning a user to an editable request state
+* preserving the original request content
+* preserving target documentation paths
+* accepting updated or appended user instructions
+* submitting the revised request through the existing documentation workflow
+
+The interface contract does not determine document selection strategy or UI presentation details. Those responsibilities remain with the workflow services and Documentation Agent UI components.

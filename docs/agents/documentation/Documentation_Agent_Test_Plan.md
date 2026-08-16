@@ -2,7 +2,7 @@
 
 **Version:** 0.5  
 **Owner:** Project0  
-**Last Updated:** 2026-08-15
+**Last Updated:** 2026-08-16
 
 ---
 
@@ -312,6 +312,39 @@ The Documentation Agent shall:
 
 Relevant documentation is identified through discovery and the workflow
 completes without requiring manually supplied document paths.
+
+---
+
+### 5.7 DA-FUN-008: Documentation Request Revision Workflow
+
+#### Verification Layers
+
+* Unit
+* UI Acceptance where applicable
+
+#### Objective
+
+Verify that a user can revise a generated documentation proposal by returning to an editable documentation request while preserving the original request context and target documentation paths.
+
+#### Test Scenario
+
+Submit a documentation request with an explicit target documentation path, generate a reviewable proposal, select Revise, update the request text, and resubmit.
+
+#### Expected Behavior
+
+The Documentation Agent shall:
+
+* return the user to an editable documentation request state
+* preserve the original documentation request
+* preserve the original target documentation paths
+* allow the user to modify or append request instructions
+* process the revised request through the normal documentation workflow
+* avoid applying the original proposal before revised approval
+
+#### Pass Criteria
+
+The revised request completes a new reasoning and validation cycle, produces a reviewable proposal, and preserves explicit target-document scoping.
+
 
 ---
 

@@ -2,7 +2,7 @@
 
 **Version:** 0.3  
 **Owner:** Project0  
-**Last Updated:** 2026-08-13
+**Last Updated:** 2026-08-16
 
 ---
 
@@ -125,6 +125,23 @@ The Documentation Agent is successful when it:
 - Leaves unrelated files unchanged.
 - Passes all required validation checks.
 - Produces a complete final Git diff for human review.
+
+---
+
+## 10.1 Revision Workflow
+
+The Documentation Agent shall support revision of generated documentation proposals before approval.
+
+The agent shall:
+
+- preserve the original user request
+- preserve optional target documentation paths
+- allow the user to update or append revision instructions
+- resubmit revised requests through the standard workflow
+- require approval before applying documentation changes
+
+The revision workflow improves human-in-the-loop control by allowing users to refine generated proposals without restarting the documentation request process.
+
 
 ---
 

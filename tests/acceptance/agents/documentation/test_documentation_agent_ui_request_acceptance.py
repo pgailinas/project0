@@ -164,3 +164,4 @@ def test_UI_DA_FUN_001_documentation_request_submission_starts_processing(
 #
 # UI-DA-SAF-003-A - Invalid Request Is Reported Safely
 # UI-DA-FUN-001-D - Visible Workflow Result Is Presented
+# UI-DA-FUN-008-A - Documentation Request Revision Workflow
