@@ -990,6 +990,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#101-revision-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.1 Revision Workflow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#11-future-enhancements" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1305,6 +1316,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#101-revision-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.1 Revision Workflow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#11-future-enhancements" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1343,7 +1365,7 @@
 <h1 id="documentation-agent-functional-specification">Documentation Agent Functional Specification</h1>
 <p><strong>Version:</strong> 0.3<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-13</p>
+<strong>Last Updated:</strong> 2026-08-16</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="mission">Mission</h3>
@@ -1449,6 +1471,18 @@ files.</p>
 <li>Passes all required validation checks.</li>
 <li>Produces a complete final Git diff for human review.</li>
 </ul>
+<hr />
+<h2 id="101-revision-workflow">10.1 Revision Workflow</h2>
+<p>The Documentation Agent shall support revision of generated documentation proposals before approval.</p>
+<p>The agent shall:</p>
+<ul>
+<li>preserve the original user request</li>
+<li>preserve optional target documentation paths</li>
+<li>allow the user to update or append revision instructions</li>
+<li>resubmit revised requests through the standard workflow</li>
+<li>require approval before applying documentation changes</li>
+</ul>
+<p>The revision workflow improves human-in-the-loop control by allowing users to refine generated proposals without restarting the documentation request process.</p>
 <hr />
 <h2 id="11-future-enhancements">11. Future Enhancements</h2>
 <p>Not included in Version 1:</p>

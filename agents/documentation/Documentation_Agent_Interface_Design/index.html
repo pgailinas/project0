@@ -1018,6 +1018,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#revision-workflow-interface-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Revision Workflow Interface Behavior
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1183,6 +1194,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#revision-workflow-interface-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Revision Workflow Interface Behavior
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1211,7 +1233,7 @@
 <h1 id="documentation-agent-interface-design">Documentation Agent Interface Design</h1>
 <p><strong>Version:</strong> 0.2<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-13</p>
+<strong>Last Updated:</strong> 2026-08-16</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="phase-7-alignment">Phase 7 Alignment</h3>
@@ -1241,6 +1263,18 @@ independent of the specific document selection strategy used by the
 underlying services.</p>
 <p>Agent-specific UI behavior and presentation details remain outside these
 interfaces and are implemented by the Documentation Agent UI components.</p>
+<hr />
+<h2 id="revision-workflow-interface-behavior">Revision Workflow Interface Behavior</h2>
+<p>Documentation Agent interfaces support revision of generated documentation requests through the workflow interaction contract.</p>
+<p>Revision behavior includes:</p>
+<ul>
+<li>returning a user to an editable request state</li>
+<li>preserving the original request content</li>
+<li>preserving target documentation paths</li>
+<li>accepting updated or appended user instructions</li>
+<li>submitting the revised request through the existing documentation workflow</li>
+</ul>
+<p>The interface contract does not determine document selection strategy or UI presentation details. Those responsibilities remain with the workflow services and Documentation Agent UI components.</p>
 
 
 

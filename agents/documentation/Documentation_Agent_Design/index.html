@@ -2750,6 +2750,45 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#revision-workflow-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Revision Workflow Support
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Revision Workflow Support">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#417-review-coordinator" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2773,7 +2812,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#responsibilities_14" class="md-nav__link">
+  <a href="#responsibilities_15" class="md-nav__link">
     <span class="md-ellipsis">
       
         Responsibilities
@@ -2851,7 +2890,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#responsibilities_15" class="md-nav__link">
+  <a href="#responsibilities_16" class="md-nav__link">
     <span class="md-ellipsis">
       
         Responsibilities
@@ -2890,7 +2929,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#responsibilities_16" class="md-nav__link">
+  <a href="#responsibilities_17" class="md-nav__link">
     <span class="md-ellipsis">
       
         Responsibilities
@@ -2929,7 +2968,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#responsibilities_17" class="md-nav__link">
+  <a href="#responsibilities_18" class="md-nav__link">
     <span class="md-ellipsis">
       
         Responsibilities
@@ -2940,7 +2979,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#design-notes_13" class="md-nav__link">
+  <a href="#design-notes_14" class="md-nav__link">
     <span class="md-ellipsis">
       
         Design Notes
@@ -4946,6 +4985,45 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#revision-workflow-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Revision Workflow Support
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Revision Workflow Support">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#417-review-coordinator" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4969,7 +5047,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#responsibilities_14" class="md-nav__link">
+  <a href="#responsibilities_15" class="md-nav__link">
     <span class="md-ellipsis">
       
         Responsibilities
@@ -5047,7 +5125,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#responsibilities_15" class="md-nav__link">
+  <a href="#responsibilities_16" class="md-nav__link">
     <span class="md-ellipsis">
       
         Responsibilities
@@ -5086,7 +5164,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#responsibilities_16" class="md-nav__link">
+  <a href="#responsibilities_17" class="md-nav__link">
     <span class="md-ellipsis">
       
         Responsibilities
@@ -5125,7 +5203,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#responsibilities_17" class="md-nav__link">
+  <a href="#responsibilities_18" class="md-nav__link">
     <span class="md-ellipsis">
       
         Responsibilities
@@ -5136,7 +5214,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#design-notes_13" class="md-nav__link">
+  <a href="#design-notes_14" class="md-nav__link">
     <span class="md-ellipsis">
       
         Design Notes
@@ -5217,7 +5295,7 @@
 <h1 id="documentation-agent-component-design">Documentation Agent Component Design</h1>
 <p><strong>Version:</strong> 0.6<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-13</p>
+<strong>Last Updated:</strong> 2026-08-16</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="objective">Objective</h3>
@@ -5988,10 +6066,26 @@ and AI agents.</p>
 <li>Context-size management</li>
 </ul>
 <hr />
+<h3 id="revision-workflow-support">Revision Workflow Support</h3>
+<p>The Documentation Workflow supports a revision path when a user requests changes to a generated proposal before approval.</p>
+<h4 id="responsibilities_14">Responsibilities</h4>
+<ul>
+<li>Preserve the original documentation request context.</li>
+<li>Preserve the original target documentation paths.</li>
+<li>Return the user to an editable request state.</li>
+<li>Accept appended or modified user instructions.</li>
+<li>Resume normal reasoning and validation processing after resubmission.</li>
+</ul>
+<h4 id="design-notes_13">Design Notes</h4>
+<ul>
+<li>Revision does not apply the previous proposal.</li>
+<li>Revision creates a new documentation reasoning cycle.</li>
+<li>The original target documentation path remains the active scope unless future UI functionality explicitly allows modification.</li>
+</ul>
 <h3 id="417-review-coordinator">4.17 Review Coordinator</h3>
 <h4 id="purpose_16">Purpose</h4>
 <p>Coordinate user review of individual documentation changes.</p>
-<h4 id="responsibilities_14">Responsibilities</h4>
+<h4 id="responsibilities_15">Responsibilities</h4>
 <ul>
 <li>Process Approve, Revise, Reject, and Skip decisions.</li>
 <li>Produce immutable review results.</li>
@@ -6009,7 +6103,7 @@ and AI agents.</p>
 <h3 id="418-repository-update-service">4.18 Repository Update Service</h3>
 <h4 id="purpose_17">Purpose</h4>
 <p>Apply approved documentation changes.</p>
-<h4 id="responsibilities_15">Responsibilities</h4>
+<h4 id="responsibilities_16">Responsibilities</h4>
 <ul>
 <li>Apply approved Markdown updates.</li>
 <li>Preserve repository integrity.</li>
@@ -6019,7 +6113,7 @@ and AI agents.</p>
 <h3 id="419-git-diff-service">4.19 Git Diff Service</h3>
 <h4 id="purpose_18">Purpose</h4>
 <p>Generate Git diffs for approved documentation updates.</p>
-<h4 id="responsibilities_16">Responsibilities</h4>
+<h4 id="responsibilities_17">Responsibilities</h4>
 <ul>
 <li>Generate repository diffs.</li>
 <li>Restrict output to modified files.</li>
@@ -6029,7 +6123,7 @@ and AI agents.</p>
 <h3 id="420-documentation-workflow">4.20 Documentation Workflow</h3>
 <h4 id="purpose_19">Purpose</h4>
 <p>Coordinate the complete Documentation Agent execution pipeline.</p>
-<h4 id="responsibilities_17">Responsibilities</h4>
+<h4 id="responsibilities_18">Responsibilities</h4>
 <ul>
 <li>Coordinate Knowledge, Reasoning, Validation, Review, Repository</li>
 <li>Update, and Git Diff services.</li>
@@ -6038,7 +6132,7 @@ and AI agents.</p>
 <li>Support human-in-the-loop review before applying documentation
   changes.</li>
 </ul>
-<h4 id="design-notes_13">Design Notes</h4>
+<h4 id="design-notes_14">Design Notes</h4>
 <ul>
 <li>Documentation Workflow execution is initiated through the Platform
   Dispatcher.</li>
