@@ -16,6 +16,7 @@ from datetime import datetime
 from enum import StrEnum
 from uuid import uuid4
 
+from project0.models.artifact_models import ArtifactLocation
 from project0.models.reasoning_models import ReasoningResult
 from project0.models.validation_models import ValidationResult
 
@@ -41,7 +42,7 @@ class ReviewDecision(StrEnum):
 
 
 class DocumentationAnchorMode(StrEnum):
-    """How documentation anchor text is interpreted during updates."""
+    """Legacy documentation anchor interpretation modes."""
 
     REPLACE = "replace"
     INSERT_AFTER = "insert_after"
@@ -64,6 +65,7 @@ class DocumentationChangeProposal:
     original_content: str
     proposed_content: str
     rationale: str
+    artifact_location: ArtifactLocation | None = None
     anchor_text: str | None = None
     anchor_mode: DocumentationAnchorMode = DocumentationAnchorMode.REPLACE
     proposal_id: str = field(default_factory=lambda: str(uuid4()))
@@ -138,6 +140,8 @@ class DocumentationWorkflowResult:
     status: DocumentationWorkflowStatus
     started_at: datetime
     completed_at: datetime
+    user_request: str
+    target_paths: tuple[str, ...]
     reasoning_result: ReasoningResult | None
     proposals: tuple[DocumentationChangeProposal, ...]
     reviews: tuple[DocumentationReview, ...]

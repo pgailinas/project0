@@ -69,6 +69,14 @@ class FakeWorkflow:
 
         return self.review_result
 
+    def get_workflow_state(
+        self,
+        workflow_id: str,
+    ) -> object:
+        """Return preserved workflow request context for revise tests."""
+
+        return self.review_result
+
 
 def test_create_ready_page() -> None:
     """The initial page should be ready with an empty request form."""

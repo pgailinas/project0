@@ -16,6 +16,9 @@ from pathlib import Path
 from uuid import uuid4
 
 
+from project0.artifacts.artifact_location_service import (
+    ArtifactLocationService,
+)
 from project0.common.startup_validation import validate_startup
 from project0.config.settings import SETTINGS, ProjectSettings
 from project0.interfaces.context_builder_interfaces import (
@@ -146,6 +149,32 @@ class PlatformDispatcher:
             review,
         )
 
+    def get_workflow_state(
+        self,
+        workflow_id: str,
+    ) -> DocumentationWorkflowState:
+        """Retrieve the current documentation workflow state."""
+
+        if self.documentation_workflow is None:
+            raise RuntimeError(
+                "The documentation workflow is not configured."
+            )
+
+        if not workflow_id.strip():
+            raise ValueError("Workflow identifier cannot be empty.")
+
+        return self.documentation_workflow.get_workflow_state(
+            workflow_id,
+        )
+
+    def get_documentation_workflow_state(
+        self,
+        workflow_id: str,
+    ) -> DocumentationWorkflowState:
+        """Backward-compatible alias for documentation workflow state lookup."""
+
+        return self.get_workflow_state(workflow_id)
+
 
 def create_platform_dispatcher(
     reasoning_provider: ReasoningProviderProtocol | None = None,
@@ -241,6 +270,8 @@ def _create_documentation_workflow(
         provider=reasoning_provider,
     )
 
+    artifact_location_service = ArtifactLocationService()
+
     validation_service = ValidationService(
         validators=(
             MarkdownValidator(repository_root),
@@ -253,6 +284,7 @@ def _create_documentation_workflow(
         repository_root=repository_root,
         context_provider=context_provider,
         reasoning_service=reasoning_service,
+        artifact_location_service=artifact_location_service,
         validation_service=validation_service,
         review_coordinator=ReviewCoordinator(
             review_decision_provider

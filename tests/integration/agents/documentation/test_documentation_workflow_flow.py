@@ -14,6 +14,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 import subprocess
 
+from project0.artifacts.artifact_location_service import (
+    ArtifactLocationService,
+)
 from project0.models.documentation_workflow_models import (
     ChangeApplicationStatus,
     DocumentationReview,
@@ -220,6 +223,8 @@ def _create_workflow(
 ) -> DocumentationWorkflow:
     """Create the real documentation workflow integration pipeline."""
 
+    artifact_location_service = ArtifactLocationService()
+
     validation_service = ValidationService(
         validators=(
             validator or FileContentValidator(repository_root),
@@ -232,6 +237,7 @@ def _create_workflow(
             f"Workflow {request.workflow_id} repository context."
         ),
         reasoning_service=reasoning_service,
+        artifact_location_service=artifact_location_service,
         validation_service=validation_service,
         review_coordinator=ReviewCoordinator(
             lambda proposal: (

@@ -18,6 +18,7 @@ import tempfile
 
 logger = logging.getLogger(__name__)
 
+from project0.models.artifact_models import ArtifactLocation
 from project0.models.documentation_workflow_models import (
     AppliedDocumentationChange,
     ChangeApplicationStatus,
@@ -28,24 +29,64 @@ from project0.models.documentation_workflow_models import (
 )
 
 
+def apply_artifact_location_change(
+    original_content: str,
+    proposed_content: str,
+    artifact_location: ArtifactLocation,
+) -> str:
+    """Apply a change using a precise artifact location."""
+
+    if (
+        artifact_location.start_line is None
+        or artifact_location.end_line is None
+    ):
+        raise ValueError(
+            "Artifact location does not define a valid line range."
+        )
+
+    lines = original_content.splitlines()
+
+    start = artifact_location.start_line - 1
+    end = artifact_location.end_line
+
+    if start < 0 or end > len(lines) or start >= end:
+        raise ValueError(
+            "Artifact location line range is invalid."
+        )
+
+    replacement_lines = proposed_content.splitlines()
+
+    updated_lines = (
+        lines[:start]
+        + replacement_lines
+        + lines[end:]
+    )
+
+    return "\n".join(updated_lines) + (
+        "\n" if original_content.endswith("\n") else ""
+    )
+
+
 def apply_documentation_change(
     original_content: str,
     proposed_content: str,
     anchor_text: str | None,
     anchor_mode: DocumentationAnchorMode = DocumentationAnchorMode.REPLACE,
+    artifact_location: ArtifactLocation | None = None,
 ) -> str:
     """Create resulting documentation content from a proposed edit."""
+
+    if artifact_location is not None:
+        return apply_artifact_location_change(
+            original_content,
+            proposed_content,
+            artifact_location,
+        )
 
     if anchor_text is None:
         return proposed_content
 
     occurrences = original_content.count(anchor_text)
-
-    logger.debug(
-        "Anchor validation: anchor=%r occurrences=%s",
-        anchor_text,
-        occurrences,
-    )
 
     if occurrences == 0:
         raise ValueError(
@@ -157,6 +198,7 @@ class RepositoryUpdateService:
             updated_content = apply_documentation_change(
                 original_content=current_content,
                 proposed_content=proposal.proposed_content,
+                artifact_location=proposal.artifact_location,
                 anchor_text=proposal.anchor_text,
                 anchor_mode=proposal.anchor_mode,
             )

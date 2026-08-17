@@ -11,6 +11,8 @@
 
 from __future__ import annotations
 
+import logging
+
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from difflib import ndiff
@@ -39,9 +41,9 @@ from project0.repository.repository_update_service import (
     apply_documentation_change,
 )
 
-
 DIFFERENCE_CONTEXT_LINES = 3
 
+logger = logging.getLogger(__name__)
 
 class DocumentationWorkflowPort(Protocol):
     """Minimal documentation workflow interface required by the UI."""
@@ -60,6 +62,12 @@ class DocumentationWorkflowPort(Protocol):
         review: DocumentationReview,
     ) -> object:
         """Submit one user review and continue the workflow."""
+
+    def get_workflow_state(
+        self,
+        workflow_id: str,
+    ) -> object:
+        """Retrieve the current documentation workflow state."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -123,6 +131,9 @@ class DocumentationAgentUIService:
     ) -> DocumentationAgentPageView:
         """Submit one review decision and return updated page state."""
 
+        if not isinstance(decision, ReviewDecision):
+            decision = ReviewDecision(str(decision))
+
         request_form = DocumentationRequestForm()
 
         try:
@@ -144,10 +155,16 @@ class DocumentationAgentUIService:
             )
 
         if decision is ReviewDecision.REVISE:
+            workflow_state = (
+                self.workflow.get_workflow_state(
+                    workflow_id
+                )
+            )
+
             request_form = DocumentationRequestForm(
                 user_request=str(
                     self._read_value(
-                        review_result,
+                        workflow_state,
                         "user_request",
                         default="",
                     )
@@ -155,7 +172,7 @@ class DocumentationAgentUIService:
                 target_paths=tuple(
                     str(path)
                     for path in self._read_value(
-                        review_result,
+                        workflow_state,
                         "target_paths",
                         default=(),
                     )

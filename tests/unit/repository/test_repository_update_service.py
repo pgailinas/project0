@@ -14,6 +14,10 @@ from pathlib import Path
 
 import pytest
 
+from project0.models.artifact_models import (
+    ArtifactLocation,
+    ArtifactLocationType,
+)
 from project0.models.documentation_workflow_models import (
     ChangeApplicationStatus,
     DocumentationAnchorMode,
@@ -33,6 +37,7 @@ def _proposal(
     original_content: str = "# Original\n",
     proposed_content: str = "# Updated\n",
     anchor_text: str | None = None,
+    artifact_location: ArtifactLocation | None = None,
     proposal_id: str = "proposal-001",
 ) -> DocumentationChangeProposal:
     """Create a standard documentation change proposal."""
@@ -42,6 +47,7 @@ def _proposal(
         original_content=original_content,
         proposed_content=proposed_content,
         anchor_text=anchor_text,
+        artifact_location=artifact_location,
         rationale="Update the documentation.",
         proposal_id=proposal_id,
     )
@@ -530,3 +536,71 @@ def test_skipped_result_has_no_applied_timestamp(tmp_path: Path) -> None:
 
     assert result.status is ChangeApplicationStatus.SKIPPED
     assert result.applied_at is None
+
+
+def test_artifact_location_change_updates_target_lines(
+    tmp_path: Path,
+) -> None:
+    """An artifact location updates the precise target range."""
+
+    file_path = tmp_path / "docs/index.md"
+    file_path.parent.mkdir()
+
+    original = (
+        "# Documentation\n\n"
+        "## Phase 8\n\n"
+        "Old content.\n\n"
+        "## Phase 9\n\n"
+        "Unchanged content.\n"
+    )
+
+    file_path.write_text(original, encoding="utf-8")
+
+    service = RepositoryUpdateService(tmp_path)
+
+    result = service.apply(
+        proposal=_proposal(
+            original_content=original,
+            proposed_content="New content.\n",
+            artifact_location=ArtifactLocation(
+                location_id="phase8-content",
+                repository_path="docs/index.md",
+                location_type=ArtifactLocationType.LINE_RANGE,
+                locator="Phase 8 content",
+                start_line=5,
+                end_line=5,
+            ),
+        ),
+        review=_review(),
+    )
+
+    assert result.status is ChangeApplicationStatus.APPLIED
+    assert "New content." in file_path.read_text(encoding="utf-8")
+
+
+def test_artifact_location_invalid_range_fails(
+    tmp_path: Path,
+) -> None:
+    """Invalid artifact ranges fail safely."""
+
+    file_path = tmp_path / "docs/index.md"
+    file_path.parent.mkdir()
+    file_path.write_text("# Documentation\n", encoding="utf-8")
+
+    service = RepositoryUpdateService(tmp_path)
+
+    result = service.apply(
+        proposal=_proposal(
+            artifact_location=ArtifactLocation(
+                location_id="invalid",
+                repository_path="docs/index.md",
+                location_type=ArtifactLocationType.LINE_RANGE,
+                locator="invalid",
+                start_line=100,
+                end_line=110,
+            ),
+        ),
+        review=_review(),
+    )
+
+    assert result.status is ChangeApplicationStatus.FAILED

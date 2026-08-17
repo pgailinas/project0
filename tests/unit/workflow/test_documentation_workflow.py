@@ -12,6 +12,10 @@
 from datetime import UTC, datetime
 from pathlib import Path
 
+from project0.interfaces.artifact_interfaces import (
+    ArtifactLocationServiceInterface,
+)
+from project0.models.artifact_models import ArtifactLocation
 from project0.models.documentation_workflow_models import (
     AppliedDocumentationChange,
     ChangeApplicationStatus,
@@ -48,6 +52,25 @@ class StubReasoningService:
     def reason(self, request: ReasoningRequest) -> ReasoningResult:
         self.requests.append(request)
         return self._result
+
+
+class StubArtifactLocationService:
+    """Return configured artifact locations."""
+
+    def __init__(
+        self,
+        locations: tuple[ArtifactLocation, ...] = (),
+    ) -> None:
+        self._locations = locations
+        self.requests: list[tuple[Path, str]] = []
+
+    def discover_locations(
+        self,
+        artifact_path: Path,
+        request: str,
+    ) -> tuple[ArtifactLocation, ...]:
+        self.requests.append((artifact_path, request))
+        return self._locations
 
 
 class StubValidationService:
@@ -249,6 +272,7 @@ def _create_workflow(
     """Create a workflow and its test doubles."""
 
     reasoning_service = StubReasoningService(reasoning_result)
+    artifact_location_service = StubArtifactLocationService()
     validation_service = StubValidationService(validation_results)
     review_coordinator = StubReviewCoordinator(decisions)
     update_service = StubRepositoryUpdateService(status_by_path)
@@ -266,6 +290,7 @@ def _create_workflow(
         repository_root=tmp_path,
         context_provider=context_provider,
         reasoning_service=reasoning_service,
+        artifact_location_service=artifact_location_service,
         validation_service=validation_service,
         review_coordinator=review_coordinator,
         repository_update_service=update_service,
@@ -1027,3 +1052,35 @@ def test_workflow_timestamps_are_timezone_aware(
     assert result.started_at.tzinfo is UTC
     assert result.completed_at.tzinfo is UTC
     assert result.completed_at >= result.started_at
+
+
+def test_artifact_location_service_is_used_for_proposals(
+    tmp_path: Path,
+) -> None:
+    """Artifact location discovery is requested during proposal creation."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text("# Original\n", encoding="utf-8")
+
+    components = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(_update_change(),)
+        ),
+        validation_results=(
+            _validation_result(ValidationStatus.PASSED),
+        ),
+    )
+
+    workflow = components[0]
+    artifact_location_service = workflow._artifact_location_service
+
+    workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Update documentation.",
+            workflow_id="workflow-artifact-location",
+        )
+    )
+
+    assert len(artifact_location_service.requests) == 1

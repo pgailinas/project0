@@ -14,8 +14,12 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from datetime import UTC, datetime
+import logging
 from pathlib import Path
 
+from project0.interfaces.artifact_interfaces import (
+    ArtifactLocationServiceInterface,
+)
 from project0.interfaces.documentation_workflow_interfaces import (
     GitDiffInterface,
     RepositoryUpdateInterface,
@@ -54,6 +58,9 @@ from project0.models.validation_models import (
 )
 
 
+logger = logging.getLogger(__name__)
+
+
 ContextProvider = Callable[[DocumentationWorkflowRequest], str]
 
 
@@ -65,6 +72,7 @@ class DocumentationWorkflow:
         repository_root: Path,
         context_provider: ContextProvider,
         reasoning_service: ReasoningServiceProtocol,
+        artifact_location_service: ArtifactLocationServiceInterface,
         validation_service: ValidationInterface,
         review_coordinator: ReviewCoordinatorInterface,
         repository_update_service: RepositoryUpdateInterface,
@@ -73,6 +81,7 @@ class DocumentationWorkflow:
         self._repository_root = repository_root.resolve()
         self._context_provider = context_provider
         self._reasoning_service = reasoning_service
+        self._artifact_location_service = artifact_location_service
         self._validation_service = validation_service
         self._review_coordinator = review_coordinator
         self._repository_update_service = repository_update_service
@@ -82,7 +91,7 @@ class DocumentationWorkflow:
     def execute(
         self,
         request: DocumentationWorkflowRequest,
-    ) -> DocumentationWorkflowState | DocumentationWorkflowResult:
+    ) -> DocumentationWorkflowResult:
         """Execute a documentation workflow until review or completion."""
 
         started_at = datetime.now(UTC)
@@ -143,17 +152,29 @@ class DocumentationWorkflow:
             )
 
             if preliminary_validation.status is ValidationStatus.FAILED:
-                return self._failed_result(
-                    request=request,
+                state = DocumentationWorkflowState(
+                    workflow_id=request.workflow_id,
+                    status=DocumentationWorkflowStatus.REVIEW_REQUIRED,
                     started_at=started_at,
+                    user_request=request.user_request,
+                    target_paths=request.target_paths,
                     reasoning_result=reasoning_result,
                     proposals=proposals,
                     preliminary_validation=preliminary_validation,
+                    warnings=tuple(
+                        [
+                            *warnings,
+                            "Preliminary documentation validation failed.",
+                        ]
+                    ),
                     error_message=(
                         "Preliminary documentation validation failed."
                     ),
-                    warnings=tuple(warnings),
                 )
+
+                self._workflow_states[request.workflow_id] = state
+
+                return self._create_review_required_result(state)
 
             if (
                 preliminary_validation.status
@@ -164,16 +185,21 @@ class DocumentationWorkflow:
                 )
 
             if not proposals:
-                return self._complete_workflow(
+                state = DocumentationWorkflowState(
                     workflow_id=request.workflow_id,
+                    status=DocumentationWorkflowStatus.REVIEW_REQUIRED,
                     started_at=started_at,
+                    user_request=request.user_request,
+                    target_paths=request.target_paths,
                     reasoning_result=reasoning_result,
                     proposals=(),
-                    reviews=(),
-                    applied_changes=(),
                     preliminary_validation=preliminary_validation,
-                    warnings=warnings,
+                    warnings=tuple(warnings),
                 )
+
+                self._workflow_states[request.workflow_id] = state
+
+                return self._create_review_required_result(state)
 
             state = DocumentationWorkflowState(
                 workflow_id=request.workflow_id,
@@ -187,7 +213,8 @@ class DocumentationWorkflow:
                 warnings=tuple(warnings),
             )
             self._workflow_states[request.workflow_id] = state
-            return state
+
+            return self._create_review_required_result(state)
 
         except (OSError, RuntimeError, TypeError, ValueError) as error:
             return self._failed_result(
@@ -199,6 +226,69 @@ class DocumentationWorkflow:
                 error_message=str(error),
                 warnings=tuple(warnings),
             )
+
+
+    def _create_review_required_result(
+        self,
+        state: DocumentationWorkflowState,
+    ) -> DocumentationWorkflowResult:
+        """Convert internal review state into the public workflow result."""
+
+        return DocumentationWorkflowResult(
+            workflow_id=state.workflow_id,
+            status=self._determine_intermediate_status(state),
+            started_at=state.started_at,
+            completed_at=datetime.now(UTC),
+            user_request=state.user_request,
+            target_paths=state.target_paths,
+            reasoning_result=state.reasoning_result,
+            proposals=state.proposals,
+            reviews=state.reviews,
+            applied_changes=state.applied_changes,
+            preliminary_validation=state.preliminary_validation,
+            final_validation=None,
+            git_diff="",
+            summary=self._build_summary(
+                proposals=state.proposals,
+                reviews=state.reviews,
+                applied_changes=state.applied_changes,
+            ),
+            warnings=state.warnings,
+            error_message=state.error_message,
+        )
+
+    def _determine_intermediate_status(
+        self,
+        state: DocumentationWorkflowState,
+    ) -> DocumentationWorkflowStatus:
+        """Determine public result status while awaiting review."""
+
+        if (
+            state.preliminary_validation is not None
+            and state.preliminary_validation.status
+            is ValidationStatus.FAILED
+        ):
+            return DocumentationWorkflowStatus.FAILED
+
+        if (
+            state.preliminary_validation is not None
+            and state.preliminary_validation.status
+            is ValidationStatus.PASSED_WITH_WARNINGS
+        ):
+            return DocumentationWorkflowStatus.REVIEW_REQUIRED
+
+        if state.warnings:
+            return DocumentationWorkflowStatus.COMPLETED_WITH_WARNINGS
+
+        return DocumentationWorkflowStatus.REVIEW_REQUIRED
+
+    def get_workflow_state(
+        self,
+        workflow_id: str,
+    ) -> DocumentationWorkflowState | None:
+        """Return the current workflow state if it exists."""
+
+        return self._workflow_states.get(workflow_id)
 
     def submit_review(
         self,
@@ -357,6 +447,12 @@ class DocumentationWorkflow:
             status=status,
             started_at=started_at,
             completed_at=datetime.now(UTC),
+            user_request=self._workflow_states.get(
+                workflow_id
+            ).user_request if self._workflow_states.get(workflow_id) else "",
+            target_paths=self._workflow_states.get(
+                workflow_id
+            ).target_paths if self._workflow_states.get(workflow_id) else (),
             reasoning_result=reasoning_result,
             proposals=proposals,
             reviews=reviews,
@@ -426,13 +522,33 @@ class DocumentationWorkflow:
 
             original_content = file_path.read_text(encoding="utf-8")
 
+            artifact_locations = (
+                self._artifact_location_service.discover_locations(
+                    file_path,
+                    proposed_change.rationale,
+                )
+            )
+
+            artifact_location = (
+                artifact_locations[0]
+                if artifact_locations
+                else None
+            )
+
+            if len(artifact_locations) > 1:
+                warnings.append(
+                    "Multiple artifact locations were discovered; "
+                    "the first location was selected."
+                )
+
             proposal = DocumentationChangeProposal(
                 repository_path=repository_path,
                 original_content=original_content,
                 proposed_content=(
-                proposed_change.proposed_content
+                    proposed_change.proposed_content
                 ),
                 rationale=proposed_change.rationale,
+                artifact_location=artifact_location,
                 anchor_text=proposed_change.anchor_text,
                 anchor_mode=(
                     DocumentationAnchorMode.INSERT_AFTER
@@ -576,6 +692,8 @@ class DocumentationWorkflow:
             status=DocumentationWorkflowStatus.FAILED,
             started_at=started_at,
             completed_at=datetime.now(UTC),
+            user_request=request.user_request,
+            target_paths=request.target_paths,
             reasoning_result=reasoning_result,
             proposals=proposals,
             reviews=reviews,

@@ -70,6 +70,8 @@ def _documentation_workflow_result(
         status=DocumentationWorkflowStatus.COMPLETED,
         started_at=STARTED_AT,
         completed_at=COMPLETED_AT,
+        user_request="Update the documentation.",
+        target_paths=("docs/index.md",),
         reasoning_result=None,
         proposals=(),
         reviews=(),

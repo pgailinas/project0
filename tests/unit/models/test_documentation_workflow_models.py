@@ -364,6 +364,8 @@ def test_documentation_workflow_result_preserves_values() -> None:
         status=DocumentationWorkflowStatus.COMPLETED,
         started_at=started_at,
         completed_at=completed_at,
+        user_request="Update the documentation.",
+        target_paths=("docs/index.md",),
         reasoning_result=None,
         proposals=(proposal,),
         reviews=(review,),
@@ -378,6 +380,8 @@ def test_documentation_workflow_result_preserves_values() -> None:
     assert result.status is DocumentationWorkflowStatus.COMPLETED
     assert result.started_at == started_at
     assert result.completed_at == completed_at
+    assert result.user_request == "Update the documentation."
+    assert result.target_paths == ("docs/index.md",)
     assert result.reasoning_result is None
     assert result.proposals == (proposal,)
     assert result.reviews == (review,)
@@ -409,6 +413,8 @@ def test_documentation_workflow_result_preserves_warnings_and_error() -> None:
         status=DocumentationWorkflowStatus.FAILED,
         started_at=timestamp,
         completed_at=timestamp,
+        user_request="Update documentation.",
+        target_paths=(),
         reasoning_result=None,
         proposals=(),
         reviews=(),

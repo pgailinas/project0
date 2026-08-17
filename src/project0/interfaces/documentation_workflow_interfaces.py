@@ -39,6 +39,12 @@ class DocumentationWorkflowInterface(Protocol):
     ) -> DocumentationWorkflowState | DocumentationWorkflowResult:
         """Submit a user review and continue the workflow."""
 
+    def get_workflow_state(
+        self,
+        workflow_id: str,
+    ) -> DocumentationWorkflowState:
+        """Retrieve the current workflow state."""
+
 
 class ReviewCoordinatorInterface(Protocol):
     """Public contract for coordinating proposal review decisions."""
