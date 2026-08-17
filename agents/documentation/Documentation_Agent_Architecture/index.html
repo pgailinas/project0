@@ -1805,9 +1805,9 @@
 
 
 <h1 id="documentation-agent-architecture">Documentation Agent Architecture</h1>
-<p><strong>Version:</strong> 0.5<br />
+<p><strong>Version:</strong> 0.6<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-09</p>
+<strong>Last Updated:</strong> 2026-08-17</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="objective">Objective</h3>
@@ -1839,8 +1839,8 @@ remaining architecturally separate from the Documentation Agent services.
 The Dashboard Framework hosts the Documentation Agent user interface
 within the Dashboard Work Area and integrates deterministic repository
 knowledge, AI reasoning, validation, user review, approved repository
-updates, and Git diff generation through the Platform Dispatcher.</p>
-<p>The completed Phase 8 implementation establishes a human-in-the-loop
+updates, artifact-based modification support, and Git diff generation through the Platform Dispatcher.</p>
+<p>The completed Phase 8 and Phase 9 implementation establishes a human-in-the-loop
 Documentation Agent workflow. The workflow begins with a documentation
 request, generates AI-assisted documentation proposals, performs
 preliminary validation, presents individual proposals for review,
@@ -1913,6 +1913,7 @@ repository update behavior.</p>
 <li>Return structured workflow execution results.</li>
 <li>Dispatch Documentation Workflows.</li>
 <li>Assemble Documentation Workflow dependencies.</li>
+<li>Provide workflow state access through platform interfaces.</li>
 </ul>
 <h3 id="workflow-engine">Workflow Engine</h3>
 <p>Coordinates synchronous workflow task execution.</p>
@@ -2110,7 +2111,7 @@ repository update behavior.</p>
 <p>Applies approved documentation changes.</p>
 <p>Responsibilities:</p>
 <ul>
-<li>Apply approved Markdown updates.</li>
+<li>Apply approved Markdown updates using validated artifact locations.</li>
 <li>Preserve repository integrity.</li>
 <li>Report update results.</li>
 <li>Produce immutable application results.</li>
@@ -2130,8 +2131,8 @@ repository update behavior.</p>
 <p>Coordinates the complete Documentation Agent execution pipeline.</p>
 <p>Responsibilities:</p>
 <ul>
-<li>Coordinate Knowledge, Reasoning, Validation, Review, Repository Update, and Git Diff services.</li>
-<li>Preserve workflow state.</li>
+<li>Coordinate Knowledge, Reasoning, Validation, Review, Repository Update, Artifact Location, and Git Diff services.</li>
+<li>Preserve internal workflow state.</li>
 <li>Produce immutable Documentation Workflow Results.</li>
 </ul>
 <hr />
@@ -2178,6 +2179,7 @@ repository update behavior.</p>
 <li>Semantic repository services</li>
 <li>Additional AI providers</li>
 <li>Additional validation services</li>
+<li>Artifact-based documentation modification services</li>
 <li>Asynchronous workflow execution</li>
 </ul>
 

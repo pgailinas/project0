@@ -6107,9 +6107,9 @@
 
 
 <h1 id="documentation-agent-test-plan">Documentation Agent Test Plan</h1>
-<p><strong>Version:</strong> 0.5<br />
+<p><strong>Version:</strong> 0.6<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-16</p>
+<strong>Last Updated:</strong> 2026-08-17</p>
 <hr />
 <h2 id="executive-summary">Executive Summary</h2>
 <p>This document defines the verification criteria and test strategy for the Project0 Documentation Agent across unit, integration, browser acceptance, and exploratory AI testing.</p>
@@ -6147,6 +6147,7 @@
 <li>Support human review and approval decisions.</li>
 <li>Prevent unauthorized repository modification.</li>
 <li>Validate proposed and applied documentation changes.</li>
+<li>Validate artifact-based documentation modification behavior.</li>
 <li>Operate within Project0 platform boundaries.</li>
 </ul>
 <hr />
@@ -6893,7 +6894,7 @@ unless explicitly requested by workflow configuration.</p>
 <p>Current regression baseline:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>python -m pytest
 </span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>
-</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>648 passed, 7 skipped
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>691 passed, 7 skipped
 </span></code></pre></div>
 <p>The seven currently implemented high-level Documentation Agent workflow scenarios are integration tests because they exercise the assembled platform through Python APIs rather than through the browser/UI boundary. Seven additional scenarios remain explicitly skipped/deferred.</p>
 <hr />
@@ -6903,7 +6904,7 @@ unless explicitly requested by workflow configuration.</p>
 <ul>
 <li>Documentation requests process successfully.</li>
 <li>Proposed changes are accurate and minimal.</li>
-<li>Review workflows operate correctly.</li>
+<li>Review and revision workflows operate correctly.</li>
 </ul>
 <h3 id="safety">Safety</h3>
 <ul>

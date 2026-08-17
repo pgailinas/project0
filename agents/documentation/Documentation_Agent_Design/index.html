@@ -5293,9 +5293,9 @@
 
 
 <h1 id="documentation-agent-component-design">Documentation Agent Component Design</h1>
-<p><strong>Version:</strong> 0.6<br />
+<p><strong>Version:</strong> 0.7<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-16</p>
+<strong>Last Updated:</strong> 2026-08-17</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="objective">Objective</h3>
@@ -5346,6 +5346,7 @@ Work Area:</p>
 <li>Review Coordinator</li>
 <li>Repository Update Service</li>
 <li>Git Diff Service</li>
+<li>Artifact Location Service</li>
 <li>Documentation Workflow</li>
 </ul>
 <p>The Platform Dispatcher provides the platform-level entry point. It creates workflow tasks and submits them to the Workflow Engine. The Workflow Engine executes those tasks and returns structured workflow results.</p>
@@ -5388,8 +5389,9 @@ Work Area:</p>
 <li>Depends on typed interfaces for injected services.</li>
 <li>Uses concrete implementations only in the default factory.</li>
 <li>Startup workflows remain read-only.</li>
-<li>Documentation workflows coordinate reasoning, validation, review, repository updates, and Git diff generation through dedicated services.</li>
+<li>Documentation workflows coordinate reasoning, validation, review, repository updates, artifact location, and Git diff generation through dedicated services.</li>
 <li>Does not implement component behavior directly.</li>
+<li>Provides workflow state access through platform interfaces.</li>
 </ul>
 <h4 id="inputs">Inputs</h4>
 <ul>
@@ -5884,6 +5886,7 @@ and AI agents.</p>
 <li>Documentation Workflow Interface</li>
 <li>Review Coordinator Interface</li>
 <li>Repository Update Interface</li>
+<li>Artifact Location Interface</li>
 <li>Git Diff Interface</li>
 </ul>
 <h4 id="design-notes_9">Design Notes</h4>
@@ -6105,7 +6108,7 @@ and AI agents.</p>
 <p>Apply approved documentation changes.</p>
 <h4 id="responsibilities_16">Responsibilities</h4>
 <ul>
-<li>Apply approved Markdown updates.</li>
+<li>Apply approved Markdown updates using validated artifact locations.</li>
 <li>Preserve repository integrity.</li>
 <li>Return immutable application results.</li>
 </ul>
@@ -6126,8 +6129,8 @@ and AI agents.</p>
 <h4 id="responsibilities_18">Responsibilities</h4>
 <ul>
 <li>Coordinate Knowledge, Reasoning, Validation, Review, Repository</li>
-<li>Update, and Git Diff services.</li>
-<li>Preserve workflow state.</li>
+<li>Update, Artifact Location, and Git Diff services.</li>
+<li>Preserve internal workflow state.</li>
 <li>Produce immutable Documentation Workflow Results.</li>
 <li>Support human-in-the-loop review before applying documentation
   changes.</li>
@@ -6185,7 +6188,7 @@ and AI agents.</p>
 <li>The Validation Service aggregates Validator Results into a Validation Result.</li>
 <li>The Workflow Engine returns a Workflow Execution Result.</li>
 </ol>
-<p>The Documentation Workflow extends this interaction model by coordinating the Knowledge Service, Reasoning Service, Validation Service, Review Coordinator, Repository Update Service, and Git Diff Service into a complete documentation update pipeline.</p>
+<p>The Documentation Workflow extends this interaction model by coordinating the Knowledge Service, Reasoning Service, Validation Service, Review Coordinator, Repository Update Service, Artifact Location Service, and Git Diff Service into a complete documentation update pipeline.</p>
 <p>The completed Phase 8 Documentation Agent User Interface provides a human-in-the-loop workflow hosted within the Dashboard Framework. The workflow supports documentation request submission, AI-generated documentation proposals, preliminary validation, individual proposal review, approval decisions, repository application, final validation, Git diff generation, and completion reporting.</p>
 <p>The Dashboard Framework remains responsible for the shared application shell, including navigation, context, and Work Area hosting. The Documentation Agent provides only agent-specific workflow interactions within the Dashboard Work Area. Documentation Agent UI styling and behavior remain isolated from Dashboard Framework presentation components.</p>
 <p>Approved documentation changes are applied only through the Repository Update Service. The UI review representation may provide focused diffs for readability while preserving the complete candidate document and repository update behavior.</p>
@@ -6205,7 +6208,7 @@ and AI agents.</p>
   discovery rather than implicit baseline document inclusion.</li>
 <li>Repository discovery remains read-only.</li>
 <li>Documentation modifications shall occur only through the Repository
-  Update Service.</li>
+  Update Service using validated artifact locations.</li>
 <li>Human approval is required before documentation changes are applied.</li>
 <li>Proposed documentation changes shall be processed individually
   through the review workflow.</li>

@@ -2049,9 +2049,9 @@
 
 
 <h1 id="component-communication-design">Component Communication Design</h1>
-<p><strong>Version:</strong> 0.4<br />
+<p><strong>Version:</strong> 0.5<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-06  </p>
+<strong>Last Updated:</strong> 2026-08-17  </p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <p>This document defines how Project0 platform components communicate. It establishes the implemented communication patterns, execution flow, interface responsibilities, shared model usage, and event handling.</p>
@@ -2076,6 +2076,7 @@
 <li>Review Coordinator</li>
 <li>Repository Update Service</li>
 <li>Git Diff Service</li>
+<li>Artifact Location Service</li>
 <li>Documentation Workflow</li>
 </ul>
 <p>The communication architecture provides the foundation for future AI agents.</p>
@@ -2164,7 +2165,7 @@
 <ol>
 <li><code>main.py</code> creates the Platform Dispatcher.</li>
 <li>The Platform Dispatcher dispatches the Documentation Workflow.</li>
-<li>The Documentation Workflow requests repository knowledge from the Knowledge Service.</li>
+<li>The Documentation Workflow requests repository knowledge from the Knowledge Service and coordinates artifact-based documentation modification through the Artifact Location Service.</li>
 <li>The Knowledge Service returns structured repository context.</li>
 <li>The Reasoning Service generates proposed documentation changes.</li>
 <li>The Validation Service validates proposed documentation changes.</li>
@@ -2187,6 +2188,7 @@
 <li>Avoid implementing repository, context, or workflow behavior directly.</li>
 <li>Dispatch Documentation Workflows.</li>
 <li>Return Documentation Workflow Results.</li>
+<li>Provide workflow state access through platform interfaces.</li>
 </ul>
 <h3 id="workflow-engine">Workflow Engine</h3>
 <ul>
@@ -2247,7 +2249,7 @@
 </ul>
 <h2 id="repository-update-service">Repository Update Service</h2>
 <ul>
-<li>Apply approved documentation changes.</li>
+<li>Apply approved documentation changes using validated artifact locations.</li>
 <li>Preserve repository integrity.</li>
 <li>Produce immutable application results.</li>
 </ul>
@@ -2259,7 +2261,8 @@
 </ul>
 <h2 id="documentation-workflow">Documentation Workflow</h2>
 <ul>
-<li>Coordinate Knowledge, Reasoning, Validation, Review, Repository Update, and Git Diff services.</li>
+<li>Coordinate Knowledge, Reasoning, Validation, Review, Repository Update, Artifact Location, and Git Diff services.</li>
+<li>Preserve internal workflow state.</li>
 <li>Return immutable Documentation Workflow Results.</li>
 </ul>
 <h3 id="shared-interfaces">Shared Interfaces</h3>
@@ -2311,7 +2314,7 @@
 <li>Batch file results</li>
 <li>Structured repository errors</li>
 </ul>
-<p>Implemented validation communication objects include Validation Requests, Validation Results, Validator Results, Validation Issues, Validation Status, and Validation Severity. Additional approval, artifact, and agent communication objects remain planned in <strong>Shared_Data_Models_and_Error_Contracts.md</strong>.</p>
+<p>Implemented validation communication objects include Validation Requests, Validation Results, Validator Results, Validation Issues, Validation Status, and Validation Severity. Additional approval and agent communication objects remain planned in <strong>Shared_Data_Models_and_Error_Contracts.md</strong>. Artifact communication objects are implemented through the artifact foundation.</p>
 <h2 id="9-event-categories">9. Event Categories</h2>
 <h3 id="implemented-workflow-events">Implemented Workflow Events</h3>
 <ul>

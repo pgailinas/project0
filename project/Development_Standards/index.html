@@ -1153,9 +1153,9 @@
 
 
 <h1 id="development-standards">Development Standards</h1>
-<p><strong>Version:</strong> 0.1<br />
+<p><strong>Version:</strong> 0.3<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-13</p>
+<strong>Last Updated:</strong> 2026-08-17</p>
 <hr />
 <h2 id="purpose">Purpose</h2>
 <p>This document defines the engineering standards used for Project0 development.</p>
@@ -1288,8 +1288,21 @@
 <li>Follow existing project logging conventions.</li>
 <li>Include a plan for removal or permanent adoption.</li>
 </ul>
+<p>Diagnostic code should be removed after the underlying issue is resolved unless it provides ongoing operational value.</p>
 <hr />
-<h2 id="12-testing-preservation">12. Testing Preservation</h2>
+<h2 id="12-structured-debugging-and-fault-isolation">12. Structured Debugging and Fault Isolation</h2>
+<p>Debugging should identify the first point where system behavior deviates from the expected design.</p>
+<p>Use a structured fault isolation process:</p>
+<ul>
+<li>Identify a known-good state.</li>
+<li>Identify the observed failure state.</li>
+<li>Narrow the failure boundary by examining intermediate states or components.</li>
+<li>Verify assumptions at each boundary.</li>
+</ul>
+<p>Avoid random inspection of individual code sections without first reducing the possible failure area.</p>
+<p>For workflow-based systems, debugging should focus on state transitions and lifecycle behavior rather than only function execution.</p>
+<hr />
+<h2 id="13-testing-preservation">13. Testing Preservation</h2>
 <p>Changes should preserve existing functionality.</p>
 <p>The development process should maintain confidence through:</p>
 <ul>
@@ -1300,7 +1313,20 @@
 <p>A successful change improves capability without reducing system reliability.</p>
 <hr />
 <h1 id="architecture-standards">Architecture Standards</h1>
-<h2 id="13-clear-responsibilities">13. Clear Responsibilities</h2>
+<h2 id="14-workflow-state-observability">14. Workflow State Observability</h2>
+<p>Components that manage workflows should provide visibility into important lifecycle transitions and maintain clear workflow contracts.</p>
+<p>Workflow debugging and maintenance should make it possible to determine:</p>
+<ul>
+<li>Current workflow state</li>
+<li>Expected next state</li>
+<li>Completed transitions</li>
+<li>Failed transitions</li>
+<li>Persisted workflow information</li>
+<li>Public workflow results versus internal workflow state boundaries</li>
+</ul>
+<p>A failure should identify where the workflow stopped progressing rather than only reporting the final visible error.</p>
+<hr />
+<h2 id="15-clear-responsibilities">15. Clear Responsibilities</h2>
 <p>Each component should have a well-defined responsibility.</p>
 <p>Avoid:</p>
 <ul>
@@ -1310,7 +1336,7 @@
 </ul>
 <p>Components should communicate through defined interfaces.</p>
 <hr />
-<h2 id="14-controlled-complexity">14. Controlled Complexity</h2>
+<h2 id="16-controlled-complexity">16. Controlled Complexity</h2>
 <p>Complexity should be introduced only when it provides measurable value.</p>
 <p>Prefer:</p>
 <ul>
@@ -1321,7 +1347,7 @@
 </ul>
 <p>over unnecessary abstraction.</p>
 <hr />
-<h2 id="15-incremental-capability-growth">15. Incremental Capability Growth</h2>
+<h2 id="17-incremental-capability-growth">17. Incremental Capability Growth</h2>
 <p>Project0 should evolve through controlled capability additions.</p>
 <p>New functionality should:</p>
 <ul>
@@ -1329,6 +1355,7 @@
 <li>Preserve prior behavior.</li>
 <li>Include appropriate tests.</li>
 <li>Update affected documentation.</li>
+<li>Preserve architectural decisions in project documentation.</li>
 </ul>
 <hr />
 <h1 id="summary">Summary</h1>
