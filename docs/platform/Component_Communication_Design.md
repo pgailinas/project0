@@ -1,8 +1,8 @@
 # Component Communication Design
 
-**Version:** 0.4  
+**Version:** 0.5  
 **Owner:** Project0  
-**Last Updated:** 2026-08-06  
+**Last Updated:** 2026-08-17  
 
 ---
 
@@ -33,6 +33,7 @@ It also includes the following implemented components:
 * Review Coordinator
 * Repository Update Service
 * Git Diff Service
+* Artifact Location Service
 * Documentation Workflow
 
 The communication architecture provides the foundation for future AI agents.
@@ -134,7 +135,7 @@ The implemented sequence is:
 
 1. `main.py` creates the Platform Dispatcher.
 2. The Platform Dispatcher dispatches the Documentation Workflow.
-3. The Documentation Workflow requests repository knowledge from the Knowledge Service.
+3. The Documentation Workflow requests repository knowledge from the Knowledge Service and coordinates artifact-based documentation modification through the Artifact Location Service.
 4. The Knowledge Service returns structured repository context.
 5. The Reasoning Service generates proposed documentation changes.
 6. The Validation Service validates proposed documentation changes.
@@ -158,6 +159,7 @@ The implemented sequence is:
 * Avoid implementing repository, context, or workflow behavior directly.
 * Dispatch Documentation Workflows.
 * Return Documentation Workflow Results.
+* Provide workflow state access through platform interfaces.
 
 ### Workflow Engine
 
@@ -218,7 +220,7 @@ The implemented sequence is:
 
 ## Repository Update Service
 
-* Apply approved documentation changes.
+* Apply approved documentation changes using validated artifact locations.
 * Preserve repository integrity.
 * Produce immutable application results.
 
@@ -230,7 +232,8 @@ The implemented sequence is:
 
 ## Documentation Workflow
 
-* Coordinate Knowledge, Reasoning, Validation, Review, Repository Update, and Git Diff services.
+* Coordinate Knowledge, Reasoning, Validation, Review, Repository Update, Artifact Location, and Git Diff services.
+* Preserve internal workflow state.
 * Return immutable Documentation Workflow Results.
 
 ### Shared Interfaces
@@ -285,7 +288,7 @@ Implemented communication objects include:
 * Batch file results
 * Structured repository errors
 
-Implemented validation communication objects include Validation Requests, Validation Results, Validator Results, Validation Issues, Validation Status, and Validation Severity. Additional approval, artifact, and agent communication objects remain planned in **Shared_Data_Models_and_Error_Contracts.md**.
+Implemented validation communication objects include Validation Requests, Validation Results, Validator Results, Validation Issues, Validation Status, and Validation Severity. Additional approval and agent communication objects remain planned in **Shared_Data_Models_and_Error_Contracts.md**. Artifact communication objects are implemented through the artifact foundation.
 
 ## 9. Event Categories
 

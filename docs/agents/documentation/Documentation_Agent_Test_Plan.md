@@ -1,8 +1,8 @@
 # Documentation Agent Test Plan
 
-**Version:** 0.5  
+**Version:** 0.6  
 **Owner:** Project0  
-**Last Updated:** 2026-08-16
+**Last Updated:** 2026-08-17
 
 ---
 
@@ -54,6 +54,7 @@ The Documentation Agent shall demonstrate the ability to:
 * Support human review and approval decisions.
 * Prevent unauthorized repository modification.
 * Validate proposed and applied documentation changes.
+* Validate artifact-based documentation modification behavior.
 * Operate within Project0 platform boundaries.
 
 ---
@@ -1114,7 +1115,7 @@ Current regression baseline:
 ```text
 python -m pytest
 
-648 passed, 7 skipped
+691 passed, 7 skipped
 ```
 
 The seven currently implemented high-level Documentation Agent workflow scenarios are integration tests because they exercise the assembled platform through Python APIs rather than through the browser/UI boundary. Seven additional scenarios remain explicitly skipped/deferred.
@@ -1129,7 +1130,7 @@ The Documentation Agent may be considered complete when:
 
 * Documentation requests process successfully.
 * Proposed changes are accurate and minimal.
-* Review workflows operate correctly.
+* Review and revision workflows operate correctly.
 
 ### Safety
 

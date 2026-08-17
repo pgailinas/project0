@@ -1,8 +1,8 @@
 # Documentation Agent Architecture
 
-**Version:** 0.5  
+**Version:** 0.6  
 **Owner:** Project0  
-**Last Updated:** 2026-08-09
+**Last Updated:** 2026-08-17
 
 ---
 
@@ -44,9 +44,9 @@ remaining architecturally separate from the Documentation Agent services.
 The Dashboard Framework hosts the Documentation Agent user interface
 within the Dashboard Work Area and integrates deterministic repository
 knowledge, AI reasoning, validation, user review, approved repository
-updates, and Git diff generation through the Platform Dispatcher.
+updates, artifact-based modification support, and Git diff generation through the Platform Dispatcher.
 
-The completed Phase 8 implementation establishes a human-in-the-loop
+The completed Phase 8 and Phase 9 implementation establishes a human-in-the-loop
 Documentation Agent workflow. The workflow begins with a documentation
 request, generates AI-assisted documentation proposals, performs
 preliminary validation, presents individual proposals for review,
@@ -128,6 +128,7 @@ Responsibilities:
 - Return structured workflow execution results.
 - Dispatch Documentation Workflows.
 - Assemble Documentation Workflow dependencies.
+- Provide workflow state access through platform interfaces.
 
 ### Workflow Engine
 
@@ -362,7 +363,7 @@ Applies approved documentation changes.
 
 Responsibilities:
 
-- Apply approved Markdown updates.
+- Apply approved Markdown updates using validated artifact locations.
 - Preserve repository integrity.
 - Report update results.
 - Produce immutable application results.
@@ -388,8 +389,8 @@ Coordinates the complete Documentation Agent execution pipeline.
 
 Responsibilities:
 
-- Coordinate Knowledge, Reasoning, Validation, Review, Repository Update, and Git Diff services.
-- Preserve workflow state.
+- Coordinate Knowledge, Reasoning, Validation, Review, Repository Update, Artifact Location, and Git Diff services.
+- Preserve internal workflow state.
 - Produce immutable Documentation Workflow Results.
 
 ---
@@ -441,5 +442,6 @@ Future versions may introduce:
 - Semantic repository services
 - Additional AI providers
 - Additional validation services
+- Artifact-based documentation modification services
 - Asynchronous workflow execution
 

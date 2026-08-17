@@ -1,8 +1,8 @@
 # Documentation Agent Component Design
 
-**Version:** 0.6  
+**Version:** 0.7  
 **Owner:** Project0  
-**Last Updated:** 2026-08-16
+**Last Updated:** 2026-08-17
 
 ---
 
@@ -63,6 +63,7 @@ Work Area:
 * Review Coordinator
 * Repository Update Service
 * Git Diff Service
+* Artifact Location Service
 * Documentation Workflow
 
 The Platform Dispatcher provides the platform-level entry point. It creates workflow tasks and submits them to the Workflow Engine. The Workflow Engine executes those tasks and returns structured workflow results.
@@ -115,8 +116,9 @@ Provide the platform-level entry point for assembling services and dispatching w
 * Depends on typed interfaces for injected services.
 * Uses concrete implementations only in the default factory.
 * Startup workflows remain read-only.
-* Documentation workflows coordinate reasoning, validation, review, repository updates, and Git diff generation through dedicated services.
+* Documentation workflows coordinate reasoning, validation, review, repository updates, artifact location, and Git diff generation through dedicated services.
 * Does not implement component behavior directly.
+* Provides workflow state access through platform interfaces.
 
 #### Inputs
 
@@ -669,6 +671,7 @@ Define stable public contracts between Project0 components.
 * Documentation Workflow Interface
 * Review Coordinator Interface
 * Repository Update Interface
+* Artifact Location Interface
 * Git Diff Interface
 
 #### Design Notes
@@ -920,7 +923,7 @@ Apply approved documentation changes.
 
 #### Responsibilities
 
-* Apply approved Markdown updates.
+* Apply approved Markdown updates using validated artifact locations.
 * Preserve repository integrity.
 * Return immutable application results.
 
@@ -949,8 +952,8 @@ Coordinate the complete Documentation Agent execution pipeline.
 #### Responsibilities
 
 * Coordinate Knowledge, Reasoning, Validation, Review, Repository
-* Update, and Git Diff services.
-* Preserve workflow state.
+* Update, Artifact Location, and Git Diff services.
+* Preserve internal workflow state.
 * Produce immutable Documentation Workflow Results.
 * Support human-in-the-loop review before applying documentation
   changes.
@@ -1012,7 +1015,7 @@ The implemented context workflow follows this sequence:
 19. The Validation Service aggregates Validator Results into a Validation Result.
 20. The Workflow Engine returns a Workflow Execution Result.
 
-The Documentation Workflow extends this interaction model by coordinating the Knowledge Service, Reasoning Service, Validation Service, Review Coordinator, Repository Update Service, and Git Diff Service into a complete documentation update pipeline.
+The Documentation Workflow extends this interaction model by coordinating the Knowledge Service, Reasoning Service, Validation Service, Review Coordinator, Repository Update Service, Artifact Location Service, and Git Diff Service into a complete documentation update pipeline.
 
 The completed Phase 8 Documentation Agent User Interface provides a human-in-the-loop workflow hosted within the Dashboard Framework. The workflow supports documentation request submission, AI-generated documentation proposals, preliminary validation, individual proposal review, approval decisions, repository application, final validation, Git diff generation, and completion reporting.
 
@@ -1037,7 +1040,7 @@ Approved documentation changes are applied only through the Repository Update Se
   discovery rather than implicit baseline document inclusion.
 * Repository discovery remains read-only.
 * Documentation modifications shall occur only through the Repository
-  Update Service.
+  Update Service using validated artifact locations.
 * Human approval is required before documentation changes are applied.
 * Proposed documentation changes shall be processed individually
   through the review workflow.

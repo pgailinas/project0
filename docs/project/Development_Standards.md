@@ -1,8 +1,8 @@
 # Development Standards
 
-**Version:** 0.1  
+**Version:** 0.3  
 **Owner:** Project0  
-**Last Updated:** 2026-08-13
+**Last Updated:** 2026-08-17
 
 ------------------------------------------------------------------------
 
@@ -184,9 +184,28 @@ Temporary diagnostic changes should:
 - Follow existing project logging conventions.
 - Include a plan for removal or permanent adoption.
 
+Diagnostic code should be removed after the underlying issue is resolved unless it provides ongoing operational value.
+
 ---
 
-## 12. Testing Preservation
+## 12. Structured Debugging and Fault Isolation
+
+Debugging should identify the first point where system behavior deviates from the expected design.
+
+Use a structured fault isolation process:
+
+- Identify a known-good state.
+- Identify the observed failure state.
+- Narrow the failure boundary by examining intermediate states or components.
+- Verify assumptions at each boundary.
+
+Avoid random inspection of individual code sections without first reducing the possible failure area.
+
+For workflow-based systems, debugging should focus on state transitions and lifecycle behavior rather than only function execution.
+
+---
+
+## 13. Testing Preservation
 
 Changes should preserve existing functionality.
 
@@ -202,7 +221,24 @@ A successful change improves capability without reducing system reliability.
 
 # Architecture Standards
 
-## 13. Clear Responsibilities
+## 14. Workflow State Observability
+
+Components that manage workflows should provide visibility into important lifecycle transitions and maintain clear workflow contracts.
+
+Workflow debugging and maintenance should make it possible to determine:
+
+- Current workflow state
+- Expected next state
+- Completed transitions
+- Failed transitions
+- Persisted workflow information
+- Public workflow results versus internal workflow state boundaries
+
+A failure should identify where the workflow stopped progressing rather than only reporting the final visible error.
+
+---
+
+## 15. Clear Responsibilities
 
 Each component should have a well-defined responsibility.
 
@@ -216,7 +252,7 @@ Components should communicate through defined interfaces.
 
 ---
 
-## 14. Controlled Complexity
+## 16. Controlled Complexity
 
 Complexity should be introduced only when it provides measurable value.
 
@@ -231,7 +267,7 @@ over unnecessary abstraction.
 
 ---
 
-## 15. Incremental Capability Growth
+## 17. Incremental Capability Growth
 
 Project0 should evolve through controlled capability additions.
 
@@ -241,6 +277,7 @@ New functionality should:
 - Preserve prior behavior.
 - Include appropriate tests.
 - Update affected documentation.
+- Preserve architectural decisions in project documentation.
 
 ---
 
@@ -257,3 +294,4 @@ Project0 engineering follows these principles:
 - Treat existing source files as authoritative.
 - Make minimal, validated changes.
 - Preserve system reliability through testing.
+
