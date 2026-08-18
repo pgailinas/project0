@@ -1,8 +1,8 @@
 # Implementation Roadmap
 
-**Version:** 0.4  
+**Version:** 0.5  
 **Owner:** Project0  
-**Last Updated:** 2026-08-12
+**Last Updated:** 2026-08-18
 
 ---
 
@@ -235,6 +235,55 @@ Deliverables:
 
 ---
 
+### Phase 10 — Platform Validation Consolidation
+
+Establish formal platform-level validation documentation and verification ownership before expanding Project0 beyond the initial Documentation Agent implementation.
+
+Primary activities:
+
+* Define platform testing ownership boundaries.
+* Create a Project0 platform test coverage matrix.
+* Map existing tests to reusable platform capabilities.
+* Identify platform capabilities currently validated indirectly through agent testing.
+* Create the Project0 Platform Test Plan.
+* Create the Project0 Platform Test Results record.
+* Verify separation between platform validation and agent-specific validation.
+* Confirm complete regression baseline remains passing.
+
+Deliverables:
+
+* Project0 platform test coverage matrix.
+* Project0 Platform Test Plan.
+* Project0 Platform Test Results.
+* Documented platform versus agent testing ownership model.
+
+---
+
+### Phase 11 — Research Agent Foundation
+
+Design and implement the second Project0 AI Agent to validate reusable multi-agent development.
+
+Primary activities:
+
+* Define Research Agent charter.
+* Define Research Agent functional requirements.
+* Define Research Agent architecture.
+* Identify required platform capability extensions.
+* Define Research Agent interfaces and data models.
+* Define Research Agent testing strategy.
+
+Deliverables:
+
+* Research Agent Charter.
+* Research Agent Functional Specification.
+* Research Agent Architecture Design.
+* Research Agent Interface Design.
+* Research Agent Data Models.
+* Research Agent Test Plan.
+* Research Agent Test Results.
+* Functional Research Agent implementation.
+
+
 ## 4. Implementation Dependencies
 
 Implementation phases depend upon the completion of earlier foundational capabilities.
@@ -248,6 +297,7 @@ Key dependencies include:
 * Validation services before final system verification.
 * Dashboard Framework before agent user interfaces.
 * Shared Dashboard Framework before Documentation Agent interface implementation.
+* Platform validation before additional agent development.
 
 ---
 
