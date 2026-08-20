@@ -1,0 +1,4972 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A documentation-first AI software development platform for building, validating, and maintaining AI-assisted software systems.">
+      
+      
+      
+        <link rel="canonical" href="https://pgailinas.github.io/project0/agents/research/Research_Agent_Design/">
+      
+      
+        <link rel="prev" href="../Research_Agent_Architecture/">
+      
+      
+        <link rel="next" href="../Research_Agent_Interface_Design/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Research Agent Design - Project0</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather+Sans:300,300i,400,400i,700,700i%7CRed+Hat+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Merriweather Sans";--md-code-font:"Red Hat Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#research-agent-design" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="Project0" class="md-header__button md-logo" aria-label="Project0" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Project0
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Research Agent Design
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="deep-purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="deep-orange"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/pgailinas/project0" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pgailinas/project0
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="Project0" class="md-nav__button md-logo" aria-label="Project0" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Project0
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/pgailinas/project0" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pgailinas/project0
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Welcome to Project0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project0
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Project0
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../project/Project_Charter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Charter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../project/Project_Directory_Structure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Directory Structure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../project/Development_Environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development Environment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../project/Development_Standards/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development Standards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../project/Documentation_Standards/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Standards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../project/Testing_Guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../project/Implementation_Roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Implementation Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../project/Implementation_Status/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Implementation Status
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Platform
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Platform
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../platform/Dashboard_Design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dashboard Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../platform/Component_Communication_Design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Component Communication Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../platform/Shared_Data_Models_and_Error_Contracts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shared Data Models and Error Contracts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../platform/Project0_Test_Plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project0 Test Plan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../platform/Project0_Test_Results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project0 Test Results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Agent
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Documentation Agent
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation/Documentation_Agent_Charter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Agent Charter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation/Documentation_Agent_Functional_Spec/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Agent Functional Spec
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation/Documentation_Agent_Architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Agent Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation/Documentation_Agent_Design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Agent Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation/Documentation_Agent_Interface_Design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Agent Interface Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation/Documentation_Agent_Testing_Guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Agent Testing Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation/Documentation_Agent_Test_Plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Agent Test Plan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation/Documentation_Agent_Test_Results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Agent Test Results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Agent
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Research Agent
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Research_Agent_Charter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Agent Charter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Research_Agent_Functional_Spec/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Agent Functional Spec
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Research_Agent_Architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Agent Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Agent Design
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Agent Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Purpose
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Purpose">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#objective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Objective
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-component-design-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Component Design Principles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-component-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Component Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-component-specifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Component Specifications
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Component Specifications">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-platform-dispatcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Platform Dispatcher
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.1 Platform Dispatcher">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interfaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interfaces
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Interfaces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#provides" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provides
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consumes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consumes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#required-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Required Services
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#future-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future Considerations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-dashboard-framework" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Dashboard Framework
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.2 Dashboard Framework">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-workflow-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Workflow Engine
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.3 Workflow Engine">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-knowledge-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 Knowledge Service
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.4 Knowledge Service">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#future-considerations_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future Considerations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-reasoning-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 Reasoning Service
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.5 Reasoning Service">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interfaces_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interfaces
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Interfaces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#provides_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provides
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consumes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consumes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#required-services_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Required Services
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#future-considerations_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future Considerations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#46-validation-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.6 Validation Service
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.6 Validation Service">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#future-considerations_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future Considerations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#47-shared-interfaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.7 Shared Interfaces
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.7 Shared Interfaces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#initial-research-interfaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Initial Research Interfaces
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#48-shared-data-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.8 Shared Data Models
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.8 Shared Data Models">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#initial-research-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Initial Research Models
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#49-research-strategy-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.9 Research Strategy Service
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.9 Research Strategy Service">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interfaces_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interfaces
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Interfaces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#provides_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provides
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consumes_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consumes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inputs_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outputs_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#required-services_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Required Services
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#future-considerations_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future Considerations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#410-research-source-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.10 Research Source Service
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.10 Research Source Service">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interfaces_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interfaces
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Interfaces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#provides_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provides
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consumes_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consumes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inputs_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outputs_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#external-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        External Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#future-considerations_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future Considerations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#411-paper-metadata-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.11 Paper Metadata Service
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.11 Paper Metadata Service">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interfaces_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interfaces
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Interfaces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#provides_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provides
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consumes_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consumes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inputs_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outputs_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#future-considerations_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future Considerations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#412-research-evaluation-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.12 Research Evaluation Service
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.12 Research Evaluation Service">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interfaces_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interfaces
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Interfaces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#provides_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provides
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consumes_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consumes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inputs_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outputs_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#required-services_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Required Services
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#future-considerations_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future Considerations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#413-research-artifact-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.13 Research Artifact Service
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.13 Research Artifact Service">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interfaces_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interfaces
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Interfaces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#provides_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provides
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consumes_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consumes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inputs_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outputs_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#future-considerations_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future Considerations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#414-research-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.14 Research Workflow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.14 Research Workflow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#revision-workflow-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Revision Workflow Support
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Revision Workflow Support">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-interface-design-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Interface Design Principles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-component-interactions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Component Interactions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-design-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Design Constraints
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Research_Agent_Interface_Design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Agent Interface Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Research_Agent_Testing_Guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Agent Testing Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Research_Agent_Test_Plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Agent Test Plan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Research_Agent_Test_Results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Agent Test Results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Purpose
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Purpose">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#objective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Objective
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-component-design-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Component Design Principles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-component-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Component Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-component-specifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Component Specifications
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Component Specifications">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-platform-dispatcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Platform Dispatcher
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.1 Platform Dispatcher">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interfaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interfaces
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Interfaces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#provides" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provides
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consumes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consumes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#required-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Required Services
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#future-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future Considerations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-dashboard-framework" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Dashboard Framework
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.2 Dashboard Framework">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-workflow-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Workflow Engine
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.3 Workflow Engine">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-knowledge-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 Knowledge Service
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.4 Knowledge Service">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#future-considerations_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future Considerations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-reasoning-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 Reasoning Service
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.5 Reasoning Service">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interfaces_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interfaces
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Interfaces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#provides_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provides
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consumes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consumes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#required-services_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Required Services
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#future-considerations_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future Considerations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#46-validation-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.6 Validation Service
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.6 Validation Service">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#future-considerations_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future Considerations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#47-shared-interfaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.7 Shared Interfaces
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.7 Shared Interfaces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#initial-research-interfaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Initial Research Interfaces
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#48-shared-data-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.8 Shared Data Models
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.8 Shared Data Models">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#initial-research-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Initial Research Models
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#49-research-strategy-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.9 Research Strategy Service
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.9 Research Strategy Service">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interfaces_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interfaces
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Interfaces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#provides_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provides
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consumes_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consumes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inputs_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outputs_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#required-services_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Required Services
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#future-considerations_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future Considerations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#410-research-source-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.10 Research Source Service
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.10 Research Source Service">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interfaces_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interfaces
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Interfaces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#provides_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provides
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consumes_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consumes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inputs_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outputs_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#external-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        External Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#future-considerations_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future Considerations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#411-paper-metadata-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.11 Paper Metadata Service
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.11 Paper Metadata Service">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interfaces_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interfaces
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Interfaces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#provides_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provides
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consumes_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consumes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inputs_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outputs_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#future-considerations_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future Considerations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#412-research-evaluation-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.12 Research Evaluation Service
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.12 Research Evaluation Service">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interfaces_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interfaces
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Interfaces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#provides_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provides
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consumes_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consumes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inputs_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outputs_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#required-services_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Required Services
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#future-considerations_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future Considerations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#413-research-artifact-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.13 Research Artifact Service
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.13 Research Artifact Service">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interfaces_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interfaces
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Interfaces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#provides_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provides
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consumes_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consumes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inputs_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outputs_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#future-considerations_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future Considerations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#414-research-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.14 Research Workflow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.14 Research Workflow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#revision-workflow-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Revision Workflow Support
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Revision Workflow Support">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#responsibilities_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-notes_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-interface-design-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Interface Design Principles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-component-interactions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Component Interactions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-design-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Design Constraints
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/pgailinas/project0/edit/main/docs/agents/research/Research_Agent_Design.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="research-agent-design">Research Agent Design</h1>
+<p><strong>Version:</strong> 0.1<br />
+<strong>Owner:</strong> Project0<br />
+<strong>Last Updated:</strong> 2026-08-20  </p>
+<hr />
+<h2 id="1-purpose">1. Purpose</h2>
+<h3 id="objective">Objective</h3>
+<p>Define the internal design of the major Research Agent components
+required to implement the Research Agent Functional Specification.</p>
+<h3 id="scope">Scope</h3>
+<p>Describe the purpose, responsibilities, interfaces, inputs, outputs,
+dependencies, and future considerations for Research Agent components.
+Implementation details are intentionally excluded.</p>
+<hr />
+<h2 id="2-component-design-principles">2. Component Design Principles</h2>
+<ul>
+<li>Each component has a single responsibility.</li>
+<li>Components communicate through well-defined typed interfaces.</li>
+<li>Shared immutable data models define information exchanged between
+    components.</li>
+<li>Components depend on interfaces rather than concrete implementations
+    where practical.</li>
+<li>Deterministic processing shall be used whenever AI reasoning is not
+    required.</li>
+<li>Components shall be independently testable.</li>
+<li>Minimize coupling between components.</li>
+<li>Maximize reuse across future AI agents.</li>
+<li>Research outputs shall preserve identifiable source and citation
+    information.</li>
+<li>Research-specific behavior shall remain separate from reusable
+    Project0 platform services.</li>
+</ul>
+<hr />
+<h2 id="3-component-overview">3. Component Overview</h2>
+<p>The Research Agent reuses the existing Project0 platform foundation and
+adds research-specific components required to transform research
+questions into structured, evidence-grounded research artifacts. The
+Research Agent is hosted within the reusable Dashboard Framework, which
+provides the browser interface while remaining architecturally separate
+from the agent services.</p>
+<p>Existing Project0 platform components reused by the Research Agent
+include:</p>
+<ul>
+<li>Dashboard Framework</li>
+<li>Platform Dispatcher</li>
+<li>Workflow Engine</li>
+<li>Knowledge Service</li>
+<li>Reasoning Service</li>
+<li>Validation Service</li>
+<li>Artifact Services</li>
+<li>Shared Interfaces</li>
+<li>Shared Data Models</li>
+</ul>
+<p>Initial Research Agent-specific components include:</p>
+<ul>
+<li>Research Workflow</li>
+<li>Research Strategy Service</li>
+<li>Research Source Service</li>
+<li>Paper Metadata Service</li>
+<li>Research Evaluation Service</li>
+<li>Research Artifact Service</li>
+</ul>
+<p>The Platform Dispatcher provides the platform-level entry point. It
+creates workflow tasks and submits them to the Workflow Engine. The
+Research Workflow coordinates the research-specific services and
+existing Project0 platform services required to produce structured
+research results.</p>
+<hr />
+<h2 id="4-component-specifications">4. Component Specifications</h2>
+<h3 id="41-platform-dispatcher">4.1 Platform Dispatcher</h3>
+<h4 id="purpose">Purpose</h4>
+<p>Provide the platform-level entry point for assembling services and
+dispatching Research Agent workflows.</p>
+<h4 id="responsibilities">Responsibilities</h4>
+<ul>
+<li>Assemble the Research Workflow.</li>
+<li>Create research workflow tasks.</li>
+<li>Dispatch Research Workflows.</li>
+<li>Return structured research workflow results.</li>
+<li>Preserve separation between platform routing and Research Agent
+    behavior.</li>
+</ul>
+<h4 id="interfaces">Interfaces</h4>
+<h5 id="provides">Provides</h5>
+<ul>
+<li>Run research workflow.</li>
+</ul>
+<h5 id="consumes">Consumes</h5>
+<ul>
+<li>Workflow Interface.</li>
+<li>Research Workflow Interface.</li>
+<li>Research workflow models.</li>
+</ul>
+<h4 id="design-notes">Design Notes</h4>
+<ul>
+<li>Coordinates platform services without implementing research behavior
+    directly.</li>
+<li>Uses existing Project0 platform dispatch patterns.</li>
+<li>Provides a common entry point for the Documentation Agent, Research
+    Agent, and future agents.</li>
+</ul>
+<h4 id="inputs">Inputs</h4>
+<ul>
+<li>Research workflow request</li>
+</ul>
+<h4 id="outputs">Outputs</h4>
+<ul>
+<li>Research workflow result</li>
+</ul>
+<h4 id="required-services">Required Services</h4>
+<ul>
+<li>Workflow Interface</li>
+<li>Research Workflow Interface</li>
+</ul>
+<h4 id="future-considerations">Future Considerations</h4>
+<ul>
+<li>Additional agent routing</li>
+<li>Multi-agent workflow coordination</li>
+</ul>
+<hr />
+<h3 id="42-dashboard-framework">4.2 Dashboard Framework</h3>
+<h4 id="purpose_1">Purpose</h4>
+<p>Provide the reusable browser-based user interface for Project0 services
+and AI agents.</p>
+<h4 id="responsibilities_1">Responsibilities</h4>
+<ul>
+<li>Host Research Agent pages within the shared framework.</li>
+<li>Provide shared navigation, context, and Work Area hosting.</li>
+<li>Provide the Dashboard Work Area for Research Agent interaction.</li>
+<li>Remain independent of Research Agent business logic.</li>
+</ul>
+<h4 id="design-notes_1">Design Notes</h4>
+<ul>
+<li>Reuses the existing Dashboard Framework.</li>
+<li>Research Agent-specific pages render within the Dashboard Work Area.</li>
+<li>Research Agent UI behavior remains separate from shared Dashboard
+    Framework behavior.</li>
+</ul>
+<hr />
+<h3 id="43-workflow-engine">4.3 Workflow Engine</h3>
+<h4 id="purpose_2">Purpose</h4>
+<p>Execute Project0 workflow tasks and return structured execution results.</p>
+<h4 id="responsibilities_2">Responsibilities</h4>
+<ul>
+<li>Execute Research Agent workflow tasks.</li>
+<li>Preserve workflow identifiers.</li>
+<li>Capture task outputs.</li>
+<li>Convert task exceptions into failed task results.</li>
+<li>Return structured workflow execution results.</li>
+</ul>
+<h4 id="design-notes_2">Design Notes</h4>
+<ul>
+<li>Reuses the existing Project0 Workflow Engine.</li>
+<li>Does not implement research-specific behavior.</li>
+<li>Research workflow coordination remains the responsibility of the
+    Research Workflow.</li>
+</ul>
+<hr />
+<h3 id="44-knowledge-service">4.4 Knowledge Service</h3>
+<h4 id="purpose_3">Purpose</h4>
+<p>Provide Project0 repository knowledge relevant to Research Agent
+requests.</p>
+<h4 id="responsibilities_3">Responsibilities</h4>
+<ul>
+<li>Retrieve existing project research documentation.</li>
+<li>Retrieve existing research artifacts when applicable.</li>
+<li>Provide repository-grounded project context to research workflows.</li>
+</ul>
+<h4 id="design-notes_3">Design Notes</h4>
+<ul>
+<li>Reuses the existing deterministic Knowledge Service.</li>
+<li>Does not perform external literature discovery.</li>
+<li>External research sources remain separate from repository knowledge
+    retrieval.</li>
+</ul>
+<h4 id="future-considerations_1">Future Considerations</h4>
+<ul>
+<li>Semantic retrieval</li>
+<li>Embedding generation</li>
+<li>Vector search</li>
+</ul>
+<hr />
+<h3 id="45-reasoning-service">4.5 Reasoning Service</h3>
+<h4 id="purpose_4">Purpose</h4>
+<p>Perform AI-assisted research reasoning.</p>
+<h4 id="responsibilities_4">Responsibilities</h4>
+<ul>
+<li>Analyze research questions.</li>
+<li>Assist research strategy generation.</li>
+<li>Analyze technical paper information.</li>
+<li>Compare research methods and approaches.</li>
+<li>Identify potential research gaps.</li>
+<li>Generate experiment planning suggestions.</li>
+<li>Generate structured research artifact content.</li>
+</ul>
+<h4 id="interfaces_1">Interfaces</h4>
+<h5 id="provides_1">Provides</h5>
+<ul>
+<li>Analyze research request.</li>
+<li>Evaluate research information.</li>
+<li>Generate research analysis.</li>
+</ul>
+<h5 id="consumes_1">Consumes</h5>
+<ul>
+<li>Research question.</li>
+<li>Research source information.</li>
+<li>Paper metadata.</li>
+<li>Project knowledge.</li>
+</ul>
+<h4 id="design-notes_4">Design Notes</h4>
+<ul>
+<li>Performs only tasks requiring AI-assisted reasoning.</li>
+<li>Does not directly access external research sources.</li>
+<li>Does not independently establish scientific validity.</li>
+<li>Distinguishes source information from generated analysis.</li>
+</ul>
+<h4 id="required-services_1">Required Services</h4>
+<ul>
+<li>AI Reasoning Provider</li>
+</ul>
+<h4 id="future-considerations_2">Future Considerations</h4>
+<ul>
+<li>Multiple reasoning providers</li>
+<li>Model routing</li>
+<li>Context-size management</li>
+</ul>
+<hr />
+<h3 id="46-validation-service">4.6 Validation Service</h3>
+<h4 id="purpose_5">Purpose</h4>
+<p>Coordinate validation of Research Agent workflow outputs.</p>
+<h4 id="responsibilities_5">Responsibilities</h4>
+<ul>
+<li>Validate required research artifact structure.</li>
+<li>Validate required source and citation information.</li>
+<li>Aggregate validation results.</li>
+<li>Preserve structured validation warnings and errors.</li>
+</ul>
+<h4 id="design-notes_5">Design Notes</h4>
+<ul>
+<li>Reuses the existing Project0 Validation Service where practical.</li>
+<li>Research-specific validators may be added through existing
+    validation interfaces.</li>
+<li>Validation does not determine scientific correctness.</li>
+</ul>
+<h4 id="future-considerations_3">Future Considerations</h4>
+<ul>
+<li>Citation validator</li>
+<li>Research artifact validator</li>
+<li>Metadata consistency validator</li>
+</ul>
+<hr />
+<h3 id="47-shared-interfaces">4.7 Shared Interfaces</h3>
+<h4 id="purpose_6">Purpose</h4>
+<p>Define stable public contracts between Project0 and Research Agent
+components.</p>
+<h4 id="initial-research-interfaces">Initial Research Interfaces</h4>
+<ul>
+<li>Research Workflow Interface</li>
+<li>Research Strategy Interface</li>
+<li>Research Source Interface</li>
+<li>Paper Metadata Interface</li>
+<li>Research Evaluation Interface</li>
+<li>Research Artifact Interface</li>
+</ul>
+<h4 id="design-notes_6">Design Notes</h4>
+<ul>
+<li>Interfaces use Python structural protocols.</li>
+<li>Components depend on required capabilities rather than specific
+    implementations.</li>
+<li>Research-specific interfaces shall remain separate from generic
+    platform interfaces.</li>
+<li>Interfaces shall remain small and aligned with implemented component
+    capabilities.</li>
+</ul>
+<hr />
+<h3 id="48-shared-data-models">4.8 Shared Data Models</h3>
+<h4 id="purpose_7">Purpose</h4>
+<p>Define immutable information exchanged between Research Agent
+components.</p>
+<h4 id="initial-research-models">Initial Research Models</h4>
+<ul>
+<li>Research Request</li>
+<li>Research Result</li>
+<li>Research Strategy</li>
+<li>Research Source Reference</li>
+<li>Paper Reference</li>
+<li>Paper Metadata</li>
+<li>Research Evaluation</li>
+<li>Research Artifact</li>
+</ul>
+<h4 id="design-notes_7">Design Notes</h4>
+<ul>
+<li>Models use immutable dataclasses where practical.</li>
+<li>Result models preserve structured outputs, warnings, and errors.</li>
+<li>Source and citation information shall remain associated with
+    research outputs.</li>
+<li>Shared models prevent component-specific communication formats.</li>
+</ul>
+<hr />
+<h3 id="49-research-strategy-service">4.9 Research Strategy Service</h3>
+<h4 id="purpose_8">Purpose</h4>
+<p>Transform a research question into a structured research strategy.</p>
+<h4 id="responsibilities_6">Responsibilities</h4>
+<ul>
+<li>Analyze the research request.</li>
+<li>Identify relevant research concepts and terminology.</li>
+<li>Identify optional constraints and focus areas.</li>
+<li>Generate search concepts for supported research sources.</li>
+<li>Produce a structured Research Strategy.</li>
+</ul>
+<h4 id="interfaces_2">Interfaces</h4>
+<h5 id="provides_2">Provides</h5>
+<ul>
+<li>Generate research strategy.</li>
+</ul>
+<h5 id="consumes_2">Consumes</h5>
+<ul>
+<li>Research Request.</li>
+<li>Reasoning Service.</li>
+</ul>
+<h4 id="design-notes_8">Design Notes</h4>
+<ul>
+<li>Research strategy generation may use AI reasoning.</li>
+<li>The service does not execute external research searches.</li>
+<li>Search execution remains the responsibility of the Research Source
+    Service.</li>
+</ul>
+<h4 id="inputs_1">Inputs</h4>
+<ul>
+<li>Research Request</li>
+</ul>
+<h4 id="outputs_1">Outputs</h4>
+<ul>
+<li>Research Strategy</li>
+</ul>
+<h4 id="required-services_2">Required Services</h4>
+<ul>
+<li>Reasoning Service</li>
+</ul>
+<h4 id="future-considerations_4">Future Considerations</h4>
+<ul>
+<li>Strategy refinement</li>
+<li>Search history awareness</li>
+<li>User-defined strategy templates</li>
+</ul>
+<hr />
+<h3 id="410-research-source-service">4.10 Research Source Service</h3>
+<h4 id="purpose_9">Purpose</h4>
+<p>Provide controlled access to supported external research sources.</p>
+<h4 id="responsibilities_7">Responsibilities</h4>
+<ul>
+<li>Execute research searches using a Research Strategy.</li>
+<li>Query supported external research sources.</li>
+<li>Normalize returned research source references.</li>
+<li>Preserve source identifiers and locations.</li>
+<li>Return structured source results and errors.</li>
+</ul>
+<h4 id="interfaces_3">Interfaces</h4>
+<h5 id="provides_3">Provides</h5>
+<ul>
+<li>Search research sources.</li>
+<li>Retrieve research source information.</li>
+</ul>
+<h5 id="consumes_3">Consumes</h5>
+<ul>
+<li>Research Strategy.</li>
+<li>External research source adapters.</li>
+</ul>
+<h4 id="design-notes_9">Design Notes</h4>
+<ul>
+<li>External source access is isolated behind a typed interface.</li>
+<li>The service does not perform research relevance evaluation.</li>
+<li>Source-specific behavior shall remain isolated from the Research
+    Workflow.</li>
+<li>Initial implementation should support the minimum number of external
+    sources required to provide useful research output.</li>
+</ul>
+<h4 id="inputs_2">Inputs</h4>
+<ul>
+<li>Research Strategy</li>
+</ul>
+<h4 id="outputs_2">Outputs</h4>
+<ul>
+<li>Research Source References</li>
+</ul>
+<h4 id="external-dependencies">External Dependencies</h4>
+<ul>
+<li>Supported external research sources</li>
+</ul>
+<h4 id="future-considerations_5">Future Considerations</h4>
+<ul>
+<li>Additional research sources</li>
+<li>Source-specific adapters</li>
+<li>Search result caching</li>
+<li>Rate-limit handling</li>
+</ul>
+<hr />
+<h3 id="411-paper-metadata-service">4.11 Paper Metadata Service</h3>
+<h4 id="purpose_10">Purpose</h4>
+<p>Retrieve and normalize available metadata for candidate research papers.</p>
+<h4 id="responsibilities_8">Responsibilities</h4>
+<ul>
+<li>Retrieve available paper metadata.</li>
+<li>Normalize title, author, publication year, abstract, and source
+    identifiers.</li>
+<li>Preserve external source references.</li>
+<li>Return structured metadata results and errors.</li>
+</ul>
+<h4 id="interfaces_4">Interfaces</h4>
+<h5 id="provides_4">Provides</h5>
+<ul>
+<li>Retrieve paper metadata.</li>
+</ul>
+<h5 id="consumes_4">Consumes</h5>
+<ul>
+<li>Research Source References.</li>
+<li>External research source adapters.</li>
+</ul>
+<h4 id="design-notes_10">Design Notes</h4>
+<ul>
+<li>Performs deterministic metadata normalization where practical.</li>
+<li>Does not evaluate paper relevance.</li>
+<li>Missing metadata shall be reported rather than invented.</li>
+</ul>
+<h4 id="inputs_3">Inputs</h4>
+<ul>
+<li>Research Source References</li>
+</ul>
+<h4 id="outputs_3">Outputs</h4>
+<ul>
+<li>Paper Metadata</li>
+</ul>
+<h4 id="future-considerations_6">Future Considerations</h4>
+<ul>
+<li>DOI enrichment</li>
+<li>Citation metadata</li>
+<li>Publication venue normalization</li>
+</ul>
+<hr />
+<h3 id="412-research-evaluation-service">4.12 Research Evaluation Service</h3>
+<h4 id="purpose_11">Purpose</h4>
+<p>Evaluate candidate research papers against the research question and
+research strategy.</p>
+<h4 id="responsibilities_9">Responsibilities</h4>
+<ul>
+<li>Evaluate paper relevance.</li>
+<li>Rank candidate papers.</li>
+<li>Explain relevance to the research question.</li>
+<li>Compare research methods and approaches.</li>
+<li>Identify potential research gaps.</li>
+<li>Support experiment planning analysis.</li>
+</ul>
+<h4 id="interfaces_5">Interfaces</h4>
+<h5 id="provides_5">Provides</h5>
+<ul>
+<li>Evaluate candidate paper.</li>
+<li>Rank candidate papers.</li>
+<li>Compare research approaches.</li>
+</ul>
+<h5 id="consumes_5">Consumes</h5>
+<ul>
+<li>Research Request.</li>
+<li>Research Strategy.</li>
+<li>Paper Metadata.</li>
+<li>Reasoning Service.</li>
+</ul>
+<h4 id="design-notes_11">Design Notes</h4>
+<ul>
+<li>Uses AI reasoning where semantic evaluation is required.</li>
+<li>Relevance evaluation shall preserve the distinction between source
+    facts and generated analysis.</li>
+<li>Evaluation results shall preserve references to supporting papers.</li>
+<li>Human research judgment remains authoritative.</li>
+</ul>
+<h4 id="inputs_4">Inputs</h4>
+<ul>
+<li>Research Request</li>
+<li>Research Strategy</li>
+<li>Paper Metadata</li>
+</ul>
+<h4 id="outputs_4">Outputs</h4>
+<ul>
+<li>Research Evaluations</li>
+</ul>
+<h4 id="required-services_3">Required Services</h4>
+<ul>
+<li>Reasoning Service</li>
+</ul>
+<h4 id="future-considerations_7">Future Considerations</h4>
+<ul>
+<li>Improved evaluation scoring</li>
+<li>Configurable ranking criteria</li>
+<li>Cross-paper evidence analysis</li>
+</ul>
+<hr />
+<h3 id="413-research-artifact-service">4.13 Research Artifact Service</h3>
+<h4 id="purpose_12">Purpose</h4>
+<p>Create structured, reusable research artifacts from validated Research
+Agent outputs.</p>
+<h4 id="responsibilities_10">Responsibilities</h4>
+<ul>
+<li>Generate paper summary artifacts.</li>
+<li>Generate literature comparison artifacts.</li>
+<li>Generate research gap artifacts.</li>
+<li>Generate experiment planning artifacts.</li>
+<li>Preserve citation and source references.</li>
+<li>Return structured Research Artifacts.</li>
+</ul>
+<h4 id="interfaces_6">Interfaces</h4>
+<h5 id="provides_6">Provides</h5>
+<ul>
+<li>Generate research artifact.</li>
+</ul>
+<h5 id="consumes_6">Consumes</h5>
+<ul>
+<li>Research Evaluations.</li>
+<li>Paper Metadata.</li>
+<li>Research Request.</li>
+</ul>
+<h4 id="design-notes_12">Design Notes</h4>
+<ul>
+<li>Research artifacts preserve source provenance.</li>
+<li>Artifact generation shall not modify repository documentation
+    directly.</li>
+<li>Repository preservation of approved research artifacts may be
+    coordinated with the Documentation Agent or existing artifact
+    services.</li>
+</ul>
+<h4 id="inputs_5">Inputs</h4>
+<ul>
+<li>Research Evaluations</li>
+<li>Paper Metadata</li>
+<li>Research Request</li>
+</ul>
+<h4 id="outputs_5">Outputs</h4>
+<ul>
+<li>Research Artifacts</li>
+</ul>
+<h4 id="future-considerations_8">Future Considerations</h4>
+<ul>
+<li>Expanded research artifact types</li>
+<li>Artifact persistence policies</li>
+<li>Cross-project research artifacts</li>
+</ul>
+<hr />
+<h3 id="414-research-workflow">4.14 Research Workflow</h3>
+<h4 id="purpose_13">Purpose</h4>
+<p>Coordinate the complete Research Agent execution pipeline.</p>
+<h4 id="responsibilities_11">Responsibilities</h4>
+<ul>
+<li>Coordinate Research Strategy, Research Source, Paper Metadata,
+    Knowledge, Reasoning, Research Evaluation, Validation, and Research
+    Artifact services.</li>
+<li>Preserve internal workflow state.</li>
+<li>Produce immutable Research Results.</li>
+<li>Preserve source and citation information.</li>
+<li>Support human review of research outputs.</li>
+</ul>
+<h4 id="design-notes_13">Design Notes</h4>
+<ul>
+<li>Research Workflow execution is initiated through the Platform
+    Dispatcher.</li>
+<li>Research Agent UI interactions are hosted by the Dashboard
+    Framework.</li>
+<li>External source access occurs only through the Research Source
+    Service.</li>
+<li>AI reasoning does not directly access external research sources.</li>
+<li>Research artifacts remain reviewable outputs rather than
+    authoritative research conclusions.</li>
+</ul>
+<hr />
+<h3 id="revision-workflow-support">Revision Workflow Support</h3>
+<p>The Research Workflow supports a revision path when a user requests
+changes to a generated research request or research output.</p>
+<h4 id="responsibilities_12">Responsibilities</h4>
+<ul>
+<li>Preserve the original research request.</li>
+<li>Preserve optional research constraints.</li>
+<li>Accept appended or modified revision instructions.</li>
+<li>Resume normal research processing after resubmission.</li>
+<li>Preserve source and citation information during revision.</li>
+</ul>
+<h4 id="design-notes_14">Design Notes</h4>
+<ul>
+<li>Revision creates a new research reasoning cycle.</li>
+<li>Existing source evidence should remain available when applicable.</li>
+<li>Revised research direction may trigger additional source discovery.</li>
+</ul>
+<hr />
+<h2 id="5-interface-design-principles">5. Interface Design Principles</h2>
+<ul>
+<li>Interfaces shall remain technology independent.</li>
+<li>Components communicate only through public typed interfaces.</li>
+<li>Components shall not directly access another component's internal
+    state.</li>
+<li>Components shall depend on interfaces rather than concrete
+    implementations where practical.</li>
+<li>Interface contracts shall remain backward compatible whenever
+    practical.</li>
+<li>Shared data models shall define information exchanged between
+    components.</li>
+<li>Concrete implementations may satisfy interfaces through structural
+    typing.</li>
+<li>Interfaces shall remain small and aligned with implemented component
+    capabilities.</li>
+<li>External research source implementations shall remain isolated
+    behind Research Source interfaces.</li>
+</ul>
+<hr />
+<h2 id="6-component-interactions">6. Component Interactions</h2>
+<p>The Platform Dispatcher provides the platform-level entry point and
+submits Research Agent workflow tasks to the Workflow Engine.</p>
+<p>The initial Research Workflow follows this sequence:</p>
+<ol>
+<li>The user submits a Research Request through the Dashboard Framework.</li>
+<li>The Platform Dispatcher creates and dispatches the Research
+    Workflow.</li>
+<li>The Research Strategy Service analyzes the Research Request.</li>
+<li>The Reasoning Service assists with research concept and strategy
+    generation when required.</li>
+<li>The Research Strategy Service returns a Research Strategy.</li>
+<li>The Research Source Service searches supported external research
+    sources.</li>
+<li>External source results are normalized into Research Source
+    References.</li>
+<li>The Paper Metadata Service retrieves and normalizes available
+    metadata.</li>
+<li>The Knowledge Service retrieves relevant existing Project0 research
+    context when applicable.</li>
+<li>The Research Evaluation Service evaluates candidate papers against
+    the Research Request and Research Strategy.</li>
+<li>The Reasoning Service performs semantic research evaluation where
+    required.</li>
+<li>Candidate papers are ranked and supporting relevance explanations
+    are produced.</li>
+<li>The Research Artifact Service generates structured research
+    artifacts.</li>
+<li>Citation and source references are preserved with the generated
+    artifacts.</li>
+<li>The Validation Service validates required artifact structure and
+    source information.</li>
+<li>The Research Workflow returns a structured Research Result.</li>
+<li>Research results are presented for human review through the
+    Dashboard Framework.</li>
+</ol>
+<p>The Dashboard Framework remains responsible for the shared application
+shell, including navigation, context, and Work Area hosting. The
+Research Agent provides only agent-specific workflow interactions within
+the Dashboard Work Area.</p>
+<p>Research Agent-specific behavior remains isolated from reusable Project0
+platform services. External research source behavior remains isolated
+behind the Research Source Service and its interfaces.</p>
+<hr />
+<h2 id="7-design-constraints">7. Design Constraints</h2>
+<ul>
+<li>Preserve modularity.</li>
+<li>Use deterministic processing whenever AI reasoning is not required.</li>
+<li>Maintain vendor neutrality.</li>
+<li>Support future extensibility.</li>
+<li>Use typed interfaces between platform and Research Agent components.</li>
+<li>Use shared immutable models for component communication.</li>
+<li>Depend on interfaces rather than concrete implementations where
+    practical.</li>
+<li>Preserve source and citation information throughout the research
+    workflow.</li>
+<li>External research source access shall occur through defined service
+    interfaces.</li>
+<li>Missing source or metadata information shall not be invented.</li>
+<li>AI-generated analysis shall remain distinguishable from source
+    information.</li>
+<li>Research evaluation does not independently establish scientific
+    correctness.</li>
+<li>Human research judgment remains authoritative.</li>
+<li>Initial implementation shall avoid semantic retrieval, vector
+    search, and multi-agent research workflows unless later requirements
+    demonstrate the need.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+      
+        <script src="../../../javascripts/mermaid.js"></script>
+      
+    
+  </body>
+</html>

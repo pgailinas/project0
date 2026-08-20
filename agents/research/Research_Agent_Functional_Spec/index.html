@@ -10,31 +10,31 @@
       
       
       
-        <link rel="canonical" href="https://pgailinas.github.io/project0/project/Project_Charter/">
+        <link rel="canonical" href="https://pgailinas.github.io/project0/agents/research/Research_Agent_Functional_Spec/">
       
       
-        <link rel="prev" href="../..">
+        <link rel="prev" href="../Research_Agent_Charter/">
       
       
-        <link rel="next" href="../Project_Directory_Structure/">
+        <link rel="next" href="../Research_Agent_Architecture/">
       
       
         
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
+      <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
-        <title>Project Charter - Project0</title>
+        <title>Research Agent Functional Spec - Project0</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,7 +53,7 @@
       
     
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#project-charter" class="md-skip">
+        <a href="#research-agent-functional-specification" class="md-skip">
           Skip to content
         </a>
       
@@ -94,7 +94,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="Project0" class="md-header__button md-logo" aria-label="Project0" data-md-component="logo">
+    <a href="../../.." title="Project0" class="md-header__button md-logo" aria-label="Project0" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Project Charter
+              Research Agent Functional Spec
             
           </span>
         </div>
@@ -230,7 +230,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Project0" class="md-nav__button md-logo" aria-label="Project0" data-md-component="logo">
+    <a href="../../.." title="Project0" class="md-nav__button md-logo" aria-label="Project0" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -260,7 +260,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href="../../.." class="md-nav__link">
         
   
   
@@ -284,20 +284,18 @@
       
   
   
-    
   
   
-  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
@@ -318,7 +316,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -333,37 +331,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Project Charter
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../../project/Project_Charter/" class="md-nav__link">
         
   
   
@@ -379,291 +350,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#1-project-overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        1. Project Overview
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#2-vision" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. Vision
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#3-mission" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Mission
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#4-project-objectives" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Project Objectives
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#5-scope" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. Scope
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="5. Scope">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#included" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Included
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#excluded-initial-release" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Excluded (Initial Release)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#6-guiding-principles" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        6. Guiding Principles
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#7-high-level-workflow" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        7. High-Level Workflow
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#8-initial-ai-agent-roles" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8. Initial AI Agent Roles
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#9-validation-strategy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9. Validation Strategy
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#10-success-criteria" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        10. Success Criteria
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#11-major-deliverables" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        11. Major Deliverables
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="11. Major Deliverables">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#phase-1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Phase 1
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#phase-2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Phase 2
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#phase-3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Phase 3
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#12-risks" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        12. Risks
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#13-assumptions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        13. Assumptions
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#14-expected-outcome" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        14. Expected Outcome
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#15-suggested-success-metrics-kpis" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        15. Suggested Success Metrics (KPIs)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#16-documentation-philosophy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        16. Documentation Philosophy
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#17-framework-principle" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        17. Framework Principle
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#18-primary-success-objective" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        18. Primary Success Objective
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -676,7 +362,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../Project_Directory_Structure/" class="md-nav__link">
+      <a href="../../../project/Project_Directory_Structure/" class="md-nav__link">
         
   
   
@@ -704,7 +390,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../Development_Environment/" class="md-nav__link">
+      <a href="../../../project/Development_Environment/" class="md-nav__link">
         
   
   
@@ -732,7 +418,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../Development_Standards/" class="md-nav__link">
+      <a href="../../../project/Development_Standards/" class="md-nav__link">
         
   
   
@@ -760,7 +446,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../Documentation_Standards/" class="md-nav__link">
+      <a href="../../../project/Documentation_Standards/" class="md-nav__link">
         
   
   
@@ -788,7 +474,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../Testing_Guide/" class="md-nav__link">
+      <a href="../../../project/Testing_Guide/" class="md-nav__link">
         
   
   
@@ -816,7 +502,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../Implementation_Roadmap/" class="md-nav__link">
+      <a href="../../../project/Implementation_Roadmap/" class="md-nav__link">
         
   
   
@@ -844,7 +530,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../Implementation_Status/" class="md-nav__link">
+      <a href="../../../project/Implementation_Status/" class="md-nav__link">
         
   
   
@@ -926,7 +612,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../platform/Dashboard_Design/" class="md-nav__link">
+      <a href="../../../platform/Dashboard_Design/" class="md-nav__link">
         
   
   
@@ -954,7 +640,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../platform/Component_Communication_Design/" class="md-nav__link">
+      <a href="../../../platform/Component_Communication_Design/" class="md-nav__link">
         
   
   
@@ -982,7 +668,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../platform/Shared_Data_Models_and_Error_Contracts/" class="md-nav__link">
+      <a href="../../../platform/Shared_Data_Models_and_Error_Contracts/" class="md-nav__link">
         
   
   
@@ -1010,7 +696,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../platform/Project0_Test_Plan/" class="md-nav__link">
+      <a href="../../../platform/Project0_Test_Plan/" class="md-nav__link">
         
   
   
@@ -1038,7 +724,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../platform/Project0_Test_Results/" class="md-nav__link">
+      <a href="../../../platform/Project0_Test_Results/" class="md-nav__link">
         
   
   
@@ -1120,7 +806,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../agents/documentation/Documentation_Agent_Charter/" class="md-nav__link">
+      <a href="../../documentation/Documentation_Agent_Charter/" class="md-nav__link">
         
   
   
@@ -1148,7 +834,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../agents/documentation/Documentation_Agent_Functional_Spec/" class="md-nav__link">
+      <a href="../../documentation/Documentation_Agent_Functional_Spec/" class="md-nav__link">
         
   
   
@@ -1176,7 +862,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../agents/documentation/Documentation_Agent_Architecture/" class="md-nav__link">
+      <a href="../../documentation/Documentation_Agent_Architecture/" class="md-nav__link">
         
   
   
@@ -1204,7 +890,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../agents/documentation/Documentation_Agent_Design/" class="md-nav__link">
+      <a href="../../documentation/Documentation_Agent_Design/" class="md-nav__link">
         
   
   
@@ -1232,7 +918,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../agents/documentation/Documentation_Agent_Interface_Design/" class="md-nav__link">
+      <a href="../../documentation/Documentation_Agent_Interface_Design/" class="md-nav__link">
         
   
   
@@ -1260,7 +946,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../agents/documentation/Documentation_Agent_Testing_Guide/" class="md-nav__link">
+      <a href="../../documentation/Documentation_Agent_Testing_Guide/" class="md-nav__link">
         
   
   
@@ -1288,7 +974,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../agents/documentation/Documentation_Agent_Test_Plan/" class="md-nav__link">
+      <a href="../../documentation/Documentation_Agent_Test_Plan/" class="md-nav__link">
         
   
   
@@ -1316,7 +1002,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../agents/documentation/Documentation_Agent_Test_Results/" class="md-nav__link">
+      <a href="../../documentation/Documentation_Agent_Test_Results/" class="md-nav__link">
         
   
   
@@ -1348,18 +1034,20 @@
       
   
   
+    
   
   
+  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
           <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
@@ -1380,7 +1068,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1398,7 +1086,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../agents/research/Research_Agent_Charter/" class="md-nav__link">
+      <a href="../Research_Agent_Charter/" class="md-nav__link">
         
   
   
@@ -1423,10 +1111,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../agents/research/Research_Agent_Functional_Spec/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Agent Functional Spec
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1442,6 +1157,142 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Purpose
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Purpose">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mission" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mission
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-design-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Design Principles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-responsibilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-inputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Inputs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-functional-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Functional Workflow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-success-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Success Criteria
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#101-revision-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.1 Revision Workflow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-future-enhancements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Future Enhancements
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1454,7 +1305,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../agents/research/Research_Agent_Architecture/" class="md-nav__link">
+      <a href="../Research_Agent_Architecture/" class="md-nav__link">
         
   
   
@@ -1482,7 +1333,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../agents/research/Research_Agent_Design/" class="md-nav__link">
+      <a href="../Research_Agent_Design/" class="md-nav__link">
         
   
   
@@ -1510,7 +1361,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../agents/research/Research_Agent_Interface_Design/" class="md-nav__link">
+      <a href="../Research_Agent_Interface_Design/" class="md-nav__link">
         
   
   
@@ -1538,7 +1389,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../agents/research/Research_Agent_Testing_Guide/" class="md-nav__link">
+      <a href="../Research_Agent_Testing_Guide/" class="md-nav__link">
         
   
   
@@ -1566,7 +1417,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../agents/research/Research_Agent_Test_Plan/" class="md-nav__link">
+      <a href="../Research_Agent_Test_Plan/" class="md-nav__link">
         
   
   
@@ -1594,7 +1445,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../agents/research/Research_Agent_Test_Results/" class="md-nav__link">
+      <a href="../Research_Agent_Test_Results/" class="md-nav__link">
         
   
   
@@ -1649,66 +1500,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-project-overview" class="md-nav__link">
+  <a href="#1-purpose" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Project Overview
+        1. Purpose
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#2-vision" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. Vision
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#3-mission" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Mission
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#4-project-objectives" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Project Objectives
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#5-scope" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. Scope
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="5. Scope">
+    <nav class="md-nav" aria-label="1. Purpose">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#included" class="md-nav__link">
+  <a href="#mission" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Included
+        Mission
       
     </span>
   </a>
@@ -1716,10 +1523,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#excluded-initial-release" class="md-nav__link">
+  <a href="#scope" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Excluded (Initial Release)
+        Scope
       
     </span>
   </a>
@@ -1732,10 +1539,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#6-guiding-principles" class="md-nav__link">
+  <a href="#2-design-principles" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6. Guiding Principles
+        2. Design Principles
       
     </span>
   </a>
@@ -1743,10 +1550,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#7-high-level-workflow" class="md-nav__link">
+  <a href="#3-responsibilities" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7. High-Level Workflow
+        3. Responsibilities
       
     </span>
   </a>
@@ -1754,10 +1561,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#8-initial-ai-agent-roles" class="md-nav__link">
+  <a href="#5-inputs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8. Initial AI Agent Roles
+        5. Inputs
       
     </span>
   </a>
@@ -1765,10 +1572,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#9-validation-strategy" class="md-nav__link">
+  <a href="#7-functional-workflow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9. Validation Strategy
+        7. Functional Workflow
       
     </span>
   </a>
@@ -1787,60 +1594,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#11-major-deliverables" class="md-nav__link">
+  <a href="#101-revision-workflow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        11. Major Deliverables
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="11. Major Deliverables">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#phase-1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Phase 1
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#phase-2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Phase 2
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#phase-3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Phase 3
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#12-risks" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        12. Risks
+        10.1 Revision Workflow
       
     </span>
   </a>
@@ -1848,65 +1605,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#13-assumptions" class="md-nav__link">
+  <a href="#11-future-enhancements" class="md-nav__link">
     <span class="md-ellipsis">
       
-        13. Assumptions
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#14-expected-outcome" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        14. Expected Outcome
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#15-suggested-success-metrics-kpis" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        15. Suggested Success Metrics (KPIs)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#16-documentation-philosophy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        16. Documentation Philosophy
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#17-framework-principle" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        17. Framework Principle
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#18-primary-success-objective" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        18. Primary Success Objective
+        11. Future Enhancements
       
     </span>
   </a>
@@ -1930,7 +1632,7 @@
 
 
   
-    <a href="https://github.com/pgailinas/project0/edit/main/docs/project/Project_Charter.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/pgailinas/project0/edit/main/docs/agents/research/Research_Agent_Functional_Spec.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -1938,156 +1640,156 @@
   
 
 
-<h1 id="project-charter">Project Charter</h1>
-<p><strong>Version:</strong> 0.2<br />
+<h1 id="research-agent-functional-specification">Research Agent Functional Specification</h1>
+<p><strong>Version:</strong> 0.1<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-07-31</p>
+<strong>Last Updated:</strong> 2026-08-20  </p>
 <hr />
-<h2 id="1-project-overview">1. Project Overview</h2>
-<p>Project0 is an AI-first software development framework intended to enable individuals and small startup teams to rapidly design, build, validate, deploy, and maintain software products using coordinated AI agents working alongside human oversight.</p>
-<p>Rather than replacing developers, Project0 treats AI as a specialized engineering team whose members each perform well-defined responsibilities within a structured development workflow.</p>
-<p>The objective is to dramatically reduce development cost and time while maintaining professional software engineering quality.</p>
-<p>Secondary Objective: Use Project0 as a vehicle for adopting and applying modern AI-assisted software development practices, tools, and workflows while building a production-quality software platform.</p>
+<h2 id="1-purpose">1. Purpose</h2>
+<h3 id="mission">Mission</h3>
+<p>Assist technical research by transforming research questions into
+structured, evidence-grounded research artifacts while minimizing manual
+effort and preserving human authority over research interpretation and
+direction.</p>
+<h3 id="scope">Scope</h3>
+<p>Define the Version 1 behavior of a standalone agent that accepts
+research questions, develops research strategies, discovers relevant
+technical papers through supported external research sources, retrieves
+paper metadata, evaluates paper relevance, produces structured research
+artifacts, preserves citation and source information, and presents
+research results for human review. The Research Agent is presented
+through the Project0 Dashboard Framework but remains independent of the
+dashboard infrastructure.</p>
 <hr />
-<h2 id="2-vision">2. Vision</h2>
-<p>Create a reusable AI-powered development platform capable of taking an idea from concept through production using structured workflows, autonomous AI specialists, continuous validation, and human approval checkpoints.</p>
-<hr />
-<h2 id="3-mission">3. Mission</h2>
-<p>Develop an open, modular, AI-native framework that enables new software projects to be initialized in less than one hour using proven industry-standard templates, automation, and reusable components.</p>
-<hr />
-<h2 id="4-project-objectives">4. Project Objectives</h2>
+<h2 id="2-design-principles">2. Design Principles</h2>
 <ul>
-<li>Define an AI-first development lifecycle.</li>
-<li>Utilize specialized AI agents for distinct engineering disciplines.</li>
-<li>Integrate automated testing and validation throughout development.</li>
-<li>Preserve human decision authority for architecture and release decisions.</li>
-<li>Encourage reuse of mature open-source tools rather than creating replacements.</li>
-<li>Support iterative development from prototype through production.</li>
-<li>Serve as a reusable foundation for future software projects.</li>
-<li>Provide reusable platform interfaces that allow Project0 services and AI agents to operate through consistent user interaction frameworks.</li>
+<li>Research outputs shall be grounded in identifiable sources.</li>
+<li>Human judgment remains authoritative for research direction and
+    conclusions.</li>
+<li>Preserve citation and source information for research findings.</li>
+<li>Prefer deterministic processing over AI judgment when practical.</li>
+<li>Favor open-source, local-first technologies where practical.</li>
+<li>Maintain a vendor-neutral architecture.</li>
+<li>Research artifacts are maintained as reusable project knowledge.</li>
+<li>External research source access shall use defined service
+    boundaries.</li>
+<li>AI-generated evaluation shall distinguish source information from
+    generated analysis.</li>
+<li>Initial implementation shall favor minimum necessary complexity
+    while providing useful research output.</li>
 </ul>
 <hr />
-<h2 id="5-scope">5. Scope</h2>
-<h3 id="included">Included</h3>
+<h2 id="3-responsibilities">3. Responsibilities</h2>
+<p>The Research Agent shall:</p>
 <ul>
-<li>Requirements engineering</li>
-<li>System architecture</li>
-<li>UI/UX planning</li>
-<li>Software implementation</li>
-<li>Documentation generation</li>
-<li>Automated testing</li>
-<li>Code review</li>
-<li>CI/CD support</li>
-<li>Deployment guidance</li>
-<li>Project management assistance</li>
-<li>Technical decision tracking</li>
-<li>Reusable platform interfaces and dashboard frameworks for interacting with Project0 services and AI agents</li>
-</ul>
-<h3 id="excluded-initial-release">Excluded (Initial Release)</h3>
-<ul>
-<li>Custom LLM development</li>
-<li>Training foundation models</li>
-<li>Proprietary cloud infrastructure</li>
-<li>Enterprise governance features</li>
-<li>Commercial licensing</li>
+<li>Accept and analyze research questions.</li>
+<li>Identify relevant research concepts and terminology.</li>
+<li>Generate a research strategy.</li>
+<li>Search supported external research sources.</li>
+<li>Retrieve available paper metadata.</li>
+<li>Identify research papers relevant to the research question.</li>
+<li>Evaluate and rank paper relevance.</li>
+<li>Preserve citation and source information.</li>
+<li>Summarize relevant technical papers.</li>
+<li>Compare research methods and approaches.</li>
+<li>Identify potential research gaps.</li>
+<li>Generate experiment planning suggestions.</li>
+<li>Produce structured research artifacts.</li>
+<li>Present research results for human review.</li>
 </ul>
 <hr />
-<h2 id="6-guiding-principles">6. Guiding Principles</h2>
+<h2 id="5-inputs">5. Inputs</h2>
 <ul>
-<li>AI-First</li>
-<li>Human-in-the-Loop</li>
-<li>Modular Architecture</li>
-<li>Reuse Before Build</li>
-<li>Continuous Validation</li>
-<li>Documentation by Default</li>
+<li>User research request</li>
+<li>Research question</li>
+<li>Optional research constraints</li>
+<li>Optional research terminology or focus areas</li>
+<li>Optional user-provided papers or references</li>
+<li>Supported external research sources</li>
+<li>Available paper metadata</li>
+<li>Project knowledge and existing research artifacts</li>
+<li>Project terminology and source-of-truth documentation</li>
 </ul>
+<p>When research constraints or source selections are omitted, the Research
+Agent uses the research question and available Project0 services to
+develop an appropriate research strategy.</p>
 <hr />
-<h2 id="7-high-level-workflow">7. High-Level Workflow</h2>
-<p>Idea → Requirements → Architecture → Implementation → Testing →
-Validation → Deployment → Maintenance</p>
-<hr />
-<h2 id="8-initial-ai-agent-roles">8. Initial AI Agent Roles</h2>
-<ul>
-<li>Project Manager</li>
-<li>Product Owner</li>
-<li>Business Analyst</li>
-<li>System Architect</li>
-<li>Software Engineer</li>
-<li>Front-End Engineer</li>
-<li>Back-End Engineer</li>
-<li>DevOps Engineer</li>
-<li>QA/Test Engineer</li>
-<li>Security Reviewer</li>
-<li>Documentation Engineer</li>
-<li>Release Manager</li>
-</ul>
-<hr />
-<h2 id="9-validation-strategy">9. Validation Strategy</h2>
-<p>Validation includes requirements consistency, architecture compliance, coding standards, unit testing, integration testing, security analysis, performance evaluation, documentation completeness, and release readiness. No project phase advances until defined validation criteria are satisfied.</p>
+<h2 id="7-functional-workflow">7. Functional Workflow</h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Research Request
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>      ↓
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Dashboard Framework (User Interface)
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>      ↓
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>Research Question Analysis
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>      ↓
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Research Strategy Generation
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>      ↓
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>External Research Source Search
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>      ↓
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>Paper Metadata Retrieval
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>      ↓
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>Candidate Paper Identification
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>      ↓
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>Paper Relevance Evaluation
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>      ↓
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>Research Knowledge Retrieval
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>      ↓
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>Paper Analysis
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>      ↓
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>Research Artifact Generation
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>      ↓
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>Citation and Source Tracking
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>      ↓
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>Validation Service
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>      ↓
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>User Review
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>      ↓
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>Research Result
+</span></code></pre></div>
 <hr />
 <h2 id="10-success-criteria">10. Success Criteria</h2>
+<p>The Research Agent is successful when it:</p>
 <ul>
-<li>Guide development from concept to deployment.</li>
-<li>Coordinate specialized AI roles effectively.</li>
-<li>Produce software with minimal manual coding.</li>
-<li>Automatically generate project documentation.</li>
-<li>Detect defects early through continuous validation.</li>
-<li>Support reuse across multiple future software projects.</li>
+<li>Correctly interprets a research question.</li>
+<li>Generates an appropriate research strategy.</li>
+<li>Discovers relevant papers through supported research sources.</li>
+<li>Retrieves and preserves available paper metadata.</li>
+<li>Identifies and ranks papers relevant to the research question.</li>
+<li>Produces useful, evidence-grounded paper summaries.</li>
+<li>Generates useful research comparison artifacts.</li>
+<li>Preserves citation and source information.</li>
+<li>Identifies potential research gaps supported by the reviewed
+    literature.</li>
+<li>Produces useful experiment planning suggestions.</li>
+<li>Produces outputs useful for ECE-551 Part 2 research activities.</li>
+<li>Operates through Project0's reusable platform architecture.</li>
 </ul>
 <hr />
-<h2 id="11-major-deliverables">11. Major Deliverables</h2>
-<h3 id="phase-1">Phase 1</h3>
+<h2 id="101-revision-workflow">10.1 Revision Workflow</h2>
+<p>The Research Agent shall support revision of generated research requests
+and research outputs.</p>
+<p>The agent shall:</p>
 <ul>
-<li>Project Charter</li>
-<li>Roadmap</li>
-<li>Requirements Specification</li>
-<li>Technology Survey &amp; Evaluation</li>
-<li>Architecture Document</li>
+<li>preserve the original research request</li>
+<li>preserve optional research constraints</li>
+<li>allow the user to update or append revision instructions</li>
+<li>resubmit revised requests through the standard workflow</li>
+<li>preserve source and citation information during revision</li>
 </ul>
-<h3 id="phase-2">Phase 2</h3>
+<p>The revision workflow improves human-in-the-loop control by allowing
+users to refine research direction and generated artifacts without
+restarting the research process.</p>
+<hr />
+<h2 id="11-future-enhancements">11. Future Enhancements</h2>
+<p>Not included in Version 1:</p>
 <ul>
-<li>AI Agent Specifications</li>
-<li>Workflow Definitions</li>
-<li>Validation Framework</li>
-<li>Repository Template</li>
-<li>Reference Implementation</li>
+<li>Semantic research retrieval</li>
+<li>Vector-based knowledge search</li>
+<li>Expanded research artifact types</li>
+<li>Multi-agent research workflows</li>
+<li>Scheduled research monitoring</li>
+<li>Automatic experiment execution</li>
+<li>Interactive dashboard visualizations for research workflows</li>
 </ul>
-<h3 id="phase-3">Phase 3</h3>
-<ul>
-<li>MVP Development</li>
-<li>End-to-End Demonstration</li>
-<li>Documentation</li>
-<li>Lessons Learned</li>
-</ul>
-<hr />
-<h2 id="12-risks">12. Risks</h2>
-<p>AI hallucinations, tool instability, rapid technology changes, over-automation, and scope growth will be mitigated through modular architecture, validation, phased delivery, and human approval gates.</p>
-<hr />
-<h2 id="13-assumptions">13. Assumptions</h2>
-<p>Modern LLMs continue improving, open-source AI tooling remains available, AI orchestration frameworks mature, and AI-assisted software engineering becomes increasingly common.</p>
-<hr />
-<h2 id="14-expected-outcome">14. Expected Outcome</h2>
-<p>Project0 establishes a repeatable AI-native software engineering methodology that can be reused for future software projects, enabling small teams to deliver professional-quality software through coordinated AI-assisted development.</p>
-<hr />
-<h2 id="15-suggested-success-metrics-kpis">15. Suggested Success Metrics (KPIs)</h2>
-<ul>
-<li>Time to MVP</li>
-<li>Human hours per feature</li>
-<li>AI-generated code acceptance rate</li>
-<li>Automated test pass rate</li>
-<li>Defect escape rate</li>
-<li>Documentation coverage</li>
-<li>Cost per completed feature</li>
-</ul>
-<hr />
-<h2 id="16-documentation-philosophy">16. Documentation Philosophy</h2>
-<p>Project0 documentation shall remain intentionally concise. Each document has a single purpose, avoids duplication, references authoritative sources instead of repeating content, and captures decisions rather than lengthy discussion. The framework and reusable assets are the primary product; documentation exists only to explain and support their use.</p>
-<hr />
-<h2 id="17-framework-principle">17. Framework Principle</h2>
-<p>Project0 shall adopt established industry terminology, standards, templates, and open-source components whenever practical. Reinvention is avoided unless it provides clear value.</p>
-<hr />
-<h2 id="18-primary-success-objective">18. Primary Success Objective</h2>
-<p>A new software project should be capable of being initialized in less than one hour by instantiating the Project0 framework using a standard project template, automation, reusable platform components, and supporting user interfaces.</p>
 
 
 
@@ -2143,14 +1845,14 @@ Validation → Deployment → Maintenance</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "content.action.edit"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
         <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
       
-        <script src="../../javascripts/mermaid.js"></script>
+        <script src="../../../javascripts/mermaid.js"></script>
       
     
   </body>
