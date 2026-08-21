@@ -647,6 +647,61 @@ Coordinate the complete Research Agent execution pipeline.
 
 ------------------------------------------------------------------------
 
+### Research Source Provider Design
+
+#### Purpose
+
+Define the provider-based design used to isolate external research
+source implementations from Research Agent workflow components.
+
+#### Design Notes
+
+The Research Source Service communicates through a typed provider
+interface rather than depending directly on a specific external research
+source implementation.
+
+Research source providers are responsible for retrieving research source
+references while preserving source identifiers and locations.
+
+Initial provider implementations include:
+
+-   Semantic Scholar Source Provider
+    -   Provides production research source access.
+    -   Retrieves identifiable research references from Semantic
+        Scholar.
+-   Stub Research Source Provider
+    -   Provides deterministic research source behavior.
+    -   Supports automated testing, demonstrations, and acceptance
+        validation without requiring external research source
+        availability.
+
+The provider abstraction allows Research Agent workflows to remain
+unchanged when external research sources are added, replaced, or tested
+through deterministic implementations.
+
+Initial provider interaction:
+
+``` text
+Research Workflow
+        |
+        v
+Research Source Service
+        |
+        v
+Research Source Provider Interface
+        |
+        +------------------------------+
+        |                              |
+        v                              v
+Semantic Scholar Provider        Stub Provider
+(production source)              (deterministic validation)
+```
+
+The provider design follows the Project0 principle that components
+depend on interfaces rather than concrete implementations.
+
+------------------------------------------------------------------------
+
 ### Revision Workflow Support
 
 The Research Workflow supports a revision path when a user requests

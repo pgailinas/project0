@@ -1,8 +1,8 @@
 # Research Agent Architecture
 
-**Version:** 0.1\
-**Owner:** Project0\
-**Last Updated:** 2026-08-20
+**Version:** 0.1  
+**Owner:** Project0  
+**Last Updated:** 2026-08-20  
 
 ------------------------------------------------------------------------
 
@@ -330,6 +330,59 @@ Responsibilities:
 -   Preserve source and citation information.
 -   Produce immutable Research Results.
 -   Support human review of research outputs.
+
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+## Research Source Provider Architecture
+
+The Research Agent uses a provider-based architecture to isolate
+external research source implementations from Research Agent workflow
+execution.
+
+The Research Source Service communicates through a typed Research Source
+Provider interface rather than directly depending on a specific external
+research source implementation.
+
+Supported research source providers include:
+
+-   Semantic Scholar Source Provider
+    -   Provides production research source access through Semantic
+        Scholar.
+    -   Retrieves identifiable research references from an external
+        research source.
+-   Stub Research Source Provider
+    -   Provides deterministic research source behavior for testing,
+        demonstrations, and acceptance validation.
+    -   Allows workflow validation without requiring external research
+        source availability.
+
+The provider abstraction preserves the existing workflow architecture
+while allowing research sources to be replaced or extended without
+changing Research Agent workflow components.
+
+Initial provider architecture:
+
+``` text
+Research Workflow
+        |
+        v
+Research Source Service
+        |
+        v
+Research Source Provider Interface
+        |
+        +------------------------------+
+        |                              |
+        v                              v
+Semantic Scholar Provider        Stub Provider
+(production source)              (deterministic validation)
+```
+
+The provider abstraction supports the Project0 architectural principle
+that platform components depend on interfaces rather than concrete
+implementations.
 
 ------------------------------------------------------------------------
 

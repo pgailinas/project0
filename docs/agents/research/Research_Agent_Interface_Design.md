@@ -45,6 +45,52 @@ interfaces and are implemented by the Research Agent UI components.
 
 ------------------------------------------------------------------------
 
+## Research Source Provider Interface Contract
+
+The Research Agent isolates external research source implementations
+through Research Source interfaces.
+
+The interface contract allows the Research Workflow and Research Source
+Service to depend on source capabilities rather than specific external
+provider implementations.
+
+Initial provider implementations include:
+
+-   Semantic Scholar Source Provider
+    -   Supports production research source retrieval.
+    -   Provides identifiable research source references for downstream
+        metadata retrieval and evaluation.
+-   Stub Research Source Provider
+    -   Supports deterministic research workflow validation.
+    -   Provides controlled research source behavior for testing,
+        demonstrations, and acceptance workflows.
+
+Research source providers preserve source identifiers and citation
+information through the shared interface contracts.
+
+Provider interaction model:
+
+``` text
+Research Workflow
+        |
+        v
+Research Source Service
+        |
+        v
+Research Source Provider Interface
+        |
+        +------------------------------+
+        |                              |
+        v                              v
+Semantic Scholar Provider        Stub Provider
+(production source)              (deterministic validation)
+```
+
+The interface contract allows additional research sources to be added
+without modifying Research Agent workflow behavior.
+
+------------------------------------------------------------------------
+
 ## Revision Workflow Interface Behavior
 
 Research Agent interfaces support revision of generated research
