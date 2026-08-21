@@ -24,6 +24,12 @@ from project0.agents.documentation.documentation_agent_routes import (
 from project0.agents.documentation.documentation_agent_ui_service import (
     DocumentationAgentUIService,
 )
+from project0.agents.research.research_agent_routes import (
+    create_research_agent_router,
+)
+from project0.agents.research.research_agent_ui_service import (
+    ResearchAgentUIService,
+)
 from project0.common.logging_config import configure_logging
 from project0.config.settings import SETTINGS
 from project0.dashboard.dashboard_routes import create_dashboard_router
@@ -43,6 +49,7 @@ ApplicationFactory = Callable[[], FastAPI]
 def create_dashboard_app(
     project_root: Path | None = None,
     documentation_agent_ui_service: DocumentationAgentUIService | None = None,
+    research_agent_ui_service: ResearchAgentUIService | None = None,
 ) -> FastAPI:
     """Create and configure the Project0 Dashboard application."""
 
@@ -102,6 +109,42 @@ def create_dashboard_app(
                     directory=documentation_agent_static_directory
                 ),
                 name="documentation-agent-static",
+            )
+
+    if research_agent_ui_service is not None:
+        research_agent_root = (
+            dashboard_root.parent / "agents" / "research"
+        )
+        research_agent_templates = Jinja2Templates(
+            directory=[
+                str(dashboard_root / "templates"),
+                str(research_agent_root / "templates"),
+            ]
+        )
+
+        application.state.research_agent_root = research_agent_root
+        application.state.research_agent_ui_service = (
+            research_agent_ui_service
+        )
+
+        application.include_router(
+            create_research_agent_router(
+                ui_service=research_agent_ui_service,
+                templates=research_agent_templates,
+            )
+        )
+
+        research_agent_static_directory = (
+            research_agent_root / "css"
+        )
+
+        if research_agent_static_directory.is_dir():
+            application.mount(
+                "/agents/research/css",
+                StaticFiles(
+                    directory=research_agent_static_directory
+                ),
+                name="research-agent-static",
             )
 
     application.include_router(
@@ -175,10 +218,17 @@ def create_project0_dashboard_app() -> FastAPI:
         workflow=dispatcher,
     )
 
+    research_agent_ui_service = ResearchAgentUIService(
+        workflow=dispatcher,
+    )
+
     return create_dashboard_app(
         project_root=SETTINGS.project_root,
         documentation_agent_ui_service=(
             documentation_agent_ui_service
+        ),
+        research_agent_ui_service=(
+            research_agent_ui_service
         ),
     )
 

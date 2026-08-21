@@ -19,6 +19,21 @@ from uuid import uuid4
 from project0.artifacts.artifact_location_service import (
     ArtifactLocationService,
 )
+from project0.agents.research.paper_metadata_service import (
+    PaperMetadataService,
+)
+from project0.agents.research.research_artifact_service import (
+    ResearchArtifactService,
+)
+from project0.agents.research.research_evaluation_service import (
+    ResearchEvaluationService,
+)
+from project0.agents.research.research_source_service import (
+    ResearchSourceService,
+)
+from project0.agents.research.research_strategy_service import (
+    ResearchStrategyService,
+)
 from project0.common.startup_validation import validate_startup
 from project0.config.settings import SETTINGS, ProjectSettings
 from project0.interfaces.context_builder_interfaces import (
@@ -29,6 +44,9 @@ from project0.interfaces.documentation_workflow_interfaces import (
 )
 from project0.interfaces.reasoning_interfaces import (
     ReasoningProviderProtocol,
+)
+from project0.interfaces.research_interfaces import (
+    ResearchWorkflowProtocol,
 )
 from project0.interfaces.repository_interfaces import RepositoryInterface
 from project0.interfaces.workflow_interfaces import WorkflowInterface
@@ -42,6 +60,10 @@ from project0.models.documentation_workflow_models import (
     DocumentationWorkflowState,
 )
 from project0.models.knowledge_models import KnowledgeRequest
+from project0.models.research_models import (
+    ResearchRequest,
+    ResearchResult,
+)
 from project0.models.workflow_models import (
     WorkflowExecutionResult,
     WorkflowTask,
@@ -58,6 +80,7 @@ from project0.validation.markdown_validator import MarkdownValidator
 from project0.validation.mkdocs_validator import MkDocsValidator
 from project0.validation.validation_service import ValidationService
 from project0.workflow.documentation_workflow import DocumentationWorkflow
+from project0.workflow.research_workflow import ResearchWorkflow
 from project0.workflow.review_coordinator import (
     ReviewCoordinator,
     ReviewDecisionProvider,
@@ -73,6 +96,7 @@ class PlatformDispatcher:
     context_builder: ContextBuilderInterface
     workflow_engine: WorkflowInterface
     documentation_workflow: DocumentationWorkflowInterface | None = None
+    research_workflow: ResearchWorkflowProtocol | None = None
 
     def run_context_workflow(
         self,
@@ -126,6 +150,32 @@ class PlatformDispatcher:
                 user_request=user_request,
                 target_paths=target_paths,
                 workflow_id=workflow_id or str(uuid4()),
+            )
+        )
+
+    def run_research_workflow(
+        self,
+        question: str,
+        constraints: tuple[str, ...] = (),
+        focus_areas: tuple[str, ...] = (),
+        source_names: tuple[str, ...] = (),
+    ) -> ResearchResult:
+        """Execute the configured Research Agent workflow."""
+
+        if self.research_workflow is None:
+            raise RuntimeError(
+                "The research workflow is not configured."
+            )
+
+        if not question.strip():
+            raise ValueError("Research question cannot be empty.")
+
+        return self.research_workflow.execute(
+            ResearchRequest(
+                question=question,
+                constraints=constraints,
+                focus_areas=focus_areas,
+                source_names=source_names,
             )
         )
 
@@ -210,11 +260,17 @@ def create_platform_dispatcher(
         review_decision_provider=review_decision_provider,
     )
 
+    research_workflow = _create_research_workflow(
+        reasoning_provider=reasoning_provider,
+        reasoning_model_name=reasoning_model_name,
+    )
+
     return PlatformDispatcher(
         repository=repository,
         context_builder=context_builder,
         workflow_engine=workflow_engine,
         documentation_workflow=documentation_workflow,
+        research_workflow=research_workflow,
     )
 
 
@@ -295,3 +351,30 @@ def _create_documentation_workflow(
         ),
         git_diff_service=GitDiffService(repository_root),
     )
+
+def _create_research_workflow(
+    reasoning_provider: ReasoningProviderProtocol | None,
+    reasoning_model_name: str | None,
+) -> ResearchWorkflowProtocol | None:
+    """Assemble the research workflow when dependencies are supplied."""
+
+    if reasoning_provider is None:
+        return None
+
+    if reasoning_model_name is None:
+        raise ValueError(
+            "A reasoning model name is required to configure "
+            "the research workflow."
+        )
+
+    return ResearchWorkflow(
+        strategy_service=ResearchStrategyService(),
+        source_service=ResearchSourceService(),
+        metadata_service=PaperMetadataService(),
+        evaluation_service=ResearchEvaluationService(
+            provider=reasoning_provider,
+            model_name=reasoning_model_name,
+        ),
+        artifact_service=ResearchArtifactService(),
+    )
+

@@ -1,0 +1,598 @@
+{% extends "dashboard.html" %}
+
+{% block page_title %}Research Agent{% endblock %}
+
+{% block page_styles %}
+<link
+    rel="stylesheet"
+    href="/agents/research/css/research_agent.css"
+>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/">Project0</a>
+    <span aria-hidden="true">/</span>
+    <span>Research Agent</span>
+</nav>
+{% endblock %}
+
+{% block context_toolbar %}
+<div class="context-toolbar__group">
+    <a
+        class="button button--secondary"
+        href="/agents/research"
+    >
+        New Request
+    </a>
+</div>
+{% endblock %}
+
+{% block work_area %}
+<section
+    class="agent-work-area research-agent"
+    aria-labelledby="research-agent-title"
+>
+    <header class="work-area-header">
+        <div>
+            <p class="work-area-eyebrow">AI Agent</p>
+            <h1 id="research-agent-title">Research Agent</h1>
+            <p>
+                Submit a research question, discover relevant papers,
+                evaluate relevance, and review generated research artifacts.
+            </p>
+        </div>
+
+        <div
+            class="status-badge status-badge--{{ page.page_status.value }}"
+            aria-label="Workflow status"
+        >
+            {{ page.page_status.value | replace("_", " ") | title }}
+        </div>
+    </header>
+
+    <section
+        class="workflow-progress workflow-progress--{{ page.page_status.value }}"
+        aria-labelledby="research-workflow-progress-title"
+    >
+        <div class="workflow-progress__heading">
+            <div>
+                <p class="panel-eyebrow">Workflow</p>
+                <h2 id="research-workflow-progress-title">
+                    Research Workflow
+                </h2>
+            </div>
+
+            <p>{{ page.status_message }}</p>
+        </div>
+
+        <ol class="workflow-progress__steps">
+            <li class="workflow-progress__step workflow-progress__step--request">
+                <span class="workflow-progress__marker" aria-hidden="true"></span>
+                <span class="workflow-progress__label">Request</span>
+            </li>
+            <li class="workflow-progress__step workflow-progress__step--strategy">
+                <span class="workflow-progress__marker" aria-hidden="true"></span>
+                <span class="workflow-progress__label">Strategy</span>
+            </li>
+            <li class="workflow-progress__step workflow-progress__step--source">
+                <span class="workflow-progress__marker" aria-hidden="true"></span>
+                <span class="workflow-progress__label">Source Search</span>
+            </li>
+            <li class="workflow-progress__step workflow-progress__step--metadata">
+                <span class="workflow-progress__marker" aria-hidden="true"></span>
+                <span class="workflow-progress__label">Metadata</span>
+            </li>
+            <li class="workflow-progress__step workflow-progress__step--evaluation">
+                <span class="workflow-progress__marker" aria-hidden="true"></span>
+                <span class="workflow-progress__label">Evaluation</span>
+            </li>
+            <li class="workflow-progress__step workflow-progress__step--artifacts">
+                <span class="workflow-progress__marker" aria-hidden="true"></span>
+                <span class="workflow-progress__label">Artifacts</span>
+            </li>
+            <li class="workflow-progress__step workflow-progress__step--complete">
+                <span class="workflow-progress__marker" aria-hidden="true"></span>
+                <span class="workflow-progress__label">Complete</span>
+            </li>
+        </ol>
+    </section>
+
+    {% if page.error_message %}
+    <section
+        class="message-panel message-panel--error"
+        role="alert"
+        aria-labelledby="research-error-title"
+    >
+        <h2 id="research-error-title">Research Workflow Error</h2>
+        <p>{{ page.error_message }}</p>
+    </section>
+    {% endif %}
+
+    {% if page.warnings %}
+    <section
+        class="message-panel message-panel--warning"
+        aria-labelledby="research-warning-title"
+    >
+        <h2 id="research-warning-title">Warnings</h2>
+        <ul>
+            {% for warning in page.warnings %}
+            <li>{{ warning }}</li>
+            {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+
+    <section
+        class="content-panel"
+        aria-labelledby="research-request-title"
+    >
+        <div class="panel-heading">
+            <div>
+                <p class="panel-eyebrow">Request</p>
+                <h2 id="research-request-title">
+                    Research Request
+                </h2>
+            </div>
+        </div>
+
+        <form
+            id="research-request-form"
+            class="research-request-form"
+            method="post"
+            action="/agents/research/request"
+        >
+            <div class="form-field">
+                <label for="question">Research question</label>
+                <textarea
+                    id="question"
+                    name="question"
+                    rows="6"
+                    required
+                    placeholder="Describe the research question to investigate."
+                >{{ page.request_form.question }}</textarea>
+                <p class="form-help">
+                    Describe the research problem, desired outcome, and
+                    questions the Research Agent should investigate.
+                </p>
+            </div>
+
+            <div class="form-field">
+                <label for="constraints">Research constraints</label>
+                <textarea
+                    id="constraints"
+                    name="constraints"
+                    rows="4"
+                    placeholder="Prefer recent peer-reviewed research."
+                >{% for value in page.request_form.constraints %}{{ value }}{% if not loop.last %}
+{% endif %}{% endfor %}</textarea>
+                <p class="form-help">
+                    Optional. Enter one research constraint per line.
+                </p>
+            </div>
+
+            <div class="form-field">
+                <label for="focus-areas">Focus areas</label>
+                <textarea
+                    id="focus-areas"
+                    name="focus_areas"
+                    rows="4"
+                    placeholder="vision-language alignment"
+                >{% for value in page.request_form.focus_areas %}{{ value }}{% if not loop.last %}
+{% endif %}{% endfor %}</textarea>
+                <p class="form-help">
+                    Optional. Enter one research focus area per line.
+                </p>
+            </div>
+
+            <div class="form-field">
+                <label for="source-names">Research sources</label>
+                <textarea
+                    id="source-names"
+                    name="source_names"
+                    rows="3"
+                    placeholder="semantic_scholar"
+                >{% for value in page.request_form.source_names %}{{ value }}{% if not loop.last %}
+{% endif %}{% endfor %}</textarea>
+                <p class="form-help">
+                    Optional. Enter one supported research source per line.
+                </p>
+            </div>
+
+            <div class="form-actions research-request-actions">
+                <button
+                    id="research-request-submit"
+                    class="button button--primary"
+                    type="submit"
+                >
+                    <span class="research-request-submit__label">
+                        Submit Research Request
+                    </span>
+                </button>
+
+                <div
+                    id="research-processing"
+                    class="research-processing"
+                    aria-live="polite"
+                    aria-hidden="true"
+                >
+                    <div
+                        class="research-processing__indicator"
+                        aria-hidden="true"
+                    >
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span class="research-processing__message">
+                        Searching and evaluating research...
+                    </span>
+                </div>
+            </div>
+        </form>
+    </section>
+
+    {% if page.sources %}
+    <section
+        class="content-panel"
+        aria-labelledby="research-sources-title"
+    >
+        <div class="panel-heading">
+            <div>
+                <p class="panel-eyebrow">Discovery</p>
+                <h2 id="research-sources-title">
+                    Research Sources
+                </h2>
+            </div>
+        </div>
+
+        <div class="proposal-list">
+            {% for source in page.sources %}
+            <article class="proposal-card">
+                <header class="proposal-card__header">
+                    <div>
+                        <p class="proposal-card__number">
+                            Source {{ loop.index }} of {{ page.sources | length }}
+                        </p>
+                        <h3>{{ source.title }}</h3>
+                    </div>
+                </header>
+
+                <dl class="validation-summary">
+                    <div>
+                        <dt>Source</dt>
+                        <dd>{{ source.source_name }}</dd>
+                    </div>
+                    <div>
+                        <dt>Source ID</dt>
+                        <dd>{{ source.source_id }}</dd>
+                    </div>
+                    {% if source.publication_year %}
+                    <div>
+                        <dt>Year</dt>
+                        <dd>{{ source.publication_year }}</dd>
+                    </div>
+                    {% endif %}
+                </dl>
+
+                {% if source.authors %}
+                <p>
+                    <strong>Authors:</strong>
+                    {{ source.authors | join(", ") }}
+                </p>
+                {% endif %}
+
+                {% if source.source_url %}
+                <p>
+                    <a href="{{ source.source_url }}">
+                        View research source
+                    </a>
+                </p>
+                {% endif %}
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if page.papers %}
+    <section
+        class="content-panel"
+        aria-labelledby="research-papers-title"
+    >
+        <div class="panel-heading">
+            <div>
+                <p class="panel-eyebrow">Metadata</p>
+                <h2 id="research-papers-title">
+                    Paper Metadata
+                </h2>
+            </div>
+        </div>
+
+        <div class="proposal-list">
+            {% for paper in page.papers %}
+            <article class="proposal-card">
+                <header class="proposal-card__header">
+                    <div>
+                        <p class="proposal-card__number">
+                            Paper {{ loop.index }} of {{ page.papers | length }}
+                        </p>
+                        <h3>{{ paper.title }}</h3>
+                    </div>
+                </header>
+
+                {% if paper.authors %}
+                <p>
+                    <strong>Authors:</strong>
+                    {{ paper.authors | join(", ") }}
+                </p>
+                {% endif %}
+
+                <dl class="validation-summary">
+                    {% if paper.publication_year %}
+                    <div>
+                        <dt>Year</dt>
+                        <dd>{{ paper.publication_year }}</dd>
+                    </div>
+                    {% endif %}
+                    {% if paper.venue %}
+                    <div>
+                        <dt>Venue</dt>
+                        <dd>{{ paper.venue }}</dd>
+                    </div>
+                    {% endif %}
+                    {% if paper.doi %}
+                    <div>
+                        <dt>DOI</dt>
+                        <dd>{{ paper.doi }}</dd>
+                    </div>
+                    {% endif %}
+                </dl>
+
+                {% if paper.abstract %}
+                <div>
+                    <h4>Abstract</h4>
+                    <p>{{ paper.abstract }}</p>
+                </div>
+                {% endif %}
+
+                {% if paper.source_url %}
+                <p>
+                    <a href="{{ paper.source_url }}">
+                        View paper source
+                    </a>
+                </p>
+                {% endif %}
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if page.evaluations %}
+    <section
+        class="content-panel"
+        aria-labelledby="research-evaluations-title"
+    >
+        <div class="panel-heading">
+            <div>
+                <p class="panel-eyebrow">Evaluation</p>
+                <h2 id="research-evaluations-title">
+                    Research Evaluation
+                </h2>
+            </div>
+        </div>
+
+        <div class="proposal-list">
+            {% for evaluation in page.evaluations %}
+            <article class="proposal-card">
+                <header class="proposal-card__header">
+                    <div>
+                        <p class="proposal-card__number">
+                            Evaluation {{ loop.index }} of {{ page.evaluations | length }}
+                        </p>
+                        <h3>{{ evaluation.title }}</h3>
+                    </div>
+
+                    {% if evaluation.relevance_score is not none %}
+                    <span class="status-badge">
+                        Relevance {{ evaluation.relevance_score }}
+                    </span>
+                    {% endif %}
+                </header>
+
+                <p>{{ evaluation.relevance_summary }}</p>
+
+                {% if evaluation.strengths %}
+                <div>
+                    <h4>Strengths</h4>
+                    <ul>
+                        {% for item in evaluation.strengths %}
+                        <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if evaluation.limitations %}
+                <div>
+                    <h4>Limitations</h4>
+                    <ul>
+                        {% for item in evaluation.limitations %}
+                        <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if evaluation.research_connections %}
+                <div>
+                    <h4>Research Connections</h4>
+                    <ul>
+                        {% for item in evaluation.research_connections %}
+                        <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if evaluation.warnings %}
+                <div class="review-feedback">
+                    <h4>Evaluation Warnings</h4>
+                    <ul>
+                        {% for warning in evaluation.warnings %}
+                        <li>{{ warning }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if page.artifacts %}
+    <section
+        class="content-panel"
+        aria-labelledby="research-artifacts-title"
+    >
+        <div class="panel-heading">
+            <div>
+                <p class="panel-eyebrow">Artifacts</p>
+                <h2 id="research-artifacts-title">
+                    Research Artifacts
+                </h2>
+            </div>
+        </div>
+
+        <div class="proposal-list">
+            {% for artifact in page.artifacts %}
+            <article class="proposal-card">
+                <header class="proposal-card__header">
+                    <div>
+                        <p class="proposal-card__number">
+                            Artifact {{ loop.index }} of {{ page.artifacts | length }}
+                        </p>
+                        <h3>{{ artifact.title }}</h3>
+                    </div>
+
+                    <span class="status-badge">
+                        {{ artifact.artifact_type.value
+                            | replace("_", " ")
+                            | title }}
+                    </span>
+                </header>
+
+                <div class="review-feedback">
+                    <p>{{ artifact.content }}</p>
+                </div>
+
+                {% if artifact.source_ids %}
+                <div>
+                    <h4>Source References</h4>
+                    <ul>
+                        {% for source_id in artifact.source_ids %}
+                        <li><code>{{ source_id }}</code></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if page.workflow_summary %}
+    <section
+        class="content-panel"
+        aria-labelledby="workflow-summary-title"
+    >
+        <div class="panel-heading">
+            <div>
+                <p class="panel-eyebrow">Summary</p>
+                <h2 id="workflow-summary-title">Workflow Summary</h2>
+            </div>
+        </div>
+
+        <dl class="workflow-summary-grid">
+            <div>
+                <dt>Sources</dt>
+                <dd>{{ page.workflow_summary.source_count }}</dd>
+            </div>
+            <div>
+                <dt>Papers</dt>
+                <dd>{{ page.workflow_summary.paper_count }}</dd>
+            </div>
+            <div>
+                <dt>Evaluations</dt>
+                <dd>{{ page.workflow_summary.evaluation_count }}</dd>
+            </div>
+            <div>
+                <dt>Artifacts</dt>
+                <dd>{{ page.workflow_summary.artifact_count }}</dd>
+            </div>
+        </dl>
+    </section>
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("research-request-form");
+
+    if (!form) {
+        return;
+    }
+
+    form.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        const submitButton = document.getElementById(
+            "research-request-submit"
+        );
+        const submitLabel = submitButton?.querySelector(
+            ".research-request-submit__label"
+        );
+        const processingPanel = document.getElementById(
+            "research-processing"
+        );
+        const workflowProgress = document.querySelector(
+            ".workflow-progress"
+        );
+
+        if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.setAttribute("aria-disabled", "true");
+        }
+
+        if (submitLabel) {
+            submitLabel.textContent = "Processing...";
+        }
+
+        if (processingPanel) {
+            processingPanel.classList.add(
+                "research-processing--active"
+            );
+            processingPanel.setAttribute("aria-hidden", "false");
+        }
+
+        if (workflowProgress) {
+            workflowProgress.classList.add(
+                "workflow-progress--client-processing"
+            );
+        }
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                form.submit();
+            });
+        });
+    });
+});
+</script>
+{% endblock %}
