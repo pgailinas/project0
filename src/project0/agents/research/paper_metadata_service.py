@@ -52,6 +52,14 @@ class PaperMetadataService:
                 )
                 continue
 
+            if reference.source_name == "stub":
+                papers.append(
+                    self._create_stub_metadata(
+                        reference
+                    )
+                )
+                continue
+
             raise ValueError(
                 "Unsupported research metadata source: "
                 f"{reference.source_name}"
@@ -170,6 +178,29 @@ class PaperMetadataService:
             source_url=source_url,
             metadata={
                 "paper_id": paper_id,
+            },
+        )
+
+    def _create_stub_metadata(
+        self,
+        reference: ResearchSourceReference,
+    ) -> PaperMetadata:
+        """Create deterministic metadata for stub research sources."""
+
+        return PaperMetadata(
+            source_reference=reference,
+            title=reference.title,
+            authors=reference.authors,
+            publication_year=reference.publication_year,
+            abstract=(
+                "Deterministic Project0 stub metadata "
+                "for acceptance testing."
+            ),
+            venue="Project0 Research Stub",
+            source_url=reference.source_url,
+            metadata={
+                "paper_id": reference.source_id,
+                "source": "stub",
             },
         )
 

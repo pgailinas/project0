@@ -112,7 +112,7 @@ def test_UI_RA_FUN_001_research_request_form_accepts_input(
     )
 
     source_names_text = (
-        "semantic_scholar"
+        "stub"
     )
 
     question_field.fill(question_text)
@@ -168,7 +168,7 @@ def test_UI_RA_FUN_001_research_request_submission_starts_processing(
     )
 
     source_names_field.fill(
-        "semantic_scholar"
+        "stub"
     )
 
     page.evaluate(

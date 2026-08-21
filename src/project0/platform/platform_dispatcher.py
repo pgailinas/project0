@@ -87,6 +87,17 @@ from project0.workflow.review_coordinator import (
 )
 from project0.workflow.workflow_engine import WorkflowEngine
 
+from project0.agents.research.semantic_scholar_source_provider import (
+    SemanticScholarSourceProvider,
+)
+from project0.agents.research.stub_research_source_provider import (
+    StubResearchSourceProvider,
+)
+
+from project0.models.research_models import (
+    ResearchSourceReference,
+)
+
 
 @dataclass(slots=True)
 class PlatformDispatcher:
@@ -369,7 +380,30 @@ def _create_research_workflow(
 
     return ResearchWorkflow(
         strategy_service=ResearchStrategyService(),
-        source_service=ResearchSourceService(),
+        source_service=ResearchSourceService(
+            providers={
+                "semantic_scholar": SemanticScholarSourceProvider(),
+                "stub": StubResearchSourceProvider(
+                    references=(
+                        ResearchSourceReference(
+                            source_name="stub",
+                            source_id="stub-paper-001",
+                            title=(
+                                "Self-Supervised Video Representation "
+                                "Learning for VideoQA"
+                            ),
+                            source_url=(
+                                "https://example.com/stub-paper-001"
+                            ),
+                            authors=(
+                                "Project0 Research Stub",
+                            ),
+                            publication_year=2026,
+                        ),
+                    ),
+                ),
+            },
+        ),
         metadata_service=PaperMetadataService(),
         evaluation_service=ResearchEvaluationService(
             provider=reasoning_provider,

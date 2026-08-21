@@ -47,7 +47,7 @@ def _submit_research_request(page: Page):
     page.get_by_placeholder(
         "semantic_scholar"
     ).fill(
-        "semantic_scholar"
+        "stub"
     )
 
     page.get_by_role(
@@ -61,7 +61,7 @@ def _submit_research_request(page: Page):
             name="Research Artifacts",
         )
     ).to_be_visible(
-        timeout=300000
+        timeout=30000
     )
 
 

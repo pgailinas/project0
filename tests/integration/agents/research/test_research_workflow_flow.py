@@ -41,6 +41,10 @@ from project0.models.research_models import (
 )
 from project0.workflow.research_workflow import ResearchWorkflow
 
+from project0.agents.research.semantic_scholar_source_provider import (
+    SemanticScholarSourceProvider,
+)
+
 
 class StubReasoningProvider:
     """Return deterministic research evaluation output."""
@@ -185,7 +189,11 @@ def _create_workflow(
     return ResearchWorkflow(
         strategy_service=ResearchStrategyService(),
         source_service=ResearchSourceService(
-            maximum_results=5,
+            providers={
+                "semantic_scholar": SemanticScholarSourceProvider(
+                    maximum_results=5,
+                ),
+            },
         ),
         metadata_service=PaperMetadataService(),
         evaluation_service=ResearchEvaluationService(
