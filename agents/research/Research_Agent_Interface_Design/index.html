@@ -1286,6 +1286,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#research-source-provider-interface-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research Source Provider Interface Contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#revision-workflow-interface-behavior" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1451,6 +1462,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#research-source-provider-interface-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research Source Provider Interface Contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#revision-workflow-interface-behavior" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1521,6 +1543,47 @@ preserved through interface contracts so that generated research
 artifacts remain traceable to identifiable research sources.</p>
 <p>Agent-specific UI behavior and presentation details remain outside these
 interfaces and are implemented by the Research Agent UI components.</p>
+<hr />
+<h2 id="research-source-provider-interface-contract">Research Source Provider Interface Contract</h2>
+<p>The Research Agent isolates external research source implementations
+through Research Source interfaces.</p>
+<p>The interface contract allows the Research Workflow and Research Source
+Service to depend on source capabilities rather than specific external
+provider implementations.</p>
+<p>Initial provider implementations include:</p>
+<ul>
+<li>Semantic Scholar Source Provider<ul>
+<li>Supports production research source retrieval.</li>
+<li>Provides identifiable research source references for downstream
+    metadata retrieval and evaluation.</li>
+</ul>
+</li>
+<li>Stub Research Source Provider<ul>
+<li>Supports deterministic research workflow validation.</li>
+<li>Provides controlled research source behavior for testing,
+    demonstrations, and acceptance workflows.</li>
+</ul>
+</li>
+</ul>
+<p>Research source providers preserve source identifiers and citation
+information through the shared interface contracts.</p>
+<p>Provider interaction model:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Research Workflow
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>        |
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        v
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>Research Source Service
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        |
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        v
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Research Source Provider Interface
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        |
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        +------------------------------+
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        |                              |
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        v                              v
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>Semantic Scholar Provider        Stub Provider
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>(production source)              (deterministic validation)
+</span></code></pre></div>
+<p>The interface contract allows additional research sources to be added
+without modifying Research Agent workflow behavior.</p>
 <hr />
 <h2 id="revision-workflow-interface-behavior">Revision Workflow Interface Behavior</h2>
 <p>Research Agent interfaces support revision of generated research

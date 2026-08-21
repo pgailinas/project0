@@ -1440,6 +1440,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#research-source-provider-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research Source Provider Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#5-external-dependencies" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1893,6 +1904,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#research-source-provider-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research Source Provider Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#5-external-dependencies" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1951,9 +1973,9 @@
 
 
 <h1 id="research-agent-architecture">Research Agent Architecture</h1>
-<p><strong>Version:</strong> 0.1\
-<strong>Owner:</strong> Project0\
-<strong>Last Updated:</strong> 2026-08-20</p>
+<p><strong>Version:</strong> 0.1<br />
+<strong>Owner:</strong> Project0<br />
+<strong>Last Updated:</strong> 2026-08-20  </p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="objective">Objective</h3>
@@ -2228,6 +2250,53 @@ Research Strategy.</p>
 <li>Produce immutable Research Results.</li>
 <li>Support human review of research outputs.</li>
 </ul>
+<hr />
+<hr />
+<h2 id="research-source-provider-architecture">Research Source Provider Architecture</h2>
+<p>The Research Agent uses a provider-based architecture to isolate
+external research source implementations from Research Agent workflow
+execution.</p>
+<p>The Research Source Service communicates through a typed Research Source
+Provider interface rather than directly depending on a specific external
+research source implementation.</p>
+<p>Supported research source providers include:</p>
+<ul>
+<li>Semantic Scholar Source Provider<ul>
+<li>Provides production research source access through Semantic
+    Scholar.</li>
+<li>Retrieves identifiable research references from an external
+    research source.</li>
+</ul>
+</li>
+<li>Stub Research Source Provider<ul>
+<li>Provides deterministic research source behavior for testing,
+    demonstrations, and acceptance validation.</li>
+<li>Allows workflow validation without requiring external research
+    source availability.</li>
+</ul>
+</li>
+</ul>
+<p>The provider abstraction preserves the existing workflow architecture
+while allowing research sources to be replaced or extended without
+changing Research Agent workflow components.</p>
+<p>Initial provider architecture:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Research Workflow
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>        |
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        v
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>Research Source Service
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        |
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        v
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Research Source Provider Interface
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        |
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        +------------------------------+
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        |                              |
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        v                              v
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>Semantic Scholar Provider        Stub Provider
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>(production source)              (deterministic validation)
+</span></code></pre></div>
+<p>The provider abstraction supports the Project0 architectural principle
+that platform components depend on interfaces rather than concrete
+implementations.</p>
 <hr />
 <h2 id="5-external-dependencies">5. External Dependencies</h2>
 <p>The Research Agent interacts with:</p>

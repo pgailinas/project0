@@ -77,6 +77,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#research-agent-testing-guide" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -1227,6 +1232,26 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Agent Testing Guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
         
@@ -1244,6 +1269,417 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-testing-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Testing Principles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-test-organization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Test Organization
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Test Organization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-verification-scenario-and-test-naming" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Verification Scenario and Test Naming
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-research-agent-test-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Research Agent Test Coverage
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Research Agent Test Coverage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-research-agent-ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Research Agent UI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#511-research-discovery-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1.1 Research Discovery Behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-research-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Research Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-review-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 Review Decisions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-repository-update-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 Repository Update Behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#55-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5 Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#56-research-reasoning-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.6 Research Reasoning Behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#57-dashboard-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7 Dashboard Integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#58-end-to-end-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8 End-to-End Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-running-research-agent-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Running Research Agent Tests
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Running Research Agent Tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-research-agent-ui-unit-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Research Agent UI Unit Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-research-workflow-unit-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 Research Workflow Unit Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-repository-update-and-git-diff-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 Repository Update and Git Diff Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#64-research-workflow-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.4 Research Workflow Models
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#65-research-reasoning-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.5 Research Reasoning Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#66-research-validation-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.6 Research Validation Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#67-integration-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.7 Integration Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#68-research-agent-acceptance-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.8 Research Agent Acceptance Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#69-complete-project0-regression-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.9 Complete Project0 Regression Test
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-browser-acceptance-and-exploratory-ai-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Browser Acceptance and Exploratory AI Testing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-local-ai-provider-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Local AI Provider Testing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-repository-safety-acceptance-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Repository Safety Acceptance Tests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#research-source-provider-validation-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research Source Provider Validation Strategy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-research-agent-completion-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Research Agent Completion Criteria
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-regression-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Regression Testing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-current-validation-baseline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Current Validation Baseline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-future-testing-enhancements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Future Testing Enhancements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -1330,6 +1766,408 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-testing-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Testing Principles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-test-organization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Test Organization
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Test Organization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-verification-scenario-and-test-naming" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Verification Scenario and Test Naming
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-research-agent-test-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Research Agent Test Coverage
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Research Agent Test Coverage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-research-agent-ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Research Agent UI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#511-research-discovery-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1.1 Research Discovery Behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-research-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Research Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-review-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 Review Decisions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-repository-update-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 Repository Update Behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#55-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5 Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#56-research-reasoning-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.6 Research Reasoning Behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#57-dashboard-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7 Dashboard Integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#58-end-to-end-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8 End-to-End Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-running-research-agent-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Running Research Agent Tests
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Running Research Agent Tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-research-agent-ui-unit-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Research Agent UI Unit Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-research-workflow-unit-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 Research Workflow Unit Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-repository-update-and-git-diff-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 Repository Update and Git Diff Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#64-research-workflow-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.4 Research Workflow Models
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#65-research-reasoning-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.5 Research Reasoning Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#66-research-validation-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.6 Research Validation Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#67-integration-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.7 Integration Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#68-research-agent-acceptance-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.8 Research Agent Acceptance Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#69-complete-project0-regression-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.9 Complete Project0 Regression Test
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-browser-acceptance-and-exploratory-ai-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Browser Acceptance and Exploratory AI Testing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-local-ai-provider-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Local AI Provider Testing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-repository-safety-acceptance-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Repository Safety Acceptance Tests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#research-source-provider-validation-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research Source Provider Validation Strategy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-research-agent-completion-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Research Agent Completion Criteria
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-regression-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Regression Testing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-current-validation-baseline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Current Validation Baseline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-future-testing-enhancements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Future Testing Enhancements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -1354,9 +2192,611 @@
   
 
 
-  <h1>Research Agent Testing Guide</h1>
-
-
+<h1 id="research-agent-testing-guide">Research Agent Testing Guide</h1>
+<p><strong>Version:</strong> 0.5\
+<strong>Owner:</strong> Project0\
+<strong>Last Updated:</strong> 2026-08-13</p>
+<hr />
+<h2 id="1-purpose">1. Purpose</h2>
+<p>This document defines the testing strategy, test coverage, execution
+procedures, and acceptance testing guidance specific to the Project0
+Research Agent.</p>
+<p>The Research Agent follows the repository-wide testing principles and
+conventions defined by <code>Testing_Guide.md</code>. This document supplements
+that guide with Research Agent-specific unit, integration, workflow, UI,
+reasoning-provider, repository-safety, and browser acceptance testing.</p>
+<p>The objective is to verify that the Research Agent performs research
+work accurately, predictably, safely, and under human control.</p>
+<hr />
+<h2 id="2-objectives">2. Objectives</h2>
+<p>Research Agent testing is intended to:</p>
+<ul>
+<li>Verify Research Agent-specific component behavior.</li>
+<li>Validate the complete research workflow.</li>
+<li>Confirm AI-generated proposals are correctly translated into
+    controlled research operations.</li>
+<li>Verify preliminary and final validation behavior.</li>
+<li>Confirm human review decisions control repository modification.</li>
+<li>Ensure approved changes are applied correctly and unrelated content
+    remains unchanged.</li>
+<li>Verify repository failures and invalid proposals fail safely.</li>
+<li>Validate Dashboard-hosted Research Agent interaction.</li>
+<li>Detect regressions in previously corrected workflow behavior.</li>
+<li>Verify document discovery behavior when target research paths are
+    not provided.</li>
+<li>Provide confidence before declaring the Research Agent complete.</li>
+</ul>
+<hr />
+<h2 id="3-testing-principles">3. Testing Principles</h2>
+<p>Research Agent testing follows the general principles defined by
+<code>Testing_Guide.md</code> and additionally emphasizes:</p>
+<ul>
+<li>Test repository effects, not only returned workflow status.</li>
+<li>Verify that rejected and skipped proposals do not modify repository
+    content.</li>
+<li>Verify that approved proposals modify only the intended content.</li>
+<li>Preserve realistic Markdown structure in repository-update tests.</li>
+<li>Exercise deterministic components independently of AI providers
+    whenever practical.</li>
+<li>Use stub or fake reasoning providers for deterministic automated
+    tests.</li>
+<li>Test real local AI-provider behavior separately from deterministic
+    regression tests.</li>
+<li>Treat browser-based workflow testing as acceptance testing rather
+    than a replacement for automated unit and integration tests.</li>
+<li>Add regression tests when exploratory or browser testing exposes a
+    defect.</li>
+</ul>
+<hr />
+<h2 id="4-test-organization">4. Test Organization</h2>
+<p>Research Agent-specific tests use the Project0 test organization defined
+by <code>Testing_Guide.md</code>.</p>
+<p>Research Agent tests may be located in agent-specific directories or
+alongside shared Project0 components when the test verifies Research
+Agent-specific use of those components.</p>
+<p>Relevant locations include:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>tests/
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── unit/
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│   ├── agents/
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│   │   └── research/
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│   ├── models/
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│   ├── reasoning/
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│   ├── repository/
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│   ├── validation/
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│   └── workflow/
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>├── integration/
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│   ├── agents/
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│   │   └── research/
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│   └── platform/
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>└── acceptance/
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    └── agents/
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>        └── research/
+</span></code></pre></div>
+<p>Research Agent acceptance tests are maintained separately from unit and
+integration tests under <code>tests/acceptance/agents/research/</code>.</p>
+<p>Acceptance tests verify Research Agent behavior through the actual
+browser/UI boundary. They should interact with the Dashboard-hosted
+Research Agent as a user would, rather than calling Project0 Python APIs
+such as the platform dispatcher or Research Workflow directly.</p>
+<p>Research Agent UI acceptance tests are separated by user-facing workflow
+responsibility:</p>
+<ul>
+<li><code>test_research_agent_ui_request_acceptance.py</code> --- request entry and
+    general browser workflow.</li>
+<li><code>test_research_agent_ui_review_acceptance.py</code> --- proposal and
+    review presentation.</li>
+<li><code>test_research_agent_ui_approval_acceptance.py</code> --- approval,
+    rejection, and repository-change behavior.</li>
+</ul>
+<p>High-level workflow tests that assemble real Project0 services but enter
+through Python APIs belong under <code>tests/integration/agents/research/</code>.</p>
+<h3 id="41-verification-scenario-and-test-naming">4.1 Verification Scenario and Test Naming</h3>
+<p>Research Agent verification scenario identifiers describe the behavior
+being verified and do not identify a testing layer.</p>
+<p>Examples:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>RA-FUN-001
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>RA-SAF-001
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>RA-AI-001
+</span></code></pre></div>
+<p>Automated tests that provide evidence for a scenario add a testing-layer
+prefix to the test function name:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>test_INT_DA_FUN_001_research_request_processing
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>test_UI_DA_FUN_001_research_request_processing
+</span></code></pre></div>
+<p>The supported layer prefixes are:</p>
+<ul>
+<li><code>INT</code> --- integration tests that exercise assembled Project0 and
+    Research Agent components through Python/service boundaries.</li>
+<li><code>UI</code> --- browser acceptance tests that exercise the Research Agent
+    through the Dashboard/UI boundary.</li>
+</ul>
+<p>This convention allows one verification scenario to receive evidence
+from more than one testing layer without creating duplicate scenario
+identifiers.</p>
+<p>Individual browser acceptance cases that provide evidence for the same
+scenario use documented case suffixes such as <code>UI-RA-FUN-001-A</code> and
+<code>UI-RA-FUN-001-B</code>. The suffix distinguishes documented UI cases without
+changing the stable <code>RA-*</code> scenario identifier. Python test function
+names remain descriptive and do not require the case suffix.</p>
+<p>Each documented UI acceptance case shall define its test ID, test name,
+purpose, preconditions, test steps, expected results, and automated test
+function.</p>
+<hr />
+<h2 id="5-research-agent-test-coverage">5. Research Agent Test Coverage</h2>
+<p>Current Research Agent testing includes the following areas.</p>
+<h3 id="51-research-agent-ui">5.1 Research Agent UI</h3>
+<p>Tests verify:</p>
+<ul>
+<li>Ready-page creation.</li>
+<li>Research request validation and normalization.</li>
+<li>Mapping workflow results into Research Agent view models.</li>
+<li>Proposal and validation presentation.</li>
+<li>Repository difference generation.</li>
+<li>Focused difference presentation.</li>
+<li>Insert-after difference behavior.</li>
+<li>Surgical anchored difference behavior.</li>
+<li>Multiple difference hunks.</li>
+<li>Completed workflow presentation.</li>
+<li>Completed-with-warning presentation.</li>
+<li>Preliminary validation failure presentation.</li>
+<li>Explicit workflow failure presentation.</li>
+<li>Workflow exception handling.</li>
+<li>Review-decision normalization and result mapping.</li>
+<li>Safe handling of unknown mapped values.</li>
+</ul>
+<h3 id="511-research-discovery-behavior">5.1.1 Research Discovery Behavior</h3>
+<p>Tests should verify optional target research path behavior:</p>
+<ul>
+<li>A research request may be submitted without target research paths.</li>
+<li>Repository knowledge discovery identifies candidate research when
+    paths are omitted.</li>
+<li>Explicit target research paths continue to be supported.</li>
+<li>Baseline research is not automatically included solely because
+    target paths are empty.</li>
+<li>Discovery behavior produces reviewable workflow results.</li>
+</ul>
+<p>These tests should verify repository effects and workflow results where
+applicable.</p>
+<h3 id="52-research-workflow">5.2 Research Workflow</h3>
+<p>Research Agent workflow tests verify the agent-specific coordination of
+reusable Project0 services and Research Agent workflow components,
+including:</p>
+<ul>
+<li>Knowledge Service.</li>
+<li>Reasoning Service.</li>
+<li>Validation Service.</li>
+<li>Review Coordinator.</li>
+<li>Repository Update Service.</li>
+<li>Git Diff Service.</li>
+</ul>
+<p>These tests verify that the Research Agent composes the required
+services correctly to perform its research workflow.</p>
+<p>Generic correctness of reusable Project0 services remains covered by the
+Project0-wide <code>Testing_Guide.md</code>.</p>
+<p>Research Agent workflow tests should verify both structured workflow
+results and repository effects where applicable.</p>
+<h3 id="53-review-decisions">5.3 Review Decisions</h3>
+<p>Tests should verify each supported human review decision:</p>
+<ul>
+<li>Approve.</li>
+<li>Revise.</li>
+<li>Reject.</li>
+<li>Skip.</li>
+</ul>
+<p>Approval shall be the only review path that permits the applicable
+repository change to be applied.</p>
+<h3 id="54-repository-update-behavior">5.4 Repository Update Behavior</h3>
+<p>Tests verify controlled research modification, including:</p>
+<ul>
+<li>Approved Markdown updates.</li>
+<li>Anchored insert behavior.</li>
+<li>Anchored replacement behavior.</li>
+<li>Preservation of anchor content when required.</li>
+<li>Preservation of unrelated document content.</li>
+<li>Repository path safety.</li>
+<li>Failure behavior when a requested update cannot be applied reliably.</li>
+</ul>
+<h3 id="55-validation">5.5 Validation</h3>
+<p>Research Agent testing verifies:</p>
+<ul>
+<li>Preliminary validation before approval.</li>
+<li>Final validation after approved repository changes.</li>
+<li>Markdown validation.</li>
+<li>Link validation.</li>
+<li>MkDocs validation.</li>
+<li>Research consistency validation.</li>
+<li>Proper workflow handling when validation fails.</li>
+</ul>
+<h3 id="56-research-reasoning-behavior">5.6 Research Reasoning Behavior</h3>
+<p>Research Agent reasoning tests verify agent-specific reasoning behavior,
+including:</p>
+<ul>
+<li>Construction of research-specific prompts.</li>
+<li>Inclusion of appropriate repository and research context.</li>
+<li>Conversion of reasoning results into Research Agent proposals.</li>
+<li>Research edit intent such as insert and replace behavior.</li>
+<li>Selection and preservation of appropriate anchors.</li>
+<li>Safe handling of invalid, incomplete, or unsupported reasoning
+    output.</li>
+</ul>
+<p>Generic Reasoning Service behavior, provider abstraction, and
+provider-independent reasoning infrastructure are tested according to
+<code>Testing_Guide.md</code>.</p>
+<p>Real AI-provider behavior should be evaluated separately from
+deterministic automated tests because model output may vary.</p>
+<h3 id="57-dashboard-integration">5.7 Dashboard Integration</h3>
+<p>Tests verify:</p>
+<ul>
+<li>Research Agent routes integrate with the Dashboard Framework.</li>
+<li>Research Agent content renders inside the Dashboard Work Area.</li>
+<li>Dashboard ownership of the shared application shell and navigation
+    is preserved.</li>
+<li>Research Agent workflow interaction does not require a separate
+    application shell.</li>
+</ul>
+<h3 id="58-end-to-end-workflow">5.8 End-to-End Workflow</h3>
+<p>Integration testing should exercise the complete path:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Research Request
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>        ↓
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>Platform Dispatcher
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>        ↓
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>Research Workflow
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>        ↓
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>Research Strategy
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>        ↓
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>Research Source Provider
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>        ↓
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>Metadata Retrieval
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>        ↓
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>Research Evaluation
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>        ↓
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>Artifact Generation
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>        ↓
+</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>Workflow Result
+</span></code></pre></div>
+<hr />
+<h2 id="6-running-research-agent-tests">6. Running Research Agent Tests</h2>
+<p>All commands assume the current working directory is the Project0
+repository root.</p>
+<h3 id="61-research-agent-ui-unit-tests">6.1 Research Agent UI Unit Tests</h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/agents/research/test_research_agent_ui_service.py<span class="w"> </span>-v
+</span></code></pre></div>
+<p>Run other Research Agent unit test modules in the same directory as
+applicable.</p>
+<h3 id="62-research-workflow-unit-tests">6.2 Research Workflow Unit Tests</h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/workflow/test_review_coordinator.py<span class="w"> </span>-v
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/workflow/test_research_workflow.py<span class="w"> </span>-v
+</span></code></pre></div>
+<h3 id="63-repository-update-and-git-diff-tests">6.3 Repository Update and Git Diff Tests</h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/repository/test_repository_update_service.py<span class="w"> </span>-v
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/repository/test_git_diff_service.py<span class="w"> </span>-v
+</span></code></pre></div>
+<h3 id="64-research-workflow-models">6.4 Research Workflow Models</h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/models/test_research_workflow_models.py<span class="w"> </span>-v
+</span></code></pre></div>
+<h3 id="65-research-reasoning-tests">6.5 Research Reasoning Tests</h3>
+<p>Run Research Agent-specific prompt, proposal, and reasoning-integration
+tests applicable to the change being validated.</p>
+<p>Generic Reasoning Service and provider infrastructure tests are defined
+by <code>Testing_Guide.md</code> and are exercised again by the complete Project0
+regression suite.</p>
+<p>Provider-specific Research Agent behavior should also be evaluated when
+validating a configured reasoning provider.</p>
+<h3 id="66-research-validation-tests">6.6 Research Validation Tests</h3>
+<p>Run tests that verify Research Agent-specific use of preliminary
+validation, final validation, and research validators applicable to the
+workflow being changed.</p>
+<p>Research Agent testing should verify that:</p>
+<ul>
+<li>Preliminary validation occurs before approval where required.</li>
+<li>Validation results are correctly represented in the review workflow.</li>
+<li>Final validation occurs after approved repository modification.</li>
+<li>Validation failures produce the appropriate Research Agent workflow
+    state.</li>
+</ul>
+<p>Generic Validation Service infrastructure is tested according to
+<code>Testing_Guide.md</code> and is exercised again by the complete Project0
+regression suite.</p>
+<h3 id="67-integration-tests">6.7 Integration Tests</h3>
+<p>Run Research Agent-specific integration tests:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/agents/research/test_research_workflow_flow.py<span class="w"> </span>-v
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/agents/research/test_research_agent_ui_flow.py<span class="w"> </span>-v
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/agents/research/test_research_agent_end_to_end_flow.py<span class="w"> </span>-v
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/agents/research<span class="w"> </span>-v
+</span></code></pre></div>
+<p>The <code>test_research_agent_end_to_end_flow.py</code> module contains high-level
+Research Agent workflow scenarios that exercise real Project0 service
+composition through Python APIs. These scenarios are integration tests
+because they enter through the platform/workflow API boundary rather
+than through a browser.</p>
+<p>Scenario-oriented test functions in this module use the <code>INT</code> layer
+prefix, for example:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>test_INT_DA_FUN_001_research_request_processing
+</span></code></pre></div>
+<p>Additional Research Agent integration modules should be included as they
+are added.</p>
+<p>Research Agent integration with the Dashboard Framework should be
+verified through agent-specific integration scenarios. Project0-wide
+Dashboard Framework integration testing is governed by
+<code>Testing_Guide.md</code>.</p>
+<h3 id="68-research-agent-acceptance-tests">6.8 Research Agent Acceptance Tests</h3>
+<p>Research Agent acceptance tests belong under:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>tests/acceptance/agents/research/
+</span></code></pre></div>
+<p>Acceptance tests shall verify Research Agent behavior through the actual
+Dashboard/browser boundary.</p>
+<p>The intended acceptance automation tool is Playwright for Python with
+pytest. Initial automated browser coverage should use Chromium only.</p>
+<p>Scenario-oriented Playwright test functions shall use the <code>UI</code> layer
+prefix, for example:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>test_UI_DA_FUN_001_research_request_processing
+</span></code></pre></div>
+<p>Acceptance automation should be introduced incrementally. Initial
+scenarios should verify:</p>
+<ul>
+<li>Research Agent page renders.</li>
+<li>Research request field is available.</li>
+<li>Target research path field is available as an optional input.</li>
+<li>Submit Research Request button is available.</li>
+<li>Research requests without target paths are accepted and processed
+    through discovery where supported.</li>
+<li>Request submission produces the visible Processing state.</li>
+<li>Review/proposal UI is presented.</li>
+<li>Reject workflow operates correctly.</li>
+<li>Approve workflow operates correctly.</li>
+<li>Repository effects are verified where applicable.</li>
+</ul>
+<p>Playwright automatic waiting should be preferred over arbitrary sleep
+calls because local reasoning execution time may vary.</p>
+<p>Shared Project0 acceptance infrastructure belongs in
+<code>tests/acceptance/conftest.py</code>. It may provide
+<code>--ui-slowmo=&lt;milliseconds&gt;</code> to pass a human-observation delay to
+Playwright <code>slow_mo</code>. This delay shall not be used for synchronization.</p>
+<p>Standard execution modes include:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/acceptance/agents/research<span class="w"> </span>-v
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/acceptance/agents/research<span class="w"> </span>-v<span class="w"> </span>-s<span class="w"> </span>--headed
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/acceptance/agents/research<span class="w"> </span>-v<span class="w"> </span>-s<span class="w"> </span>--headed<span class="w"> </span>--ui-slowmo<span class="o">=</span><span class="m">750</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="nv">PWDEBUG</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/acceptance/agents/research<span class="w"> </span>-v<span class="w"> </span>-s<span class="w"> </span>--headed
+</span></code></pre></div>
+<p>The acceptance suite is distinct from unit and integration testing:</p>
+<ul>
+<li>Unit tests verify individual component behavior.</li>
+<li>Integration tests verify cooperation between assembled Project0 and
+    Research Agent components.</li>
+<li>Acceptance tests verify that a real user can successfully operate
+    the Research Agent through the browser/UI boundary.</li>
+</ul>
+<p>Acceptance scenarios that are not yet automated shall not be treated as
+passed acceptance requirements.</p>
+<h3 id="69-complete-project0-regression-test">6.9 Complete Project0 Regression Test</h3>
+<p>After Research Agent-specific tests pass, run the complete Project0
+suite:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest
+</span></code></pre></div>
+<p>This final regression run verifies that Research Agent changes have not
+introduced regressions into shared Project0 platform services, the
+Dashboard Framework, other agents, or integration workflows.</p>
+<p>The complete Project0 regression suite is governed by
+<code>Testing_Guide.md</code>.</p>
+<hr />
+<h2 id="7-browser-acceptance-and-exploratory-ai-testing">7. Browser Acceptance and Exploratory AI Testing</h2>
+<p>Automated unit and integration tests are necessary but do not fully
+evaluate the user-visible workflow or the quality of AI-generated
+research proposals.</p>
+<p>Browser acceptance testing should therefore verify the user workflow
+through the actual Dashboard-hosted Research Agent interface.</p>
+<p>Exploratory AI testing should remain a separate qualitative activity
+because real Ollama/qwen2.5:7b output may vary and may require human
+judgment for factual grounding, proposal quality, hallucination
+detection, rationale usefulness, and appropriateness of edits.</p>
+<p>Representative browser and exploratory scenarios include:</p>
+<ul>
+<li>Insert a new bullet beneath an existing section or anchor.</li>
+<li>Replace an existing sentence.</li>
+<li>Update an existing paragraph.</li>
+<li>Add content beneath a Markdown heading.</li>
+<li>Exercise multiple target research paths.</li>
+<li>Review a proposal before approval.</li>
+<li>Approve a proposal and verify the repository result.</li>
+<li>Reject a proposal and verify no repository change.</li>
+<li>Skip a proposal and verify no repository change.</li>
+<li>Revise a proposal and verify regenerated output.</li>
+<li>Exercise preliminary validation failure.</li>
+<li>Exercise final validation behavior.</li>
+<li>Verify the final Git diff.</li>
+<li>Verify completion status and workflow summary.</li>
+<li>Verify that unrelated files remain unchanged.</li>
+<li>Verify that empty target research paths do not cause unintended
+    baseline document inclusion.</li>
+</ul>
+<p>Observed browser behavior should be compared with the actual repository
+content. Presentation artifacts shall not be assumed to represent
+repository corruption without verifying the resulting file content.</p>
+<hr />
+<h2 id="8-local-ai-provider-testing">8. Local AI Provider Testing</h2>
+<p>The Research Agent may use a local AI reasoning provider through the
+Project0 Reasoning Service.</p>
+<p>Local-provider testing should verify:</p>
+<ul>
+<li>Provider configuration is loaded correctly.</li>
+<li>The configured model can be reached.</li>
+<li>Prompt construction includes the required repository context and
+    user request.</li>
+<li>Reasoning results are converted into valid Research Agent proposals.</li>
+<li>Edit intent is interpreted correctly.</li>
+<li>Anchors are sufficiently precise for controlled repository updates.</li>
+<li>Invalid or incomplete AI output fails safely.</li>
+<li>Repository modification remains subject to validation and human
+    approval regardless of model output.</li>
+</ul>
+<p>Because model responses may vary, local-provider testing is primarily
+behavioral and exploratory. Deterministic unit tests should continue to
+use controlled providers or fixtures where practical.</p>
+<hr />
+<h2 id="9-repository-safety-acceptance-tests">9. Repository Safety Acceptance Tests</h2>
+<p>Before declaring the Research Agent complete, verify that:</p>
+<ul>
+<li>Only approved files are modified.</li>
+<li>Only approved content is applied.</li>
+<li>Rejected proposals leave repository content unchanged.</li>
+<li>Skipped proposals leave repository content unchanged.</li>
+<li>Missing anchors fail safely.</li>
+<li>Ambiguous anchors fail safely where deterministic application cannot
+    be established.</li>
+<li>Invalid repository paths are rejected.</li>
+<li>Paths outside the configured repository root cannot be modified.</li>
+<li>Unrelated files remain unchanged.</li>
+<li>Validation failure does not result in an inappropriate successful
+    completion state.</li>
+<li>Final Git diff accurately reflects applied changes.</li>
+</ul>
+<p>Repository safety failures are release-blocking defects.</p>
+<hr />
+<h2 id="research-source-provider-validation-strategy">Research Source Provider Validation Strategy</h2>
+<p>The Research Agent testing strategy validates research workflows through
+both production-oriented providers and deterministic providers.</p>
+<p>Supported provider paths include:</p>
+<ul>
+<li>Semantic Scholar Source Provider<ul>
+<li>Validates production research source integration behavior.</li>
+<li>Depends on external research source availability.</li>
+</ul>
+</li>
+<li>Stub Research Source Provider<ul>
+<li>Provides deterministic research references.</li>
+<li>Supports unit, integration, and acceptance testing.</li>
+<li>Enables repeatable validation without requiring external API
+    availability.</li>
+</ul>
+</li>
+</ul>
+<p>Acceptance testing should use deterministic providers whenever practical
+so that tests validate Research Agent workflow behavior rather than
+external service availability.</p>
+<p>Provider validation flow:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>Research Agent UI
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>        |
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>        v
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>Research Workflow
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>        |
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>        v
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>Research Source Service
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>        |
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>        v
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>Research Source Provider Interface
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>        |
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>        +------------------------------+
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>        |                              |
+</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>        v                              v
+</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>Semantic Scholar Provider        Stub Provider
+</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>(production source)              (deterministic validation)
+</span></code></pre></div>
+<p>The provider-based testing approach allows Research Agent components to
+be validated independently while preserving the production research
+source integration path.</p>
+<h2 id="10-research-agent-completion-criteria">10. Research Agent Completion Criteria</h2>
+<p>The Research Agent may be considered complete for its current version
+when:</p>
+<ul>
+<li>Research Agent unit tests pass.</li>
+<li>Research workflow integration tests pass.</li>
+<li>Required Research Agent acceptance scenarios pass.</li>
+<li>Research Agent integration with the Dashboard Framework has been
+    verified.</li>
+<li>Complete Project0 regression tests pass.</li>
+<li>Representative insert and replace operations have been verified.</li>
+<li>Approve, revise, reject, and skip behavior has been verified.</li>
+<li>Repository safety scenarios have been verified.</li>
+<li>Preliminary and final validation behavior has been verified.</li>
+<li>Real local reasoning-provider behavior has been exercised with
+    varied research requests.</li>
+<li>Browser-based review and completion workflows are usable.</li>
+<li>Known non-critical presentation issues are documented separately
+    from functional defects.</li>
+<li>No known defect permits unauthorized or unintended repository
+    modification.</li>
+<li>Research accurately reflects the validated system behavior.</li>
+</ul>
+<hr />
+<h2 id="11-regression-testing">11. Regression Testing</h2>
+<p>When a Research Agent defect is discovered:</p>
+<ol>
+<li>Reproduce the defect in the smallest practical environment.</li>
+<li>Determine whether the defect belongs to reasoning, workflow,
+    repository update, validation, or presentation behavior.</li>
+<li>Add or update a focused automated test when the behavior can be
+    tested deterministically.</li>
+<li>Implement the correction.</li>
+<li>Run the focused test.</li>
+<li>Run the applicable component test suite.</li>
+<li>Run Research Agent integration tests.</li>
+<li>Run applicable Research Agent acceptance tests.</li>
+<li>Run the complete Project0 regression suite.</li>
+<li>Repeat the relevant browser or local-provider scenario when
+    applicable.</li>
+</ol>
+<p>Previously corrected defects should remain represented by regression
+tests whenever practical.</p>
+<hr />
+<h2 id="12-current-validation-baseline">12. Current Validation Baseline</h2>
+<p>At the time of this update, the Research Agent-specific validation
+baseline includes:</p>
+<ul>
+<li>Research Agent UI unit tests passing.</li>
+<li>Research workflow unit tests passing.</li>
+<li>Research Agent workflow integration tests passing.</li>
+<li>High-level Research Agent end-to-end workflow integration scenarios
+    passing.</li>
+<li>Research Agent integration with the Dashboard Work Area verified.</li>
+<li>Human review workflow behavior exercised.</li>
+<li>Controlled repository update behavior verified.</li>
+<li>Preliminary and final validation behavior verified.</li>
+<li>Local reasoning-provider behavior exercised through Research Agent
+    workflows.</li>
+<li>Seven implemented high-level workflow scenarios passing as
+    integration tests; seven additional scenarios remain explicitly
+    skipped/deferred.</li>
+<li>Playwright-based Chromium browser acceptance automation established;
+    initial page-render scenario passing.</li>
+<li>Complete Project0 regression baseline: 648 passed, 7 skipped.</li>
+</ul>
+<p>The complete Project0 regression suite must also pass before Research
+Agent changes are committed.</p>
+<p>Project0-wide test counts, Dashboard Framework validation status, and
+shared platform testing requirements are governed by <code>Testing_Guide.md</code>
+and should not be duplicated in this document.</p>
+<hr />
+<h2 id="13-future-testing-enhancements">13. Future Testing Enhancements</h2>
+<p>Future Research Agent testing may include:</p>
+<ul>
+<li>Expanded automated browser coverage.</li>
+<li>Additional multi-document workflow scenarios.</li>
+<li>Automated repository integrity fixtures.</li>
+<li>AI-provider evaluation datasets.</li>
+<li>Proposal-quality scoring.</li>
+<li>Additional revision-workflow tests.</li>
+<li>Performance testing for larger research repositories.</li>
+<li>Continuous Integration execution of Research Agent regression
+    suites.</li>
+<li>Automated acceptance-test reporting.</li>
+</ul>
+<hr />
+<h2 id="14-summary">14. Summary</h2>
+<p>Research Agent testing verifies the behavior required to demonstrate
+that the agent performs AI-assisted research work accurately, safely,
+predictably, and under human control.</p>
+<p>This includes research-specific reasoning, proposal generation, review
+decisions, controlled repository modification, preliminary and final
+validation, repository safety, Dashboard-hosted interaction, and
+end-to-end Research Agent workflow behavior.</p>
+<p>Project0-wide testing principles, shared service correctness, Dashboard
+Framework testing, and complete repository regression testing remain
+governed by <code>Testing_Guide.md</code>.</p>
+<p>Together, the Project0 Testing Guide and Research Agent Testing Guide
+provide complementary validation without duplicating ownership of
+platform and agent testing responsibilities.</p>
 
 
 
