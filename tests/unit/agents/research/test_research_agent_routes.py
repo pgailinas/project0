@@ -182,7 +182,7 @@ def test_research_agent_home_route(tmp_path: Path) -> None:
     assert '<p id="active-page">agent:research</p>' in response.text
     assert '<p id="project-name">Project0</p>' in response.text
     assert "Documentation Agent:True" in response.text
-    assert "Research Agent:False" in response.text
+    assert "Research Agent:True" in response.text
     assert service.received_request is None
 
 

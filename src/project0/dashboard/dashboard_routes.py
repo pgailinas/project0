@@ -27,7 +27,7 @@ DASHBOARD_AGENTS = (
     {
         "identifier": "research",
         "name": "Research Agent",
-        "available": False,
+        "available": True,
     },
 )
 
@@ -78,12 +78,12 @@ def create_dashboard_router(
                 "git_status": "Unavailable",
                 "git_status_class": "status-value--muted",
                 "current_phase": (
-                    "Phase 8 – Documentation Agent User Interface"
+                    "Phase 11 – Research Agent Functional Validation"
                 ),
                 "documentation_count": "Unknown",
-                "test_status": "All tests passing",
+                "test_status": "896 passed, 11 skipped",
                 "test_status_class": "status-value--success",
-                "validation_status": "Not run",
+                "validation_status": "Regression suite passed",
                 "validation_status_class": "status-value--muted",
                 "llm_status": "Not configured",
                 "workflow_status": "Idle",

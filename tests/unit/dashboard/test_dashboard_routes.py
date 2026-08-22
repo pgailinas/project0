@@ -138,7 +138,7 @@ def test_dashboard_shell_context_owns_agent_navigation() -> None:
         {
             "identifier": "research",
             "name": "Research Agent",
-            "available": False,
+            "available": True,
         },
     )
 
@@ -184,9 +184,9 @@ def test_dashboard_home_displays_project_status_in_work_area(
 
     assert "Project Overview" in response.text
     assert "Unknown" in response.text
-    assert "Phase 8 – Documentation Agent User Interface" in response.text
-    assert "All tests passing" in response.text
-    assert "Not run" in response.text
+    assert "Phase 11 – Research Agent Functional Validation" in response.text
+    assert "896 passed, 11 skipped" in response.text
+    assert "Regression suite passed" in response.text
     assert "Not configured" in response.text
     assert "Idle" in response.text
     assert "dashboard" in response.text
@@ -210,7 +210,7 @@ def test_dashboard_home_displays_registered_agents(
 def test_dashboard_home_displays_agent_availability(
     tmp_path: Path,
 ) -> None:
-    """Implemented and planned agents expose distinct availability states."""
+    """Implemented agents expose available availability states."""
 
     client, _ = _create_test_client(tmp_path)
 
@@ -218,7 +218,8 @@ def test_dashboard_home_displays_agent_availability(
 
     assert "documentation-available" in response.text
     assert "documentation-planned" not in response.text
-    assert "research-planned" in response.text
+    assert "research-available" in response.text
+    assert "research-planned" not in response.text
 
 
 def test_documentation_route_redirects_to_local_mkdocs(
@@ -259,7 +260,7 @@ def test_documentation_agent_fallback_route_renders_placeholder(
     assert "agent:documentation" in response.text
     assert "Project Overview" in response.text
     assert (
-        "Phase 8 – Documentation Agent User Interface"
+        "Phase 11 – Research Agent Functional Validation"
         not in response.text
     )
     assert "All tests passing" not in response.text
