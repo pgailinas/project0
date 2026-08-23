@@ -17,9 +17,6 @@ DEFAULT_OLLAMA_TIMEOUT_SECONDS = 600.0
 # Knowledge service limits
 KNOWLEDGE_MAXIMUM_DOCUMENTS = 5
 
-# Research source provider selection
-RESEARCH_SOURCE_PROVIDER = "semantic_scholar"
-
 # Supported providers
 SUPPORTED_RESEARCH_SOURCE_PROVIDERS = (
     "semantic_scholar",

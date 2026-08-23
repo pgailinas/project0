@@ -31,6 +31,9 @@ from project0.agents.research.research_evaluation_service import (
 from project0.agents.research.research_source_service import (
     ResearchSourceService,
 )
+from project0.agents.research.research_source_provider_factory import (
+    create_research_source_providers,
+)
 from project0.agents.research.research_strategy_service import (
     ResearchStrategyService,
 )
@@ -86,13 +89,6 @@ from project0.workflow.review_coordinator import (
     ReviewDecisionProvider,
 )
 from project0.workflow.workflow_engine import WorkflowEngine
-
-from project0.agents.research.semantic_scholar_source_provider import (
-    SemanticScholarSourceProvider,
-)
-from project0.agents.research.stub_research_source_provider import (
-    StubResearchSourceProvider,
-)
 
 from project0.models.research_models import (
     ResearchSourceReference,
@@ -381,28 +377,7 @@ def _create_research_workflow(
     return ResearchWorkflow(
         strategy_service=ResearchStrategyService(),
         source_service=ResearchSourceService(
-            providers={
-                "semantic_scholar": SemanticScholarSourceProvider(),
-                "stub": StubResearchSourceProvider(
-                    references=(
-                        ResearchSourceReference(
-                            source_name="stub",
-                            source_id="stub-paper-001",
-                            title=(
-                                "Self-Supervised Video Representation "
-                                "Learning for VideoQA"
-                            ),
-                            source_url=(
-                                "https://example.com/stub-paper-001"
-                            ),
-                            authors=(
-                                "Project0 Research Stub",
-                            ),
-                            publication_year=2026,
-                        ),
-                    ),
-                ),
-            },
+            providers=create_research_source_providers(),
         ),
         metadata_service=PaperMetadataService(),
         evaluation_service=ResearchEvaluationService(
