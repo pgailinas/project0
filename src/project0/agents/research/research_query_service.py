@@ -1,0 +1,70 @@
+# ============================================================
+# Project0 - Research Query Service
+#
+# File: research_query_service.py
+#
+# Purpose:
+#     Generate deterministic research queries from structured
+#     Research Strategy inputs.
+#
+# ============================================================
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+from project0.models.research_models import ResearchStrategy
+
+
+@dataclass(slots=True)
+class ResearchQueryService:
+    """Generate provider-ready research queries.
+
+    Version 1 behavior:
+    - deterministic output
+    - no external APIs
+    - no LLM calls
+    - no provider-specific logic
+    """
+
+    def generate_queries(
+        self,
+        strategy: ResearchStrategy,
+    ) -> tuple[str, ...]:
+        """Generate deterministic research queries from a strategy."""
+
+        queries: list[str] = []
+
+        for concept in strategy.concepts:
+            normalized = self._normalize_query(concept)
+
+            if normalized:
+                queries.append(normalized)
+
+        return self._deduplicate_queries(queries)
+
+    @staticmethod
+    def _normalize_query(
+        query: str,
+    ) -> str:
+        """Normalize query whitespace."""
+
+        return " ".join(query.split()).strip()
+
+    @staticmethod
+    def _deduplicate_queries(
+        queries: list[str],
+    ) -> tuple[str, ...]:
+        """Remove duplicate queries while preserving order."""
+
+        unique_queries: list[str] = []
+        seen: set[str] = set()
+
+        for query in queries:
+            if query in seen:
+                continue
+
+            seen.add(query)
+            unique_queries.append(query)
+
+        return tuple(unique_queries)
