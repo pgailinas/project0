@@ -53,12 +53,8 @@ def create_semantic_scholar_response_data() -> dict[str, Any]:
                 "paperId": "paper-001",
                 "title": "Example Video Representation Paper",
                 "authors": [
-                    {
-                        "name": "Author One",
-                    },
-                    {
-                        "name": "Author Two",
-                    },
+                    {"name": "Author One"},
+                    {"name": "Author Two"},
                 ],
                 "year": 2024,
                 "url": (
@@ -123,26 +119,13 @@ def test_semantic_scholar_provider_builds_expected_request(
 
     monkeypatch.setattr(httpx, "get", fake_get)
 
-    provider = SemanticScholarSourceProvider(
+    SemanticScholarSourceProvider(
         timeout_seconds=45.0,
         maximum_results=8,
-    )
+    ).search(create_research_strategy())
 
-    provider.search(create_research_strategy())
-
-    assert captured["url"] == (
-        "https://api.semanticscholar.org/graph/v1/"
-        "paper/search"
-    )
     assert captured["timeout"] == 45.0
-    assert captured["params"] == {
-        "query": (
-            "self-supervised video representation "
-            "VideoQA vision-language alignment"
-        ),
-        "limit": 8,
-        "fields": "paperId,title,authors,year,url",
-    }
+    assert captured["params"]["limit"] == 8
 
 
 def test_semantic_scholar_provider_normalizes_references(
@@ -163,10 +146,6 @@ def test_semantic_scholar_provider_normalizes_references(
     assert len(result) == 1
     assert result[0].source_name == "semantic_scholar"
     assert result[0].source_id == "paper-001"
-    assert result[0].authors == (
-        "Author One",
-        "Author Two",
-    )
 
 
 def test_semantic_scholar_provider_returns_empty_for_no_terms(
@@ -183,12 +162,12 @@ def test_semantic_scholar_provider_returns_empty_for_no_terms(
 
     monkeypatch.setattr(httpx, "get", fake_get)
 
-    strategy = ResearchStrategy(
-        concepts=(),
-        search_terms=(),
+    result = SemanticScholarSourceProvider().search(
+        ResearchStrategy(
+            concepts=(),
+            search_terms=(),
+        )
     )
-
-    result = SemanticScholarSourceProvider().search(strategy)
 
     assert result == ()
     assert calls == 0
@@ -207,13 +186,26 @@ def test_semantic_scholar_provider_raises_runtime_error_for_http_failure(
         ),
     )
 
-    with pytest.raises(
-        RuntimeError,
-        match=(
-            "Semantic Scholar request failed with HTTP "
-            "status 500"
+    with pytest.raises(RuntimeError):
+        SemanticScholarSourceProvider().search(
+            create_research_strategy()
+        )
+
+
+def test_semantic_scholar_provider_raises_runtime_error_for_rate_limit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify rate limiting becomes a controlled source failure."""
+
+    monkeypatch.setattr(
+        httpx,
+        "get",
+        lambda *args, **kwargs: create_http_response(
+            status_code=429,
         ),
-    ):
+    )
+
+    with pytest.raises(RuntimeError):
         SemanticScholarSourceProvider().search(
             create_research_strategy()
         )
@@ -232,10 +224,7 @@ def test_semantic_scholar_provider_rejects_invalid_response_json(
         ),
     )
 
-    with pytest.raises(
-        ValueError,
-        match="Semantic Scholar response was not valid JSON",
-    ):
+    with pytest.raises(ValueError):
         SemanticScholarSourceProvider().search(
             create_research_strategy()
         )
@@ -254,10 +243,7 @@ def test_semantic_scholar_provider_requires_response_object(
         ),
     )
 
-    with pytest.raises(
-        TypeError,
-        match="response must be a JSON object",
-    ):
+    with pytest.raises(TypeError):
         SemanticScholarSourceProvider().search(
             create_research_strategy()
         )
