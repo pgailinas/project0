@@ -21,6 +21,9 @@ from project0.agents.research.paper_metadata_service import (
 from project0.agents.research.research_artifact_service import (
     ResearchArtifactService,
 )
+from project0.agents.research.research_query_service import (
+    ResearchQueryService,
+)
 from project0.agents.research.research_evaluation_service import (
     ResearchEvaluationService,
 )
@@ -188,6 +191,7 @@ def _create_workflow(
 
     return ResearchWorkflow(
         strategy_service=ResearchStrategyService(),
+        query_service=ResearchQueryService(),
         source_service=ResearchSourceService(
             providers={
                 "semantic_scholar": SemanticScholarSourceProvider(

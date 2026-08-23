@@ -4,9 +4,10 @@
 # File: research_workflow.py
 #
 # Purpose:
-#     Coordinate research strategy generation, external source
-#     discovery, paper metadata retrieval, research evaluation,
-#     artifact generation, and research workflow reporting.
+#     Coordinate research strategy generation, research query
+#     generation, external source discovery, paper metadata
+#     retrieval, research evaluation, artifact generation, and
+#     research workflow reporting.
 #
 # ============================================================
 
@@ -19,6 +20,7 @@ from project0.interfaces.research_interfaces import (
     PaperMetadataServiceProtocol,
     ResearchArtifactServiceProtocol,
     ResearchEvaluationServiceProtocol,
+    ResearchQueryServiceProtocol,
     ResearchSourceServiceProtocol,
     ResearchStrategyServiceProtocol,
 )
@@ -38,12 +40,14 @@ class ResearchWorkflow:
     def __init__(
         self,
         strategy_service: ResearchStrategyServiceProtocol,
+        query_service: ResearchQueryServiceProtocol,
         source_service: ResearchSourceServiceProtocol,
         metadata_service: PaperMetadataServiceProtocol,
         evaluation_service: ResearchEvaluationServiceProtocol,
         artifact_service: ResearchArtifactServiceProtocol,
     ) -> None:
         self._strategy_service = strategy_service
+        self._query_service = query_service
         self._source_service = source_service
         self._metadata_service = metadata_service
         self._evaluation_service = evaluation_service
@@ -61,6 +65,10 @@ class ResearchWorkflow:
         try:
             strategy = self._strategy_service.build_strategy(
                 request
+            )
+
+            self._query_service.generate_queries(
+                strategy
             )
 
             source_references = self._source_service.search(

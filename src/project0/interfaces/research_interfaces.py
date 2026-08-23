@@ -36,6 +36,18 @@ class ResearchStrategyServiceProtocol(Protocol):
         ...
 
 
+class ResearchQueryServiceProtocol(Protocol):
+    """Interface for Research Agent query generation services."""
+
+    def generate_queries(
+        self,
+        strategy: ResearchStrategy,
+    ) -> tuple[str, ...]:
+        """Generate deterministic research queries."""
+
+        ...
+
+
 class ResearchSourceServiceProtocol(Protocol):
     """Interface for external research source services."""
 

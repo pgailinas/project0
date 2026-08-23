@@ -49,6 +49,30 @@ class StubResearchStrategyService:
         return self._strategy
 
 
+class StubResearchQueryService:
+    """Return configured research queries."""
+
+    def __init__(
+        self,
+        queries: tuple[str, ...] = (),
+        error: Exception | None = None,
+    ) -> None:
+        self._queries = queries
+        self._error = error
+        self.requests: list[ResearchStrategy] = []
+
+    def generate_queries(
+        self,
+        strategy: ResearchStrategy,
+    ) -> tuple[str, ...]:
+        self.requests.append(strategy)
+
+        if self._error is not None:
+            raise self._error
+
+        return self._queries
+
+
 class StubResearchSourceService:
     """Return configured research source references."""
 
@@ -292,6 +316,7 @@ def _create_workflow(
     evaluations: tuple[ResearchEvaluation, ...] | None = None,
     artifacts: tuple[ResearchArtifact, ...] | None = None,
     strategy_error: Exception | None = None,
+    query_error: Exception | None = None,
     source_error: Exception | None = None,
     metadata_error: Exception | None = None,
     evaluation_error: Exception | None = None,
@@ -338,6 +363,13 @@ def _create_workflow(
         configured_strategy,
         strategy_error,
     )
+    query_service = StubResearchQueryService(
+        (
+            "self-supervised learning",
+            "video representation learning",
+        ),
+        query_error,
+    )
     source_service = StubResearchSourceService(
         configured_references,
         source_error,
@@ -357,6 +389,7 @@ def _create_workflow(
 
     workflow = ResearchWorkflow(
         strategy_service=strategy_service,
+        query_service=query_service,
         source_service=source_service,
         metadata_service=metadata_service,
         evaluation_service=evaluation_service,
@@ -366,6 +399,7 @@ def _create_workflow(
     return (
         workflow,
         strategy_service,
+        query_service,
         source_service,
         metadata_service,
         evaluation_service,
@@ -401,6 +435,7 @@ def test_workflow_forwards_request_and_results_between_services() -> None:
     (
         workflow,
         strategy_service,
+        query_service,
         source_service,
         metadata_service,
         evaluation_service,
@@ -412,6 +447,9 @@ def test_workflow_forwards_request_and_results_between_services() -> None:
     result = workflow.execute(request)
 
     assert strategy_service.requests == [request]
+    assert query_service.requests == [
+        result.strategy
+    ]
     assert source_service.requests == [result.strategy]
     assert metadata_service.requests == [
         result.source_references
@@ -523,6 +561,7 @@ def test_strategy_failure_stops_workflow() -> None:
     (
         workflow,
         _,
+        _,
         source_service,
         metadata_service,
         evaluation_service,
@@ -544,6 +583,23 @@ def test_strategy_failure_stops_workflow() -> None:
     assert artifact_service.requests == []
 
 
+
+def test_query_failure_returns_failed_result() -> None:
+    """A query service failure returns a failed result."""
+
+    components = _create_workflow(
+        query_error=RuntimeError("Query generation failed."),
+    )
+    workflow = components[0]
+    source_service = components[3]
+
+    result = workflow.execute(_research_request())
+
+    assert result.status is ResearchStatus.FAILED
+    assert result.error_message == "Query generation failed."
+    assert source_service.requests == []
+
+
 def test_source_failure_returns_failed_result() -> None:
     """A source service failure returns a failed result."""
 
@@ -551,9 +607,9 @@ def test_source_failure_returns_failed_result() -> None:
         source_error=RuntimeError("Source search failed."),
     )
     workflow = components[0]
-    metadata_service = components[3]
-    evaluation_service = components[4]
-    artifact_service = components[5]
+    metadata_service = components[4]
+    evaluation_service = components[5]
+    artifact_service = components[6]
 
     result = workflow.execute(_research_request())
 
@@ -571,8 +627,8 @@ def test_metadata_failure_returns_failed_result() -> None:
         metadata_error=OSError("Metadata retrieval failed."),
     )
     workflow = components[0]
-    evaluation_service = components[4]
-    artifact_service = components[5]
+    evaluation_service = components[5]
+    artifact_service = components[6]
 
     result = workflow.execute(_research_request())
 
@@ -591,7 +647,7 @@ def test_evaluation_failure_returns_failed_result() -> None:
         evaluation_error=TypeError("Evaluation failed."),
     )
     workflow = components[0]
-    artifact_service = components[5]
+    artifact_service = components[6]
 
     result = workflow.execute(_research_request())
 

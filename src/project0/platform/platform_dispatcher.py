@@ -28,6 +28,9 @@ from project0.agents.research.research_artifact_service import (
 from project0.agents.research.research_evaluation_service import (
     ResearchEvaluationService,
 )
+from project0.agents.research.research_query_service import (
+    ResearchQueryService,
+)
 from project0.agents.research.research_source_service import (
     ResearchSourceService,
 )
@@ -376,6 +379,7 @@ def _create_research_workflow(
 
     return ResearchWorkflow(
         strategy_service=ResearchStrategyService(),
+        query_service=ResearchQueryService(),
         source_service=ResearchSourceService(
             providers=create_research_source_providers(),
         ),
