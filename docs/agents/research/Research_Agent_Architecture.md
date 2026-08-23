@@ -75,6 +75,7 @@ flowchart TD
     C["Research Workflow"]
 
     D["Research Strategy Service"]
+    Q["Research Query Service"]
     E["Research Source Service"]
     F["Paper Metadata Service"]
     G["Knowledge Service"]
@@ -90,7 +91,8 @@ flowchart TD
     B --> C
 
     C --> D
-    D --> E
+    D --> Q
+    Q --> E
     E --> F
     F --> G
     G --> H
@@ -180,6 +182,7 @@ Initial Research Agent interfaces:
 
 -   Research Workflow Interface
 -   Research Strategy Interface
+-   Research Query Interface
 -   Research Source Interface
 -   Paper Metadata Interface
 -   Research Evaluation Interface
@@ -249,6 +252,30 @@ Responsibilities:
 -   Identify optional constraints and focus areas.
 -   Generate search concepts for supported research sources.
 -   Produce a structured Research Strategy.
+
+------------------------------------------------------------------------
+
+### Research Query Service
+
+Transforms a structured Research Strategy into deterministic,
+provider-ready research search queries.
+
+Responsibilities:
+
+- Convert research concepts into focused search queries.
+- Generate multiple search perspectives for a research topic.
+- Preserve deterministic query ordering.
+- Remove duplicate query terms.
+- Remain independent from external research source providers.
+- Return structured query results for downstream Research Source Service
+  execution.
+
+The Research Query Service separates research intent definition from
+external search execution. The Research Strategy Service determines what
+should be researched, while the Research Query Service determines how
+that research intent is expressed as searchable queries.
+
+------------------------------------------------------------------------
 
 ------------------------------------------------------------------------
 

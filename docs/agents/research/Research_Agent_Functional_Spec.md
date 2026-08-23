@@ -54,6 +54,7 @@ The Research Agent shall:
 -   Accept and analyze research questions.
 -   Identify relevant research concepts and terminology.
 -   Generate a research strategy.
+-   Generate deterministic research queries from the research strategy.
 -   Search supported external research sources.
 -   Retrieve available paper metadata.
 -   Identify research papers relevant to the research question.
@@ -97,6 +98,8 @@ Research Question Analysis
       ↓
 Research Strategy Generation
       ↓
+Research Query Generation
+      ↓
 External Research Source Search
       ↓
 Paper Metadata Retrieval
@@ -128,6 +131,7 @@ The Research Agent is successful when it:
 
 -   Correctly interprets a research question.
 -   Generates an appropriate research strategy.
+-   Generates useful and deterministic research queries from the research strategy.
 -   Discovers relevant papers through supported research sources.
 -   Retrieves and preserves available paper metadata.
 -   Identifies and ranks papers relevant to the research question.

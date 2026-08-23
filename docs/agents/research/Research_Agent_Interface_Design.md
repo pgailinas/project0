@@ -91,6 +91,50 @@ without modifying Research Agent workflow behavior.
 
 ------------------------------------------------------------------------
 
+## Research Query Interface Contract
+
+The Research Agent separates research intent definition from external
+research source execution through a dedicated Research Query interface.
+
+The Research Query interface transforms a structured Research Strategy
+into deterministic, provider-ready research queries.
+
+Responsibilities:
+
+-   Accept structured research strategies.
+-   Generate focused research queries from research concepts.
+-   Preserve deterministic query ordering.
+-   Remove duplicate query terms.
+-   Remain independent from external research source implementations.
+-   Provide query results to the Research Source Service for downstream
+    source execution.
+
+Provider interaction model:
+
+``` text
+Research Workflow
+        |
+        v
+Research Strategy Service
+        |
+        v
+Research Query Interface
+        |
+        v
+Research Source Service
+        |
+        v
+Research Source Provider Interface
+```
+
+The interface contract allows query generation behavior to evolve
+without modifying external research source implementations or workflow
+coordination behavior.
+
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
 ## Revision Workflow Interface Behavior
 
 Research Agent interfaces support revision of generated research
