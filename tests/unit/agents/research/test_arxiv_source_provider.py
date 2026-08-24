@@ -173,3 +173,157 @@ def test_arxiv_provider_empty_strategy_returns_no_results() -> None:
     )
 
     assert result == ()
+
+
+def test_arxiv_provider_retries_transient_request_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify transient request failures are retried."""
+
+    attempts = 0
+
+    xml_response = """
+    <feed xmlns="http://www.w3.org/2005/Atom">
+      <entry>
+        <id>http://arxiv.org/abs/2401.12345</id>
+        <title>Recovered Paper</title>
+        <published>2024-01-01T00:00:00Z</published>
+      </entry>
+    </feed>
+    """
+
+    def mock_get(*args, **kwargs):
+        nonlocal attempts
+        attempts += 1
+
+        if attempts == 1:
+            request = httpx.Request(
+                "GET",
+                "https://export.arxiv.org/api/query",
+            )
+            raise httpx.ReadTimeout(
+                "Read timed out.",
+                request=request,
+            )
+
+        return httpx.Response(
+            200,
+            text=xml_response,
+            request=httpx.Request(
+                "GET",
+                "https://export.arxiv.org/api/query",
+            ),
+        )
+
+    monkeypatch.setattr(
+        "project0.agents.research.arxiv_source_provider.httpx.get",
+        mock_get,
+    )
+    monkeypatch.setattr(
+        "project0.agents.research.arxiv_source_provider.time.sleep",
+        lambda seconds: None,
+    )
+
+    provider = ArxivSourceProvider(
+        retry_delay_seconds=0.0,
+    )
+
+    result = provider.search(
+        create_strategy()
+    )
+
+    assert attempts == 2
+    assert len(result) == 1
+    assert result[0].title == "Recovered Paper"
+
+
+def test_arxiv_provider_sends_user_agent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify arXiv requests identify the Project0 client."""
+
+    captured_headers = {}
+
+    xml_response = (
+        '<feed xmlns="http://www.w3.org/2005/Atom"></feed>'
+    )
+
+    def mock_get(
+        url,
+        *,
+        params,
+        headers,
+        timeout,
+    ):
+        captured_headers.update(headers)
+
+        return httpx.Response(
+            200,
+            text=xml_response,
+            request=httpx.Request(
+                "GET",
+                url,
+            ),
+        )
+
+    monkeypatch.setattr(
+        "project0.agents.research.arxiv_source_provider.httpx.get",
+        mock_get,
+    )
+
+    provider = ArxivSourceProvider(
+        user_agent="Project0-Test-Agent",
+    )
+
+    provider.search(
+        create_strategy()
+    )
+
+    assert captured_headers == {
+        "User-Agent": "Project0-Test-Agent",
+    }
+
+
+def test_arxiv_provider_retries_rate_limit_response(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify HTTP 429 responses are retried before failing."""
+
+    attempts = 0
+
+    def mock_get(*args, **kwargs):
+        nonlocal attempts
+        attempts += 1
+
+        return httpx.Response(
+            429,
+            text="rate limited",
+            request=httpx.Request(
+                "GET",
+                "https://export.arxiv.org/api/query",
+            ),
+        )
+
+    monkeypatch.setattr(
+        "project0.agents.research.arxiv_source_provider.httpx.get",
+        mock_get,
+    )
+    monkeypatch.setattr(
+        "project0.agents.research.arxiv_source_provider.time.sleep",
+        lambda seconds: None,
+    )
+
+    provider = ArxivSourceProvider(
+        maximum_attempts=3,
+        retry_delay_seconds=0.0,
+    )
+
+    with pytest.raises(
+        RuntimeError,
+        match="arXiv request failed",
+    ):
+        provider.search(
+            create_strategy()
+        )
+
+    assert attempts == 3

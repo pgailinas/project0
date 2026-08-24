@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import logging
+import time
 import xml.etree.ElementTree as ET
 
 import httpx
@@ -40,9 +41,15 @@ class ArxivSourceProvider:
         self,
         timeout_seconds: float = 60.0,
         max_results: int = 10,
+        maximum_attempts: int = 3,
+        retry_delay_seconds: float = 1.0,
+        user_agent: str = "Project0 Research Agent",
     ) -> None:
         self.timeout_seconds = timeout_seconds
         self.max_results = max_results
+        self.maximum_attempts = maximum_attempts
+        self.retry_delay_seconds = retry_delay_seconds
+        self.user_agent = user_agent
 
     def search(
         self,
@@ -61,27 +68,68 @@ class ArxivSourceProvider:
             "max_results": self.max_results,
         }
 
-        try:
-            response = httpx.get(
-                ARXIV_API_URL,
-                params=params,
-                timeout=self.timeout_seconds,
-            )
+        headers = {
+            "User-Agent": self.user_agent,
+        }
 
-            response.raise_for_status()
+        last_error: httpx.HTTPError | None = None
 
-        except httpx.HTTPError as error:
-            LOGGER.error(
-                "arXiv request failed: %s",
-                error,
-            )
-            raise RuntimeError(
-                "arXiv request failed."
-            ) from error
+        for attempt in range(
+            1,
+            self.maximum_attempts + 1,
+        ):
+            try:
+                response = httpx.get(
+                    ARXIV_API_URL,
+                    params=params,
+                    headers=headers,
+                    timeout=self.timeout_seconds,
+                )
 
-        return self._parse_response(
-            response.text
+                response.raise_for_status()
+
+                return self._parse_response(
+                    response.text
+                )
+
+            except httpx.HTTPStatusError as error:
+                last_error = error
+                status_code = error.response.status_code
+
+                if (
+                    status_code != 429
+                    and status_code < 500
+                ):
+                    break
+
+            except httpx.RequestError as error:
+                last_error = error
+
+            except httpx.HTTPError as error:
+                last_error = error
+                break
+
+            if attempt < self.maximum_attempts:
+                LOGGER.warning(
+                    "arXiv request attempt %d of %d failed: %s",
+                    attempt,
+                    self.maximum_attempts,
+                    last_error,
+                )
+
+                time.sleep(
+                    self.retry_delay_seconds
+                )
+
+        LOGGER.error(
+            "arXiv request failed after %d attempt(s): %s",
+            self.maximum_attempts,
+            last_error,
         )
+
+        raise RuntimeError(
+            "arXiv request failed."
+        ) from last_error
 
     @staticmethod
     def _build_query(
