@@ -134,7 +134,7 @@ class ResearchWorkflow:
             return self._failed_result(
                 request=request,
                 created_at=created_at,
-                error_message=str(error),
+                error_message=self._format_error_message(error),
                 warnings=tuple(warnings),
             )
 
@@ -154,6 +154,23 @@ class ResearchWorkflow:
             f"{evaluation_count} evaluation(s), and "
             f"{artifact_count} artifact(s)."
         )
+
+    @staticmethod
+    def _format_error_message(
+        error: Exception,
+    ) -> str:
+        """Convert internal exceptions into user-facing messages."""
+
+        message = str(error)
+
+        if "HTTP status 429" in message:
+            return (
+                "The configured research source is temporarily "
+                "unavailable due to rate limiting. "
+                "Please retry later."
+            )
+
+        return message
 
     @staticmethod
     def _failed_result(

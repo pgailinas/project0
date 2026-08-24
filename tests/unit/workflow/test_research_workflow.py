@@ -600,6 +600,25 @@ def test_query_failure_returns_failed_result() -> None:
     assert source_service.requests == []
 
 
+def test_rate_limit_failure_returns_user_friendly_error() -> None:
+    """A provider rate-limit failure returns a user-friendly message."""
+
+    workflow = _create_workflow(
+        source_error=RuntimeError(
+            "Semantic Scholar request failed with HTTP status 429."
+        ),
+    )[0]
+
+    result = workflow.execute(_research_request())
+
+    assert result.status is ResearchStatus.FAILED
+    assert result.error_message == (
+        "The configured research source is temporarily "
+        "unavailable due to rate limiting. "
+        "Please retry later."
+    )
+
+
 def test_source_failure_returns_failed_result() -> None:
     """A source service failure returns a failed result."""
 

@@ -10,6 +10,9 @@
 
 from __future__ import annotations
 
+from project0.agents.research.arxiv_source_provider import (
+    ArxivSourceProvider,
+)
 from project0.agents.research.research_source_provider import (
     ResearchSourceProviderProtocol,
 )
@@ -31,6 +34,8 @@ def create_research_source_providers() -> dict[str, ResearchSourceProviderProtoc
     providers: dict[str, ResearchSourceProviderProtocol] = {}
 
     providers["semantic_scholar"] = SemanticScholarSourceProvider()
+
+    providers["arxiv"] = ArxivSourceProvider()
 
     providers["stub"] = StubResearchSourceProvider(
         references=(

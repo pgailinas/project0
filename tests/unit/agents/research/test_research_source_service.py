@@ -5,7 +5,7 @@
 #
 # Purpose:
 #     Verify research source provider dispatch, aggregation,
-#     deduplication, and error handling.
+#     deduplication, fallback, and error handling.
 #
 # ============================================================
 
@@ -23,6 +23,18 @@ from project0.models.research_models import (
     ResearchSourceReference,
     ResearchStrategy,
 )
+
+
+class FailingResearchSourceProvider:
+    """Test provider that simulates an unavailable source."""
+
+    def search(
+        self,
+        strategy: ResearchStrategy,
+    ) -> tuple[ResearchSourceReference, ...]:
+        raise RuntimeError(
+            "Provider unavailable."
+        )
 
 
 def create_research_strategy(
@@ -139,21 +151,18 @@ def test_research_source_service_rejects_unknown_provider() -> None:
 def test_research_source_service_aggregates_multiple_providers() -> None:
     """Verify multiple providers contribute references."""
 
-    first_provider = StubResearchSourceProvider(
-        references=(
-            create_reference("paper-001"),
-        ),
-    )
-    second_provider = StubResearchSourceProvider(
-        references=(
-            create_reference("paper-002"),
-        ),
-    )
-
     service = ResearchSourceService(
         providers={
-            "first": first_provider,
-            "second": second_provider,
+            "first": StubResearchSourceProvider(
+                references=(
+                    create_reference("paper-001"),
+                ),
+            ),
+            "second": StubResearchSourceProvider(
+                references=(
+                    create_reference("paper-002"),
+                ),
+            ),
         },
     )
 
@@ -172,17 +181,15 @@ def test_research_source_service_aggregates_multiple_providers() -> None:
 def test_research_source_service_deduplicates_references() -> None:
     """Verify duplicate references are removed."""
 
-    provider = StubResearchSourceProvider(
-        references=(
-            create_reference("paper-001"),
-            create_reference("paper-001"),
-            create_reference("paper-002"),
-        ),
-    )
-
     service = ResearchSourceService(
         providers={
-            "stub": provider,
+            "stub": StubResearchSourceProvider(
+                references=(
+                    create_reference("paper-001"),
+                    create_reference("paper-001"),
+                    create_reference("paper-002"),
+                ),
+            ),
         },
     )
 
@@ -199,21 +206,18 @@ def test_research_source_service_deduplicates_references() -> None:
 def test_research_source_service_preserves_provider_order() -> None:
     """Verify reference ordering follows provider ordering."""
 
-    first_provider = StubResearchSourceProvider(
-        references=(
-            create_reference("first"),
-        ),
-    )
-    second_provider = StubResearchSourceProvider(
-        references=(
-            create_reference("second"),
-        ),
-    )
-
     service = ResearchSourceService(
         providers={
-            "first": first_provider,
-            "second": second_provider,
+            "first": StubResearchSourceProvider(
+                references=(
+                    create_reference("first"),
+                ),
+            ),
+            "second": StubResearchSourceProvider(
+                references=(
+                    create_reference("second"),
+                ),
+            ),
         },
     )
 
@@ -227,3 +231,57 @@ def test_research_source_service_preserves_provider_order() -> None:
         "first",
         "second",
     ]
+
+
+def test_research_source_service_falls_back_after_provider_failure() -> None:
+    """Verify failed providers allow fallback providers."""
+
+    service = ResearchSourceService(
+        providers={
+            "semantic_scholar": FailingResearchSourceProvider(),
+            "stub": StubResearchSourceProvider(
+                references=(
+                    create_reference(
+                        "fallback-paper",
+                    ),
+                ),
+            ),
+        },
+    )
+
+    result = service.search(
+        create_research_strategy(
+            (
+                "semantic_scholar",
+                "stub",
+            )
+        )
+    )
+
+    assert result == (
+        create_reference("fallback-paper"),
+    )
+
+
+def test_research_source_service_fails_when_all_providers_fail() -> None:
+    """Verify failure occurs when no providers succeed."""
+
+    service = ResearchSourceService(
+        providers={
+            "semantic_scholar": FailingResearchSourceProvider(),
+            "stub": FailingResearchSourceProvider(),
+        },
+    )
+
+    with pytest.raises(
+        RuntimeError,
+        match="All research sources failed",
+    ):
+        service.search(
+            create_research_strategy(
+                (
+                    "semantic_scholar",
+                    "stub",
+                )
+            )
+        )

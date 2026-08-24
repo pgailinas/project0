@@ -52,6 +52,14 @@ class PaperMetadataService:
                 )
                 continue
 
+            if reference.source_name == "arxiv":
+                papers.append(
+                    self._create_arxiv_metadata(
+                        reference
+                    )
+                )
+                continue
+
             if reference.source_name == "stub":
                 papers.append(
                     self._create_stub_metadata(
@@ -178,6 +186,26 @@ class PaperMetadataService:
             source_url=source_url,
             metadata={
                 "paper_id": paper_id,
+            },
+        )
+
+    def _create_arxiv_metadata(
+        self,
+        reference: ResearchSourceReference,
+    ) -> PaperMetadata:
+        """Create metadata from normalized arXiv source data."""
+
+        return PaperMetadata(
+            source_reference=reference,
+            title=reference.title,
+            authors=reference.authors,
+            publication_year=reference.publication_year,
+            abstract=None,
+            venue="arXiv",
+            source_url=reference.source_url,
+            metadata={
+                "paper_id": reference.source_id,
+                "source": "arxiv",
             },
         )
 

@@ -760,3 +760,34 @@ def test_paper_metadata_service_requires_string_url(
         PaperMetadataService().retrieve_metadata(
             (create_source_reference(),)
         )
+
+
+def test_paper_metadata_service_creates_arxiv_metadata() -> None:
+    """Verify arXiv references map to normalized PaperMetadata."""
+
+    reference = ResearchSourceReference(
+        source_name="arxiv",
+        source_id="http://arxiv.org/abs/2401.12345",
+        title="Example arXiv Paper",
+        source_url="http://arxiv.org/abs/2401.12345",
+        authors=("Author One",),
+        publication_year=2024,
+    )
+
+    result = PaperMetadataService().retrieve_metadata(
+        (reference,)
+    )
+
+    assert len(result) == 1
+
+    paper = result[0]
+
+    assert paper.source_reference == reference
+    assert paper.title == "Example arXiv Paper"
+    assert paper.authors == ("Author One",)
+    assert paper.publication_year == 2024
+    assert paper.venue == "arXiv"
+    assert paper.metadata == {
+        "paper_id": "http://arxiv.org/abs/2401.12345",
+        "source": "arxiv",
+    }

@@ -42,24 +42,34 @@ class ResearchSourceService:
         )
 
         references: list[ResearchSourceReference] = []
+        failures: list[str] = []
 
         for source_name in source_names:
-            provider = self.providers.get(
-                source_name,
-            )
+            provider = self.providers.get(source_name)
 
             if provider is None:
                 raise ValueError(
                     f"Unsupported research source: {source_name}"
                 )
 
-            references.extend(
-                provider.search(strategy)
+            try:
+                references.extend(
+                    provider.search(strategy)
+                )
+
+            except RuntimeError as error:
+                failures.append(
+                    f"{source_name}: {error}"
+                )
+                continue
+
+        if not references and failures:
+            raise RuntimeError(
+                "All research sources failed: "
+                + "; ".join(failures)
             )
 
-        return self._deduplicate_references(
-            references
-        )
+        return self._deduplicate_references(references)
 
     @staticmethod
     def _deduplicate_references(

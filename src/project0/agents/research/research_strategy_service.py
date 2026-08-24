@@ -43,11 +43,31 @@ class ResearchStrategyService:
             len(search_terms),
         )
 
+        # Empty research requests should not generate
+        # executable search strategies.
+        if not concepts and not search_terms:
+            return ResearchStrategy(
+                concepts=(),
+                search_terms=(),
+                constraints=(),
+                source_names=(),
+                rationale=None,
+            )
+
+        source_names = (
+            request.source_names
+            if request.source_names
+            else (
+                "semantic_scholar",
+                "arxiv",
+            )
+        )
+
         return ResearchStrategy(
             concepts=concepts,
             search_terms=search_terms,
             constraints=request.constraints,
-            source_names=request.source_names,
+            source_names=source_names,
             rationale=(
                 "Research strategy derived from the submitted "
                 "research question, focus areas, and constraints."

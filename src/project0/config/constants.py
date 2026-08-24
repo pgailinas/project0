@@ -20,6 +20,7 @@ KNOWLEDGE_MAXIMUM_DOCUMENTS = 5
 # Supported providers
 SUPPORTED_RESEARCH_SOURCE_PROVIDERS = (
     "semantic_scholar",
+    "arxiv",
     "stub",
 )
 

@@ -91,7 +91,10 @@ def test_build_strategy_with_question_only() -> None:
         "Find relevant VideoQA representation research.",
     )
     assert result.constraints == ()
-    assert result.source_names == ()
+    assert result.source_names == (
+        "semantic_scholar",
+        "arxiv",
+    )
 
 
 def test_build_strategy_preserves_focus_area_order() -> None:
@@ -339,3 +342,19 @@ def test_build_strategy_search_terms_match_concepts() -> None:
     result = service.build_strategy(request)
 
     assert result.search_terms == result.concepts
+
+
+def test_strategy_defaults_to_multiple_research_sources():
+    request = ResearchRequest(
+        question="How can video representations be aligned with language models?"
+    )
+
+    strategy = ResearchStrategyService().build_strategy(
+        request
+    )
+
+    assert strategy.source_names == (
+        "semantic_scholar",
+        "arxiv",
+    )
+    
