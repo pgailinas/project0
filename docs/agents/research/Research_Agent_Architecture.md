@@ -1,8 +1,8 @@
 # Research Agent Architecture
 
-**Version:** 0.1  
+**Version:** 0.2  
 **Owner:** Project0  
-**Last Updated:** 2026-08-20  
+**Last Updated:** 2026-08-23  
 
 ------------------------------------------------------------------------
 
@@ -379,6 +379,13 @@ Supported research source providers include:
         Scholar.
     -   Retrieves identifiable research references from an external
         research source.
+-   arXiv Source Provider
+    -   Provides research source access through the arXiv API.
+    -   Retrieves identifiable academic paper references from arXiv.
+    -   Integrates through the same Research Source Provider interface
+        as other external research sources.
+    -   Allows Research Agent workflows to operate independently of a
+        single external research source.
 -   Stub Research Source Provider
     -   Provides deterministic research source behavior for testing,
         demonstrations, and acceptance validation.
@@ -400,11 +407,12 @@ Research Source Service
         v
 Research Source Provider Interface
         |
-        +------------------------------+
-        |                              |
-        v                              v
-Semantic Scholar Provider        Stub Provider
-(production source)              (deterministic validation)
+        +-------------------------------------------+
+        |                    |                      |
+        v                    v                      v
+Semantic Scholar       arXiv Provider        Stub Provider
+Provider               (external source)     (deterministic validation)
+(production source)
 ```
 
 The provider abstraction supports the Project0 architectural principle
@@ -418,6 +426,8 @@ implementations.
 The Research Agent interacts with:
 
 -   Supported external research sources
+    -   Semantic Scholar research source provider
+    -   arXiv research source provider
 -   Technical paper metadata
 -   Project0 repository knowledge
 -   Existing research artifacts

@@ -1,8 +1,8 @@
 # Research Agent Test Results
 
-**Version:** 0.6\
-**Owner:** Project0\
-**Last Updated:** 2026-08-22
+**Version:** 0.6  
+**Owner:** Project0  
+**Last Updated:** 2026-08-23
 
 ------------------------------------------------------------------------
 
@@ -18,9 +18,11 @@ The Research Agent now includes:
 -   Research query generation
 -   Research source provider abstraction
 -   Semantic Scholar provider support
+-   arXiv provider support
 -   Deterministic stub provider support
 -   Research workflow orchestration
 -   Platform dispatcher integration
+-   End-to-end Dashboard workflow validation
 
 This update extends the previous Research Agent validation record with
 the Phase 10 completion milestone and updated regression results.
@@ -229,7 +231,55 @@ Planned focus:
 
 ------------------------------------------------------------------------
 
-## 8. Historical Validation Reference
+## 8. Phase 11 Functional Validation
+
+### Research Agent V1 Functional Validation
+
+Status:
+
+**COMPLETE**
+
+Validated components:
+
+-   Research Agent browser UI workflow
+-   Research Agent request submission
+-   Research source provider execution
+-   arXiv source provider integration
+-   arXiv paper metadata handling
+-   Research evaluation execution
+-   Research artifact generation
+-   End-to-end Dashboard workflow completion
+
+Validated workflow:
+
+``` text
+Research Request
+        |
+        +--> Research Strategy Service
+        |
+        +--> Research Source Service
+        |
+        +--> arXiv Source Provider
+        |
+        +--> Paper Metadata Service
+        |
+        +--> Research Evaluation Service
+        |
+        +--> Research Artifact Service
+        |
+        +--> Dashboard Results
+```
+
+The Research Agent successfully completed an end-to-end research
+workflow using arXiv as the configured research source.
+
+External research source availability remains dependent on provider API
+availability and may require future resilience improvements such as
+caching and enhanced rate-limit handling.
+
+------------------------------------------------------------------------
+
+## 9. Historical Validation Reference
 
 Previous validation records remain preserved in this document history.
 

@@ -1,8 +1,8 @@
 # Research Agent Functional Specification
 
-**Version:** 0.1  
+**Version:** 0.2  
 **Owner:** Project0  
-**Last Updated:** 2026-08-20  
+**Last Updated:** 2026-08-23  
 
 ---
 
@@ -56,6 +56,8 @@ The Research Agent shall:
 -   Generate a research strategy.
 -   Generate deterministic research queries from the research strategy.
 -   Search supported external research sources.
+-   Support pluggable research source providers through defined service
+    boundaries.
 -   Retrieve available paper metadata.
 -   Identify research papers relevant to the research question.
 -   Evaluate and rank paper relevance.
@@ -77,6 +79,8 @@ The Research Agent shall:
 -   Optional research terminology or focus areas
 -   Optional user-provided papers or references
 -   Supported external research sources
+    -   Semantic Scholar research source provider
+    -   arXiv research source provider
 -   Available paper metadata
 -   Project knowledge and existing research artifacts
 -   Project terminology and source-of-truth documentation
@@ -133,6 +137,8 @@ The Research Agent is successful when it:
 -   Generates an appropriate research strategy.
 -   Generates useful and deterministic research queries from the research strategy.
 -   Discovers relevant papers through supported research sources.
+-   Supports multiple research source providers without changing the
+    Research Agent workflow architecture.
 -   Retrieves and preserves available paper metadata.
 -   Identifies and ranks papers relevant to the research question.
 -   Produces useful, evidence-grounded paper summaries.
