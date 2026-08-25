@@ -1641,9 +1641,9 @@
 
 
 <h1 id="research-agent-functional-specification">Research Agent Functional Specification</h1>
-<p><strong>Version:</strong> 0.1<br />
+<p><strong>Version:</strong> 0.3<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-20  </p>
+<strong>Last Updated:</strong> 2026-08-25</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="mission">Mission</h3>
@@ -1685,7 +1685,12 @@ dashboard infrastructure.</p>
 <li>Accept and analyze research questions.</li>
 <li>Identify relevant research concepts and terminology.</li>
 <li>Generate a research strategy.</li>
+<li>Generate deterministic research queries from the research strategy.</li>
 <li>Search supported external research sources.</li>
+<li>Support pluggable research source providers through defined service
+    boundaries.</li>
+<li>Support deterministic research source provider behavior for testing,
+    demonstrations, and validation.</li>
 <li>Retrieve available paper metadata.</li>
 <li>Identify research papers relevant to the research question.</li>
 <li>Evaluate and rank paper relevance.</li>
@@ -1705,7 +1710,11 @@ dashboard infrastructure.</p>
 <li>Optional research constraints</li>
 <li>Optional research terminology or focus areas</li>
 <li>Optional user-provided papers or references</li>
-<li>Supported external research sources</li>
+<li>Supported external research sources<ul>
+<li>Semantic Scholar research source provider</li>
+<li>arXiv research source provider</li>
+</ul>
+</li>
 <li>Available paper metadata</li>
 <li>Project knowledge and existing research artifacts</li>
 <li>Project terminology and source-of-truth documentation</li>
@@ -1723,27 +1732,29 @@ develop an appropriate research strategy.</p>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>      ↓
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Research Strategy Generation
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>      ↓
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>External Research Source Search
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>Research Query Generation
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>      ↓
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>Paper Metadata Retrieval
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>External Research Source Search
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>      ↓
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>Candidate Paper Identification
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>Paper Metadata Retrieval
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>      ↓
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>Paper Relevance Evaluation
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>Candidate Paper Identification
 </span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>      ↓
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>Research Knowledge Retrieval
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>Paper Relevance Evaluation
 </span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>      ↓
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>Paper Analysis
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>Research Knowledge Retrieval
 </span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>      ↓
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>Research Artifact Generation
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>Paper Analysis
 </span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>      ↓
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>Citation and Source Tracking
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>Research Artifact Generation
 </span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>      ↓
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>Validation Service
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>Citation and Source Tracking
 </span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>      ↓
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>User Review
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>Validation Service
 </span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>      ↓
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>Research Result
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>User Review
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>      ↓
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>Research Result
 </span></code></pre></div>
 <hr />
 <h2 id="10-success-criteria">10. Success Criteria</h2>
@@ -1751,7 +1762,11 @@ develop an appropriate research strategy.</p>
 <ul>
 <li>Correctly interprets a research question.</li>
 <li>Generates an appropriate research strategy.</li>
+<li>Generates useful and deterministic research queries from the
+    research strategy.</li>
 <li>Discovers relevant papers through supported research sources.</li>
+<li>Supports multiple research source providers without changing the
+    Research Agent workflow architecture.</li>
 <li>Retrieves and preserves available paper metadata.</li>
 <li>Identifies and ranks papers relevant to the research question.</li>
 <li>Produces useful, evidence-grounded paper summaries.</li>
@@ -1762,6 +1777,8 @@ develop an appropriate research strategy.</p>
 <li>Produces useful experiment planning suggestions.</li>
 <li>Produces outputs useful for ECE-551 Part 2 research activities.</li>
 <li>Operates through Project0's reusable platform architecture.</li>
+<li>Integrates with Project0 workflow, validation, artifact, and
+    Dashboard Framework services.</li>
 </ul>
 <hr />
 <h2 id="101-revision-workflow">10.1 Revision Workflow</h2>

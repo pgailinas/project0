@@ -1380,6 +1380,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#research-query-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research Query Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#research-source-service" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1844,6 +1855,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#research-query-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research Query Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#research-source-service" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1973,9 +1995,9 @@
 
 
 <h1 id="research-agent-architecture">Research Agent Architecture</h1>
-<p><strong>Version:</strong> 0.1<br />
+<p><strong>Version:</strong> 0.3<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-20  </p>
+<strong>Last Updated:</strong> 2026-08-25</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="objective">Objective</h3>
@@ -1985,7 +2007,8 @@ Specification.</p>
 <h3 id="scope">Scope</h3>
 <p>Describe the architectural organization of the Research Agent.
 Implementation details, algorithms, and technology selections are
-intentionally excluded.</p>
+minimized, while major architectural boundaries, service abstractions,
+and provider interfaces are described to define system organization.</p>
 <hr />
 <h2 id="2-architectural-principles">2. Architectural Principles</h2>
 <ul>
@@ -2027,6 +2050,9 @@ artifacts, and returns structured research results for human review.</p>
 <p>The Dashboard Framework remains responsible for the shared application
 shell, navigation, context, and Work Area hosting. Research Agent
 components provide only agent-specific workflow behavior and interfaces.</p>
+<p>The Phase 10 Research Agent implementation was validated through unit,
+integration, and acceptance testing while preserving existing
+Documentation Agent functionality.</p>
 <pre class="mermaid"><code>flowchart TD
     UI["Dashboard Framework"]
     A["Application Entry Point&lt;br/&gt;&lt;small&gt;main.py&lt;/small&gt;"]
@@ -2034,7 +2060,9 @@ components provide only agent-specific workflow behavior and interfaces.</p>
     C["Research Workflow"]
 
     D["Research Strategy Service"]
+    Q["Research Query Service"]
     E["Research Source Service"]
+    P["Research Source Provider Interface"]
     F["Paper Metadata Service"]
     G["Knowledge Service"]
     H["Research Evaluation Service"]
@@ -2049,8 +2077,10 @@ components provide only agent-specific workflow behavior and interfaces.</p>
     B --&gt; C
 
     C --&gt; D
-    D --&gt; E
-    E --&gt; F
+    D --&gt; Q
+    Q --&gt; E
+    E --&gt; P
+    P --&gt; F
     F --&gt; G
     G --&gt; H
     H --&gt; I
@@ -2127,6 +2157,7 @@ components provide only agent-specific workflow behavior and interfaces.</p>
 <ul>
 <li>Research Workflow Interface</li>
 <li>Research Strategy Interface</li>
+<li>Research Query Interface</li>
 <li>Research Source Interface</li>
 <li>Paper Metadata Interface</li>
 <li>Research Evaluation Interface</li>
@@ -2185,6 +2216,25 @@ reasoning and does not directly access external research sources.</p>
 <li>Generate search concepts for supported research sources.</li>
 <li>Produce a structured Research Strategy.</li>
 </ul>
+<hr />
+<h3 id="research-query-service">Research Query Service</h3>
+<p>Transforms a structured Research Strategy into deterministic,
+provider-ready research search queries.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>Convert research concepts into focused search queries.</li>
+<li>Generate multiple search perspectives for a research topic.</li>
+<li>Preserve deterministic query ordering.</li>
+<li>Remove duplicate query terms.</li>
+<li>Remain independent from external research source providers.</li>
+<li>Return structured query results for downstream Research Source
+    Service execution.</li>
+</ul>
+<p>The Research Query Service separates research intent definition from
+external search execution. The Research Strategy Service determines what
+should be researched, while the Research Query Service determines how
+that research intent is expressed as searchable queries.</p>
+<hr />
 <hr />
 <h3 id="research-source-service">Research Source Service</h3>
 <p>Provides controlled access to supported external research sources.</p>
@@ -2268,6 +2318,15 @@ research source implementation.</p>
     research source.</li>
 </ul>
 </li>
+<li>arXiv Source Provider<ul>
+<li>Provides research source access through the arXiv API.</li>
+<li>Retrieves identifiable academic paper references from arXiv.</li>
+<li>Integrates through the same Research Source Provider interface
+    as other external research sources.</li>
+<li>Allows Research Agent workflows to operate independently of a
+    single external research source.</li>
+</ul>
+</li>
 <li>Stub Research Source Provider<ul>
 <li>Provides deterministic research source behavior for testing,
     demonstrations, and acceptance validation.</li>
@@ -2288,11 +2347,12 @@ changing Research Agent workflow components.</p>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        v
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Research Source Provider Interface
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        |
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        +------------------------------+
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        |                              |
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        v                              v
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>Semantic Scholar Provider        Stub Provider
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>(production source)              (deterministic validation)
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        +-------------------------------------------+
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        |                    |                      |
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        v                    v                      v
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>Semantic Scholar       arXiv Provider        Stub Provider
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>Provider               (external source)     (deterministic validation)
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>(production source)
 </span></code></pre></div>
 <p>The provider abstraction supports the Project0 architectural principle
 that platform components depend on interfaces rather than concrete
@@ -2301,7 +2361,11 @@ implementations.</p>
 <h2 id="5-external-dependencies">5. External Dependencies</h2>
 <p>The Research Agent interacts with:</p>
 <ul>
-<li>Supported external research sources</li>
+<li>Supported external research sources<ul>
+<li>Semantic Scholar research source provider</li>
+<li>arXiv research source provider</li>
+</ul>
+</li>
 <li>Technical paper metadata</li>
 <li>Project0 repository knowledge</li>
 <li>Existing research artifacts</li>

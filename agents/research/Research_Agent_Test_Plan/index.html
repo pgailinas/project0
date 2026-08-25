@@ -5933,9 +5933,9 @@
 
 
 <h1 id="research-agent-test-plan">Research Agent Test Plan</h1>
-<p><strong>Version:</strong> 0.1<br />
+<p><strong>Version:</strong> 0.2<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-20  </p>
+<strong>Last Updated:</strong> 2026-08-25</p>
 <hr />
 <h2 id="executive-summary">Executive Summary</h2>
 <p>This document defines the verification criteria and test strategy for
@@ -6017,6 +6017,8 @@ implemented at a specific layer:</p>
 <li>Research artifact validation</li>
 <li>Research Agent dashboard interaction</li>
 <li>Local reasoning provider integration</li>
+<li>Research source provider abstraction and deterministic provider
+    validation</li>
 <li>Research Agent platform integration</li>
 </ul>
 <hr />
@@ -6744,11 +6746,10 @@ modifying Research Workflow responsibilities.</p>
 <li>research artifact validation passes</li>
 <li>Project0 platform regression tests remain passing</li>
 </ul>
-<p>Initial Project0 regression baseline before Research Agent
-implementation:</p>
+<p>Phase 10 Research Agent validation baseline:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>python -m pytest
 </span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>
-</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>691 passed, 7 skipped
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>920 passed, 11 skipped
 </span></code></pre></div>
 <p>Research Agent implementation shall not regress the established Project0
 platform and Documentation Agent test baseline.</p>
