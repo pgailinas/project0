@@ -62,11 +62,9 @@ def create_research_request() -> ResearchRequest:
             "How can self-supervised video representations "
             "be improved for VideoQA?"
         ),
-        constraints=(
-            "Focus on vision-language alignment.",
-        ),
-        focus_areas=(
-            "video representation learning",
+        guidance=(
+            "Focus on vision-language alignment. "
+            "video representation learning"
         ),
     )
 

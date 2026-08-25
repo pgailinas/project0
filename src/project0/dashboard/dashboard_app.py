@@ -165,7 +165,11 @@ def create_dashboard_app(
 
 
 def _create_reasoning_provider():
-    """Create the configured Project0 reasoning provider."""
+    """Create the configured Project0 reasoning provider.
+
+    Used for production Ollama execution and retained as the shared
+    provider path when no agent-specific provider overrides are required.
+    """
 
     if SETTINGS.reasoning_provider == "ollama":
         return OllamaReasoningProvider(
@@ -179,20 +183,41 @@ def _create_reasoning_provider():
                 provider_name="stub",
                 model_name="stub-model",
                 content=(
-                    '{"summary": '
-                    '"No documentation changes proposed."}'
+                    '{"evaluations": ['
+                    '{"paper_id": "stub-paper-001", '
+                    '"relevance_score": 0.95, '
+                    '"research_connections": '
+                    '["vision-language alignment"], '
+                    '"summary": "Stub research evaluation.", '
+                    '"limitations": '
+                    '"Stub evaluation for deterministic testing."'
+                    '}]}'
                 ),
                 structured_output={
-                    "summary": "No documentation changes proposed.",
-                    "impacts": [],
-                    "proposed_changes": [],
-                    "assumptions": [],
-                    "warnings": [],
+                    "evaluations": [
+                        {
+                            "source_id": "stub-paper-001",
+                            "relevance_score": 0.95,
+                            "relevance_summary": (
+                                "Stub research evaluation."
+                            ),
+                            "strengths": [
+                                "Vision-language alignment relevance",
+                            ],
+                            "limitations": [
+                                "Stub evaluation for deterministic testing",
+                            ],
+                            "research_connections": [
+                                "vision-language alignment",
+                            ],
+                            "warnings": [],
+                        },
+                    ],
                 },
                 duration_seconds=0.0,
                 metadata={
                     "stub": True,
-                    "purpose": "dashboard-development",
+                    "purpose": "research-agent-development",
                 },
             )
         )
@@ -203,17 +228,149 @@ def _create_reasoning_provider():
     )
 
 
+
+
+def _create_documentation_reasoning_provider():
+    """Create deterministic Documentation Agent reasoning behavior."""
+
+    return StubReasoningProvider(
+        response=ProviderResponse(
+            provider_name="stub",
+            model_name="stub-model",
+            content=(
+                '{"summary": "Generated documentation proposal."}'
+            ),
+            structured_output={
+                "summary": (
+                    "Generated documentation proposal."
+                ),
+                "assumptions": [],
+                "warnings": [],
+                "impacts": [
+                    {
+                        "document_path": (
+                            "tests/test_data/documentation_agent/"
+                            "revision_test_document.md"
+                        ),
+                        "summary": "Documentation update",
+                        "rationale": (
+                            "Expand the workflow sequence to include "
+                            "approval before applying "
+                            "documentation changes."
+                        ),
+                        "confidence": 0.95,
+                    }
+                ],
+                "proposed_changes": [
+                    {
+                        "document_path": (
+                            "tests/test_data/documentation_agent/"
+                            "revision_test_document.md"
+                        ),
+                        "operation": "update",
+                        "rationale": (
+                            "Expand the workflow sequence to include "
+                            "approval before applying "
+                            "documentation changes."
+                        ),
+                        "proposed_content": (
+                            "# Updated Documentation\\n\\n"
+                            "Workflow changes require approval "
+                            "before applying documentation changes.\\n"
+                        ),
+                        "anchor_text": "Implemented:",
+                        "edit_type": "insert",
+                        "confidence": 0.95,
+                    }
+                ],
+            },
+            duration_seconds=0.0,
+            metadata={
+                "stub": True,
+                "purpose": "documentation-agent-development",
+            },
+        )
+    )
+
+
+def _create_research_reasoning_provider():
+    """Create deterministic Research Agent reasoning behavior."""
+
+    return StubReasoningProvider(
+        response=ProviderResponse(
+            provider_name="stub",
+            model_name="stub-model",
+            content=(
+                '{"evaluations": ['
+                '{"paper_id": "stub-paper-001", '
+                '"relevance_score": 0.95, '
+                '"research_connections": '
+                '["vision-language alignment"], '
+                '"summary": "Stub research evaluation.", '
+                '"limitations": '
+                '"Stub evaluation for deterministic testing."'
+                '}]}'
+            ),
+            structured_output={
+                "evaluations": [
+                    {
+                        "source_id": "stub-paper-001",
+                        "relevance_score": 0.95,
+                        "relevance_summary": (
+                            "Stub research evaluation."
+                        ),
+                        "strengths": [
+                            "Vision-language alignment relevance",
+                        ],
+                        "limitations": [
+                            "Stub evaluation for deterministic testing",
+                        ],
+                        "research_connections": [
+                            "vision-language alignment",
+                        ],
+                        "warnings": [],
+                    },
+                ],
+            },
+            duration_seconds=0.0,
+            metadata={
+                "stub": True,
+                "purpose": "research-agent-development",
+            },
+        )
+    )
+
+
 def create_project0_dashboard_app() -> FastAPI:
     """Create the configured Project0 Dashboard application."""
 
     configure_logging()
 
-    reasoning_provider = _create_reasoning_provider()
+    if SETTINGS.reasoning_provider == "stub":
+        documentation_reasoning_provider = (
+            _create_documentation_reasoning_provider()
+        )
+        research_reasoning_provider = (
+            _create_research_reasoning_provider()
+        )
 
-    dispatcher = create_platform_dispatcher(
-        reasoning_provider=reasoning_provider,
-        reasoning_model_name=SETTINGS.ollama_model,
-    )
+        dispatcher = create_platform_dispatcher(
+            documentation_reasoning_provider=(
+                documentation_reasoning_provider
+            ),
+            research_reasoning_provider=(
+                research_reasoning_provider
+            ),
+            reasoning_model_name=SETTINGS.ollama_model,
+        )
+
+    else:
+        reasoning_provider = _create_reasoning_provider()
+
+        dispatcher = create_platform_dispatcher(
+            reasoning_provider=reasoning_provider,
+            reasoning_model_name=SETTINGS.ollama_model,
+        )
     documentation_agent_ui_service = DocumentationAgentUIService(
         workflow=dispatcher,
     )

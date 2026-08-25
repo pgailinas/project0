@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+from project0.config.constants import DEFAULT_RESEARCH_SOURCE_PROVIDERS
 from project0.models.research_models import ResearchRequest
 from project0.agents.research.research_strategy_service import (
     ResearchStrategyService,
@@ -25,25 +26,23 @@ def test_build_strategy_from_complete_request() -> None:
             "How can self-supervised video representations "
             "be improved for VideoQA?"
         ),
-        constraints=(
-            "Focus on vision-language alignment.",
-            "Prefer recent research.",
-        ),
-        focus_areas=(
-            "video representation learning",
-            "multimodal alignment",
-        ),
-        source_names=(
-            "arxiv",
-            "semantic_scholar",
+        guidance=(
+            "Focus on vision-language alignment. "
+            "Prefer recent research. "
+            "video representation learning. "
+            "multimodal alignment."
         ),
     )
 
-    service = ResearchStrategyService()
+    service = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    )
 
     result = service.build_strategy(request)
 
     assert result.concepts == (
+        "Focus on vision-language alignment",
+        "Prefer recent research",
         "video representation learning",
         "multimodal alignment",
         (
@@ -52,6 +51,8 @@ def test_build_strategy_from_complete_request() -> None:
         ),
     )
     assert result.search_terms == (
+        "Focus on vision-language alignment",
+        "Prefer recent research",
         "video representation learning",
         "multimodal alignment",
         (
@@ -64,12 +65,12 @@ def test_build_strategy_from_complete_request() -> None:
         "Prefer recent research.",
     )
     assert result.source_names == (
-        "arxiv",
         "semantic_scholar",
+        "arxiv",
     )
     assert result.rationale == (
         "Research strategy derived from the submitted "
-        "research question, focus areas, and constraints."
+        "research question and guidance."
     )
 
 
@@ -80,7 +81,9 @@ def test_build_strategy_with_question_only() -> None:
         question="Find relevant VideoQA representation research.",
     )
 
-    service = ResearchStrategyService()
+    service = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    )
 
     result = service.build_strategy(request)
 
@@ -97,19 +100,21 @@ def test_build_strategy_with_question_only() -> None:
     )
 
 
-def test_build_strategy_preserves_focus_area_order() -> None:
-    """Verify research focus areas preserve request order."""
+def test_build_strategy_preserves_guidance_concept_order() -> None:
+    """Verify research guidance concepts preserve request order."""
 
     request = ResearchRequest(
         question="Research question.",
-        focus_areas=(
-            "second concept",
-            "first concept",
-            "third concept",
+        guidance=(
+            "second concept. "
+            "first concept. "
+            "third concept."
         ),
     )
 
-    service = ResearchStrategyService()
+    service = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    )
 
     result = service.build_strategy(request)
 
@@ -121,19 +126,21 @@ def test_build_strategy_preserves_focus_area_order() -> None:
     )
 
 
-def test_build_strategy_removes_duplicate_focus_areas() -> None:
-    """Verify duplicate focus areas are removed."""
+def test_build_strategy_removes_duplicate_guidance_concepts() -> None:
+    """Verify duplicate guidance concepts are removed."""
 
     request = ResearchRequest(
         question="Research question.",
-        focus_areas=(
-            "video representation learning",
-            "video representation learning",
-            "multimodal alignment",
+        guidance=(
+            "video representation learning. "
+            "video representation learning. "
+            "multimodal alignment."
         ),
     )
 
-    service = ResearchStrategyService()
+    service = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    )
 
     result = service.build_strategy(request)
 
@@ -144,18 +151,20 @@ def test_build_strategy_removes_duplicate_focus_areas() -> None:
     )
 
 
-def test_build_strategy_strips_focus_area_whitespace() -> None:
+def test_build_strategy_strips_guidance_concept_whitespace() -> None:
     """Verify focus area whitespace is normalized."""
 
     request = ResearchRequest(
         question="Research question.",
-        focus_areas=(
-            "  video representation learning  ",
-            " multimodal alignment ",
+        guidance=(
+            "  video representation learning. "
+            "multimodal alignment."
         ),
     )
 
-    service = ResearchStrategyService()
+    service = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    )
 
     result = service.build_strategy(request)
 
@@ -166,19 +175,21 @@ def test_build_strategy_strips_focus_area_whitespace() -> None:
     )
 
 
-def test_build_strategy_ignores_empty_focus_areas() -> None:
-    """Verify empty focus areas are ignored."""
+def test_build_strategy_ignores_empty_guidance_concepts() -> None:
+    """Verify empty guidance concepts are ignored."""
 
     request = ResearchRequest(
         question="Research question.",
-        focus_areas=(
-            "",
-            "   ",
-            "video representation learning",
+        guidance=(
+            ". "
+            "   "
+            "video representation learning."
         ),
     )
 
-    service = ResearchStrategyService()
+    service = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    )
 
     result = service.build_strategy(request)
 
@@ -195,7 +206,9 @@ def test_build_strategy_strips_question_whitespace() -> None:
         question="  Research question.  ",
     )
 
-    service = ResearchStrategyService()
+    service = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    )
 
     result = service.build_strategy(request)
 
@@ -212,12 +225,14 @@ def test_build_strategy_avoids_duplicate_question_concept() -> None:
 
     request = ResearchRequest(
         question="video representation learning",
-        focus_areas=(
-            "video representation learning",
+        guidance=(
+            "video representation learning."
         ),
     )
 
-    service = ResearchStrategyService()
+    service = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    )
 
     result = service.build_strategy(request)
 
@@ -239,10 +254,15 @@ def test_build_strategy_preserves_constraints() -> None:
 
     request = ResearchRequest(
         question="Research question.",
-        constraints=constraints,
+        guidance=(
+            "Prefer papers after 2020. "
+            "Focus on VideoQA."
+        ),
     )
 
-    service = ResearchStrategyService()
+    service = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    )
 
     result = service.build_strategy(request)
 
@@ -259,10 +279,12 @@ def test_build_strategy_preserves_source_names() -> None:
 
     request = ResearchRequest(
         question="Research question.",
-        source_names=source_names,
+        guidance="Use configured sources.",
     )
 
-    service = ResearchStrategyService()
+    service = ResearchStrategyService(
+        source_names=source_names,
+    )
 
     result = service.build_strategy(request)
 
@@ -274,19 +296,16 @@ def test_build_strategy_returns_deterministic_results() -> None:
 
     request = ResearchRequest(
         question="Research question.",
-        constraints=(
-            "Constraint one.",
-        ),
-        focus_areas=(
-            "concept one",
-            "concept two",
-        ),
-        source_names=(
-            "arxiv",
+        guidance=(
+            "Constraint one. "
+            "concept one. "
+            "concept two."
         ),
     )
 
-    service = ResearchStrategyService()
+    service = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    )
 
     first_result = service.build_strategy(request)
     second_result = service.build_strategy(request)
@@ -301,7 +320,9 @@ def test_build_strategy_allows_empty_question() -> None:
         question="",
     )
 
-    service = ResearchStrategyService()
+    service = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    )
 
     result = service.build_strategy(request)
 
@@ -318,7 +339,9 @@ def test_build_strategy_allows_whitespace_question() -> None:
         question="   ",
     )
 
-    service = ResearchStrategyService()
+    service = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    )
 
     result = service.build_strategy(request)
 
@@ -331,13 +354,15 @@ def test_build_strategy_search_terms_match_concepts() -> None:
 
     request = ResearchRequest(
         question="Research question.",
-        focus_areas=(
-            "concept one",
-            "concept two",
+        guidance=(
+            "concept one. "
+            "concept two."
         ),
     )
 
-    service = ResearchStrategyService()
+    service = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    )
 
     result = service.build_strategy(request)
 
@@ -349,7 +374,9 @@ def test_strategy_defaults_to_multiple_research_sources():
         question="How can video representations be aligned with language models?"
     )
 
-    strategy = ResearchStrategyService().build_strategy(
+    strategy = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    ).build_strategy(
         request
     )
 

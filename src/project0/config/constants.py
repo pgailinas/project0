@@ -17,12 +17,19 @@ DEFAULT_OLLAMA_TIMEOUT_SECONDS = 600.0
 # Knowledge service limits
 KNOWLEDGE_MAXIMUM_DOCUMENTS = 5
 
+# Research source provider defaults
+#
+# Default behavior preserves the current live research workflow.
+# Acceptance environments may override provider selection through
+# runtime configuration.
+DEFAULT_RESEARCH_SOURCE_PROVIDERS = (
+    "semantic_scholar",
+    "arxiv",
+)
+
 # Supported providers
 SUPPORTED_RESEARCH_SOURCE_PROVIDERS = (
     "semantic_scholar",
     "arxiv",
     "stub",
 )
-
-
-

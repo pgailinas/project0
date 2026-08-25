@@ -33,20 +33,10 @@ def _submit_research_request(page: Page):
     ).fill(question_text)
 
     page.get_by_placeholder(
-        "Prefer recent peer-reviewed research."
+        "Optional guidance, constraints, focus areas, or preferences."
     ).fill(
-        "Prefer recent research."
-    )
-
-    page.get_by_placeholder(
-        "vision-language alignment"
-    ).fill(
-        "vision-language alignment"
-    )
-
-    page.get_by_placeholder(
-        "semantic_scholar"
-    ).fill(
+        "Prefer recent research. "
+        "vision-language alignment "
         "stub"
     )
 
@@ -74,9 +64,8 @@ def test_UI_RA_FUN_005_A_completed_research_matches_visible_results(
 
     This test validates:
     - request submission
-    - research source discovery
-    - paper metadata presentation
-    - relevance evaluation presentation
+    - research result presentation
+    - relevance result presentation
     - research artifact presentation
 
     Full workflow validation:
@@ -99,21 +88,7 @@ def test_UI_RA_FUN_005_A_completed_research_matches_visible_results(
     expect(
         page.get_by_role(
             "heading",
-            name="Research Sources",
-        )
-    ).to_be_visible()
-
-    expect(
-        page.get_by_role(
-            "heading",
-            name="Paper Metadata",
-        )
-    ).to_be_visible()
-
-    expect(
-        page.get_by_role(
-            "heading",
-            name="Research Evaluation",
+            name="Research Results",
         )
     ).to_be_visible()
 

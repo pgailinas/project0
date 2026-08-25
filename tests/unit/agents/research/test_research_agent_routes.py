@@ -22,7 +22,6 @@ from fastapi.testclient import TestClient
 from project0.agents.research.research_agent_routes import (
     RESEARCH_AGENT_ROUTE_PREFIX,
     RESEARCH_AGENT_TEMPLATE_NAME,
-    _parse_multiline_values,
     create_research_agent_router,
 )
 from project0.agents.research.research_agent_view_models import (
@@ -48,17 +47,13 @@ class FakeResearchAgentUIService:
     def submit_request(
         self,
         question: str,
-        constraints: tuple[str, ...],
-        focus_areas: tuple[str, ...],
-        source_names: tuple[str, ...],
+        guidance: str,
     ) -> ResearchAgentPageView:
         """Record request values and return the configured page."""
 
         self.received_request = {
             "question": question,
-            "constraints": constraints,
-            "focus_areas": focus_areas,
-            "source_names": source_names,
+            "guidance": guidance,
         }
         return self.request_page
 
@@ -148,23 +143,6 @@ def test_route_constants() -> None:
     )
 
 
-def test_parse_multiline_values() -> None:
-    """Multiline values should be split, stripped, and filtered."""
-
-    result = _parse_multiline_values(
-        """
-        Prefer recent research.
-
-          Focus on VideoQA.
-        """
-    )
-
-    assert result == (
-        "Prefer recent research.",
-        "Focus on VideoQA.",
-    )
-
-
 def test_research_agent_home_route(tmp_path: Path) -> None:
     """The home route should render the initial page state."""
 
@@ -197,18 +175,13 @@ def test_submit_request_route_delegates_form_values(
         "/agents/research/request",
         data={
             "question": "Find relevant VideoQA research.",
-            "constraints": (
-                "Prefer recent research.\n"
-                "\n"
-                " Focus on peer-reviewed work. "
-            ),
-            "focus_areas": (
-                "vision-language alignment\n"
-                " self-supervised video representations "
-            ),
-            "source_names": (
-                "semantic_scholar\n"
-                " arxiv "
+            "guidance": (
+                "Prefer recent research. "
+                "Focus on peer-reviewed work. "
+                "vision-language alignment. "
+                "self-supervised video representations. "
+                "semantic_scholar. "
+                "arxiv."
             ),
         },
     )
@@ -216,17 +189,13 @@ def test_submit_request_route_delegates_form_values(
     assert response.status_code == 200
     assert service.received_request == {
         "question": "Find relevant VideoQA research.",
-        "constraints": (
-            "Prefer recent research.",
-            "Focus on peer-reviewed work.",
-        ),
-        "focus_areas": (
-            "vision-language alignment",
-            "self-supervised video representations",
-        ),
-        "source_names": (
-            "semantic_scholar",
-            "arxiv",
+        "guidance": (
+            "Prefer recent research. "
+            "Focus on peer-reviewed work. "
+            "vision-language alignment. "
+            "self-supervised video representations. "
+            "semantic_scholar. "
+            "arxiv."
         ),
     }
     assert "The research workflow completed successfully." in response.text
@@ -245,18 +214,14 @@ def test_submit_request_route_accepts_empty_optional_values(
         "/agents/research/request",
         data={
             "question": "Find relevant research.",
-            "constraints": "",
-            "focus_areas": "",
-            "source_names": "",
+            "guidance": "",
         },
     )
 
     assert response.status_code == 200
     assert service.received_request == {
         "question": "Find relevant research.",
-        "constraints": (),
-        "focus_areas": (),
-        "source_names": (),
+        "guidance": "",
     }
 
 
@@ -271,18 +236,14 @@ def test_submit_request_route_accepts_blank_question(
         "/agents/research/request",
         data={
             "question": "",
-            "constraints": "",
-            "focus_areas": "",
-            "source_names": "",
+            "guidance": "",
         },
     )
 
     assert response.status_code == 200
     assert service.received_request == {
         "question": "",
-        "constraints": (),
-        "focus_areas": (),
-        "source_names": (),
+        "guidance": "",
     }
 
 

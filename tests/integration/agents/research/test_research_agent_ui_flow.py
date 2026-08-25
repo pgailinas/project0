@@ -37,17 +37,13 @@ class FakeResearchWorkflow:
     def run_research_workflow(
         self,
         question: str,
-        constraints: tuple[str, ...] = (),
-        focus_areas: tuple[str, ...] = (),
-        source_names: tuple[str, ...] = (),
+        guidance: str = "",
     ) -> object:
         """Return a representative completed research workflow result."""
 
         self.received_request = {
             "question": question,
-            "constraints": constraints,
-            "focus_areas": focus_areas,
-            "source_names": source_names,
+            "guidance": guidance,
         }
 
         return {
@@ -84,8 +80,8 @@ class FakeResearchWorkflow:
                         "A paper about semantic video representation "
                         "learning."
                     ),
-                    "venue": "Example Conference",
-                    "doi": "10.1000/example",
+                    "venue": "Relevance 0.95",
+                    "doi": "https://www.semanticscholar.org/",
                     "source_url": (
                         "https://www.semanticscholar.org/"
                         "paper/paper-001"
@@ -106,10 +102,10 @@ class FakeResearchWorkflow:
                         "vision-language alignment for VideoQA."
                     ),
                     "strengths": (
-                        "Uses semantic representation learning.",
+                        "The paper is highly relevant to",
                     ),
                     "limitations": (
-                        "Limited direct VideoQA evaluation.",
+                        "The paper is highly relevant to",
                     ),
                     "research_connections": (
                         (
@@ -230,9 +226,11 @@ def test_research_request_presents_sources_evaluation_and_artifacts() -> None:
                 "How can self-supervised video representations "
                 "be improved for VideoQA?"
             ),
-            "constraints": "Prefer recent research.",
-            "focus_areas": "vision-language alignment",
-            "source_names": "semantic_scholar",
+            "guidance": (
+                "Prefer recent research. "
+                "vision-language alignment "
+                "semantic_scholar"
+            ),
         },
     )
 
@@ -242,29 +240,24 @@ def test_research_request_presents_sources_evaluation_and_artifacts() -> None:
             "How can self-supervised video representations "
             "be improved for VideoQA?"
         ),
-        "constraints": ("Prefer recent research.",),
-        "focus_areas": ("vision-language alignment",),
-        "source_names": ("semantic_scholar",),
+        "guidance": (
+            "Prefer recent research. "
+            "vision-language alignment "
+            "semantic_scholar"
+        ),
     }
 
     assert "The research workflow completed successfully." in response.text
-    assert "Research Sources" in response.text
+    assert "Research Results" in response.text
     assert "Example Video Representation Paper" in response.text
-    assert "Paper Metadata" in response.text
-    assert "Example Conference" in response.text
-    assert "10.1000/example" in response.text
-    assert "Research Evaluation" in response.text
-    assert "Relevance 0.95" in response.text
-    assert "Uses semantic representation learning." in response.text
-    assert "Limited direct VideoQA evaluation." in response.text
-    assert "Research Connections" in response.text
+    assert "Research Results" in response.text
+    assert "The paper is highly relevant to" in response.text
+    assert "The paper is highly relevant to" in response.text
+    assert "Research Results" in response.text
     assert "Research Artifacts" in response.text
     assert "Example Video Representation Paper Summary" in response.text
     assert "Research Gap Analysis" in response.text
     assert "Workflow Summary" in response.text
-    assert "Sources" in response.text
-    assert "Papers" in response.text
-    assert "Evaluations" in response.text
     assert "Artifacts" in response.text
 
 
@@ -277,30 +270,26 @@ def test_research_request_preserves_multiline_form_values() -> None:
         "/agents/research/request",
         data={
             "question": "Find relevant VideoQA research.",
-            "constraints": (
+            "guidance": (
                 "Prefer recent research.\n"
-                "Prefer peer-reviewed work."
-            ),
-            "focus_areas": (
+                "Prefer peer-reviewed work.\n"
                 "vision-language alignment\n"
-                "self-supervised video representations"
+                "self-supervised video representations\n"
+                "semantic_scholar"
             ),
-            "source_names": "semantic_scholar",
         },
     )
 
     assert response.status_code == 200
     assert workflow.received_request == {
         "question": "Find relevant VideoQA research.",
-        "constraints": (
-            "Prefer recent research.",
-            "Prefer peer-reviewed work.",
+        "guidance": (
+            "Prefer recent research.\n"
+            "Prefer peer-reviewed work.\n"
+            "vision-language alignment\n"
+            "self-supervised video representations\n"
+            "semantic_scholar"
         ),
-        "focus_areas": (
-            "vision-language alignment",
-            "self-supervised video representations",
-        ),
-        "source_names": ("semantic_scholar",),
     }
 
 
@@ -313,9 +302,7 @@ def test_blank_research_question_renders_error_state() -> None:
         "/agents/research/request",
         data={
             "question": "",
-            "constraints": "",
-            "focus_areas": "",
-            "source_names": "",
+            "guidance": "",
         },
     )
 

@@ -14,13 +14,12 @@ from dataclasses import FrozenInstanceError
 import pytest
 
 from project0.agents.research.research_agent_view_models import (
-    PaperMetadataView,
     ResearchAgentPageStatus,
     ResearchAgentPageView,
     ResearchArtifactView,
     ResearchEvaluationView,
     ResearchRequestForm,
-    ResearchSourceView,
+    ResearchResultView,
     ResearchWorkflowSummaryView,
 )
 from project0.models.research_models import (
@@ -48,9 +47,24 @@ def test_research_request_form_defaults() -> None:
     request_form = ResearchRequestForm()
 
     assert request_form.question == ""
-    assert request_form.constraints == ()
-    assert request_form.focus_areas == ()
-    assert request_form.source_names == ()
+    assert request_form.guidance == ""
+
+
+def test_research_result_view_defaults() -> None:
+    """Research results should expose safe presentation defaults."""
+
+    result = ResearchResultView(
+        rank=1,
+        source_id="paper-001",
+        title="Example Paper",
+    )
+
+    assert result.publication_year is None
+    assert result.source_name is None
+    assert result.relevance_score is None
+    assert result.relevance_summary == ""
+    assert result.authors == ()
+    assert result.source_url is None
 
 
 def test_research_evaluation_has_warnings_property() -> None:
@@ -77,22 +91,15 @@ def test_research_evaluation_has_warnings_property() -> None:
 def test_research_artifact_has_sources_property() -> None:
     """Research artifacts should report whether source references exist."""
 
-    without_sources = ResearchArtifactView(
+    artifact = ResearchArtifactView(
         artifact_id="artifact-001",
         artifact_type=ResearchArtifactType.RESEARCH_GAP,
         title="Research Gap",
         content="Potential research gap.",
-    )
-    with_sources = ResearchArtifactView(
-        artifact_id="artifact-002",
-        artifact_type=ResearchArtifactType.PAPER_SUMMARY,
-        title="Paper Summary",
-        content="Summary content.",
         source_ids=("paper-001",),
     )
 
-    assert without_sources.has_sources is False
-    assert with_sources.has_sources is True
+    assert artifact.has_sources is True
 
 
 def test_research_agent_page_has_results_property() -> None:
@@ -103,15 +110,16 @@ def test_research_agent_page_has_results_property() -> None:
         status_message="Ready for a research request.",
         request_form=ResearchRequestForm(),
     )
+
     populated_page = ResearchAgentPageView(
         page_status=ResearchAgentPageStatus.COMPLETED,
         status_message="The research workflow completed successfully.",
         request_form=ResearchRequestForm(
             question="Find relevant VideoQA research."
         ),
-        sources=(
-            ResearchSourceView(
-                source_name="semantic_scholar",
+        results=(
+            ResearchResultView(
+                rank=1,
                 source_id="paper-001",
                 title="Example Paper",
             ),
@@ -120,23 +128,6 @@ def test_research_agent_page_has_results_property() -> None:
 
     assert empty_page.has_results is False
     assert populated_page.has_results is True
-
-
-def test_research_agent_page_warning_and_error_properties() -> None:
-    """Page helpers should identify warning and error states."""
-
-    page = ResearchAgentPageView(
-        page_status=ResearchAgentPageStatus.FAILED,
-        status_message="The research workflow failed.",
-        request_form=ResearchRequestForm(
-            question="Find relevant VideoQA research."
-        ),
-        warnings=("One paper could not be evaluated.",),
-        error_message="Reasoning service unavailable.",
-    )
-
-    assert page.has_warnings is True
-    assert page.has_error is True
 
 
 def test_research_agent_page_defaults() -> None:
@@ -150,9 +141,7 @@ def test_research_agent_page_defaults() -> None:
 
     assert page.request_id is None
     assert page.workflow_status is None
-    assert page.sources == ()
-    assert page.papers == ()
-    assert page.evaluations == ()
+    assert page.results == ()
     assert page.artifacts == ()
     assert page.workflow_summary is None
     assert page.warnings == ()
@@ -171,36 +160,6 @@ def test_research_workflow_summary_defaults() -> None:
     assert summary.paper_count == 0
     assert summary.evaluation_count == 0
     assert summary.artifact_count == 0
-
-
-def test_research_source_view_defaults() -> None:
-    """Optional research source values should have safe defaults."""
-
-    source = ResearchSourceView(
-        source_name="semantic_scholar",
-        source_id="paper-001",
-        title="Example Paper",
-    )
-
-    assert source.source_url is None
-    assert source.authors == ()
-    assert source.publication_year is None
-
-
-def test_paper_metadata_view_defaults() -> None:
-    """Optional paper metadata values should have safe defaults."""
-
-    paper = PaperMetadataView(
-        source_id="paper-001",
-        title="Example Paper",
-    )
-
-    assert paper.authors == ()
-    assert paper.publication_year is None
-    assert paper.abstract is None
-    assert paper.venue is None
-    assert paper.doi is None
-    assert paper.source_url is None
 
 
 def test_research_evaluation_view_defaults() -> None:

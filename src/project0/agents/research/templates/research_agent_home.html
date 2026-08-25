@@ -158,44 +158,15 @@
             </div>
 
             <div class="form-field">
-                <label for="constraints">Research constraints</label>
+                <label for="guidance">Research guidance</label>
                 <textarea
-                    id="constraints"
-                    name="constraints"
+                    id="guidance"
+                    name="guidance"
                     rows="4"
-                    placeholder="Prefer recent peer-reviewed research."
-                >{% for value in page.request_form.constraints %}{{ value }}{% if not loop.last %}
-{% endif %}{% endfor %}</textarea>
+                    placeholder="Optional guidance, constraints, focus areas, or preferences."
+                >{{ page.request_form.guidance }}</textarea>
                 <p class="form-help">
-                    Optional. Enter one research constraint per line.
-                </p>
-            </div>
-
-            <div class="form-field">
-                <label for="focus-areas">Focus areas</label>
-                <textarea
-                    id="focus-areas"
-                    name="focus_areas"
-                    rows="4"
-                    placeholder="vision-language alignment"
-                >{% for value in page.request_form.focus_areas %}{{ value }}{% if not loop.last %}
-{% endif %}{% endfor %}</textarea>
-                <p class="form-help">
-                    Optional. Enter one research focus area per line.
-                </p>
-            </div>
-
-            <div class="form-field">
-                <label for="source-names">Research sources</label>
-                <textarea
-                    id="source-names"
-                    name="source_names"
-                    rows="3"
-                    placeholder="semantic_scholar"
-                >{% for value in page.request_form.source_names %}{{ value }}{% if not loop.last %}
-{% endif %}{% endfor %}</textarea>
-                <p class="form-help">
-                    Optional. Enter one supported research source per line.
+                    Optional. Provide research constraints, focus areas, or preferences.
                 </p>
             </div>
 
@@ -232,222 +203,50 @@
         </form>
     </section>
 
-    {% if page.sources %}
+    {% if page.results %}
     <section
         class="content-panel"
-        aria-labelledby="research-sources-title"
+        aria-labelledby="research-results-title"
     >
         <div class="panel-heading">
             <div>
-                <p class="panel-eyebrow">Discovery</p>
-                <h2 id="research-sources-title">
-                    Research Sources
+                <p class="panel-eyebrow">Results</p>
+                <h2 id="research-results-title">
+                    Research Results
                 </h2>
             </div>
         </div>
 
-        <div class="proposal-list">
-            {% for source in page.sources %}
-            <article class="proposal-card">
-                <header class="proposal-card__header">
-                    <div>
-                        <p class="proposal-card__number">
-                            Source {{ loop.index }} of {{ page.sources | length }}
-                        </p>
-                        <h3>{{ source.title }}</h3>
-                    </div>
-                </header>
-
-                <dl class="validation-summary">
-                    <div>
-                        <dt>Source</dt>
-                        <dd>{{ source.source_name }}</dd>
-                    </div>
-                    <div>
-                        <dt>Source ID</dt>
-                        <dd>{{ source.source_id }}</dd>
-                    </div>
-                    {% if source.publication_year %}
-                    <div>
-                        <dt>Year</dt>
-                        <dd>{{ source.publication_year }}</dd>
-                    </div>
-                    {% endif %}
-                </dl>
-
-                {% if source.authors %}
-                <p>
-                    <strong>Authors:</strong>
-                    {{ source.authors | join(", ") }}
-                </p>
-                {% endif %}
-
-                {% if source.source_url %}
-                <p>
-                    <a href="{{ source.source_url }}">
-                        View research source
-                    </a>
-                </p>
-                {% endif %}
-            </article>
-            {% endfor %}
-        </div>
-    </section>
-    {% endif %}
-
-    {% if page.papers %}
-    <section
-        class="content-panel"
-        aria-labelledby="research-papers-title"
-    >
-        <div class="panel-heading">
-            <div>
-                <p class="panel-eyebrow">Metadata</p>
-                <h2 id="research-papers-title">
-                    Paper Metadata
-                </h2>
-            </div>
-        </div>
-
-        <div class="proposal-list">
-            {% for paper in page.papers %}
-            <article class="proposal-card">
-                <header class="proposal-card__header">
-                    <div>
-                        <p class="proposal-card__number">
-                            Paper {{ loop.index }} of {{ page.papers | length }}
-                        </p>
-                        <h3>{{ paper.title }}</h3>
-                    </div>
-                </header>
-
-                {% if paper.authors %}
-                <p>
-                    <strong>Authors:</strong>
-                    {{ paper.authors | join(", ") }}
-                </p>
-                {% endif %}
-
-                <dl class="validation-summary">
-                    {% if paper.publication_year %}
-                    <div>
-                        <dt>Year</dt>
-                        <dd>{{ paper.publication_year }}</dd>
-                    </div>
-                    {% endif %}
-                    {% if paper.venue %}
-                    <div>
-                        <dt>Venue</dt>
-                        <dd>{{ paper.venue }}</dd>
-                    </div>
-                    {% endif %}
-                    {% if paper.doi %}
-                    <div>
-                        <dt>DOI</dt>
-                        <dd>{{ paper.doi }}</dd>
-                    </div>
-                    {% endif %}
-                </dl>
-
-                {% if paper.abstract %}
-                <div>
-                    <h4>Abstract</h4>
-                    <p>{{ paper.abstract }}</p>
-                </div>
-                {% endif %}
-
-                {% if paper.source_url %}
-                <p>
-                    <a href="{{ paper.source_url }}">
-                        View paper source
-                    </a>
-                </p>
-                {% endif %}
-            </article>
-            {% endfor %}
-        </div>
-    </section>
-    {% endif %}
-
-    {% if page.evaluations %}
-    <section
-        class="content-panel"
-        aria-labelledby="research-evaluations-title"
-    >
-        <div class="panel-heading">
-            <div>
-                <p class="panel-eyebrow">Evaluation</p>
-                <h2 id="research-evaluations-title">
-                    Research Evaluation
-                </h2>
-            </div>
-        </div>
-
-        <div class="proposal-list">
-            {% for evaluation in page.evaluations %}
-            <article class="proposal-card">
-                <header class="proposal-card__header">
-                    <div>
-                        <p class="proposal-card__number">
-                            Evaluation {{ loop.index }} of {{ page.evaluations | length }}
-                        </p>
-                        <h3>{{ evaluation.title }}</h3>
-                    </div>
-
-                    {% if evaluation.relevance_score is not none %}
-                    <span class="status-badge">
-                        Relevance {{ evaluation.relevance_score }}
-                    </span>
-                    {% endif %}
-                </header>
-
-                <p>{{ evaluation.relevance_summary }}</p>
-
-                {% if evaluation.strengths %}
-                <div>
-                    <h4>Strengths</h4>
-                    <ul>
-                        {% for item in evaluation.strengths %}
-                        <li>{{ item }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                {% endif %}
-
-                {% if evaluation.limitations %}
-                <div>
-                    <h4>Limitations</h4>
-                    <ul>
-                        {% for item in evaluation.limitations %}
-                        <li>{{ item }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                {% endif %}
-
-                {% if evaluation.research_connections %}
-                <div>
-                    <h4>Research Connections</h4>
-                    <ul>
-                        {% for item in evaluation.research_connections %}
-                        <li>{{ item }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                {% endif %}
-
-                {% if evaluation.warnings %}
-                <div class="review-feedback">
-                    <h4>Evaluation Warnings</h4>
-                    <ul>
-                        {% for warning in evaluation.warnings %}
-                        <li>{{ warning }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                {% endif %}
-            </article>
-            {% endfor %}
+        <div class="research-results-table-wrapper">
+            <table class="research-results-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Paper</th>
+                        <th>Year</th>
+                        <th>Source</th>
+                        <th>Relevance</th>
+                        <th>Summary</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in page.results %}
+                    <tr>
+                        <td>{{ result.rank }}</td>
+                        <td>
+                            <strong>{{ result.title }}</strong>
+                            {% if result.authors %}
+                            <br>{{ result.authors | join(", ") }}
+                            {% endif %}
+                        </td>
+                        <td>{{ result.publication_year or "" }}</td>
+                        <td>{{ result.source_name or "" }}</td>
+                        <td>{{ result.relevance_score or "" }}</td>
+                        <td>{{ result.relevance_summary }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </section>
     {% endif %}

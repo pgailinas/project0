@@ -522,11 +522,25 @@ def test_create_reasoning_provider_can_use_stub(
     assert reasoning_provider.response.provider_name == "stub"
     assert reasoning_provider.response.model_name == "stub-model"
     assert reasoning_provider.response.structured_output == {
-        "summary": "No documentation changes proposed.",
-        "impacts": [],
-        "proposed_changes": [],
-        "assumptions": [],
-        "warnings": [],
+        "evaluations": [
+            {
+                "source_id": "stub-paper-001",
+                "relevance_score": 0.95,
+                "relevance_summary": (
+                    "Stub research evaluation."
+                ),
+                "strengths": [
+                    "Vision-language alignment relevance",
+                ],
+                "limitations": [
+                    "Stub evaluation for deterministic testing",
+                ],
+                "research_connections": [
+                    "vision-language alignment",
+                ],
+                "warnings": [],
+            },
+        ],
     }
 
 

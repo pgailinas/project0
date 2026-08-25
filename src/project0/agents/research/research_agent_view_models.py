@@ -7,6 +7,10 @@
 #     Define immutable presentation models used by the
 #     Research Agent browser interface.
 #
+#     This version introduces a consolidated researcher-facing
+#     result model while preserving workflow-level models for
+#     internal validation and future detailed views.
+#
 # ============================================================
 
 from __future__ import annotations
@@ -35,9 +39,7 @@ class ResearchRequestForm:
     """User-entered research request values."""
 
     question: str = ""
-    constraints: tuple[str, ...] = ()
-    focus_areas: tuple[str, ...] = ()
-    source_names: tuple[str, ...] = ()
+    guidance: str = ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -87,6 +89,21 @@ class ResearchEvaluationView:
 
 
 @dataclass(frozen=True, slots=True)
+class ResearchResultView:
+    """Consolidated research result prepared for browser display."""
+
+    rank: int
+    source_id: str
+    title: str
+    publication_year: int | None = None
+    source_name: str | None = None
+    relevance_score: float | None = None
+    relevance_summary: str = ""
+    authors: tuple[str, ...] = ()
+    source_url: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
 class ResearchArtifactView:
     """One Research Agent artifact prepared for browser display."""
 
@@ -122,9 +139,7 @@ class ResearchAgentPageView:
     request_form: ResearchRequestForm
     request_id: str | None = None
     workflow_status: ResearchStatus | None = None
-    sources: tuple[ResearchSourceView, ...] = ()
-    papers: tuple[PaperMetadataView, ...] = ()
-    evaluations: tuple[ResearchEvaluationView, ...] = ()
+    results: tuple[ResearchResultView, ...] = ()
     artifacts: tuple[ResearchArtifactView, ...] = ()
     workflow_summary: ResearchWorkflowSummaryView | None = None
     warnings: tuple[str, ...] = ()
@@ -135,9 +150,7 @@ class ResearchAgentPageView:
         """Return True when the page contains research results."""
 
         return bool(
-            self.sources
-            or self.papers
-            or self.evaluations
+            self.results
             or self.artifacts
         )
 

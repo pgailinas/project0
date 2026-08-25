@@ -42,24 +42,15 @@ def test_UI_RA_FUN_001_research_agent_page_renders(
         page.get_by_label("Research question")
     ).to_be_visible()
 
-    print("Verifying Research Constraints field")
+    print("Verifying Research Guidance field")
 
     expect(
-        page.get_by_label("Research constraints")
+        page.get_by_label("Research guidance")
     ).to_be_visible()
 
     print("Verifying Focus Areas field")
 
-    expect(
-        page.get_by_label("Focus areas")
-    ).to_be_visible()
-
-    print("Verifying Research Sources field")
-
-    expect(
-        page.get_by_label("Research sources")
-    ).to_be_visible()
-
+    
     print("Verifying Submit Research Request button")
 
     expect(
@@ -86,16 +77,8 @@ def test_UI_RA_FUN_001_research_request_form_accepts_input(
         "Describe the research question to investigate."
     )
 
-    constraints_field = page.get_by_placeholder(
-        "Prefer recent peer-reviewed research."
-    )
-
-    focus_areas_field = page.get_by_placeholder(
-        "vision-language alignment"
-    )
-
-    source_names_field = page.get_by_placeholder(
-        "semantic_scholar"
+    guidance_field = page.get_by_placeholder(
+        "Optional guidance, constraints, focus areas, or preferences."
     )
 
     question_text = (
@@ -103,27 +86,16 @@ def test_UI_RA_FUN_001_research_request_form_accepts_input(
         "video representations for VideoQA."
     )
 
-    constraints_text = (
-        "Prefer recent research."
-    )
-
-    focus_areas_text = (
-        "vision-language alignment"
-    )
-
-    source_names_text = (
+    guidance_text = (
+        "Prefer recent research. "
+        "vision-language alignment "
         "stub"
     )
 
     question_field.fill(question_text)
-    constraints_field.fill(constraints_text)
-    focus_areas_field.fill(focus_areas_text)
-    source_names_field.fill(source_names_text)
-
+    guidance_field.fill(guidance_text)
     expect(question_field).to_have_value(question_text)
-    expect(constraints_field).to_have_value(constraints_text)
-    expect(focus_areas_field).to_have_value(focus_areas_text)
-    expect(source_names_field).to_have_value(source_names_text)
+    expect(guidance_field).to_have_value(guidance_text)
 
 
 def test_UI_RA_FUN_001_research_request_submission_starts_processing(
@@ -142,16 +114,8 @@ def test_UI_RA_FUN_001_research_request_submission_starts_processing(
         "Describe the research question to investigate."
     )
 
-    constraints_field = page.get_by_placeholder(
-        "Prefer recent peer-reviewed research."
-    )
-
-    focus_areas_field = page.get_by_placeholder(
-        "vision-language alignment"
-    )
-
-    source_names_field = page.get_by_placeholder(
-        "semantic_scholar"
+    guidance_field = page.get_by_placeholder(
+        "Optional guidance, constraints, focus areas, or preferences."
     )
 
     question_field.fill(
@@ -159,16 +123,8 @@ def test_UI_RA_FUN_001_research_request_submission_starts_processing(
         "video representations for VideoQA."
     )
 
-    constraints_field.fill(
+    guidance_field.fill(
         "Prefer recent research."
-    )
-
-    focus_areas_field.fill(
-        "vision-language alignment"
-    )
-
-    source_names_field.fill(
-        "stub"
     )
 
     page.evaluate(

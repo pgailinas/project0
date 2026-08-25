@@ -18,6 +18,9 @@ from uuid import UUID
 
 import pytest
 
+from project0.config.constants import (
+    DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+)
 from project0.config.settings import ProjectSettings
 from project0.models.context_models import ContextWorkflowType
 from project0.models.documentation_workflow_models import (
@@ -673,9 +676,11 @@ def test_run_research_workflow_forwards_request() -> None:
 
     result = dispatcher.run_research_workflow(
         question="Find relevant VideoQA research.",
-        constraints=("Prefer recent research.",),
-        focus_areas=("vision-language alignment",),
-        source_names=("semantic_scholar",),
+        guidance=(
+            "Prefer recent research. "
+            "vision-language alignment "
+            "semantic_scholar"
+        ),
     )
 
     assert result is expected
@@ -684,9 +689,11 @@ def test_run_research_workflow_forwards_request() -> None:
 
     assert isinstance(request, ResearchRequest)
     assert request.question == "Find relevant VideoQA research."
-    assert request.constraints == ("Prefer recent research.",)
-    assert request.focus_areas == ("vision-language alignment",)
-    assert request.source_names == ("semantic_scholar",)
+    assert request.guidance == (
+        "Prefer recent research. "
+        "vision-language alignment "
+        "semantic_scholar"
+    )
     assert request.request_id
 
 
@@ -713,9 +720,7 @@ def test_run_research_workflow_defaults_optional_values() -> None:
 
     request = research_workflow.execute.call_args.args[0]
 
-    assert request.constraints == ()
-    assert request.focus_areas == ()
-    assert request.source_names == ()
+    assert request.guidance == ""
 
 
 def test_submit_documentation_review_requires_configuration() -> None:
@@ -921,6 +926,7 @@ def test_create_research_workflow_requires_reasoning_provider() -> None:
     workflow = _create_research_workflow(
         reasoning_provider=None,
         reasoning_model_name="qwen2.5:7b",
+        research_source_providers=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
     )
 
     assert workflow is None
@@ -936,6 +942,7 @@ def test_create_research_workflow_requires_model_name() -> None:
         _create_research_workflow(
             reasoning_provider=Mock(),
             reasoning_model_name=None,
+            research_source_providers=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
         )
 
 
@@ -947,6 +954,7 @@ def test_create_research_workflow_uses_reasoning_provider_and_model() -> None:
     workflow = _create_research_workflow(
         reasoning_provider=reasoning_provider,
         reasoning_model_name="qwen2.5:7b",
+        research_source_providers=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
     )
 
     assert workflow is not None
@@ -960,6 +968,7 @@ def test_create_research_workflow_assembles_services() -> None:
     workflow = _create_research_workflow(
         reasoning_provider=Mock(),
         reasoning_model_name="qwen2.5:7b",
+        research_source_providers=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
     )
 
     assert workflow is not None

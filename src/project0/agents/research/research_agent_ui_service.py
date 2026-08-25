@@ -17,13 +17,11 @@ from dataclasses import dataclass
 from typing import Protocol, Sequence
 
 from project0.agents.research.research_agent_view_models import (
-    PaperMetadataView,
     ResearchAgentPageStatus,
     ResearchAgentPageView,
     ResearchArtifactView,
-    ResearchEvaluationView,
     ResearchRequestForm,
-    ResearchSourceView,
+    ResearchResultView,
     ResearchWorkflowSummaryView,
 )
 from project0.models.research_models import (
@@ -41,9 +39,7 @@ class ResearchWorkflowPort(Protocol):
     def run_research_workflow(
         self,
         question: str,
-        constraints: tuple[str, ...] = (),
-        focus_areas: tuple[str, ...] = (),
-        source_names: tuple[str, ...] = (),
+        guidance: str = "",
     ) -> object:
         """Execute a research workflow and return its result."""
 
@@ -66,17 +62,13 @@ class ResearchAgentUIService:
     def submit_request(
         self,
         question: str,
-        constraints: Sequence[str] | None = None,
-        focus_areas: Sequence[str] | None = None,
-        source_names: Sequence[str] | None = None,
+        guidance: str | None = None,
     ) -> ResearchAgentPageView:
         """Submit a research request and return display-ready state."""
 
         request_form = self._build_request_form(
             question=question,
-            constraints=constraints,
-            focus_areas=focus_areas,
-            source_names=source_names,
+            guidance=guidance,
         )
 
         if not request_form.question:
@@ -92,9 +84,7 @@ class ResearchAgentUIService:
         try:
             workflow_result = self.workflow.run_research_workflow(
                 question=request_form.question,
-                constraints=request_form.constraints,
-                focus_areas=request_form.focus_areas,
-                source_names=request_form.source_names,
+                guidance=request_form.guidance,
             )
         except Exception as exc:
             return self._create_failure_page(
@@ -111,34 +101,13 @@ class ResearchAgentUIService:
     def _build_request_form(
         self,
         question: str,
-        constraints: Sequence[str] | None,
-        focus_areas: Sequence[str] | None,
-        source_names: Sequence[str] | None,
+        guidance: str | None,
     ) -> ResearchRequestForm:
         """Normalize browser form values."""
 
-        normalized_question = question.strip()
-        normalized_constraints = tuple(
-            value.strip()
-            for value in (constraints or ())
-            if value is not None and value.strip()
-        )
-        normalized_focus_areas = tuple(
-            value.strip()
-            for value in (focus_areas or ())
-            if value is not None and value.strip()
-        )
-        normalized_source_names = tuple(
-            value.strip()
-            for value in (source_names or ())
-            if value is not None and value.strip()
-        )
-
         return ResearchRequestForm(
-            question=normalized_question,
-            constraints=normalized_constraints,
-            focus_areas=normalized_focus_areas,
-            source_names=normalized_source_names,
+            question=question.strip(),
+            guidance=(guidance or "").strip(),
         )
 
     def _map_workflow_result(
@@ -164,28 +133,28 @@ class ResearchAgentUIService:
             )
         )
 
-        sources = self._map_sources(
-            self._read_value(
-                workflow_result,
-                "source_references",
-                default=(),
-            )
+        source_references = self._read_value(
+            workflow_result,
+            "source_references",
+            default=(),
         )
 
-        papers = self._map_papers(
-            self._read_value(
-                workflow_result,
-                "papers",
-                default=(),
-            )
+        papers = self._read_value(
+            workflow_result,
+            "papers",
+            default=(),
         )
 
-        evaluations = self._map_evaluations(
-            self._read_value(
-                workflow_result,
-                "evaluations",
-                default=(),
-            )
+        evaluations = self._read_value(
+            workflow_result,
+            "evaluations",
+            default=(),
+        )
+
+        results = self._map_results(
+            source_references,
+            papers,
+            evaluations,
         )
 
         artifacts = self._map_artifacts(
@@ -225,12 +194,10 @@ class ResearchAgentUIService:
             request_form=request_form,
             request_id=request_id,
             workflow_status=workflow_status,
-            sources=sources,
-            papers=papers,
-            evaluations=evaluations,
+            results=results,
             artifacts=artifacts,
             workflow_summary=ResearchWorkflowSummaryView(
-                source_count=len(sources),
+                source_count=len(source_references),
                 paper_count=len(papers),
                 evaluation_count=len(evaluations),
                 artifact_count=len(artifacts),
@@ -453,6 +420,128 @@ class ResearchAgentUIService:
             )
             for evaluation in evaluations
         )
+
+    def _map_results(
+        self,
+        sources: object,
+        papers: object,
+        evaluations: object,
+    ) -> tuple[ResearchResultView, ...]:
+        """Combine source, metadata, and evaluation data."""
+
+        source_items = tuple(sources or ())
+        paper_items = tuple(papers or ())
+        evaluation_items = tuple(evaluations or ())
+
+        results = []
+
+        for index, paper in enumerate(paper_items, start=1):
+            source_id = str(
+                self._read_value(
+                    self._read_value(
+                        paper,
+                        "source_reference",
+                        default={},
+                    ),
+                    "source_id",
+                    default="",
+                )
+            )
+
+            evaluation = next(
+                (
+                    item
+                    for item in evaluation_items
+                    if str(
+                        self._read_value(
+                            self._read_value(
+                                self._read_value(
+                                    item,
+                                    "paper",
+                                    default={},
+                                ),
+                                "source_reference",
+                                default={},
+                            ),
+                            "source_id",
+                            default="",
+                        )
+                    )
+                    == source_id
+                ),
+                {},
+            )
+
+            source = next(
+                (
+                    item
+                    for item in source_items
+                    if str(
+                        self._read_value(
+                            item,
+                            "source_id",
+                            default="",
+                        )
+                    )
+                    == source_id
+                ),
+                {},
+            )
+
+            results.append(
+                ResearchResultView(
+                    rank=index,
+                    source_id=source_id,
+                    title=str(
+                        self._read_value(
+                            paper,
+                            "title",
+                            default="",
+                        )
+                    ),
+                    publication_year=self._read_value(
+                        paper,
+                        "publication_year",
+                        default=None,
+                    ),
+                    source_name=self._normalize_optional_text(
+                        self._read_value(
+                            source,
+                            "source_name",
+                            default=None,
+                        )
+                    ),
+                    relevance_score=self._read_value(
+                        evaluation,
+                        "relevance_score",
+                        default=None,
+                    ),
+                    relevance_summary=str(
+                        self._read_value(
+                            evaluation,
+                            "relevance_summary",
+                            default="",
+                        )
+                    ),
+                    authors=tuple(
+                        str(author)
+                        for author in self._read_value(
+                            paper,
+                            "authors",
+                            default=(),
+                        )
+                    ),
+                    source_url=self._normalize_optional_text(
+                        self._read_value(
+                            paper,
+                            "source_url",
+                            default=None,
+                        )
+                    ),
+                )
+            )
+
+        return tuple(results)
 
     def _map_artifacts(
         self,

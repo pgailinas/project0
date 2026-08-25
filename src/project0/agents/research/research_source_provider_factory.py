@@ -28,33 +28,39 @@ from project0.config.constants import (
 from project0.models.research_models import ResearchSourceReference
 
 
-def create_research_source_providers() -> dict[str, ResearchSourceProviderProtocol]:
+def create_research_source_providers(
+    provider_names: tuple[str, ...] | None = None,
+) -> dict[str, ResearchSourceProviderProtocol]:
     """Create configured Research Agent source providers."""
 
-    providers: dict[str, ResearchSourceProviderProtocol] = {}
-
-    providers["semantic_scholar"] = SemanticScholarSourceProvider()
-
-    providers["arxiv"] = ArxivSourceProvider()
-
-    providers["stub"] = StubResearchSourceProvider(
-        references=(
-            ResearchSourceReference(
-                source_name="stub",
-                source_id="stub-paper-001",
-                title=(
-                    "Self-Supervised Video Representation "
-                    "Learning for VideoQA"
+    available_providers: dict[str, ResearchSourceProviderProtocol] = {
+        "semantic_scholar": SemanticScholarSourceProvider(),
+        "arxiv": ArxivSourceProvider(),
+        "stub": StubResearchSourceProvider(
+            references=(
+                ResearchSourceReference(
+                    source_name="stub",
+                    source_id="stub-paper-001",
+                    title=(
+                        "Self-Supervised Video Representation "
+                        "Learning for VideoQA"
+                    ),
+                    source_url="https://example.com/stub-paper-001",
+                    authors=("Project0 Research Stub",),
+                    publication_year=2026,
                 ),
-                source_url="https://example.com/stub-paper-001",
-                authors=("Project0 Research Stub",),
-                publication_year=2026,
             ),
         ),
+    }
+
+    selected_provider_names = (
+        provider_names
+        if provider_names is not None
+        else tuple(available_providers.keys())
     )
 
     unsupported_providers = (
-        set(providers.keys())
+        set(selected_provider_names)
         -
         set(SUPPORTED_RESEARCH_SOURCE_PROVIDERS)
     )
@@ -65,4 +71,7 @@ def create_research_source_providers() -> dict[str, ResearchSourceProviderProtoc
             f"{unsupported_providers}"
         )
 
-    return providers
+    return {
+        name: available_providers[name]
+        for name in selected_provider_names
+    }

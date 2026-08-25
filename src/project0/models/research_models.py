@@ -41,6 +41,7 @@ class ResearchRequest:
     """A request for Research Agent processing."""
 
     question: str
+    guidance: str = ""
     constraints: tuple[str, ...] = ()
     focus_areas: tuple[str, ...] = ()
     source_names: tuple[str, ...] = ()

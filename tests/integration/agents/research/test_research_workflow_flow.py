@@ -47,6 +47,9 @@ from project0.workflow.research_workflow import ResearchWorkflow
 from project0.agents.research.semantic_scholar_source_provider import (
     SemanticScholarSourceProvider,
 )
+from project0.agents.research.arxiv_source_provider import (
+    ArxivSourceProvider,
+)
 
 
 class StubReasoningProvider:
@@ -166,6 +169,34 @@ def _metadata_response() -> dict[str, Any]:
     }
 
 
+def _arxiv_response() -> str:
+    """Create deterministic arXiv XML search output."""
+
+    return """
+    <feed xmlns="http://www.w3.org/2005/Atom">
+        <title>arXiv Query Results</title>
+    </feed>
+    """
+
+
+def _xml_http_response(
+    url: str,
+    xml_text: str,
+) -> httpx.Response:
+    """Create an HTTP XML response with request metadata attached."""
+
+    request = httpx.Request(
+        "GET",
+        url,
+    )
+
+    return httpx.Response(
+        200,
+        text=xml_text,
+        request=request,
+    )
+
+
 def _http_response(
     url: str,
     data: dict[str, Any],
@@ -190,13 +221,19 @@ def _create_workflow(
     """Create the real Research Agent integration pipeline."""
 
     return ResearchWorkflow(
-        strategy_service=ResearchStrategyService(),
+        strategy_service=ResearchStrategyService(
+            source_names=(
+                "semantic_scholar",
+                "arxiv",
+            ),
+        ),
         query_service=ResearchQueryService(),
         source_service=ResearchSourceService(
             providers={
                 "semantic_scholar": SemanticScholarSourceProvider(
                     maximum_results=5,
                 ),
+                "arxiv": ArxivSourceProvider(),
             },
         ),
         metadata_service=PaperMetadataService(),
@@ -217,9 +254,11 @@ def test_research_workflow_completes_real_service_pipeline(
         url: str,
         *,
         params: dict[str, Any],
+        headers: dict[str, str] | None = None,
         timeout: float,
     ) -> httpx.Response:
         del params
+        del headers
         del timeout
 
         if url.endswith("/paper/search"):
@@ -234,8 +273,14 @@ def test_research_workflow_completes_real_service_pipeline(
                 _metadata_response(),
             )
 
+        if url.endswith("/api/query"):
+            return _xml_http_response(
+                url,
+                _arxiv_response(),
+            )
+
         raise AssertionError(
-            f"Unexpected Semantic Scholar request: {url}"
+            f"Unexpected request: {url}"
         )
 
     monkeypatch.setattr(
@@ -255,14 +300,9 @@ def test_research_workflow_completes_real_service_pipeline(
                 "How can self-supervised video representations "
                 "be improved for VideoQA?"
             ),
-            constraints=(
-                "Focus on vision-language alignment.",
-            ),
-            focus_areas=(
-                "video representation learning",
-            ),
-            source_names=(
-                "semantic_scholar",
+            guidance=(
+                "Focus on vision-language alignment. "
+                "video representation learning"
             ),
         )
     )
@@ -314,9 +354,11 @@ def test_research_workflow_preserves_source_traceability(
         url: str,
         *,
         params: dict[str, Any],
+        headers: dict[str, str] | None = None,
         timeout: float,
     ) -> httpx.Response:
         del params
+        del headers
         del timeout
 
         if url.endswith("/paper/search"):
@@ -331,8 +373,14 @@ def test_research_workflow_preserves_source_traceability(
                 _metadata_response(),
             )
 
+        if url.endswith("/api/query"):
+            return _xml_http_response(
+                url,
+                _arxiv_response(),
+            )
+
         raise AssertionError(
-            f"Unexpected Semantic Scholar request: {url}"
+            f"Unexpected request: {url}"
         )
 
     monkeypatch.setattr(
@@ -349,9 +397,7 @@ def test_research_workflow_preserves_source_traceability(
     result = workflow.execute(
         ResearchRequest(
             question="Find relevant VideoQA research.",
-            source_names=(
-                "semantic_scholar",
-            ),
+            guidance="semantic_scholar",
         )
     )
 
@@ -375,9 +421,11 @@ def test_research_workflow_returns_warning_when_search_is_empty(
         url: str,
         *,
         params: dict[str, Any],
+        headers: dict[str, str] | None = None,
         timeout: float,
     ) -> httpx.Response:
         del params
+        del headers
         del timeout
 
         if url.endswith("/paper/search"):
@@ -390,8 +438,14 @@ def test_research_workflow_returns_warning_when_search_is_empty(
                 },
             )
 
+        if url.endswith("/api/query"):
+            return _xml_http_response(
+                url,
+                _arxiv_response(),
+            )
+
         raise AssertionError(
-            f"Unexpected Semantic Scholar request: {url}"
+            f"Unexpected request: {url}"
         )
 
     monkeypatch.setattr(
@@ -408,9 +462,7 @@ def test_research_workflow_returns_warning_when_search_is_empty(
     result = workflow.execute(
         ResearchRequest(
             question="Find relevant VideoQA research.",
-            source_names=(
-                "semantic_scholar",
-            ),
+            guidance="semantic_scholar",
         )
     )
 

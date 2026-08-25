@@ -166,9 +166,7 @@ class PlatformDispatcher:
     def run_research_workflow(
         self,
         question: str,
-        constraints: tuple[str, ...] = (),
-        focus_areas: tuple[str, ...] = (),
-        source_names: tuple[str, ...] = (),
+        guidance: str = "",
     ) -> ResearchResult:
         """Execute the configured Research Agent workflow."""
 
@@ -183,9 +181,7 @@ class PlatformDispatcher:
         return self.research_workflow.execute(
             ResearchRequest(
                 question=question,
-                constraints=constraints,
-                focus_areas=focus_areas,
-                source_names=source_names,
+                guidance=guidance,
             )
         )
 
@@ -238,6 +234,8 @@ class PlatformDispatcher:
 
 def create_platform_dispatcher(
     reasoning_provider: ReasoningProviderProtocol | None = None,
+    documentation_reasoning_provider: ReasoningProviderProtocol | None = None,
+    research_reasoning_provider: ReasoningProviderProtocol | None = None,
     reasoning_model_name: str | None = None,
     review_decision_provider: ReviewDecisionProvider | None = None,
     settings: ProjectSettings | None = None,
@@ -265,14 +263,23 @@ def create_platform_dispatcher(
 
     documentation_workflow = _create_documentation_workflow(
         repository_root=repository_root,
-        reasoning_provider=reasoning_provider,
+        reasoning_provider=(
+            documentation_reasoning_provider
+            or reasoning_provider
+        ),
         reasoning_model_name=reasoning_model_name,
         review_decision_provider=review_decision_provider,
     )
 
     research_workflow = _create_research_workflow(
-        reasoning_provider=reasoning_provider,
+        reasoning_provider=(
+            research_reasoning_provider
+            or reasoning_provider
+        ),
         reasoning_model_name=reasoning_model_name,
+        research_source_providers=(
+            resolved_settings.research_source_providers
+        ),
     )
 
     return PlatformDispatcher(
@@ -365,6 +372,7 @@ def _create_documentation_workflow(
 def _create_research_workflow(
     reasoning_provider: ReasoningProviderProtocol | None,
     reasoning_model_name: str | None,
+    research_source_providers: tuple[str, ...],
 ) -> ResearchWorkflowProtocol | None:
     """Assemble the research workflow when dependencies are supplied."""
 
@@ -378,10 +386,14 @@ def _create_research_workflow(
         )
 
     return ResearchWorkflow(
-        strategy_service=ResearchStrategyService(),
+        strategy_service=ResearchStrategyService(
+            source_names=research_source_providers,
+        ),
         query_service=ResearchQueryService(),
         source_service=ResearchSourceService(
-            providers=create_research_source_providers(),
+            providers=create_research_source_providers(
+                provider_names=research_source_providers,
+            ),
         ),
         metadata_service=PaperMetadataService(),
         evaluation_service=ResearchEvaluationService(

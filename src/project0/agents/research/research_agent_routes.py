@@ -31,20 +31,7 @@ def create_research_agent_router(
     ui_service: ResearchAgentUIService,
     templates: Jinja2Templates | None = None,
 ) -> APIRouter:
-    """
-    Create the Research Agent router.
-
-    Args:
-        ui_service:
-            UI adapter used to invoke Research Agent services and
-            produce browser-facing page models.
-        templates:
-            Optional shared Jinja2 template environment. When omitted,
-            a local template environment is created for the agent package.
-
-    Returns:
-        Configured FastAPI router.
-    """
+    """Create the Research Agent router."""
 
     router = APIRouter(
         prefix=RESEARCH_AGENT_ROUTE_PREFIX,
@@ -76,17 +63,13 @@ def create_research_agent_router(
     async def research_agent_submit_request(
         request: Request,
         question: str = Form(""),
-        constraints: str = Form(""),
-        focus_areas: str = Form(""),
-        source_names: str = Form(""),
+        guidance: str = Form(""),
     ) -> HTMLResponse:
         """Submit a research request and render the resulting state."""
 
         page = ui_service.submit_request(
             question=question,
-            constraints=_parse_multiline_values(constraints),
-            focus_areas=_parse_multiline_values(focus_areas),
-            source_names=_parse_multiline_values(source_names),
+            guidance=guidance,
         )
 
         return _render_page(
@@ -127,14 +110,4 @@ def _render_page(
         request=request,
         name=RESEARCH_AGENT_TEMPLATE_NAME,
         context=context,
-    )
-
-
-def _parse_multiline_values(value: str) -> tuple[str, ...]:
-    """Convert newline-separated values into normalized values."""
-
-    return tuple(
-        line.strip()
-        for line in value.splitlines()
-        if line.strip()
     )

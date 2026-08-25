@@ -16,6 +16,7 @@ from pathlib import Path
 from project0.config.constants import (
     DEFAULT_LOG_LEVEL,
     DEFAULT_OLLAMA_TIMEOUT_SECONDS,
+    DEFAULT_RESEARCH_SOURCE_PROVIDERS,
 )
 
 
@@ -29,10 +30,21 @@ class ProjectSettings:
     tests_dir: Path
     log_level: str = DEFAULT_LOG_LEVEL
     reasoning_provider: str = "ollama"
+    research_source_providers: tuple[str, ...] = DEFAULT_RESEARCH_SOURCE_PROVIDERS
     ollama_model: str = "qwen2.5:7b"
     ollama_base_url: str = "http://127.0.0.1:11434"
     ollama_timeout_seconds: float = DEFAULT_OLLAMA_TIMEOUT_SECONDS
 
+
+
+def _parse_provider_list(value: str) -> tuple[str, ...]:
+    """Parse comma-separated provider configuration values."""
+
+    return tuple(
+        provider.strip()
+        for provider in value.split(",")
+        if provider.strip()
+    )
 
 def load_settings() -> ProjectSettings:
     """Create the shared Project0 configuration."""
@@ -51,6 +63,12 @@ def load_settings() -> ProjectSettings:
         reasoning_provider=os.getenv(
             "PROJECT0_REASONING_PROVIDER",
             "ollama",
+        ),
+        research_source_providers=_parse_provider_list(
+            os.getenv(
+                "PROJECT0_RESEARCH_SOURCE_PROVIDERS",
+                ",".join(DEFAULT_RESEARCH_SOURCE_PROVIDERS),
+            )
         ),
         ollama_model=os.getenv(
             "PROJECT0_OLLAMA_MODEL",

@@ -37,17 +37,13 @@ class FakeWorkflow:
     def run_research_workflow(
         self,
         question: str,
-        constraints: tuple[str, ...] = (),
-        focus_areas: tuple[str, ...] = (),
-        source_names: tuple[str, ...] = (),
+        guidance: str = "",
     ) -> object:
         """Record request arguments and return or raise the configured result."""
 
         self.received_arguments = {
             "question": question,
-            "constraints": constraints,
-            "focus_areas": focus_areas,
-            "source_names": source_names,
+            "guidance": guidance,
         }
 
         if self.error is not None:
@@ -66,9 +62,7 @@ def test_create_ready_page() -> None:
     assert page.page_status is ResearchAgentPageStatus.READY
     assert page.status_message == "Ready for a research request."
     assert page.request_form.question == ""
-    assert page.request_form.constraints == ()
-    assert page.request_form.focus_areas == ()
-    assert page.request_form.source_names == ()
+    assert page.request_form.guidance == ""
     assert page.request_id is None
     assert page.has_results is False
     assert page.has_error is False
@@ -82,7 +76,7 @@ def test_submit_request_requires_nonempty_question() -> None:
 
     page = service.submit_request(
         question="   ",
-        constraints=(" Prefer recent research. ",),
+        guidance=" Prefer recent research. ",
     )
 
     assert page.page_status is ResearchAgentPageStatus.FAILED
@@ -91,9 +85,7 @@ def test_submit_request_requires_nonempty_question() -> None:
         "Enter a research question before continuing."
     )
     assert page.request_form.question == ""
-    assert page.request_form.constraints == (
-        "Prefer recent research.",
-    )
+    assert page.request_form.guidance == "Prefer recent research."
     assert workflow.received_arguments is None
 
 
@@ -110,45 +102,19 @@ def test_submit_request_normalizes_form_values() -> None:
 
     page = service.submit_request(
         question="  Find relevant VideoQA research.  ",
-        constraints=(
-            " Prefer recent research. ",
-            "",
-            "   ",
-        ),
-        focus_areas=(
-            " vision-language alignment ",
-            "",
-        ),
-        source_names=(
-            " semantic_scholar ",
-            "   ",
-        ),
+        guidance=" vision-language alignment using semantic_scholar ",
     )
 
     assert workflow.received_arguments == {
         "question": "Find relevant VideoQA research.",
-        "constraints": (
-            "Prefer recent research.",
-        ),
-        "focus_areas": (
-            "vision-language alignment",
-        ),
-        "source_names": (
-            "semantic_scholar",
-        ),
+        "guidance": "vision-language alignment using semantic_scholar",
     }
     assert page.request_form.question == (
         "Find relevant VideoQA research."
     )
-    assert page.request_form.constraints == (
-        "Prefer recent research.",
-    )
-    assert page.request_form.focus_areas == (
-        "vision-language alignment",
-    )
-    assert page.request_form.source_names == (
-        "semantic_scholar",
-    )
+    assert page.request_form.guidance == "vision-language alignment using semantic_scholar"
+
+
     assert page.page_status is ResearchAgentPageStatus.PROCESSING
 
 
@@ -239,36 +205,22 @@ def test_submit_request_maps_completed_result() -> None:
     assert page.request_id == "research-request-2"
     assert page.workflow_status is ResearchStatus.COMPLETED
 
-    assert len(page.sources) == 1
-    assert page.sources[0].source_name == "semantic_scholar"
-    assert page.sources[0].source_id == "paper-001"
-    assert page.sources[0].title == "Example Paper"
-    assert page.sources[0].authors == (
+    assert len(page.results) == 1
+    assert page.results[0].source_name == "semantic_scholar"
+    assert page.results[0].source_id == "paper-001"
+    assert page.results[0].title == "Example Paper"
+    assert page.results[0].authors == (
         "Author One",
         "Author Two",
     )
-    assert page.sources[0].publication_year == 2024
+    assert page.results[0].publication_year == 2024
 
-    assert len(page.papers) == 1
-    assert page.papers[0].source_id == "paper-001"
-    assert page.papers[0].abstract == "Example abstract."
-    assert page.papers[0].venue == "Example Conference"
-    assert page.papers[0].doi == "10.1000/example"
 
-    assert len(page.evaluations) == 1
-    assert page.evaluations[0].source_id == "paper-001"
-    assert page.evaluations[0].relevance_score == 0.95
-    assert page.evaluations[0].relevance_summary == (
+    assert len(page.results) == 1
+    assert page.results[0].source_id == "paper-001"
+    assert page.results[0].relevance_score == 0.95
+    assert page.results[0].relevance_summary == (
         "Highly relevant."
-    )
-    assert page.evaluations[0].strengths == (
-        "Strong semantic alignment.",
-    )
-    assert page.evaluations[0].limitations == (
-        "Limited VideoQA evaluation.",
-    )
-    assert page.evaluations[0].research_connections == (
-        "Evaluate aligned video representations.",
     )
 
     assert len(page.artifacts) == 1
@@ -351,7 +303,7 @@ def test_submit_request_handles_workflow_exception() -> None:
 
     page = service.submit_request(
         question="Find relevant research.",
-        source_names=("semantic_scholar",),
+        guidance="semantic_scholar",
     )
 
     assert page.page_status is ResearchAgentPageStatus.FAILED
@@ -360,9 +312,7 @@ def test_submit_request_handles_workflow_exception() -> None:
     )
     assert page.error_message == "Reasoning service unavailable."
     assert page.request_form.question == "Find relevant research."
-    assert page.request_form.source_names == (
-        "semantic_scholar",
-    )
+
 
 
 def test_submit_request_maps_evaluation_warnings() -> None:
@@ -395,11 +345,9 @@ def test_submit_request_maps_evaluation_warnings() -> None:
         question="Find relevant research."
     )
 
-    assert len(page.evaluations) == 1
-    assert page.evaluations[0].warnings == (
-        "Abstract-only evaluation.",
-    )
-    assert page.evaluations[0].has_warnings is True
+    assert page.has_results is False
+    assert page.workflow_summary is not None
+    assert page.workflow_summary.evaluation_count == 1
 
 
 def test_submit_request_maps_unknown_status_to_processing() -> None:
@@ -487,13 +435,10 @@ def test_submit_request_normalizes_optional_text_values() -> None:
     )
 
     assert page.request_id == "research-request-8"
-    assert page.sources[0].source_url == (
+    assert page.results[0].source_url == (
         "https://example.com/paper-001"
     )
-    assert page.papers[0].abstract == "Example abstract."
-    assert page.papers[0].venue is None
-    assert page.papers[0].doi is None
-    assert page.papers[0].source_url == (
+    assert page.results[0].source_url == (
         "https://example.com/paper-001"
     )
 

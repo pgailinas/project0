@@ -95,8 +95,7 @@ class ResearchEvaluationService:
         user_prompt = json.dumps(
             {
                 "research_question": request.question,
-                "constraints": list(request.constraints),
-                "focus_areas": list(request.focus_areas),
+                "guidance": request.guidance,
                 "research_concepts": list(strategy.concepts),
                 "papers": paper_payload,
             },

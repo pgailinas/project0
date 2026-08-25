@@ -126,6 +126,29 @@ def _search_response() -> dict[str, Any]:
     }
 
 
+def _arxiv_response() -> str:
+    """Create deterministic arXiv XML search output."""
+
+    return """
+    <feed xmlns="http://www.w3.org/2005/Atom">
+        <title>arXiv Query Results</title>
+    </feed>
+    """
+
+
+def _xml_http_response(
+    url: str,
+    xml_text: str,
+) -> httpx.Response:
+    """Create an HTTP XML response with request metadata attached."""
+
+    return httpx.Response(
+        200,
+        text=xml_text,
+        request=httpx.Request("GET", url),
+    )
+
+
 def _metadata_response() -> dict[str, Any]:
     """Create deterministic Semantic Scholar metadata output."""
 
@@ -212,9 +235,11 @@ def _create_dispatcher(
         url: str,
         *,
         params: dict[str, Any],
+        headers: dict[str, str] | None = None,
         timeout: float,
     ) -> httpx.Response:
         del params
+        del headers
         del timeout
 
         if url.endswith("/paper/search"):
@@ -229,8 +254,14 @@ def _create_dispatcher(
                 _metadata_response(),
             )
 
+        if url.endswith("/api/query"):
+            return _xml_http_response(
+                url,
+                _arxiv_response(),
+            )
+
         raise AssertionError(
-            f"Unexpected Semantic Scholar request: {url}"
+            f"Unexpected request: {url}"
         )
 
     monkeypatch.setattr(
@@ -266,14 +297,9 @@ def test_INT_RA_FUN_001_research_request_processing(
             "How can self-supervised video representations "
             "be improved for VideoQA?"
         ),
-        constraints=(
-            "Focus on vision-language alignment.",
-        ),
-        focus_areas=(
-            "video representation learning",
-        ),
-        source_names=(
-            "semantic_scholar",
+        guidance=(
+            "Focus on vision-language alignment. "
+            "video representation learning"
         ),
     )
 
@@ -296,7 +322,7 @@ def test_INT_RA_FUN_002_research_source_discovery(
 
     result = dispatcher.run_research_workflow(
         question="Find relevant VideoQA research.",
-        source_names=("semantic_scholar",),
+        guidance="semantic_scholar",
     )
 
     assert len(result.source_references) == 1
@@ -321,7 +347,7 @@ def test_INT_RA_FUN_003_paper_metadata_retrieval(
 
     result = dispatcher.run_research_workflow(
         question="Find relevant VideoQA research.",
-        source_names=("semantic_scholar",),
+        guidance="semantic_scholar",
     )
 
     assert len(result.papers) == 1
@@ -347,7 +373,7 @@ def test_INT_RA_FUN_004_research_evaluation(
 
     result = dispatcher.run_research_workflow(
         question="Find relevant VideoQA research.",
-        source_names=("semantic_scholar",),
+        guidance="semantic_scholar",
     )
 
     assert len(result.evaluations) == 1
@@ -375,7 +401,7 @@ def test_INT_RA_FUN_005_research_artifact_generation(
 
     result = dispatcher.run_research_workflow(
         question="Find relevant VideoQA research.",
-        source_names=("semantic_scholar",),
+        guidance="semantic_scholar",
     )
 
     assert tuple(
@@ -423,7 +449,7 @@ def test_INT_RA_AI_001_reasoning_provider_integration(
 
     dispatcher.run_research_workflow(
         question="Find relevant VideoQA research.",
-        source_names=("semantic_scholar",),
+        guidance="semantic_scholar",
     )
 
     assert provider.requests

@@ -25,6 +25,14 @@ LOGGER = logging.getLogger(__name__)
 class ResearchStrategyService:
     """Build structured Research Agent strategies."""
 
+    def __init__(
+        self,
+        source_names: tuple[str, ...],
+    ) -> None:
+        """Initialize the strategy service configuration."""
+
+        self.source_names = source_names
+
     def build_strategy(
         self,
         request: ResearchRequest,
@@ -54,23 +62,20 @@ class ResearchStrategyService:
                 rationale=None,
             )
 
-        source_names = (
-            request.source_names
-            if request.source_names
-            else (
-                "semantic_scholar",
-                "arxiv",
-            )
+        source_names = self.source_names
+
+        constraints = self._build_constraints(
+            request,
         )
 
         return ResearchStrategy(
             concepts=concepts,
             search_terms=search_terms,
-            constraints=request.constraints,
+            constraints=constraints,
             source_names=source_names,
             rationale=(
                 "Research strategy derived from the submitted "
-                "research question, focus areas, and constraints."
+                "research question and guidance."
             ),
         )
 
@@ -82,11 +87,14 @@ class ResearchStrategyService:
 
         concepts: list[str] = []
 
-        for focus_area in request.focus_areas:
-            normalized = focus_area.strip()
+        guidance = request.guidance.strip()
 
-            if normalized and normalized not in concepts:
-                concepts.append(normalized)
+        if guidance:
+            for concept in guidance.split("."):
+                normalized = concept.strip()
+
+                if normalized and normalized not in concepts:
+                    concepts.append(normalized)
 
         question = request.question.strip()
 
@@ -94,6 +102,37 @@ class ResearchStrategyService:
             concepts.append(question)
 
         return tuple(concepts)
+
+    @staticmethod
+    def _build_constraints(
+        request: ResearchRequest,
+    ) -> tuple[str, ...]:
+        """Build deterministic strategy constraints from guidance."""
+
+        constraints: list[str] = []
+
+        guidance = request.guidance.strip()
+
+        if guidance:
+            for item in guidance.split("."):
+                normalized = item.strip()
+
+                if not normalized:
+                    continue
+
+                lowered = normalized.lower()
+
+                if (
+                    lowered.startswith("prefer ")
+                    or lowered.startswith("focus ")
+                    or lowered.startswith("avoid ")
+                    or lowered.startswith("require ")
+                ):
+                    constraint = normalized + "."
+                    if constraint not in constraints:
+                        constraints.append(constraint)
+
+        return tuple(constraints)
 
     @staticmethod
     def _build_search_terms(
