@@ -1,8 +1,8 @@
 # Research Agent Architecture
 
-**Version:** 0.2  
+**Version:** 0.3  
 **Owner:** Project0  
-**Last Updated:** 2026-08-23  
+**Last Updated:** 2026-08-25
 
 ------------------------------------------------------------------------
 
@@ -18,7 +18,8 @@ Specification.
 
 Describe the architectural organization of the Research Agent.
 Implementation details, algorithms, and technology selections are
-intentionally excluded.
+minimized, while major architectural boundaries, service abstractions,
+and provider interfaces are described to define system organization.
 
 ------------------------------------------------------------------------
 
@@ -67,6 +68,10 @@ The Dashboard Framework remains responsible for the shared application
 shell, navigation, context, and Work Area hosting. Research Agent
 components provide only agent-specific workflow behavior and interfaces.
 
+The Phase 10 Research Agent implementation was validated through unit,
+integration, and acceptance testing while preserving existing
+Documentation Agent functionality.
+
 ``` mermaid
 flowchart TD
     UI["Dashboard Framework"]
@@ -77,6 +82,7 @@ flowchart TD
     D["Research Strategy Service"]
     Q["Research Query Service"]
     E["Research Source Service"]
+    P["Research Source Provider Interface"]
     F["Paper Metadata Service"]
     G["Knowledge Service"]
     H["Research Evaluation Service"]
@@ -93,7 +99,8 @@ flowchart TD
     C --> D
     D --> Q
     Q --> E
-    E --> F
+    E --> P
+    P --> F
     F --> G
     G --> H
     H --> I
@@ -262,13 +269,13 @@ provider-ready research search queries.
 
 Responsibilities:
 
-- Convert research concepts into focused search queries.
-- Generate multiple search perspectives for a research topic.
-- Preserve deterministic query ordering.
-- Remove duplicate query terms.
-- Remain independent from external research source providers.
-- Return structured query results for downstream Research Source Service
-  execution.
+-   Convert research concepts into focused search queries.
+-   Generate multiple search perspectives for a research topic.
+-   Preserve deterministic query ordering.
+-   Remove duplicate query terms.
+-   Remain independent from external research source providers.
+-   Return structured query results for downstream Research Source
+    Service execution.
 
 The Research Query Service separates research intent definition from
 external search execution. The Research Strategy Service determines what

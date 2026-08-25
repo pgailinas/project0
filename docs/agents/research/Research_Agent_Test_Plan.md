@@ -1,8 +1,8 @@
 # Research Agent Test Plan
 
-**Version:** 0.1  
+**Version:** 0.2  
 **Owner:** Project0  
-**Last Updated:** 2026-08-20  
+**Last Updated:** 2026-08-25
 
 ------------------------------------------------------------------------
 
@@ -101,6 +101,8 @@ This test plan covers:
 -   Research artifact validation
 -   Research Agent dashboard interaction
 -   Local reasoning provider integration
+-   Research source provider abstraction and deterministic provider
+    validation
 -   Research Agent platform integration
 
 ------------------------------------------------------------------------
@@ -1107,13 +1109,12 @@ The Research Agent is considered stable when:
 -   research artifact validation passes
 -   Project0 platform regression tests remain passing
 
-Initial Project0 regression baseline before Research Agent
-implementation:
+Phase 10 Research Agent validation baseline:
 
 ``` text
 python -m pytest
 
-691 passed, 7 skipped
+920 passed, 11 skipped
 ```
 
 Research Agent implementation shall not regress the established Project0

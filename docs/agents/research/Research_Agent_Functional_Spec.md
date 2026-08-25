@@ -1,8 +1,8 @@
 # Research Agent Functional Specification
 
-**Version:** 0.2  
+**Version:** 0.3  
 **Owner:** Project0  
-**Last Updated:** 2026-08-23  
+**Last Updated:** 2026-08-25
 
 ---
 
@@ -58,6 +58,8 @@ The Research Agent shall:
 -   Search supported external research sources.
 -   Support pluggable research source providers through defined service
     boundaries.
+-   Support deterministic research source provider behavior for testing,
+    demonstrations, and validation.
 -   Retrieve available paper metadata.
 -   Identify research papers relevant to the research question.
 -   Evaluate and rank paper relevance.
@@ -135,7 +137,8 @@ The Research Agent is successful when it:
 
 -   Correctly interprets a research question.
 -   Generates an appropriate research strategy.
--   Generates useful and deterministic research queries from the research strategy.
+-   Generates useful and deterministic research queries from the
+    research strategy.
 -   Discovers relevant papers through supported research sources.
 -   Supports multiple research source providers without changing the
     Research Agent workflow architecture.
@@ -149,6 +152,8 @@ The Research Agent is successful when it:
 -   Produces useful experiment planning suggestions.
 -   Produces outputs useful for ECE-551 Part 2 research activities.
 -   Operates through Project0's reusable platform architecture.
+-   Integrates with Project0 workflow, validation, artifact, and
+    Dashboard Framework services.
 
 ---
 

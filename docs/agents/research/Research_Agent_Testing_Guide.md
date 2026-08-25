@@ -1,8 +1,8 @@
 # Research Agent Testing Guide
 
-**Version:** 0.5\
+**Version:** 0.6\
 **Owner:** Project0\
-**Last Updated:** 2026-08-13
+**Last Updated:** 2026-08-25
 
 ------------------------------------------------------------------------
 
@@ -57,6 +57,8 @@ Research Agent testing follows the general principles defined by
     whenever practical.
 -   Use stub or fake reasoning providers for deterministic automated
     tests.
+-   Use deterministic research source providers for automated research
+    workflow validation.
 -   Test real local AI-provider behavior separately from deterministic
     regression tests.
 -   Treat browser-based workflow testing as acceptance testing rather

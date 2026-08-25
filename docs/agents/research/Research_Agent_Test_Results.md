@@ -1,8 +1,8 @@
 # Research Agent Test Results
 
-**Version:** 0.6  
+**Version:** 0.7  
 **Owner:** Project0  
-**Last Updated:** 2026-08-23
+**Last Updated:** 2026-08-25
 
 ------------------------------------------------------------------------
 
@@ -28,15 +28,16 @@ This update extends the previous Research Agent validation record with
 the Phase 10 completion milestone and updated regression results.
 
 The previous validation baseline documented 691 passed, 7 skipped during
-early Research Agent validation. The current completed Phase 10
-regression baseline is:
+early Research Agent validation. The current completed Phase 10 and
+Phase 11 regression baseline is:
 
 ``` text
-908 passed, 11 skipped
+920 passed, 11 skipped
 ```
 
 The Research Agent runtime integration has also been validated through
-successful dashboard startup.
+successful dashboard startup and complete Dashboard workflow acceptance
+validation.
 
 ------------------------------------------------------------------------
 
@@ -207,7 +208,7 @@ Verified:
 
 Current Status:
 
-**Research Agent Foundation and Provider Architecture COMPLETE**
+**Research Agent V1 Functional Validation COMPLETE**
 
 The Research Agent has demonstrated:
 
@@ -218,15 +219,11 @@ The Research Agent has demonstrated:
 -   successful runtime composition
 -   passing complete regression validation
 
-Remaining activities belong to the next milestone:
+Remaining activities belong to future Research Agent enhancements:
 
-**Phase 11 --- Research Agent V1 Functional Validation**
-
-Planned focus:
-
--   browser UI validation
--   Research Agent user workflow testing
--   acceptance scenario expansion
+-   browser UI resilience improvements
+-   expanded source provider support
+-   additional acceptance scenario coverage
 -   final documentation synchronization
 
 ------------------------------------------------------------------------

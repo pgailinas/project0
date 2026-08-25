@@ -1,10 +1,10 @@
 # Research Agent Design
 
-**Version:** 0.1  
+**Version:** 0.2  
 **Owner:** Project0  
-**Last Updated:** 2026-08-20  
+**Last Updated:** 2026-08-25
 
-------------------------------------------------------------------------
+---
 
 ## 1. Purpose
 
@@ -17,9 +17,10 @@ required to implement the Research Agent Functional Specification.
 
 Describe the purpose, responsibilities, interfaces, inputs, outputs,
 dependencies, and future considerations for Research Agent components.
-Implementation details are intentionally excluded.
+Architectural implementation boundaries and service abstractions are
+included where required to define component responsibilities.
 
-------------------------------------------------------------------------
+---
 
 ## 2. Component Design Principles
 
@@ -39,7 +40,7 @@ Implementation details are intentionally excluded.
 -   Research-specific behavior shall remain separate from reusable
     Project0 platform services.
 
-------------------------------------------------------------------------
+---
 
 ## 3. Component Overview
 
@@ -68,6 +69,7 @@ Initial Research Agent-specific components include:
 -   Research Workflow
 -   Research Strategy Service
 -   Research Source Service
+-   Research Source Provider Interface
 -   Paper Metadata Service
 -   Research Evaluation Service
 -   Research Artifact Service
@@ -78,7 +80,7 @@ Research Workflow coordinates the research-specific services and
 existing Project0 platform services required to produce structured
 research results.
 
-------------------------------------------------------------------------
+---
 
 ## 4. Component Specifications
 
@@ -136,7 +138,7 @@ dispatching Research Agent workflows.
 -   Additional agent routing
 -   Multi-agent workflow coordination
 
-------------------------------------------------------------------------
+---
 
 ### 4.2 Dashboard Framework
 
@@ -159,7 +161,7 @@ and AI agents.
 -   Research Agent UI behavior remains separate from shared Dashboard
     Framework behavior.
 
-------------------------------------------------------------------------
+---
 
 ### 4.3 Workflow Engine
 
@@ -182,7 +184,7 @@ Execute Project0 workflow tasks and return structured execution results.
 -   Research workflow coordination remains the responsibility of the
     Research Workflow.
 
-------------------------------------------------------------------------
+---
 
 ### 4.4 Knowledge Service
 
@@ -210,7 +212,7 @@ requests.
 -   Embedding generation
 -   Vector search
 
-------------------------------------------------------------------------
+---
 
 ### 4.5 Reasoning Service
 
@@ -260,7 +262,7 @@ Perform AI-assisted research reasoning.
 -   Model routing
 -   Context-size management
 
-------------------------------------------------------------------------
+---
 
 ### 4.6 Validation Service
 
@@ -288,7 +290,7 @@ Coordinate validation of Research Agent workflow outputs.
 -   Research artifact validator
 -   Metadata consistency validator
 
-------------------------------------------------------------------------
+---
 
 ### 4.7 Shared Interfaces
 
@@ -316,7 +318,7 @@ components.
 -   Interfaces shall remain small and aligned with implemented component
     capabilities.
 
-------------------------------------------------------------------------
+---
 
 ### 4.8 Shared Data Models
 
@@ -344,7 +346,7 @@ components.
     research outputs.
 -   Shared models prevent component-specific communication formats.
 
-------------------------------------------------------------------------
+---
 
 ### 4.9 Research Strategy Service
 
@@ -396,7 +398,7 @@ Transform a research question into a structured research strategy.
 -   Search history awareness
 -   User-defined strategy templates
 
-------------------------------------------------------------------------
+---
 
 ### 4.10 Research Source Service
 
@@ -452,7 +454,7 @@ Provide controlled access to supported external research sources.
 -   Search result caching
 -   Rate-limit handling
 
-------------------------------------------------------------------------
+---
 
 ### 4.11 Paper Metadata Service
 
@@ -499,7 +501,7 @@ Retrieve and normalize available metadata for candidate research papers.
 -   Citation metadata
 -   Publication venue normalization
 
-------------------------------------------------------------------------
+---
 
 ### 4.12 Research Evaluation Service
 
@@ -560,7 +562,7 @@ research strategy.
 -   Configurable ranking criteria
 -   Cross-paper evidence analysis
 
-------------------------------------------------------------------------
+---
 
 ### 4.13 Research Artifact Service
 
@@ -615,7 +617,7 @@ Agent outputs.
 -   Artifact persistence policies
 -   Cross-project research artifacts
 
-------------------------------------------------------------------------
+---
 
 ### 4.14 Research Workflow
 
@@ -645,7 +647,7 @@ Coordinate the complete Research Agent execution pipeline.
 -   Research artifacts remain reviewable outputs rather than
     authoritative research conclusions.
 
-------------------------------------------------------------------------
+---
 
 ### Research Source Provider Design
 
@@ -700,7 +702,7 @@ Semantic Scholar Provider        Stub Provider
 The provider design follows the Project0 principle that components
 depend on interfaces rather than concrete implementations.
 
-------------------------------------------------------------------------
+---
 
 ### Revision Workflow Support
 
@@ -721,7 +723,7 @@ changes to a generated research request or research output.
 -   Existing source evidence should remain available when applicable.
 -   Revised research direction may trigger additional source discovery.
 
-------------------------------------------------------------------------
+---
 
 ## 5. Interface Design Principles
 
@@ -742,7 +744,7 @@ changes to a generated research request or research output.
 -   External research source implementations shall remain isolated
     behind Research Source interfaces.
 
-------------------------------------------------------------------------
+---
 
 ## 6. Component Interactions
 
@@ -791,7 +793,7 @@ Research Agent-specific behavior remains isolated from reusable Project0
 platform services. External research source behavior remains isolated
 behind the Research Source Service and its interfaces.
 
-------------------------------------------------------------------------
+---
 
 ## 7. Design Constraints
 
