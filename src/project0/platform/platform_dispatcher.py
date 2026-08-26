@@ -280,6 +280,9 @@ def create_platform_dispatcher(
         research_source_providers=(
             resolved_settings.research_source_providers
         ),
+        semantic_scholar_api_key=(
+            resolved_settings.semantic_scholar_api_key
+        ),
     )
 
     return PlatformDispatcher(
@@ -373,6 +376,7 @@ def _create_research_workflow(
     reasoning_provider: ReasoningProviderProtocol | None,
     reasoning_model_name: str | None,
     research_source_providers: tuple[str, ...],
+    semantic_scholar_api_key: str | None = None,
 ) -> ResearchWorkflowProtocol | None:
     """Assemble the research workflow when dependencies are supplied."""
 
@@ -395,7 +399,9 @@ def _create_research_workflow(
                 provider_names=research_source_providers,
             ),
         ),
-        metadata_service=PaperMetadataService(),
+        metadata_service=PaperMetadataService(
+            semantic_scholar_api_key=semantic_scholar_api_key,
+        ),
         evaluation_service=ResearchEvaluationService(
             provider=reasoning_provider,
             model_name=reasoning_model_name,

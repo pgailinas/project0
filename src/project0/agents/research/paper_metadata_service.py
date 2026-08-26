@@ -33,6 +33,7 @@ class PaperMetadataService:
     semantic_scholar_base_url: str = (
         "https://api.semanticscholar.org/graph/v1"
     )
+    semantic_scholar_api_key: str | None = None
     timeout_seconds: float = 30.0
 
     def retrieve_metadata(
@@ -124,10 +125,16 @@ class PaperMetadataService:
             reference.source_id,
         )
 
+        headers: dict[str, str] = {}
+
+        if self.semantic_scholar_api_key is not None:
+            headers["x-api-key"] = self.semantic_scholar_api_key
+
         try:
             response = httpx.get(
                 endpoint,
                 params=params,
+                headers=headers,
                 timeout=self.timeout_seconds,
             )
             response.raise_for_status()

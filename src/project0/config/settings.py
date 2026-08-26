@@ -31,6 +31,7 @@ class ProjectSettings:
     log_level: str = DEFAULT_LOG_LEVEL
     reasoning_provider: str = "ollama"
     research_source_providers: tuple[str, ...] = DEFAULT_RESEARCH_SOURCE_PROVIDERS
+    semantic_scholar_api_key: str | None = None
     ollama_model: str = "qwen2.5:7b"
     ollama_base_url: str = "http://127.0.0.1:11434"
     ollama_timeout_seconds: float = DEFAULT_OLLAMA_TIMEOUT_SECONDS
@@ -69,6 +70,9 @@ def load_settings() -> ProjectSettings:
                 "PROJECT0_RESEARCH_SOURCE_PROVIDERS",
                 ",".join(DEFAULT_RESEARCH_SOURCE_PROVIDERS),
             )
+        ),
+        semantic_scholar_api_key=os.getenv(
+            "PROJECT0_SEMANTIC_SCHOLAR_API_KEY",
         ),
         ollama_model=os.getenv(
             "PROJECT0_OLLAMA_MODEL",

@@ -979,6 +979,22 @@ def test_create_research_workflow_assembles_services() -> None:
     assert workflow._artifact_service is not None
 
 
+def test_create_research_workflow_configures_semantic_scholar_metadata_key() -> None:
+    """Research metadata service receives configured Semantic Scholar API key."""
+
+    workflow = _create_research_workflow(
+        reasoning_provider=Mock(),
+        reasoning_model_name="qwen2.5:7b",
+        research_source_providers=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+        semantic_scholar_api_key="test-semantic-scholar-key",
+    )
+
+    assert workflow is not None
+    assert workflow._metadata_service.semantic_scholar_api_key == (
+        "test-semantic-scholar-key"
+    )
+
+
 def test_create_platform_dispatcher_accepts_custom_settings(
     tmp_path,
     monkeypatch,
@@ -990,6 +1006,7 @@ def test_create_platform_dispatcher_accepts_custom_settings(
         docs_dir=tmp_path / "docs",
         source_dir=tmp_path / "src",
         tests_dir=tmp_path / "tests",
+        semantic_scholar_api_key="test-semantic-scholar-key",
     )
 
     monkeypatch.setattr(
@@ -1005,3 +1022,7 @@ def test_create_platform_dispatcher_accepts_custom_settings(
 
     assert dispatcher.repository.repository_root == tmp_path
     assert dispatcher.research_workflow is not None
+    assert (
+        dispatcher.research_workflow._metadata_service.semantic_scholar_api_key
+        == "test-semantic-scholar-key"
+    )

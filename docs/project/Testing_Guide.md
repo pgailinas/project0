@@ -1,8 +1,8 @@
 # Testing Guide
 
-**Version:** 0.5  
+**Version:** 0.6  
 **Owner:** Project0  
-**Last Updated:** 2026-08-11
+**Last Updated:** 2026-08-26
 
 ---
 
@@ -275,6 +275,22 @@ Run the complete Project0 test suite:
 ```bash
 python -m pytest
 ```
+
+For regression execution that includes Dashboard-hosted browser acceptance tests, run the Dashboard in a separate terminal using deterministic stub providers:
+
+```bash
+export PROJECT0_REASONING_PROVIDER=stub
+export PROJECT0_RESEARCH_SOURCE_PROVIDERS=stub
+python -m project0.dashboard.dashboard_app
+```
+
+Then run the complete Project0 test suite from a second terminal:
+
+```bash
+python -m pytest
+```
+
+Live external research providers and production reasoning providers should not be used for deterministic regression execution. Provider-specific live validation should be performed separately from the complete regression suite.
 
 ---
 

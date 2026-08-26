@@ -213,6 +213,29 @@ def test_semantic_scholar_provider_raises_runtime_error_for_rate_limit(
         )
 
 
+def test_semantic_scholar_provider_returns_empty_for_zero_results(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify valid zero-result responses return no references."""
+
+    monkeypatch.setattr(
+        httpx,
+        "get",
+        lambda *args, **kwargs: create_http_response(
+            data={
+                "total": 0,
+                "offset": 0,
+            },
+        ),
+    )
+
+    result = SemanticScholarSourceProvider().search(
+        create_research_strategy()
+    )
+
+    assert result == ()
+
+
 def test_semantic_scholar_provider_rejects_invalid_response_json(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -388,4 +411,59 @@ def test_semantic_scholar_provider_sends_user_agent(
     assert captured_headers == {
         "User-Agent": "Project0-Test-Agent",
     }
+
+def test_semantic_scholar_provider_sends_api_key_when_configured(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify configured Semantic Scholar API keys are sent."""
+
+    captured_headers: dict[str, str] = {}
+
+    def fake_get(
+        url: str,
+        *,
+        params: dict[str, Any],
+        headers: dict[str, str],
+        timeout: float,
+    ) -> httpx.Response:
+        captured_headers.update(headers)
+        return create_http_response()
+
+    monkeypatch.setattr(httpx, "get", fake_get)
+
+    SemanticScholarSourceProvider(
+        api_key="test-semantic-scholar-key",
+    ).search(
+        create_research_strategy()
+    )
+
+    assert captured_headers["x-api-key"] == (
+        "test-semantic-scholar-key"
+    )
+
+
+def test_semantic_scholar_provider_omits_api_key_when_not_configured(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify unauthenticated Semantic Scholar requests omit API keys."""
+
+    captured_headers: dict[str, str] = {}
+
+    def fake_get(
+        url: str,
+        *,
+        params: dict[str, Any],
+        headers: dict[str, str],
+        timeout: float,
+    ) -> httpx.Response:
+        captured_headers.update(headers)
+        return create_http_response()
+
+    monkeypatch.setattr(httpx, "get", fake_get)
+
+    SemanticScholarSourceProvider().search(
+        create_research_strategy()
+    )
+
+    assert "x-api-key" not in captured_headers
 

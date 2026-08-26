@@ -36,6 +36,7 @@ def test_project_settings_stores_supplied_values(
         tests_dir=tmp_path / "tests",
         log_level="DEBUG",
         reasoning_provider="stub",
+        semantic_scholar_api_key="test-semantic-scholar-key",
         ollama_model="test-model",
         ollama_base_url="http://localhost:11434",
         ollama_timeout_seconds=45.0,
@@ -47,6 +48,7 @@ def test_project_settings_stores_supplied_values(
     assert settings.tests_dir == tmp_path / "tests"
     assert settings.log_level == "DEBUG"
     assert settings.reasoning_provider == "stub"
+    assert settings.semantic_scholar_api_key == "test-semantic-scholar-key"
     assert settings.ollama_model == "test-model"
     assert settings.ollama_base_url == "http://localhost:11434"
     assert settings.ollama_timeout_seconds == 45.0
@@ -79,6 +81,34 @@ def test_project_settings_uses_default_reasoning_settings(
     assert settings.ollama_model == "qwen2.5:7b"
     assert settings.ollama_base_url == "http://127.0.0.1:11434"
     assert settings.ollama_timeout_seconds == DEFAULT_OLLAMA_TIMEOUT_SECONDS
+
+
+def test_project_settings_uses_default_semantic_scholar_api_key(
+    tmp_path: Path,
+) -> None:
+    settings = ProjectSettings(
+        project_root=tmp_path,
+        docs_dir=tmp_path / "docs",
+        source_dir=tmp_path / "src",
+        tests_dir=tmp_path / "tests",
+    )
+
+    assert settings.semantic_scholar_api_key is None
+
+
+def test_load_settings_uses_semantic_scholar_api_key_environment_override(
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv(
+        "PROJECT0_SEMANTIC_SCHOLAR_API_KEY",
+        "test-semantic-scholar-key",
+    )
+
+    settings = load_settings()
+
+    assert settings.semantic_scholar_api_key == (
+        "test-semantic-scholar-key"
+    )
 
 
 def test_project_settings_is_immutable(

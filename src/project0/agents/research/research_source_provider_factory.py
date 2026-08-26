@@ -34,6 +34,7 @@ from project0.agents.research.stub_research_source_provider import (
 from project0.config.constants import (
     SUPPORTED_RESEARCH_SOURCE_PROVIDERS,
 )
+from project0.config.settings import SETTINGS
 from project0.models.research_models import ResearchSourceReference
 
 
@@ -43,7 +44,9 @@ def create_research_source_providers(
     """Create configured Research Agent source providers."""
 
     available_providers: dict[str, ResearchSourceProviderProtocol] = {
-        "semantic_scholar": SemanticScholarSourceProvider(),
+        "semantic_scholar": SemanticScholarSourceProvider(
+            api_key=SETTINGS.semantic_scholar_api_key,
+        ),
         "openalex": OpenAlexSourceProvider(),
         "openreview": OpenReviewSourceProvider(),
         "crossref": CrossrefSourceProvider(),

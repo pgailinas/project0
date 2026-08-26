@@ -32,6 +32,7 @@ from project0.agents.research.stub_research_source_provider import (
 from project0.agents.research.research_source_provider import (
     ResearchSourceProviderProtocol,
 )
+from project0.config.settings import ProjectSettings
 
 
 def test_factory_creates_supported_research_source_providers():
@@ -55,6 +56,34 @@ def test_factory_creates_semantic_scholar_provider():
     assert isinstance(
         providers["semantic_scholar"],
         SemanticScholarSourceProvider,
+    )
+
+
+def test_factory_configures_semantic_scholar_api_key(
+    monkeypatch,
+    tmp_path,
+):
+    """Verify Semantic Scholar provider receives configured API key."""
+
+    settings = ProjectSettings(
+        project_root=tmp_path,
+        docs_dir=tmp_path / "docs",
+        source_dir=tmp_path / "src",
+        tests_dir=tmp_path / "tests",
+        semantic_scholar_api_key="test-semantic-scholar-key",
+    )
+
+    monkeypatch.setattr(
+        "project0.agents.research.research_source_provider_factory.SETTINGS",
+        settings,
+    )
+
+    providers = create_research_source_providers(
+        ("semantic_scholar",)
+    )
+
+    assert providers["semantic_scholar"].api_key == (
+        "test-semantic-scholar-key"
     )
 
 

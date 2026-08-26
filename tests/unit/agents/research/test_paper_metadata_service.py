@@ -114,6 +114,7 @@ def test_paper_metadata_service_builds_expected_request(
         url: str,
         *,
         params: dict[str, Any],
+        headers: dict[str, str],
         timeout: float,
     ) -> httpx.Response:
         captured["url"] = url
@@ -144,6 +145,62 @@ def test_paper_metadata_service_builds_expected_request(
     }
 
 
+def test_paper_metadata_service_sends_semantic_scholar_api_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify configured Semantic Scholar metadata API keys are sent."""
+
+    captured_headers: dict[str, str] = {}
+
+    def fake_get(
+        url: str,
+        *,
+        params: dict[str, Any],
+        headers: dict[str, str],
+        timeout: float,
+    ) -> httpx.Response:
+        captured_headers.update(headers)
+        return create_http_response()
+
+    monkeypatch.setattr(httpx, "get", fake_get)
+
+    PaperMetadataService(
+        semantic_scholar_api_key="test-semantic-scholar-key",
+    ).retrieve_metadata(
+        (create_source_reference(),)
+    )
+
+    assert captured_headers["x-api-key"] == (
+        "test-semantic-scholar-key"
+    )
+
+
+def test_paper_metadata_service_omits_semantic_scholar_api_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify unconfigured Semantic Scholar metadata API keys are omitted."""
+
+    captured_headers: dict[str, str] = {}
+
+    def fake_get(
+        url: str,
+        *,
+        params: dict[str, Any],
+        headers: dict[str, str],
+        timeout: float,
+    ) -> httpx.Response:
+        captured_headers.update(headers)
+        return create_http_response()
+
+    monkeypatch.setattr(httpx, "get", fake_get)
+
+    PaperMetadataService().retrieve_metadata(
+        (create_source_reference(),)
+    )
+
+    assert "x-api-key" not in captured_headers
+
+
 def test_paper_metadata_service_normalizes_trailing_base_url_slash(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -155,6 +212,7 @@ def test_paper_metadata_service_normalizes_trailing_base_url_slash(
         url: str,
         *,
         params: dict[str, Any],
+        headers: dict[str, str],
         timeout: float,
     ) -> httpx.Response:
         nonlocal captured_url
@@ -244,6 +302,7 @@ def test_paper_metadata_service_retrieves_multiple_references(
         url: str,
         *,
         params: dict[str, Any],
+        headers: dict[str, str],
         timeout: float,
     ) -> httpx.Response:
         calls.append(url)

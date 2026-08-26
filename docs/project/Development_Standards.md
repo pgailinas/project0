@@ -1,8 +1,8 @@
 # Development Standards
 
-**Version:** 0.3  
+**Version:** 0.4  
 **Owner:** Project0  
-**Last Updated:** 2026-08-17
+**Last Updated:** 2026-08-26
 
 ------------------------------------------------------------------------
 
@@ -71,6 +71,28 @@ Technology decisions should consider:
 - Operational impact
 
 Prefer mature open-source components unless a commercial component provides a clear and measurable advantage.
+
+### Runtime Configuration and Secrets
+
+Runtime configuration should be externalized when values vary by environment or contain sensitive information.
+
+Project0 configuration should follow this precedence:
+
+- Explicit shell environment variables
+- Conda environment variables
+- Application defaults
+
+Persistent local configuration should be associated with the dedicated Project0 Conda environment.
+
+Secrets, including API keys, must not be:
+
+- Committed to Git
+- Embedded in source code
+- Embedded in tests
+- Written to logs
+- Displayed in the user interface
+
+Tests should use non-sensitive dummy values when secret-dependent behavior must be validated.
 
 ---
 

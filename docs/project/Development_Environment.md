@@ -1,8 +1,8 @@
 # Development Environment
 
-**Version:** 0.1  
+**Version:** 0.2  
 **Owner:**Project0  
-**Last Updated:** 2026-08-02  
+**Last Updated:** 2026-08-26  
 
 ---
 
@@ -117,6 +117,39 @@ python -m pip install -e .
 Successful installation should require no additional manual package installation.
 
 This procedure verifies that `pyproject.toml` remains the authoritative definition of the Project0 development environment.
+
+---
+
+## Runtime Configuration
+
+Project0 runtime configuration may be provided through environment variables associated with the dedicated **project0** Conda environment or through explicit shell environment variables.
+
+The configuration precedence is:
+
+1. Explicit shell environment variables.
+2. Conda environment variables.
+3. Application defaults.
+
+Shell environment variables are appropriate for temporary development and testing overrides.
+
+Persistent local configuration should be associated with the **project0** Conda environment.
+
+Sensitive values such as API keys should be stored as Conda environment variables or supplied through the shell environment. Actual secret values must not be placed in source files, tests, documentation, or committed configuration.
+
+Example:
+
+```bash
+conda env config vars set PROJECT0_SEMANTIC_SCHOLAR_API_KEY="<local-api-key>"
+```
+
+Reactivate the environment after changing Conda environment variables:
+
+```bash
+conda deactivate
+conda activate project0
+```
+
+The example value is a placeholder only.
 
 ---
 

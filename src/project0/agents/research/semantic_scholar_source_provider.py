@@ -44,6 +44,7 @@ class SemanticScholarSourceProvider(
     maximum_attempts: int = 3
     retry_delay_seconds: float = 1.0
     user_agent: str = "Project0 Research Agent"
+    api_key: str | None = None
 
     def search(
         self,
@@ -77,6 +78,9 @@ class SemanticScholarSourceProvider(
         headers = {
             "User-Agent": self.user_agent,
         }
+
+        if self.api_key is not None:
+            headers["x-api-key"] = self.api_key
 
         last_error: httpx.HTTPError | None = None
         response: httpx.Response | None = None
@@ -156,6 +160,12 @@ class SemanticScholarSourceProvider(
             )
 
         data = response_data.get("data")
+
+        if (
+            data is None
+            and response_data.get("total") == 0
+        ):
+            return ()
 
         if not isinstance(data, list):
             raise TypeError(
