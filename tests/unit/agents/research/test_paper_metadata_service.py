@@ -873,3 +873,47 @@ def test_paper_metadata_service_creates_crossref_metadata() -> None:
         "source": "crossref",
     }
 
+def test_paper_metadata_service_creates_openreview_metadata() -> None:
+    """Verify OpenReview references map to normalized PaperMetadata."""
+
+    reference = ResearchSourceReference(
+        source_name="openreview",
+        source_id="openreview-note-001",
+        title="Example OpenReview Paper",
+        source_url=(
+            "https://openreview.net/forum?"
+            "id=openreview-note-001"
+        ),
+        authors=(
+            "Author One",
+            "Author Two",
+        ),
+        publication_year=2024,
+    )
+
+    result = PaperMetadataService().retrieve_metadata(
+        (reference,)
+    )
+
+    assert len(result) == 1
+
+    paper = result[0]
+
+    assert paper.source_reference == reference
+    assert paper.title == "Example OpenReview Paper"
+    assert paper.authors == (
+        "Author One",
+        "Author Two",
+    )
+    assert paper.publication_year == 2024
+    assert paper.abstract is None
+    assert paper.venue == "OpenReview"
+    assert paper.source_url == (
+        "https://openreview.net/forum?"
+        "id=openreview-note-001"
+    )
+    assert paper.metadata == {
+        "paper_id": "openreview-note-001",
+        "source": "openreview",
+    }
+

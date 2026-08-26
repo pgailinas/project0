@@ -70,6 +70,7 @@ python -m pytest tests/unit/agents/research/test_semantic_scholar_source_provide
 python -m pytest tests/unit/agents/research/test_stub_research_source_provider.py -v
 python -m pytest tests/unit/agents/research/test_openalex_source_provider.py -v
 python -m pytest tests/unit/agents/research/test_crossref_source_provider.py -v
+python -m pytest tests/unit/agents/research/test_openreview_source_provider.py -v
 
 2) FULL UNIT TEST SUITE:
 python -m pytest tests/unit -v
@@ -115,6 +116,6 @@ python -m project0.dashboard.dashboard_app
 python -m pytest
 
 Expected Result:
-969 passed, 11 skipped
+992 passed, 11 skipped
 
 

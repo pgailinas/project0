@@ -68,6 +68,14 @@ class PaperMetadataService:
                 )
                 continue
 
+            if reference.source_name == "openreview":
+                papers.append(
+                    self._create_openreview_metadata(
+                        reference
+                    )
+                )
+                continue
+
             if reference.source_name == "crossref":
                 papers.append(
                     self._create_crossref_metadata(
@@ -242,6 +250,26 @@ class PaperMetadataService:
             metadata={
                 "paper_id": reference.source_id,
                 "source": "openalex",
+            },
+        )
+
+    def _create_openreview_metadata(
+        self,
+        reference: ResearchSourceReference,
+    ) -> PaperMetadata:
+        """Create metadata from normalized OpenReview source data."""
+
+        return PaperMetadata(
+            source_reference=reference,
+            title=reference.title,
+            authors=reference.authors,
+            publication_year=reference.publication_year,
+            abstract=None,
+            venue="OpenReview",
+            source_url=reference.source_url,
+            metadata={
+                "paper_id": reference.source_id,
+                "source": "openreview",
             },
         )
 

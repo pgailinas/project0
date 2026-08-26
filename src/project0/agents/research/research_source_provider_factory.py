@@ -19,6 +19,9 @@ from project0.agents.research.crossref_source_provider import (
 from project0.agents.research.openalex_source_provider import (
     OpenAlexSourceProvider,
 )
+from project0.agents.research.openreview_source_provider import (
+    OpenReviewSourceProvider,
+)
 from project0.agents.research.research_source_provider import (
     ResearchSourceProviderProtocol,
 )
@@ -42,6 +45,7 @@ def create_research_source_providers(
     available_providers: dict[str, ResearchSourceProviderProtocol] = {
         "semantic_scholar": SemanticScholarSourceProvider(),
         "openalex": OpenAlexSourceProvider(),
+        "openreview": OpenReviewSourceProvider(),
         "crossref": CrossrefSourceProvider(),
         "arxiv": ArxivSourceProvider(),
         "stub": StubResearchSourceProvider(

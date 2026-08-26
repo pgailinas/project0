@@ -17,6 +17,9 @@ from project0.agents.research.crossref_source_provider import (
 from project0.agents.research.openalex_source_provider import (
     OpenAlexSourceProvider,
 )
+from project0.agents.research.openreview_source_provider import (
+    OpenReviewSourceProvider,
+)
 from project0.agents.research.research_source_provider_factory import (
     create_research_source_providers,
 )
@@ -38,6 +41,7 @@ def test_factory_creates_supported_research_source_providers():
 
     assert "semantic_scholar" in providers
     assert "openalex" in providers
+    assert "openreview" in providers
     assert "crossref" in providers
     assert "arxiv" in providers
     assert "stub" in providers
@@ -62,6 +66,17 @@ def test_factory_creates_openalex_provider():
     assert isinstance(
         providers["openalex"],
         OpenAlexSourceProvider,
+    )
+
+
+def test_factory_creates_openreview_provider():
+    """Verify OpenReview provider creation."""
+
+    providers = create_research_source_providers()
+
+    assert isinstance(
+        providers["openreview"],
+        OpenReviewSourceProvider,
     )
 
 

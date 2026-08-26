@@ -31,6 +31,7 @@ DEFAULT_RESEARCH_SOURCE_PROVIDERS = (
 SUPPORTED_RESEARCH_SOURCE_PROVIDERS = (
     "semantic_scholar",
     "openalex",
+    "openreview",
     "crossref",
     "arxiv",
     "stub",
