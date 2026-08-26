@@ -11,6 +11,9 @@
 from project0.agents.research.arxiv_source_provider import (
     ArxivSourceProvider,
 )
+from project0.agents.research.openalex_source_provider import (
+    OpenAlexSourceProvider,
+)
 from project0.agents.research.research_source_provider_factory import (
     create_research_source_providers,
 )
@@ -31,6 +34,7 @@ def test_factory_creates_supported_research_source_providers():
     providers = create_research_source_providers()
 
     assert "semantic_scholar" in providers
+    assert "openalex" in providers
     assert "arxiv" in providers
     assert "stub" in providers
 
@@ -43,6 +47,17 @@ def test_factory_creates_semantic_scholar_provider():
     assert isinstance(
         providers["semantic_scholar"],
         SemanticScholarSourceProvider,
+    )
+
+
+def test_factory_creates_openalex_provider():
+    """Verify OpenAlex provider creation."""
+
+    providers = create_research_source_providers()
+
+    assert isinstance(
+        providers["openalex"],
+        OpenAlexSourceProvider,
     )
 
 

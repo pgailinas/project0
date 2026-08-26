@@ -118,7 +118,10 @@ class ArxivSourceProvider:
                 )
 
                 time.sleep(
-                    self.retry_delay_seconds
+                    self._retry_delay_seconds(
+                        attempt=attempt,
+                        error=last_error,
+                    )
                 )
 
         LOGGER.error(
@@ -130,6 +133,32 @@ class ArxivSourceProvider:
         raise RuntimeError(
             "arXiv request failed."
         ) from last_error
+
+    def _retry_delay_seconds(
+        self,
+        attempt: int,
+        error: httpx.HTTPError | None,
+    ) -> float:
+        """Return the delay before retrying an arXiv request."""
+
+        if isinstance(
+            error,
+            httpx.HTTPStatusError,
+        ):
+            retry_after = error.response.headers.get(
+                "Retry-After"
+            )
+
+            if retry_after is not None:
+                try:
+                    return float(retry_after)
+                except ValueError:
+                    pass
+
+        return (
+            self.retry_delay_seconds
+            * (2 ** (attempt - 1))
+        )
 
     @staticmethod
     def _build_query(

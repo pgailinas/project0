@@ -60,6 +60,14 @@ class PaperMetadataService:
                 )
                 continue
 
+            if reference.source_name == "openalex":
+                papers.append(
+                    self._create_openalex_metadata(
+                        reference
+                    )
+                )
+                continue
+
             if reference.source_name == "stub":
                 papers.append(
                     self._create_stub_metadata(
@@ -206,6 +214,26 @@ class PaperMetadataService:
             metadata={
                 "paper_id": reference.source_id,
                 "source": "arxiv",
+            },
+        )
+
+    def _create_openalex_metadata(
+        self,
+        reference: ResearchSourceReference,
+    ) -> PaperMetadata:
+        """Create metadata from normalized OpenAlex source data."""
+
+        return PaperMetadata(
+            source_reference=reference,
+            title=reference.title,
+            authors=reference.authors,
+            publication_year=reference.publication_year,
+            abstract=None,
+            venue="OpenAlex",
+            source_url=reference.source_url,
+            metadata={
+                "paper_id": reference.source_id,
+                "source": "openalex",
             },
         )
 

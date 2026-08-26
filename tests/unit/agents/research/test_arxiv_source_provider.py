@@ -327,3 +327,114 @@ def test_arxiv_provider_retries_rate_limit_response(
         )
 
     assert attempts == 3
+
+def test_arxiv_provider_honors_retry_after_header(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify HTTP 429 Retry-After values control retry delay."""
+
+    attempts = 0
+    sleep_calls = []
+
+    xml_response = (
+        '<feed xmlns="http://www.w3.org/2005/Atom"></feed>'
+    )
+
+    def mock_get(*args, **kwargs):
+        nonlocal attempts
+        attempts += 1
+
+        if attempts == 1:
+            return httpx.Response(
+                429,
+                text="rate limited",
+                headers={
+                    "Retry-After": "5",
+                },
+                request=httpx.Request(
+                    "GET",
+                    "https://export.arxiv.org/api/query",
+                ),
+            )
+
+        return httpx.Response(
+            200,
+            text=xml_response,
+            request=httpx.Request(
+                "GET",
+                "https://export.arxiv.org/api/query",
+            ),
+        )
+
+    monkeypatch.setattr(
+        "project0.agents.research.arxiv_source_provider.httpx.get",
+        mock_get,
+    )
+    monkeypatch.setattr(
+        "project0.agents.research.arxiv_source_provider.time.sleep",
+        sleep_calls.append,
+    )
+
+    provider = ArxivSourceProvider(
+        maximum_attempts=2,
+        retry_delay_seconds=1.0,
+    )
+
+    result = provider.search(
+        create_strategy()
+    )
+
+    assert attempts == 2
+    assert result == ()
+    assert sleep_calls == [5.0]
+
+
+def test_arxiv_provider_uses_exponential_backoff_for_rate_limit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify HTTP 429 retries use exponential backoff."""
+
+    attempts = 0
+    sleep_calls = []
+
+    def mock_get(*args, **kwargs):
+        nonlocal attempts
+        attempts += 1
+
+        return httpx.Response(
+            429,
+            text="rate limited",
+            request=httpx.Request(
+                "GET",
+                "https://export.arxiv.org/api/query",
+            ),
+        )
+
+    monkeypatch.setattr(
+        "project0.agents.research.arxiv_source_provider.httpx.get",
+        mock_get,
+    )
+    monkeypatch.setattr(
+        "project0.agents.research.arxiv_source_provider.time.sleep",
+        sleep_calls.append,
+    )
+
+    provider = ArxivSourceProvider(
+        maximum_attempts=3,
+        retry_delay_seconds=2.0,
+    )
+
+    with pytest.raises(
+        RuntimeError,
+        match="arXiv request failed",
+    ):
+        provider.search(
+            create_strategy()
+        )
+
+    assert attempts == 3
+    assert sleep_calls == [
+        2.0,
+        4.0,
+    ]
+

@@ -110,10 +110,12 @@ def test_semantic_scholar_provider_builds_expected_request(
         url: str,
         *,
         params: dict[str, Any],
+        headers: dict[str, str],
         timeout: float,
     ) -> httpx.Response:
         captured["url"] = url
         captured["params"] = params
+        captured["headers"] = headers
         captured["timeout"] = timeout
         return create_http_response()
 
@@ -247,3 +249,143 @@ def test_semantic_scholar_provider_requires_response_object(
         SemanticScholarSourceProvider().search(
             create_research_strategy()
         )
+
+def test_semantic_scholar_provider_retries_rate_limit_response(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify HTTP 429 responses are retried before failing."""
+
+    attempts = 0
+
+    def fake_get(*args: Any, **kwargs: Any) -> httpx.Response:
+        nonlocal attempts
+        attempts += 1
+        return create_http_response(
+            status_code=429,
+        )
+
+    monkeypatch.setattr(httpx, "get", fake_get)
+    monkeypatch.setattr(
+        "project0.agents.research.semantic_scholar_source_provider.time.sleep",
+        lambda seconds: None,
+    )
+
+    provider = SemanticScholarSourceProvider(
+        maximum_attempts=3,
+        retry_delay_seconds=0.0,
+    )
+
+    with pytest.raises(RuntimeError):
+        provider.search(
+            create_research_strategy()
+        )
+
+    assert attempts == 3
+
+
+def test_semantic_scholar_provider_honors_retry_after_header(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify HTTP 429 Retry-After values control retry delay."""
+
+    attempts = 0
+    sleep_calls: list[float] = []
+
+    def fake_get(*args: Any, **kwargs: Any) -> httpx.Response:
+        nonlocal attempts
+        attempts += 1
+
+        if attempts == 1:
+            response = create_http_response(
+                status_code=429,
+            )
+            response.headers["Retry-After"] = "5"
+            return response
+
+        return create_http_response()
+
+    monkeypatch.setattr(httpx, "get", fake_get)
+    monkeypatch.setattr(
+        "project0.agents.research.semantic_scholar_source_provider.time.sleep",
+        sleep_calls.append,
+    )
+
+    result = SemanticScholarSourceProvider(
+        maximum_attempts=2,
+        retry_delay_seconds=1.0,
+    ).search(
+        create_research_strategy()
+    )
+
+    assert attempts == 2
+    assert len(result) == 1
+    assert sleep_calls == [5.0]
+
+
+def test_semantic_scholar_provider_uses_exponential_backoff_for_rate_limit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify HTTP 429 retries use exponential backoff."""
+
+    attempts = 0
+    sleep_calls: list[float] = []
+
+    def fake_get(*args: Any, **kwargs: Any) -> httpx.Response:
+        nonlocal attempts
+        attempts += 1
+        return create_http_response(
+            status_code=429,
+        )
+
+    monkeypatch.setattr(httpx, "get", fake_get)
+    monkeypatch.setattr(
+        "project0.agents.research.semantic_scholar_source_provider.time.sleep",
+        sleep_calls.append,
+    )
+
+    provider = SemanticScholarSourceProvider(
+        maximum_attempts=3,
+        retry_delay_seconds=2.0,
+    )
+
+    with pytest.raises(RuntimeError):
+        provider.search(
+            create_research_strategy()
+        )
+
+    assert attempts == 3
+    assert sleep_calls == [
+        2.0,
+        4.0,
+    ]
+
+
+def test_semantic_scholar_provider_sends_user_agent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify Semantic Scholar requests identify the Project0 client."""
+
+    captured_headers: dict[str, str] = {}
+
+    def fake_get(
+        url: str,
+        *,
+        params: dict[str, Any],
+        headers: dict[str, str],
+        timeout: float,
+    ) -> httpx.Response:
+        captured_headers.update(headers)
+        return create_http_response()
+
+    monkeypatch.setattr(httpx, "get", fake_get)
+
+    SemanticScholarSourceProvider(
+        user_agent="Project0-Test-Agent",
+    ).search(
+        create_research_strategy()
+    )
+
+    assert captured_headers == {
+        "User-Agent": "Project0-Test-Agent",
+    }
+

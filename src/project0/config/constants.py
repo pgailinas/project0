@@ -30,6 +30,7 @@ DEFAULT_RESEARCH_SOURCE_PROVIDERS = (
 # Supported providers
 SUPPORTED_RESEARCH_SOURCE_PROVIDERS = (
     "semantic_scholar",
+    "openalex",
     "arxiv",
     "stub",
 )

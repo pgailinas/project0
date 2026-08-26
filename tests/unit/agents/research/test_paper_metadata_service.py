@@ -791,3 +791,44 @@ def test_paper_metadata_service_creates_arxiv_metadata() -> None:
         "paper_id": "http://arxiv.org/abs/2401.12345",
         "source": "arxiv",
     }
+
+def test_paper_metadata_service_creates_openalex_metadata() -> None:
+    """Verify OpenAlex references map to normalized PaperMetadata."""
+
+    reference = ResearchSourceReference(
+        source_name="openalex",
+        source_id="https://openalex.org/W1234567890",
+        title="Example OpenAlex Paper",
+        source_url="https://doi.org/10.1234/example",
+        authors=(
+            "Author One",
+            "Author Two",
+        ),
+        publication_year=2024,
+    )
+
+    result = PaperMetadataService().retrieve_metadata(
+        (reference,)
+    )
+
+    assert len(result) == 1
+
+    paper = result[0]
+
+    assert paper.source_reference == reference
+    assert paper.title == "Example OpenAlex Paper"
+    assert paper.authors == (
+        "Author One",
+        "Author Two",
+    )
+    assert paper.publication_year == 2024
+    assert paper.abstract is None
+    assert paper.venue == "OpenAlex"
+    assert paper.source_url == (
+        "https://doi.org/10.1234/example"
+    )
+    assert paper.metadata == {
+        "paper_id": "https://openalex.org/W1234567890",
+        "source": "openalex",
+    }
+
