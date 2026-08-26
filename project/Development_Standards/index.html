@@ -1431,9 +1431,9 @@
 
 
 <h1 id="development-standards">Development Standards</h1>
-<p><strong>Version:</strong> 0.3<br />
+<p><strong>Version:</strong> 0.4<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-17</p>
+<strong>Last Updated:</strong> 2026-08-26</p>
 <hr />
 <h2 id="purpose">Purpose</h2>
 <p>This document defines the engineering standards used for Project0 development.</p>
@@ -1484,6 +1484,24 @@
 <li>Operational impact</li>
 </ul>
 <p>Prefer mature open-source components unless a commercial component provides a clear and measurable advantage.</p>
+<h3 id="runtime-configuration-and-secrets">Runtime Configuration and Secrets</h3>
+<p>Runtime configuration should be externalized when values vary by environment or contain sensitive information.</p>
+<p>Project0 configuration should follow this precedence:</p>
+<ul>
+<li>Explicit shell environment variables</li>
+<li>Conda environment variables</li>
+<li>Application defaults</li>
+</ul>
+<p>Persistent local configuration should be associated with the dedicated Project0 Conda environment.</p>
+<p>Secrets, including API keys, must not be:</p>
+<ul>
+<li>Committed to Git</li>
+<li>Embedded in source code</li>
+<li>Embedded in tests</li>
+<li>Written to logs</li>
+<li>Displayed in the user interface</li>
+</ul>
+<p>Tests should use non-sensitive dummy values when secret-dependent behavior must be validated.</p>
 <hr />
 <h2 id="4-design-before-implementation">4. Design Before Implementation</h2>
 <p>Before creating code, establish a shared design concept.</p>

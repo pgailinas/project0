@@ -518,6 +518,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#runtime-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#running-project0" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1643,6 +1654,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#runtime-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#running-project0" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1795,9 +1817,9 @@
 
 
 <h1 id="development-environment">Development Environment</h1>
-<p><strong>Version:</strong> 0.1<br />
+<p><strong>Version:</strong> 0.2<br />
 <strong>Owner:</strong>Project0<br />
-<strong>Last Updated:</strong> 2026-08-02  </p>
+<strong>Last Updated:</strong> 2026-08-26  </p>
 <hr />
 <h2 id="purpose">Purpose</h2>
 <p>This document defines the standard development environment for Project0. Its purpose is to ensure that every developer uses a consistent toolchain, directory structure, Python environment, and workflow. Following these standards improves reproducibility, reduces environment-related issues, and simplifies onboarding.</p>
@@ -1899,17 +1921,37 @@
 <p>Successful installation should require no additional manual package installation.</p>
 <p>This procedure verifies that <code>pyproject.toml</code> remains the authoritative definition of the Project0 development environment.</p>
 <hr />
+<h2 id="runtime-configuration">Runtime Configuration</h2>
+<p>Project0 runtime configuration may be provided through environment variables associated with the dedicated <strong>project0</strong> Conda environment or through explicit shell environment variables.</p>
+<p>The configuration precedence is:</p>
+<ol>
+<li>Explicit shell environment variables.</li>
+<li>Conda environment variables.</li>
+<li>Application defaults.</li>
+</ol>
+<p>Shell environment variables are appropriate for temporary development and testing overrides.</p>
+<p>Persistent local configuration should be associated with the <strong>project0</strong> Conda environment.</p>
+<p>Sensitive values such as API keys should be stored as Conda environment variables or supplied through the shell environment. Actual secret values must not be placed in source files, tests, documentation, or committed configuration.</p>
+<p>Example:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>conda<span class="w"> </span>env<span class="w"> </span>config<span class="w"> </span>vars<span class="w"> </span><span class="nb">set</span><span class="w"> </span><span class="nv">PROJECT0_SEMANTIC_SCHOLAR_API_KEY</span><span class="o">=</span><span class="s2">&quot;&lt;local-api-key&gt;&quot;</span>
+</span></code></pre></div>
+<p>Reactivate the environment after changing Conda environment variables:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>conda<span class="w"> </span>deactivate
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>conda<span class="w"> </span>activate<span class="w"> </span>project0
+</span></code></pre></div>
+<p>The example value is a placeholder only.</p>
+<hr />
 <h2 id="running-project0">Running Project0</h2>
 <p>Always execute Project0 as an installed package.</p>
 <p>Preferred:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python<span class="w"> </span>-m<span class="w"> </span>project0.main
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>python<span class="w"> </span>-m<span class="w"> </span>project0.main
 </span></code></pre></div>
 <p>Avoid executing source files directly.</p>
 <p>Do <strong>not</strong> use:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>python<span class="w"> </span>src/project0/main.py
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>python<span class="w"> </span>src/project0/main.py
 </span></code></pre></div>
 <p>or</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>/usr/bin/python3<span class="w"> </span>src/project0/main.py
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>/usr/bin/python3<span class="w"> </span>src/project0/main.py
 </span></code></pre></div>
 <p>Executing individual source files bypasses the package installation and may cause module import failures.</p>
 <hr />
@@ -1924,30 +1966,30 @@
 <li>Launch Project0 as a Python module rather than an individual file.</li>
 </ul>
 <p>Repository-specific VS Code settings should reside in:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>project0/.vscode/
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>project0/.vscode/
 </span></code></pre></div>
 <p>VS Code configuration is not currently committed to the repository.</p>
 <hr />
 <h2 id="documentation-environment">Documentation Environment</h2>
 <p>Documentation is generated using MkDocs with the Material theme.</p>
 <p>Local preview:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>mkdocs<span class="w"> </span>serve
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>mkdocs<span class="w"> </span>serve
 </span></code></pre></div>
 <p>Build static documentation:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>mkdocs<span class="w"> </span>build
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>mkdocs<span class="w"> </span>build
 </span></code></pre></div>
 <p>The documentation source is maintained in the <code>docs/</code> directory.</p>
 <hr />
 <h2 id="git-workflow">Git Workflow</h2>
 <p>Typical development workflow:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>git<span class="w"> </span>pull
-</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
-</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="c1">## Modify source code</span>
-</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>
-</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>git<span class="w"> </span>status
-</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>git<span class="w"> </span>add<span class="w"> </span>.
-</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Meaningful commit message&quot;</span>
-</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>git<span class="w"> </span>push
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>git<span class="w"> </span>pull
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="c1">## Modify source code</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>git<span class="w"> </span>status
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>git<span class="w"> </span>add<span class="w"> </span>.
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Meaningful commit message&quot;</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>git<span class="w"> </span>push
 </span></code></pre></div>
 <p>Developers should maintain a clean working tree before beginning new work.</p>
 <hr />
@@ -1968,17 +2010,17 @@
 <h2 id="development-verification">Development Verification</h2>
 <p>A correctly configured development environment should satisfy the following checks.</p>
 <p>Verify package installation:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>show<span class="w"> </span>project0
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>show<span class="w"> </span>project0
 </span></code></pre></div>
 <p>Verify package import:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import project0; print(project0.__file__)&quot;</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import project0; print(project0.__file__)&quot;</span>
 </span></code></pre></div>
 <p>Run Project0:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>python<span class="w"> </span>-m<span class="w"> </span>project0.main
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>python<span class="w"> </span>-m<span class="w"> </span>project0.main
 </span></code></pre></div>
 <p>Expected output should confirm successful startup and display the detected project root.</p>
 <p>When the Dashboard Framework becomes available:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>python<span class="w"> </span>-m<span class="w"> </span>project0.dashboard.dashboard_app
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>python<span class="w"> </span>-m<span class="w"> </span>project0.dashboard.dashboard_app
 </span></code></pre></div>
 <p>The dashboard should start successfully and be accessible through a local web browser.</p>
 <hr />
@@ -1992,20 +2034,20 @@
 <li>Conda environment not activated.</li>
 </ul>
 <p>Recommended solution:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>conda<span class="w"> </span>activate<span class="w"> </span>project0
-</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
-</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>python<span class="w"> </span>-m<span class="w"> </span>project0.main
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>conda<span class="w"> </span>activate<span class="w"> </span>project0
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>python<span class="w"> </span>-m<span class="w"> </span>project0.main
 </span></code></pre></div>
 <hr />
 <h3 id="incorrect-python-interpreter">Incorrect Python Interpreter</h3>
 <p>Verify:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>which<span class="w"> </span>python
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>which<span class="w"> </span>python
 </span></code></pre></div>
 <p>The interpreter should point to the active Conda environment rather than <code>/usr/bin/python3</code>.</p>
 <hr />
 <h3 id="git-reports-unexpected-files">Git Reports Unexpected Files</h3>
 <p>Review:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>git<span class="w"> </span>status
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>git<span class="w"> </span>status
 </span></code></pre></div>
 <p>If generated files appear, update <code>.gitignore</code> rather than committing environment-specific artifacts.</p>
 <hr />
