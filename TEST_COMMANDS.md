@@ -114,6 +114,6 @@ python -m project0.dashboard.dashboard_app
 python -m pytest
 
 Expected Result:
-920 passed, 11 skipped
+945 passed, 11 skipped
 
 

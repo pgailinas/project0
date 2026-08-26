@@ -19,7 +19,6 @@ from project0.models.research_models import (
     ResearchArtifactType,
     ResearchEvaluation,
     ResearchRequest,
-    ResearchSourceReference,
 )
 
 
@@ -160,9 +159,7 @@ class ResearchArtifactService:
             ),
             title="Literature Comparison",
             content="\n".join(content_lines).rstrip(),
-            source_references=self._collect_source_references(
-                evaluations
-            ),
+            source_references=(),
         )
 
     def _build_research_gap_artifact(
@@ -202,9 +199,7 @@ class ResearchArtifactService:
             artifact_type=ResearchArtifactType.RESEARCH_GAP,
             title="Research Gap Analysis",
             content="\n".join(content_lines),
-            source_references=self._collect_source_references(
-                evaluations
-            ),
+            source_references=(),
         )
 
     def _build_experiment_proposal_artifact(
@@ -235,35 +230,8 @@ class ResearchArtifactService:
             ),
             title="Experiment Proposal",
             content="\n".join(content_lines),
-            source_references=self._collect_source_references(
-                evaluations
-            ),
+            source_references=(),
         )
-
-    @staticmethod
-    def _collect_source_references(
-        evaluations: tuple[ResearchEvaluation, ...],
-    ) -> tuple[ResearchSourceReference, ...]:
-        """Collect unique source references in evaluation order."""
-
-        references: list[ResearchSourceReference] = []
-        seen: set[tuple[str, str]] = set()
-
-        for evaluation in evaluations:
-            reference = evaluation.paper.source_reference
-
-            key = (
-                reference.source_name,
-                reference.source_id,
-            )
-
-            if key in seen:
-                continue
-
-            seen.add(key)
-            references.append(reference)
-
-        return tuple(references)
 
     @staticmethod
     def _collect_unique_items(

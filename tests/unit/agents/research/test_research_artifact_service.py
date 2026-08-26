@@ -235,10 +235,7 @@ def test_research_artifact_service_generates_literature_comparison() -> None:
     assert "Relevance Score: 0.9" in artifact.content
     assert "Paper: Second Paper" in artifact.content
     assert "Relevance Score: 0.7" in artifact.content
-    assert artifact.source_references == (
-        first.paper.source_reference,
-        second.paper.source_reference,
-    )
+    assert artifact.source_references == ()
 
 
 def test_research_artifact_service_generates_research_gap() -> None:
@@ -284,8 +281,8 @@ def test_research_artifact_service_generates_experiment_proposal() -> None:
     )
 
 
-def test_research_artifact_service_deduplicates_source_references() -> None:
-    """Verify repeated source references are preserved only once."""
+def test_research_artifact_service_omits_synthesis_source_references() -> None:
+    """Verify synthesis artifacts do not repeat source references."""
 
     first = create_research_evaluation()
     second = ResearchEvaluation(
@@ -306,17 +303,13 @@ def test_research_artifact_service_deduplicates_source_references() -> None:
     research_gap = result[3]
     experiment = result[4]
 
-    expected = (
-        first.paper.source_reference,
-    )
-
-    assert comparison.source_references == expected
-    assert research_gap.source_references == expected
-    assert experiment.source_references == expected
+    assert comparison.source_references == ()
+    assert research_gap.source_references == ()
+    assert experiment.source_references == ()
 
 
-def test_research_artifact_service_preserves_reference_order() -> None:
-    """Verify unique source references preserve evaluation order."""
+def test_research_artifact_service_preserves_summary_source_references() -> None:
+    """Verify paper summaries preserve their individual source references."""
 
     second = create_research_evaluation(
         source_id="paper-002",
@@ -335,8 +328,10 @@ def test_research_artifact_service_preserves_reference_order() -> None:
         ),
     )
 
-    assert result[2].source_references == (
+    assert result[0].source_references == (
         second.paper.source_reference,
+    )
+    assert result[1].source_references == (
         first.paper.source_reference,
     )
 
