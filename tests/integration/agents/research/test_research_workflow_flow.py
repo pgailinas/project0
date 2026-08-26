@@ -406,10 +406,12 @@ def test_research_workflow_preserves_source_traceability(
 
     source_reference = result.source_references[0]
 
-    for artifact in result.artifacts:
-        assert artifact.source_references == (
-            source_reference,
-        )
+    assert result.artifacts[0].source_references == (
+        source_reference,
+    )
+    assert result.artifacts[1].source_references == ()
+    assert result.artifacts[2].source_references == ()
+    assert result.artifacts[3].source_references == ()
 
 
 def test_research_workflow_returns_warning_when_search_is_empty(

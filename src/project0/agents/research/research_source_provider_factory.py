@@ -13,6 +13,9 @@ from __future__ import annotations
 from project0.agents.research.arxiv_source_provider import (
     ArxivSourceProvider,
 )
+from project0.agents.research.crossref_source_provider import (
+    CrossrefSourceProvider,
+)
 from project0.agents.research.openalex_source_provider import (
     OpenAlexSourceProvider,
 )
@@ -39,6 +42,7 @@ def create_research_source_providers(
     available_providers: dict[str, ResearchSourceProviderProtocol] = {
         "semantic_scholar": SemanticScholarSourceProvider(),
         "openalex": OpenAlexSourceProvider(),
+        "crossref": CrossrefSourceProvider(),
         "arxiv": ArxivSourceProvider(),
         "stub": StubResearchSourceProvider(
             references=(

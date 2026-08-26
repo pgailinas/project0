@@ -832,3 +832,44 @@ def test_paper_metadata_service_creates_openalex_metadata() -> None:
         "source": "openalex",
     }
 
+def test_paper_metadata_service_creates_crossref_metadata() -> None:
+    """Verify Crossref references map to normalized PaperMetadata."""
+
+    reference = ResearchSourceReference(
+        source_name="crossref",
+        source_id="10.1234/example",
+        title="Example Crossref Paper",
+        source_url="https://doi.org/10.1234/example",
+        authors=(
+            "Author One",
+            "Author Two",
+        ),
+        publication_year=2024,
+    )
+
+    result = PaperMetadataService().retrieve_metadata(
+        (reference,)
+    )
+
+    assert len(result) == 1
+
+    paper = result[0]
+
+    assert paper.source_reference == reference
+    assert paper.title == "Example Crossref Paper"
+    assert paper.authors == (
+        "Author One",
+        "Author Two",
+    )
+    assert paper.publication_year == 2024
+    assert paper.abstract is None
+    assert paper.venue == "Crossref"
+    assert paper.doi == "10.1234/example"
+    assert paper.source_url == (
+        "https://doi.org/10.1234/example"
+    )
+    assert paper.metadata == {
+        "paper_id": "10.1234/example",
+        "source": "crossref",
+    }
+

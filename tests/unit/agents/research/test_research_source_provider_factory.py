@@ -11,6 +11,9 @@
 from project0.agents.research.arxiv_source_provider import (
     ArxivSourceProvider,
 )
+from project0.agents.research.crossref_source_provider import (
+    CrossrefSourceProvider,
+)
 from project0.agents.research.openalex_source_provider import (
     OpenAlexSourceProvider,
 )
@@ -35,6 +38,7 @@ def test_factory_creates_supported_research_source_providers():
 
     assert "semantic_scholar" in providers
     assert "openalex" in providers
+    assert "crossref" in providers
     assert "arxiv" in providers
     assert "stub" in providers
 
@@ -58,6 +62,17 @@ def test_factory_creates_openalex_provider():
     assert isinstance(
         providers["openalex"],
         OpenAlexSourceProvider,
+    )
+
+
+def test_factory_creates_crossref_provider():
+    """Verify Crossref provider creation."""
+
+    providers = create_research_source_providers()
+
+    assert isinstance(
+        providers["crossref"],
+        CrossrefSourceProvider,
     )
 
 
