@@ -2,7 +2,7 @@
 
 **Version:** 0.3  
 **Owner:** Project0  
-**Last Updated:** 2026-08-25
+**Last Updated:** 2026-08-26
 
 ------------------------------------------------------------------------
 
@@ -293,7 +293,8 @@ Provides controlled access to supported external research sources.
 Responsibilities:
 
 -   Execute research searches using a Research Strategy.
--   Query supported external research sources.
+-   Query configured external research source providers.
+-   Combine results from multiple configured research source providers.
 -   Normalize returned research source references.
 -   Preserve source identifiers and locations.
 -   Return structured source results and errors.
@@ -393,6 +394,15 @@ Supported research source providers include:
         as other external research sources.
     -   Allows Research Agent workflows to operate independently of a
         single external research source.
+-   Crossref Source Provider
+    -   Provides research source access through the Crossref API.
+    -   Retrieves identifiable research references from Crossref.
+-   OpenAlex Source Provider
+    -   Provides research source access through the OpenAlex API.
+    -   Retrieves identifiable research references from OpenAlex.
+-   OpenReview Source Provider
+    -   Provides research source access through the OpenReview API.
+    -   Retrieves identifiable research references from OpenReview.
 -   Stub Research Source Provider
     -   Provides deterministic research source behavior for testing,
         demonstrations, and acceptance validation.
@@ -400,8 +410,8 @@ Supported research source providers include:
         source availability.
 
 The provider abstraction preserves the existing workflow architecture
-while allowing research sources to be replaced or extended without
-changing Research Agent workflow components.
+while allowing research sources to be replaced, extended, or configured
+together without changing Research Agent workflow components.
 
 Initial provider architecture:
 
@@ -414,12 +424,17 @@ Research Source Service
         v
 Research Source Provider Interface
         |
-        +-------------------------------------------+
-        |                    |                      |
-        v                    v                      v
-Semantic Scholar       arXiv Provider        Stub Provider
-Provider               (external source)     (deterministic validation)
-(production source)
+        +---------------------------------------------------------------+
+        |              |              |              |              |
+        v              v              v              v              v
+Semantic Scholar  arXiv Provider  Crossref       OpenAlex       OpenReview
+Provider          (external       Provider       Provider       Provider
+(production       source)         (external      (external      (external
+source)                           source)        source)        source)
+        |
+        v
+Stub Provider
+(deterministic validation)
 ```
 
 The provider abstraction supports the Project0 architectural principle
@@ -435,6 +450,9 @@ The Research Agent interacts with:
 -   Supported external research sources
     -   Semantic Scholar research source provider
     -   arXiv research source provider
+    -   Crossref research source provider
+    -   OpenAlex research source provider
+    -   OpenReview research source provider
 -   Technical paper metadata
 -   Project0 repository knowledge
 -   Existing research artifacts

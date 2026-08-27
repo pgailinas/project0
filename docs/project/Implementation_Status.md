@@ -2,7 +2,7 @@
 
 **Version:** 0.8\
 **Owner:** Project0\
-**Last Updated:** 2026-08-25
+**Last Updated:** 2026-08-26
 
 ------------------------------------------------------------------------
 
@@ -52,6 +52,7 @@ Completed capabilities:
 
 -   Research workflow integration.
 -   Research source provider abstraction.
+-   Multiple research source provider support.
 -   Dashboard integration.
 -   Unit, integration, and acceptance validation.
 

@@ -2,7 +2,7 @@
 
 **Version:** 0.6\
 **Owner:** Project0\
-**Last Updated:** 2026-08-25
+**Last Updated:** 2026-08-26
 
 ------------------------------------------------------------------------
 
@@ -594,6 +594,18 @@ Supported provider paths include:
 -   Semantic Scholar Source Provider
     -   Validates production research source integration behavior.
     -   Depends on external research source availability.
+-   arXiv Source Provider
+    -   Validates external research source integration behavior.
+    -   Depends on external research source availability.
+-   Crossref Source Provider
+    -   Validates external research source integration behavior.
+    -   Depends on external research source availability.
+-   OpenAlex Source Provider
+    -   Validates external research source integration behavior.
+    -   Depends on external research source availability.
+-   OpenReview Source Provider
+    -   Validates external research source integration behavior.
+    -   Depends on external research source availability.
 -   Stub Research Source Provider
     -   Provides deterministic research references.
     -   Supports unit, integration, and acceptance testing.
@@ -602,7 +614,9 @@ Supported provider paths include:
 
 Acceptance testing should use deterministic providers whenever practical
 so that tests validate Research Agent workflow behavior rather than
-external service availability.
+external service availability. Production-oriented provider validation
+should exercise individual providers and configured multi-provider
+combinations.
 
 Provider validation flow:
 
@@ -618,16 +632,22 @@ Research Source Service
         v
 Research Source Provider Interface
         |
-        +------------------------------+
-        |                              |
-        v                              v
-Semantic Scholar Provider        Stub Provider
-(production source)              (deterministic validation)
+        +---------------------------------------------------------------+
+        |              |              |              |              |
+        v              v              v              v              v
+Semantic Scholar  arXiv Provider  Crossref       OpenAlex       OpenReview
+Provider          (external       Provider       Provider       Provider
+(production       source)         (external      (external      (external
+source)                           source)        source)        source)
+        |
+        v
+Stub Provider
+(deterministic validation)
 ```
 
 The provider-based testing approach allows Research Agent components to
-be validated independently while preserving the production research
-source integration path.
+be validated independently while preserving production research source
+integration paths and configured multi-provider behavior.
 
 ## 10. Research Agent Completion Criteria
 

@@ -2,7 +2,7 @@
 
 **Version:** 0.3  
 **Owner:** Project0  
-**Last Updated:** 2026-08-25
+**Last Updated:** 2026-08-26
 
 ---
 
@@ -56,6 +56,7 @@ The Research Agent shall:
 -   Generate a research strategy.
 -   Generate deterministic research queries from the research strategy.
 -   Search supported external research sources.
+-   Combine results from multiple configured research source providers.
 -   Support pluggable research source providers through defined service
     boundaries.
 -   Support deterministic research source provider behavior for testing,
@@ -63,6 +64,8 @@ The Research Agent shall:
 -   Retrieve available paper metadata.
 -   Identify research papers relevant to the research question.
 -   Evaluate and rank paper relevance.
+-   Retry research evaluation once when a reasoning provider response
+    violates required source traceability or coverage constraints.
 -   Preserve citation and source information.
 -   Summarize relevant technical papers.
 -   Compare research methods and approaches.
@@ -83,6 +86,9 @@ The Research Agent shall:
 -   Supported external research sources
     -   Semantic Scholar research source provider
     -   arXiv research source provider
+    -   Crossref research source provider
+    -   OpenAlex research source provider
+    -   OpenReview research source provider
 -   Available paper metadata
 -   Project knowledge and existing research artifacts
 -   Project terminology and source-of-truth documentation
@@ -142,6 +148,8 @@ The Research Agent is successful when it:
 -   Discovers relevant papers through supported research sources.
 -   Supports multiple research source providers without changing the
     Research Agent workflow architecture.
+-   Combines usable results from multiple configured research source
+    providers while preserving source identity.
 -   Retrieves and preserves available paper metadata.
 -   Identifies and ranks papers relevant to the research question.
 -   Produces useful, evidence-grounded paper summaries.

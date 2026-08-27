@@ -2,7 +2,7 @@
 
 **Version:** 0.2  
 **Owner:** Project0  
-**Last Updated:** 2026-08-25
+**Last Updated:** 2026-08-26
 
 ------------------------------------------------------------------------
 
@@ -71,6 +71,8 @@ The Research Agent shall demonstrate the ability to:
 -   Search supported external research sources.
 -   Retrieve and normalize available paper metadata.
 -   Identify and rank papers relevant to the research question.
+-   Verify bounded retry behavior for invalid or incomplete research
+    evaluation responses.
 -   Preserve citation and source information.
 -   Generate evidence-grounded research artifacts.
 -   Compare research methods and approaches.
@@ -93,6 +95,7 @@ This test plan covers:
 -   Paper metadata retrieval
 -   Candidate paper identification
 -   Paper relevance evaluation
+-   Research evaluation retry handling
 -   Citation and source tracking
 -   Paper summary generation
 -   Literature comparison
@@ -103,6 +106,7 @@ This test plan covers:
 -   Local reasoning provider integration
 -   Research source provider abstraction and deterministic provider
     validation
+-   Multiple external research source provider integration
 -   Research Agent platform integration
 
 ------------------------------------------------------------------------
@@ -566,6 +570,64 @@ No fabricated source or metadata values appear in the Research Result.
 
 ------------------------------------------------------------------------
 
+### 6.5 RA-SRC-005: Multiple External Research Source Providers
+
+#### Verification Layers
+
+-   Unit
+-   Integration
+
+#### Objective
+
+Verify that configured external research source providers can operate
+individually and together through the Research Source abstraction.
+
+#### Expected Behavior
+
+The Research Source Service shall:
+
+-   use only configured external research source providers
+-   preserve provider-specific source identifiers and locations
+-   combine usable results from multiple configured providers
+-   continue safely when one configured provider fails and another
+    provider returns usable results
+
+#### Pass Criteria
+
+Configured external research source providers operate through the
+defined Research Source interface without requiring source-specific
+behavior in the Research Workflow.
+
+------------------------------------------------------------------------
+
+### 6.6 RA-SRC-006: Mixed-Source Research Evaluation
+
+#### Verification Layers
+
+-   Unit
+-   Integration
+
+#### Objective
+
+Verify that candidate papers from multiple external research source
+providers can be evaluated together without losing source identity.
+
+#### Expected Behavior
+
+The Research Agent shall:
+
+-   preserve each candidate paper source identifier exactly
+-   associate evaluation results with supplied candidate papers
+-   reject unknown or invented source identifiers
+-   preserve source traceability across mixed-source results
+
+#### Pass Criteria
+
+Mixed-source candidate papers complete research evaluation with each
+evaluation traceable to an identifiable supplied source reference.
+
+------------------------------------------------------------------------
+
 ## 7. AI Reasoning Verification Scenarios
 
 ------------------------------------------------------------------------
@@ -639,6 +701,37 @@ Invalid or incomplete responses are detected.
 #### Pass Criteria
 
 Invalid AI output does not produce an authoritative research artifact.
+
+------------------------------------------------------------------------
+
+### 7.4 RA-AI-004: Research Evaluation Retry Handling
+
+#### Verification Layers
+
+-   Unit
+-   Integration
+
+#### Objective
+
+Verify bounded retry handling when a reasoning provider returns a
+research evaluation response that violates required source traceability
+or coverage constraints.
+
+#### Expected Behavior
+
+The Research Evaluation Service shall:
+
+-   detect an invalid or incomplete evaluation response
+-   retry research evaluation once
+-   accept a valid retry response
+-   report the evaluation failure when the retry response remains
+    invalid or incomplete
+
+#### Pass Criteria
+
+A valid retry response completes research evaluation successfully, and a
+second invalid or incomplete response produces the expected evaluation
+failure without additional retries.
 
 ------------------------------------------------------------------------
 
@@ -1114,7 +1207,7 @@ Phase 10 Research Agent validation baseline:
 ``` text
 python -m pytest
 
-920 passed, 11 skipped
+1002 passed, 11 skipped
 ```
 
 Research Agent implementation shall not regress the established Project0

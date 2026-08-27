@@ -2,7 +2,7 @@
 
 **Version:** 0.2  
 **Owner:** Project0  
-**Last Updated:** 2026-08-25
+**Last Updated:** 2026-08-26
 
 ---
 
@@ -36,9 +36,11 @@ underlying services.
 
 External research source access is isolated behind Research Agent
 interfaces so that source-specific implementations remain separate from
-Research Agent workflow behavior. Citation and source information are
-preserved through interface contracts so that generated research
-artifacts remain traceable to identifiable research sources.
+Research Agent workflow behavior. Multiple configured research source
+providers may contribute references through the same interface contract.
+Citation and source information are preserved through interface
+contracts so that generated research artifacts remain traceable to
+identifiable research sources.
 
 Agent-specific UI behavior and presentation details remain outside these
 interfaces and are implemented by the Research Agent UI components.
@@ -64,13 +66,22 @@ Initial provider implementations include:
     -   Supports production research source retrieval.
     -   Provides identifiable research source references for downstream
         metadata retrieval and evaluation.
+-   arXiv Source Provider
+    -   Supports external research source retrieval through arXiv.
+-   Crossref Source Provider
+    -   Supports external research source retrieval through Crossref.
+-   OpenAlex Source Provider
+    -   Supports external research source retrieval through OpenAlex.
+-   OpenReview Source Provider
+    -   Supports external research source retrieval through OpenReview.
 -   Stub Research Source Provider
     -   Supports deterministic research workflow validation.
     -   Provides controlled research source behavior for testing,
         demonstrations, and acceptance workflows.
 
-Research source providers preserve source identifiers and citation
-information through the shared interface contracts.
+Research source providers preserve provider-specific source
+identifiers and citation information through the shared interface
+contracts.
 
 Provider interaction model:
 
@@ -83,15 +94,22 @@ Research Source Service
         v
 Research Source Provider Interface
         |
-        +------------------------------+
-        |                              |
-        v                              v
-Semantic Scholar Provider        Stub Provider
-(production source)              (deterministic validation)
+        +---------------------------------------------------------------+
+        |              |              |              |              |
+        v              v              v              v              v
+Semantic Scholar  arXiv Provider  Crossref       OpenAlex       OpenReview
+Provider          (external       Provider       Provider       Provider
+(production       source)         (external      (external      (external
+source)                           source)        source)        source)
+        |
+        v
+Stub Provider
+(deterministic validation)
 ```
 
 The interface contract allows additional research sources to be added
-without modifying Research Agent workflow behavior.
+or configured together without modifying Research Agent workflow
+behavior.
 
 ---
 

@@ -2,7 +2,7 @@
 
 **Version:** 0.2  
 **Owner:** Project0  
-**Last Updated:** 2026-08-25
+**Last Updated:** 2026-08-26
 
 ---
 
@@ -409,7 +409,8 @@ Provide controlled access to supported external research sources.
 #### Responsibilities
 
 -   Execute research searches using a Research Strategy.
--   Query supported external research sources.
+-   Query configured external research source providers.
+-   Combine results from multiple configured research source providers.
 -   Normalize returned research source references.
 -   Preserve source identifiers and locations.
 -   Return structured source results and errors.
@@ -429,6 +430,8 @@ Provide controlled access to supported external research sources.
 #### Design Notes
 
 -   External source access is isolated behind a typed interface.
+-   Multiple configured providers may contribute source references to a
+    single research workflow.
 -   The service does not perform research relevance evaluation.
 -   Source-specific behavior shall remain isolated from the Research
     Workflow.
@@ -540,6 +543,9 @@ research strategy.
 -   Relevance evaluation shall preserve the distinction between source
     facts and generated analysis.
 -   Evaluation results shall preserve references to supporting papers.
+-   Evaluation provider responses that violate required source
+    traceability or coverage constraints may be retried once before the
+    evaluation is reported as failed.
 -   Human research judgment remains authoritative.
 
 #### Inputs
@@ -671,6 +677,18 @@ Initial provider implementations include:
     -   Provides production research source access.
     -   Retrieves identifiable research references from Semantic
         Scholar.
+-   arXiv Source Provider
+    -   Provides research source access through the arXiv API.
+    -   Retrieves identifiable academic paper references from arXiv.
+-   Crossref Source Provider
+    -   Provides research source access through the Crossref API.
+    -   Retrieves identifiable research references from Crossref.
+-   OpenAlex Source Provider
+    -   Provides research source access through the OpenAlex API.
+    -   Retrieves identifiable research references from OpenAlex.
+-   OpenReview Source Provider
+    -   Provides research source access through the OpenReview API.
+    -   Retrieves identifiable research references from OpenReview.
 -   Stub Research Source Provider
     -   Provides deterministic research source behavior.
     -   Supports automated testing, demonstrations, and acceptance
@@ -678,8 +696,8 @@ Initial provider implementations include:
         availability.
 
 The provider abstraction allows Research Agent workflows to remain
-unchanged when external research sources are added, replaced, or tested
-through deterministic implementations.
+unchanged when external research sources are added, replaced, configured
+together, or tested through deterministic implementations.
 
 Initial provider interaction:
 
@@ -692,11 +710,17 @@ Research Source Service
         v
 Research Source Provider Interface
         |
-        +------------------------------+
-        |                              |
-        v                              v
-Semantic Scholar Provider        Stub Provider
-(production source)              (deterministic validation)
+        +---------------------------------------------------------------+
+        |              |              |              |              |
+        v              v              v              v              v
+Semantic Scholar  arXiv Provider  Crossref       OpenAlex       OpenReview
+Provider          (external       Provider       Provider       Provider
+(production       source)         (external      (external      (external
+source)                           source)        source)        source)
+        |
+        v
+Stub Provider
+(deterministic validation)
 ```
 
 The provider design follows the Project0 principle that components
@@ -760,10 +784,10 @@ The initial Research Workflow follows this sequence:
 4.  The Reasoning Service assists with research concept and strategy
     generation when required.
 5.  The Research Strategy Service returns a Research Strategy.
-6.  The Research Source Service searches supported external research
-    sources.
-7.  External source results are normalized into Research Source
-    References.
+6.  The Research Source Service searches configured external research
+    source providers.
+7.  External source results from configured providers are combined and
+    normalized into Research Source References.
 8.  The Paper Metadata Service retrieves and normalizes available
     metadata.
 9.  The Knowledge Service retrieves relevant existing Project0 research
