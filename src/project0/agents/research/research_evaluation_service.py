@@ -45,6 +45,7 @@ class ResearchEvaluationService:
 
         self._provider = provider
         self._model_name = model_name
+        self._batch_size = 5
 
     def evaluate(
         self,
@@ -57,11 +58,61 @@ class ResearchEvaluationService:
         if not papers:
             return ()
 
+        evaluations: list[ResearchEvaluation] = []
+
+        for start in range(
+            0,
+            len(papers),
+            self._batch_size,
+        ):
+            batch = papers[
+                start:start + self._batch_size
+            ]
+
+            evaluations.extend(
+                self._evaluate_batch(
+                    request=request,
+                    strategy=strategy,
+                    papers=batch,
+                )
+            )
+
+        return tuple(evaluations)
+
+    def _evaluate_batch(
+        self,
+        request: ResearchRequest,
+        strategy: ResearchStrategy,
+        papers: tuple[PaperMetadata, ...],
+    ) -> tuple[ResearchEvaluation, ...]:
+        """Evaluate one bounded paper batch with one validation retry."""
+
         provider_request = self._build_provider_request(
             request=request,
             strategy=strategy,
             papers=papers,
         )
+
+        provider_response = self._provider.generate(
+            provider_request
+        )
+
+        try:
+            return self._create_evaluations(
+                papers=papers,
+                provider_response=provider_response,
+            )
+        except ValueError as error:
+            if not self._is_retryable_evaluation_error(
+                error
+            ):
+                raise
+
+            LOGGER.warning(
+                "Research evaluation response failed source "
+                "traceability or coverage validation; retrying once: %s",
+                error,
+            )
 
         provider_response = self._provider.generate(
             provider_request
@@ -284,6 +335,28 @@ class ResearchEvaluationService:
             )
 
         return tuple(evaluations)
+
+    @staticmethod
+    def _is_retryable_evaluation_error(
+        error: ValueError,
+    ) -> bool:
+        """Return whether evaluation validation permits one retry."""
+
+        message = str(error)
+
+        return (
+            message.startswith(
+                "Duplicate research evaluation source identifier:"
+            )
+            or message.startswith(
+                "Research evaluation referenced an unknown "
+                "source identifier:"
+            )
+            or message.startswith(
+                "Provider response did not include evaluations "
+                "for source identifiers:"
+            )
+        )
 
     def _parse_string_tuple(
         self,

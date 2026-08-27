@@ -54,6 +54,29 @@ class StubProvider:
         return self.response
 
 
+class SequentialStubProvider:
+    """Provide deterministic sequential responses for retry testing."""
+
+    def __init__(
+        self,
+        responses: tuple[ProviderResponse, ...],
+    ) -> None:
+        """Initialize the configured provider responses."""
+
+        self.responses = responses
+        self.requests: list[ProviderRequest] = []
+
+    def generate(
+        self,
+        request: ProviderRequest,
+    ) -> ProviderResponse:
+        """Return the next configured provider response."""
+
+        self.requests.append(request)
+
+        return self.responses[len(self.requests) - 1]
+
+
 def create_research_request() -> ResearchRequest:
     """Create a research request for testing."""
 
@@ -167,6 +190,29 @@ def create_valid_provider_response(
     )
 
 
+def create_provider_response_for_papers(
+    papers: tuple[PaperMetadata, ...],
+) -> ProviderResponse:
+    """Create a valid provider response for the supplied papers."""
+
+    return create_valid_provider_response(
+        evaluations=[
+            {
+                "source_id": paper.source_reference.source_id,
+                "relevance_score": 0.8,
+                "relevance_summary": (
+                    f"{paper.title} is relevant."
+                ),
+                "strengths": [],
+                "limitations": [],
+                "research_connections": [],
+                "warnings": [],
+            }
+            for paper in papers
+        ]
+    )
+
+
 def test_research_evaluation_service_creates_evaluation() -> None:
     """Verify successful research evaluation creation."""
 
@@ -267,6 +313,295 @@ def test_research_evaluation_service_requires_exact_source_ids() -> None:
         "source identifiers."
         in system_instructions
     )
+
+
+def test_research_evaluation_service_retries_unknown_source_id() -> None:
+    """Verify unknown source identifiers trigger one bounded retry."""
+
+    invalid_response = create_valid_provider_response()
+    invalid_response.structured_output[
+        "evaluations"
+    ][0]["source_id"] = "paper-999"
+
+    provider = SequentialStubProvider(
+        (
+            invalid_response,
+            create_valid_provider_response(),
+        )
+    )
+
+    service = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    )
+
+    result = service.evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        (create_paper_metadata(),),
+    )
+
+    assert len(result) == 1
+    assert len(provider.requests) == 2
+
+
+def test_research_evaluation_service_retries_missing_evaluation() -> None:
+    """Verify incomplete evaluation coverage triggers one bounded retry."""
+
+    first_paper = create_paper_metadata(
+        source_id="paper-001",
+        title="First Paper",
+    )
+    second_paper = create_paper_metadata(
+        source_id="paper-002",
+        title="Second Paper",
+    )
+
+    complete_response = create_valid_provider_response(
+        evaluations=[
+            {
+                "source_id": "paper-001",
+                "relevance_score": 0.9,
+                "relevance_summary": "First paper is relevant.",
+                "strengths": [],
+                "limitations": [],
+                "research_connections": [],
+                "warnings": [],
+            },
+            {
+                "source_id": "paper-002",
+                "relevance_score": 0.7,
+                "relevance_summary": "Second paper is relevant.",
+                "strengths": [],
+                "limitations": [],
+                "research_connections": [],
+                "warnings": [],
+            },
+        ]
+    )
+
+    provider = SequentialStubProvider(
+        (
+            create_valid_provider_response(),
+            complete_response,
+        )
+    )
+
+    service = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    )
+
+    result = service.evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        (
+            first_paper,
+            second_paper,
+        ),
+    )
+
+    assert len(result) == 2
+    assert len(provider.requests) == 2
+
+
+def test_research_evaluation_service_stops_after_one_retry() -> None:
+    """Verify a second traceability failure is returned without retry."""
+
+    first_response = create_valid_provider_response()
+    first_response.structured_output[
+        "evaluations"
+    ][0]["source_id"] = "paper-999"
+
+    second_response = create_valid_provider_response()
+    second_response.structured_output[
+        "evaluations"
+    ][0]["source_id"] = "paper-998"
+
+    provider = SequentialStubProvider(
+        (
+            first_response,
+            second_response,
+        )
+    )
+
+    service = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    )
+
+    try:
+        service.evaluate(
+            create_research_request(),
+            create_research_strategy(),
+            (create_paper_metadata(),),
+        )
+    except ValueError as error:
+        assert "unknown source identifier" in str(error)
+        assert "paper-998" in str(error)
+        assert len(provider.requests) == 2
+    else:
+        raise AssertionError("Expected second evaluation failure.")
+
+
+def test_research_evaluation_service_batches_six_papers() -> None:
+    """Verify six papers are evaluated in two bounded provider calls."""
+
+    papers = tuple(
+        create_paper_metadata(
+            source_id=f"paper-{index:03d}",
+            title=f"Paper {index}",
+        )
+        for index in range(1, 7)
+    )
+
+    first_batch = papers[:5]
+    second_batch = papers[5:]
+
+    provider = SequentialStubProvider(
+        (
+            create_provider_response_for_papers(first_batch),
+            create_provider_response_for_papers(second_batch),
+        )
+    )
+
+    service = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    )
+
+    result = service.evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        papers,
+    )
+
+    assert len(result) == 6
+    assert len(provider.requests) == 2
+    assert provider.requests[0].metadata["paper_count"] == 5
+    assert provider.requests[1].metadata["paper_count"] == 1
+
+
+def test_research_evaluation_service_batches_eleven_papers() -> None:
+    """Verify eleven papers are evaluated in three provider calls."""
+
+    papers = tuple(
+        create_paper_metadata(
+            source_id=f"paper-{index:03d}",
+            title=f"Paper {index}",
+        )
+        for index in range(1, 12)
+    )
+
+    provider = SequentialStubProvider(
+        (
+            create_provider_response_for_papers(papers[:5]),
+            create_provider_response_for_papers(papers[5:10]),
+            create_provider_response_for_papers(papers[10:]),
+        )
+    )
+
+    service = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    )
+
+    result = service.evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        papers,
+    )
+
+    assert len(result) == 11
+    assert len(provider.requests) == 3
+    assert [
+        request.metadata["paper_count"]
+        for request in provider.requests
+    ] == [5, 5, 1]
+
+
+def test_research_evaluation_service_preserves_order_across_batches() -> None:
+    """Verify combined evaluations preserve original paper ordering."""
+
+    papers = tuple(
+        create_paper_metadata(
+            source_id=f"paper-{index:03d}",
+            title=f"Paper {index}",
+        )
+        for index in range(1, 7)
+    )
+
+    provider = SequentialStubProvider(
+        (
+            create_provider_response_for_papers(papers[:5]),
+            create_provider_response_for_papers(papers[5:]),
+        )
+    )
+
+    service = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    )
+
+    result = service.evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        papers,
+    )
+
+    assert tuple(
+        evaluation.paper
+        for evaluation in result
+    ) == papers
+
+
+def test_research_evaluation_service_retries_only_failed_batch() -> None:
+    """Verify one failed batch retries without repeating prior batches."""
+
+    papers = tuple(
+        create_paper_metadata(
+            source_id=f"paper-{index:03d}",
+            title=f"Paper {index}",
+        )
+        for index in range(1, 7)
+    )
+
+    first_batch_response = create_provider_response_for_papers(
+        papers[:5]
+    )
+    invalid_second_batch_response = create_valid_provider_response()
+    invalid_second_batch_response.structured_output[
+        "evaluations"
+    ][0]["source_id"] = "paper-999"
+    valid_second_batch_response = create_provider_response_for_papers(
+        papers[5:]
+    )
+
+    provider = SequentialStubProvider(
+        (
+            first_batch_response,
+            invalid_second_batch_response,
+            valid_second_batch_response,
+        )
+    )
+
+    service = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    )
+
+    result = service.evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        papers,
+    )
+
+    assert len(result) == 6
+    assert len(provider.requests) == 3
+    assert [
+        request.metadata["paper_count"]
+        for request in provider.requests
+    ] == [5, 1, 1]
 
 
 def test_research_evaluation_service_returns_empty_for_no_papers() -> None:
