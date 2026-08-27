@@ -237,6 +237,38 @@ def test_research_evaluation_service_invokes_provider() -> None:
     ] == 1
 
 
+def test_research_evaluation_service_requires_exact_source_ids() -> None:
+    """Verify provider instructions preserve source identifier values."""
+
+    provider = StubProvider(
+        create_valid_provider_response()
+    )
+
+    service = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    )
+
+    service.evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        (create_paper_metadata(),),
+    )
+
+    system_instructions = provider.requests[0].system_instructions
+
+    assert (
+        "Treat each source_id as an opaque identifier and return it "
+        "exactly as supplied."
+        in system_instructions
+    )
+    assert (
+        "Do not modify, expand, normalize, format, or invent "
+        "source identifiers."
+        in system_instructions
+    )
+
+
 def test_research_evaluation_service_returns_empty_for_no_papers() -> None:
     """Verify empty paper input avoids provider execution."""
 

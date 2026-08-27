@@ -172,7 +172,10 @@ class ResearchEvaluationService:
                 "research question using only the supplied metadata. "
                 "Distinguish source information from generated "
                 "analysis. Do not invent unsupported paper content. "
-                "Return one evaluation for each supplied paper."
+                "Return one evaluation for each supplied paper. Treat "
+                "each source_id as an opaque identifier and return it "
+                "exactly as supplied. Do not modify, expand, normalize, "
+                "format, or invent source identifiers."
             ),
             user_prompt=user_prompt,
             response_schema=response_schema,
