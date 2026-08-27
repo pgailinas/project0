@@ -38,9 +38,17 @@
 
         <div class="dashboard-body">
             <aside class="dashboard-sidebar">
-                <section class="sidebar-section">
-                    <h2 class="sidebar-section__title">Agents</h2>
+                <section class="sidebar-section workspace-panel">
+                    <h2 class="sidebar-section__title">Workspace</h2>
                     <ul class="sidebar-navigation">
+                        <li>
+                            <a class="sidebar-link" href="/"
+                               {% if active_page | default("dashboard") == "dashboard" %}
+                               aria-current="page"
+                               {% endif %}>
+                                Project Overview
+                            </a>
+                        </li>
                         {% block agent_navigation %}
                         {% for agent in agents | default([]) %}
                         <li>
@@ -58,32 +66,64 @@
                         </li>
                         {% endfor %}
                         {% endblock %}
+                        {% block workspace_navigation %}{% endblock %}
                     </ul>
                 </section>
 
-                <section class="sidebar-section">
-                    <h2 class="sidebar-section__title">Workspace</h2>
+                <section class="sidebar-section status-panel">
+                    <h2 class="sidebar-section__title">System Status</h2>
+                    <dl class="status-list">
+                        <div class="status-row">
+                            <dt>Active Agent</dt>
+                            <dd>{{ active_agent_name | default("None") }}</dd>
+                        </div>
+                        <div class="status-row">
+                            <dt>State</dt>
+                            <dd>{{ system_state | default("Idle") }}</dd>
+                        </div>
+                        <div class="status-row">
+                            <dt>Operation</dt>
+                            <dd>{{ system_operation | default("None") }}</dd>
+                        </div>
+                        <div class="status-row">
+                            <dt>Elapsed</dt>
+                            <dd>{{ elapsed_time | default("—") }}</dd>
+                        </div>
+                        <div class="status-row">
+                            <dt>Progress</dt>
+                            <dd>{{ system_progress | default("—") }}</dd>
+                        </div>
+                        <div class="status-row">
+                            <dt>GPU</dt>
+                            <dd>{{ gpu_name | default("Unavailable") }}</dd>
+                        </div>
+                        <div class="status-row">
+                            <dt>Utilization</dt>
+                            <dd>{{ gpu_utilization | default("Unavailable") }}</dd>
+                        </div>
+                        <div class="status-row">
+                            <dt>VRAM</dt>
+                            <dd>{{ gpu_vram | default("Unavailable") }}</dd>
+                        </div>
+                    </dl>
+                </section>
+
+                <section class="sidebar-section navigation-panel">
+                    <h2 class="sidebar-section__title">Navigation</h2>
                     <ul class="sidebar-navigation">
-                        <li>
-                            <a class="sidebar-link" href="/"
-                               {% if active_page | default("dashboard") == "dashboard" %}
-                               aria-current="page"
-                               {% endif %}>
-                                Project Overview
-                            </a>
-                        </li>
                         <li><a class="sidebar-link" href="/documentation">Documentation</a></li>
                         <li><a class="sidebar-link" href="/activity">Activity</a></li>
                         <li><a class="sidebar-link" href="/settings">Settings</a></li>
-                        {% block workspace_navigation %}{% endblock %}
                     </ul>
                 </section>
             </aside>
 
             <section class="dashboard-workspace">
+                {% block context_toolbar_container %}
                 <div class="context-toolbar" role="toolbar" aria-label="Page actions">
                     {% block context_toolbar %}{% endblock %}
                 </div>
+                {% endblock %}
 
                 <main class="work-area">
                     {% block work_area %}{% endblock %}

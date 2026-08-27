@@ -372,7 +372,7 @@ Table of Contents:
 
 }
 
-.status-panel {
+.documentation-agent .status-panel {
 
     display: flex;
 
@@ -386,7 +386,7 @@ Table of Contents:
 
 }
 
-.status-panel h2 {
+.documentation-agent .status-panel h2 {
 
     margin-bottom: 0.35rem;
 
@@ -396,7 +396,7 @@ Table of Contents:
 
 }
 
-.status-panel p {
+.documentation-agent .status-panel p {
 
     margin-bottom: 0;
 
@@ -1269,7 +1269,7 @@ Table of Contents:
 
     .work-area-header,
     .panel-heading,
-    .status-panel,
+    .documentation-agent .status-panel,
     .validation-result header,
     .proposal-card__header {
 

@@ -191,7 +191,7 @@ def test_dashboard_home_flow(
     assert "Project0" in response.text
     assert str(project_root) in response.text
     assert "Phase 11 – Research Agent Functional Validation" in response.text
-    assert "896 passed, 11 skipped" in response.text
+    assert "1009 passed, 11 skipped" in response.text
     assert "Documentation Agent" in response.text
     assert "Research Agent" in response.text
 
@@ -256,7 +256,7 @@ def test_dashboard_agent_navigation_flow(
         "Phase 11 – Research Agent Functional Validation"
         not in documentation_response.text
     )
-    assert "896 passed, 11 skipped" not in documentation_response.text
+    assert "1009 passed, 11 skipped" not in documentation_response.text
 
     assert research_response.status_code == 200
     assert "Research Agent" in research_response.text
@@ -265,7 +265,7 @@ def test_dashboard_agent_navigation_flow(
         "Phase 11 – Research Agent Functional Validation"
         not in research_response.text
     )
-    assert "896 passed, 11 skipped" not in research_response.text
+    assert "1009 passed, 11 skipped" not in research_response.text
 
 
 def test_dashboard_status_flow(

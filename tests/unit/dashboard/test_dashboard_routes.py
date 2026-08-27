@@ -185,7 +185,7 @@ def test_dashboard_home_displays_project_status_in_work_area(
     assert "Project Overview" in response.text
     assert "Unknown" in response.text
     assert "Phase 11 – Research Agent Functional Validation" in response.text
-    assert "896 passed, 11 skipped" in response.text
+    assert "1009 passed, 11 skipped" in response.text
     assert "Regression suite passed" in response.text
     assert "Not configured" in response.text
     assert "Idle" in response.text

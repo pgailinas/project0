@@ -22,8 +22,8 @@ Table of Contents:
     7. Dashboard Body
     8. Sidebar
     9. Project Status Components
-   10. Agent Navigation
-   11. Workspace Navigation
+   10. Workspace Navigation
+   11. Navigation
    12. Dashboard Workspace
    13. Context Toolbar
    14. Work Area
@@ -542,36 +542,10 @@ textarea:focus-visible {
 
 
 /*=============================================================
-10. Agent Navigation
+10. Workspace Navigation
 =============================================================*/
 
-.agent-panel,
-.dashboard-sidebar .sidebar-section:nth-of-type(1) {
-
-    background: var(--agents-background);
-
-    color: var(--agents-text);
-
-    border-bottom-color: var(--agents-border);
-
-}
-
-.agent-panel .sidebar-section__title,
-.dashboard-sidebar
-.sidebar-section:nth-of-type(1)
-.sidebar-section__title {
-
-    color: var(--agents-title);
-
-}
-
-
-/*=============================================================
-11. Workspace Navigation
-=============================================================*/
-
-.workspace-panel,
-.dashboard-sidebar .sidebar-section:nth-of-type(2) {
+.workspace-panel {
 
     background: var(--workspace-background);
 
@@ -581,12 +555,28 @@ textarea:focus-visible {
 
 }
 
-.workspace-panel .sidebar-section__title,
-.dashboard-sidebar
-.sidebar-section:nth-of-type(2)
-.sidebar-section__title {
+.workspace-panel .sidebar-section__title {
 
     color: var(--workspace-title);
+
+}
+
+
+/*=============================================================
+11. Navigation
+=============================================================*/
+
+.navigation-panel {
+
+    background: var(--sidebar-background);
+
+    color: var(--text-secondary);
+
+}
+
+.navigation-panel .sidebar-section__title {
+
+    color: var(--text-muted);
 
 }
 

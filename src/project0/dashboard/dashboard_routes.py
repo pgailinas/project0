@@ -11,6 +11,9 @@
 
 from __future__ import annotations
 
+import os
+import subprocess
+
 from pathlib import Path
 
 from fastapi import APIRouter, Request
@@ -32,17 +35,136 @@ DASHBOARD_AGENTS = (
 )
 
 
+def _read_git_branch(project_root: Path) -> str:
+    """Return the current repository branch when available."""
+
+    try:
+        result = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(project_root),
+                "branch",
+                "--show-current",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return "Unknown"
+
+    return result.stdout.strip() or "Unknown"
+
+
+def _read_git_status(project_root: Path) -> str:
+    """Return a compact current repository status."""
+
+    try:
+        result = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(project_root),
+                "status",
+                "--porcelain",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return "Unavailable"
+
+    return "Clean" if not result.stdout.strip() else "Modified"
+
+
+def _count_documentation(project_root: Path) -> int | str:
+    """Return the number of Markdown documentation files."""
+
+    documentation_root = project_root / "docs"
+
+    if not documentation_root.exists():
+        return "Unknown"
+
+    return sum(
+        1
+        for path in documentation_root.rglob("*.md")
+        if path.is_file()
+    )
+
+
+def _read_llm_status() -> str:
+    """Return the configured Project0 reasoning provider."""
+
+    provider = os.getenv(
+        "PROJECT0_REASONING_PROVIDER",
+        "",
+    ).strip()
+
+    return provider or "Not configured"
+
+
+def _read_gpu_status() -> tuple[str, str, str]:
+    """Return current NVIDIA GPU name, utilization, and VRAM usage."""
+
+    try:
+        result = subprocess.run(
+            [
+                "nvidia-smi",
+                "--query-gpu=name,utilization.gpu,memory.used,memory.total",
+                "--format=csv,noheader,nounits",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return "Unavailable", "Unavailable", "Unavailable"
+
+    lines = result.stdout.strip().splitlines()
+
+    if not lines:
+        return "Unavailable", "Unavailable", "Unavailable"
+
+    parts = [
+        item.strip()
+        for item in lines[0].split(",")
+    ]
+
+    if len(parts) != 4:
+        return "Unavailable", "Unavailable", "Unavailable"
+
+    name, utilization, memory_used, memory_total = parts
+
+    return (
+        name,
+        f"{utilization}%",
+        f"{memory_used} / {memory_total} MiB",
+    )
+
+
 def build_dashboard_shell_context(
     request: Request,
     active_page: str,
 ) -> dict[str, object]:
     """Build context owned by the shared Dashboard Framework shell."""
 
+    gpu_name, gpu_utilization, gpu_vram = _read_gpu_status()
+
     return {
         "request": request,
         "project_name": "Project0",
         "active_page": active_page,
         "agents": DASHBOARD_AGENTS,
+        "active_agent_name": "None",
+        "system_state": "Idle",
+        "system_operation": "None",
+        "elapsed_time": "—",
+        "system_progress": "—",
+        "gpu_name": gpu_name,
+        "gpu_utilization": gpu_utilization,
+        "gpu_vram": gpu_vram,
     }
 
 
@@ -74,18 +196,18 @@ def create_dashboard_router(
                 "repository_name": "project0",
                 "project_root": project_root,
                 "documentation_url": "/documentation",
-                "git_branch": "Unknown",
-                "git_status": "Unavailable",
+                "git_branch": _read_git_branch(project_root),
+                "git_status": _read_git_status(project_root),
                 "git_status_class": "status-value--muted",
                 "current_phase": (
                     "Phase 11 – Research Agent Functional Validation"
                 ),
-                "documentation_count": "Unknown",
-                "test_status": "896 passed, 11 skipped",
+                "documentation_count": _count_documentation(project_root),
+                "test_status": "1009 passed, 11 skipped",
                 "test_status_class": "status-value--success",
                 "validation_status": "Regression suite passed",
                 "validation_status_class": "status-value--muted",
-                "llm_status": "Not configured",
+                "llm_status": _read_llm_status(),
                 "workflow_status": "Idle",
                 "platform_version": "0.1.0",
             }

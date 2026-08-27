@@ -12,28 +12,7 @@ Project0 Dashboard
 </li>
 {% endblock %}
 
-{% block context_toolbar %}
-<a
-    class="toolbar-link toolbar-link--primary"
-    href="/"
->
-    Refresh Status
-</a>
-
-<a
-    class="toolbar-link"
-    href="/documentation"
->
-    Open Documentation
-</a>
-
-<a
-    class="toolbar-link"
-    href="/activity"
->
-    View Activity
-</a>
-{% endblock %}
+{% block context_toolbar_container %}{% endblock %}
 
 {% block work_area %}
 <section class="home-header">
@@ -41,8 +20,7 @@ Project0 Dashboard
         Project Overview
     </h2>
     <p class="home-description">
-        Current Project0 status, registered agents, and recent
-        platform activity.
+        Current Project0 configuration and platform health.
     </p>
 </section>
 
@@ -106,7 +84,7 @@ Project0 Dashboard
 
             <div class="summary-row">
                 <span class="summary-label">
-                    Documentation
+                    Documentation Files
                 </span>
                 <span class="summary-value">
                     {{ documentation_count | default("Unknown") }}
@@ -169,96 +147,8 @@ Project0 Dashboard
                 </span>
             </div>
 
-            <div class="summary-row">
-                <span class="summary-label">
-                    Workflow
-                </span>
-                <span class="summary-value">
-                    {{ workflow_status | default("Idle") }}
-                </span>
-            </div>
         </div>
     </article>
 
-    <article class="home-card home-card--wide">
-        <h3 class="home-card__title">
-            Registered Agents
-        </h3>
-        <p class="home-card__description">
-            Agent interfaces available through the Project0
-            Dashboard Framework.
-        </p>
-
-        <div class="agent-grid">
-            {% for agent in agents | default([]) %}
-            <section class="agent-card">
-                <h4 class="agent-card__name">
-                    {{ agent.name }}
-                </h4>
-
-                <p class="agent-card__status">
-                    {% if agent.available %}
-                    Interface available.
-                    {% else %}
-                    Interface planned.
-                    {% endif %}
-                </p>
-
-                <div class="agent-card__action">
-                    {% if agent.available %}
-                    <a
-                        class="home-action"
-                        href="/agents/{{ agent.identifier }}"
-                    >
-                        Open Agent
-                    </a>
-                    {% else %}
-                    <span
-                        class="home-action home-action--disabled"
-                        aria-disabled="true"
-                    >
-                        Planned
-                    </span>
-                    {% endif %}
-                </div>
-            </section>
-            {% else %}
-            <p>
-                No agents are currently registered.
-            </p>
-            {% endfor %}
-        </div>
-    </article>
-
-    <article class="home-card home-card--wide">
-        <h3 class="home-card__title">
-            Recent Activity
-        </h3>
-        <p class="home-card__description">
-            Most recent Project0 platform events.
-        </p>
-
-        <ul class="activity-list">
-            {% for activity in recent_activity | default([]) %}
-            <li class="activity-item">
-                <span class="activity-item__title">
-                    {{ activity.title }}
-                </span>
-                <span class="activity-item__details">
-                    {{ activity.details }}
-                </span>
-            </li>
-            {% else %}
-            <li class="activity-item">
-                <span class="activity-item__title">
-                    No recent activity
-                </span>
-                <span class="activity-item__details">
-                    Platform activity will appear here when available.
-                </span>
-            </li>
-            {% endfor %}
-        </ul>
-    </article>
 </section>
 {% endblock %}
