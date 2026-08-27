@@ -26,15 +26,7 @@ The Research Agent now includes:
 -   End-to-end Dashboard workflow validation
 
 This update extends the previous Research Agent validation record with
-the Phase 10 completion milestone and updated regression results.
-
-The previous validation baseline documented 691 passed, 7 skipped during
-early Research Agent validation. The current completed Phase 10 and
-Phase 11 regression baseline is:
-
-``` text
-1009 passed, 11 skipped
-```
+the Phase 10 completion milestone.
 
 The Research Agent runtime integration has also been validated through
 successful dashboard startup and complete Dashboard workflow acceptance
@@ -81,29 +73,7 @@ Research Workflow
 
 ------------------------------------------------------------------------
 
-## 2. Automated Regression Results
-
-### Complete Project0 Regression Execution
-
-Command:
-
-``` text
-python -m pytest
-```
-
-Result:
-
-``` text
-1009 passed, 11 skipped
-```
-
-Status:
-
-PASS
-
-------------------------------------------------------------------------
-
-## 3. Research Query Service Validation
+## 2. Research Query Service Validation
 
 ### Objective
 
@@ -124,7 +94,7 @@ Verified:
 
 ------------------------------------------------------------------------
 
-## 4. Research Workflow Integration Validation
+## 3. Research Workflow Integration Validation
 
 ### Objective
 
@@ -161,7 +131,7 @@ Result:
 
 ------------------------------------------------------------------------
 
-## 5. Platform Runtime Validation
+## 4. Platform Runtime Validation
 
 ### Objective
 
@@ -189,7 +159,7 @@ dependencies, including Research Query Service.
 
 ------------------------------------------------------------------------
 
-## 6. Research Source Provider Validation
+## 5. Research Source Provider Validation
 
 Status:
 
@@ -205,7 +175,7 @@ Verified:
 
 ------------------------------------------------------------------------
 
-## 7. Phase 10 Validation Decision
+## 6. Phase 10 Validation Decision
 
 Current Status:
 
@@ -218,7 +188,7 @@ The Research Agent has demonstrated:
 -   controlled source provider architecture
 -   deterministic automated validation
 -   successful runtime composition
--   passing complete regression validation
+-   successful Research Agent validation
 
 Remaining activities belong to future Research Agent enhancements:
 
@@ -229,7 +199,7 @@ Remaining activities belong to future Research Agent enhancements:
 
 ------------------------------------------------------------------------
 
-## 8. Phase 11 Functional Validation
+## 7. Phase 11 Functional Validation
 
 ### Research Agent V1 Functional Validation
 
@@ -282,7 +252,7 @@ batch results are combined while preserving source traceability.
 
 ------------------------------------------------------------------------
 
-## 9. Historical Validation Reference
+## 8. Historical Validation Reference
 
 Previous validation records remain preserved in this document history.
 
@@ -295,3 +265,4 @@ The original validation baseline established:
 
 The current version extends that baseline with completed Phase 10
 implementation validation.
+

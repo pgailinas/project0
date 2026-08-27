@@ -155,6 +155,25 @@ def _create_integration_client(
     project_root = tmp_path / "project0"
     project_root.mkdir()
 
+    test_results_directory = (
+        project_root
+        / "docs"
+        / "platform"
+    )
+    test_results_directory.mkdir(parents=True)
+    (
+        test_results_directory / "Project0_Test_Results.md"
+    ).write_text(
+        """# Project0 Test Results
+
+## Current Regression Status
+
+**Tests:** 12 passed, 3 skipped  
+**Validation:** Regression suite passed  
+""",
+        encoding="utf-8",
+    )
+
     dashboard_root = tmp_path / "dashboard"
     _write_dashboard_templates(dashboard_root)
 
@@ -191,7 +210,7 @@ def test_dashboard_home_flow(
     assert "Project0" in response.text
     assert str(project_root) in response.text
     assert "Phase 11 – Research Agent Functional Validation" in response.text
-    assert "1009 passed, 11 skipped" in response.text
+    assert "12 passed, 3 skipped" in response.text
     assert "Documentation Agent" in response.text
     assert "Research Agent" in response.text
 
@@ -256,7 +275,7 @@ def test_dashboard_agent_navigation_flow(
         "Phase 11 – Research Agent Functional Validation"
         not in documentation_response.text
     )
-    assert "1009 passed, 11 skipped" not in documentation_response.text
+    assert "12 passed, 3 skipped" not in documentation_response.text
 
     assert research_response.status_code == 200
     assert "Research Agent" in research_response.text
@@ -265,7 +284,7 @@ def test_dashboard_agent_navigation_flow(
         "Phase 11 – Research Agent Functional Validation"
         not in research_response.text
     )
-    assert "1009 passed, 11 skipped" not in research_response.text
+    assert "12 passed, 3 skipped" not in research_response.text
 
 
 def test_dashboard_status_flow(

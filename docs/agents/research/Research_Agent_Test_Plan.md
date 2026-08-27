@@ -1207,14 +1207,6 @@ The Research Agent is considered stable when:
 -   research artifact validation passes
 -   Project0 platform regression tests remain passing
 
-Phase 10 Research Agent validation baseline:
-
-``` text
-python -m pytest
-
-1009 passed, 11 skipped
-```
-
 Research Agent implementation shall not regress the established Project0
 platform and Documentation Agent test baseline.
 

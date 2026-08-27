@@ -105,6 +105,45 @@ def _read_llm_status() -> str:
     return provider or "Not configured"
 
 
+def _read_test_status(project_root: Path) -> tuple[str, str]:
+    """Return the latest recorded regression test status."""
+
+    status_path = (
+        project_root
+        / "docs"
+        / "platform"
+        / "Project0_Test_Results.md"
+    )
+
+    try:
+        lines = status_path.read_text(
+            encoding="utf-8",
+        ).splitlines()
+    except OSError:
+        return "Not run", "Unavailable"
+
+    test_status = "Not run"
+    validation_status = "Unavailable"
+
+    for line in lines:
+        if line.startswith("**Tests:** "):
+            test_status = line.removeprefix(
+                "**Tests:** "
+            ).rstrip()
+            if test_status.endswith("  "):
+                test_status = test_status[:-2]
+        elif line.startswith("**Validation:** "):
+            validation_status = line.removeprefix(
+                "**Validation:** "
+            ).rstrip()
+            if validation_status.endswith("  "):
+                validation_status = validation_status[:-2]
+
+    return test_status or "Not run", (
+        validation_status or "Unavailable"
+    )
+
+
 def _read_gpu_status() -> tuple[str, str, str]:
     """Return current NVIDIA GPU name, utilization, and VRAM usage."""
 
@@ -191,6 +230,9 @@ def create_dashboard_router(
             request=request,
             active_page=active_page,
         )
+        test_status, validation_status = _read_test_status(
+            project_root
+        )
         context.update(
             {
                 "repository_name": "project0",
@@ -203,9 +245,9 @@ def create_dashboard_router(
                     "Phase 11 – Research Agent Functional Validation"
                 ),
                 "documentation_count": _count_documentation(project_root),
-                "test_status": "1009 passed, 11 skipped",
+                "test_status": test_status,
                 "test_status_class": "status-value--success",
-                "validation_status": "Regression suite passed",
+                "validation_status": validation_status,
                 "validation_status_class": "status-value--muted",
                 "llm_status": _read_llm_status(),
                 "workflow_status": "Idle",

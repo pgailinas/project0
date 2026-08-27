@@ -28,6 +28,25 @@ def _create_test_client(
     project_root = tmp_path / "project0"
     project_root.mkdir()
 
+    test_results_directory = (
+        project_root
+        / "docs"
+        / "platform"
+    )
+    test_results_directory.mkdir(parents=True)
+    (
+        test_results_directory / "Project0_Test_Results.md"
+    ).write_text(
+        """# Project0 Test Results
+
+## Current Regression Status
+
+**Tests:** 12 passed, 3 skipped  
+**Validation:** Regression suite passed  
+""",
+        encoding="utf-8",
+    )
+
     dashboard_root = tmp_path / "dashboard"
     templates_directory = dashboard_root / "templates"
     templates_directory.mkdir(parents=True)
@@ -185,11 +204,31 @@ def test_dashboard_home_displays_project_status_in_work_area(
     assert "Project Overview" in response.text
     assert "Unknown" in response.text
     assert "Phase 11 – Research Agent Functional Validation" in response.text
-    assert "1009 passed, 11 skipped" in response.text
+    assert "12 passed, 3 skipped" in response.text
     assert "Regression suite passed" in response.text
     assert "Not configured" in response.text
     assert "Idle" in response.text
     assert "dashboard" in response.text
+
+
+def test_dashboard_home_handles_missing_test_status_snapshot(
+    tmp_path: Path,
+) -> None:
+    """Missing test results should render safe fallback values."""
+
+    client, project_root = _create_test_client(tmp_path)
+
+    (
+        project_root
+        / "docs"
+        / "platform"
+        / "Project0_Test_Results.md"
+    ).unlink()
+
+    response = client.get("/")
+
+    assert "Not run" in response.text
+    assert "Unavailable" in response.text
 
 
 def test_dashboard_home_displays_registered_agents(
