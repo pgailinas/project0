@@ -254,8 +254,9 @@ def test_research_request_presents_sources_evaluation_and_artifacts() -> None:
     assert "The paper is highly relevant to" in response.text
     assert "The paper is highly relevant to" in response.text
     assert "Research Results" in response.text
-    assert "Research Artifacts" in response.text
     assert "Example Video Representation Paper Summary" in response.text
+    assert "Structured summary of the selected research paper." in response.text
+    assert "Research Synthesis Artifacts" in response.text
     assert "Research Gap Analysis" in response.text
     assert "Workflow Summary" in response.text
     assert "Artifacts" in response.text

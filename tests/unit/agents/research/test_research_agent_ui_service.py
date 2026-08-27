@@ -223,15 +223,8 @@ def test_submit_request_maps_completed_result() -> None:
         "Highly relevant."
     )
 
-    assert len(page.artifacts) == 1
-    assert page.artifacts[0].artifact_id == "artifact-001"
-    assert (
-        page.artifacts[0].artifact_type
-        is ResearchArtifactType.PAPER_SUMMARY
-    )
-    assert page.artifacts[0].source_ids == (
-        "paper-001",
-    )
+    assert page.results[0].artifact_content == "Summary content."
+    assert page.artifacts == ()
 
     assert page.workflow_summary is not None
     assert page.workflow_summary.source_count == 1

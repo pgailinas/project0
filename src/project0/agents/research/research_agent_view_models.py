@@ -100,7 +100,16 @@ class ResearchResultView:
     relevance_score: float | None = None
     relevance_summary: str = ""
     authors: tuple[str, ...] = ()
+    abstract: str | None = None
+    venue: str | None = None
+    doi: str | None = None
     source_url: str | None = None
+    strengths: tuple[str, ...] = ()
+    limitations: tuple[str, ...] = ()
+    research_connections: tuple[str, ...] = ()
+    warnings: tuple[str, ...] = ()
+    artifact_title: str | None = None
+    artifact_content: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

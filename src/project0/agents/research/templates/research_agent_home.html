@@ -205,6 +205,7 @@
 
     {% if page.results %}
     <section
+        id="research-results"
         class="content-panel"
         aria-labelledby="research-results-title"
     >
@@ -215,38 +216,141 @@
                     Research Results
                 </h2>
             </div>
+
+            {% if page.page_status.value in ["completed", "completed_with_warnings"] %}
+            <button
+                id="research-results-save"
+                class="button button--secondary"
+                type="button"
+            >
+                Save Results
+            </button>
+            {% endif %}
         </div>
 
-        <div class="research-results-table-wrapper">
-            <table class="research-results-table">
-                <thead>
-                    <tr>
-                        <th>Rank</th>
-                        <th>Paper</th>
-                        <th>Year</th>
-                        <th>Source</th>
-                        <th>Relevance</th>
-                        <th>Summary</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for result in page.results %}
-                    <tr>
-                        <td>{{ result.rank }}</td>
-                        <td>
-                            <strong>{{ result.title }}</strong>
-                            {% if result.authors %}
-                            <br>{{ result.authors | join(", ") }}
-                            {% endif %}
-                        </td>
-                        <td>{{ result.publication_year or "" }}</td>
-                        <td>{{ result.source_name or "" }}</td>
-                        <td>{{ result.relevance_score or "" }}</td>
-                        <td>{{ result.relevance_summary }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="proposal-list">
+            {% for result in page.results %}
+            <article class="proposal-card">
+                <header class="proposal-card__header">
+                    <div>
+                        <p class="proposal-card__number">
+                            Rank {{ result.rank }} of {{ page.results | length }}
+                        </p>
+                        <h3>{{ result.title }}</h3>
+                        {% if result.authors %}
+                        <p>{{ result.authors | join(", ") }}</p>
+                        {% endif %}
+                    </div>
+
+                    {% if result.relevance_score is not none %}
+                    <span class="status-badge">
+                        Relevance {{ result.relevance_score }}
+                    </span>
+                    {% endif %}
+                </header>
+
+                <dl class="workflow-summary-grid">
+                    <div>
+                        <dt>Year</dt>
+                        <dd>{{ result.publication_year or "" }}</dd>
+                    </div>
+                    <div>
+                        <dt>Source</dt>
+                        <dd>{{ result.source_name or "" }}</dd>
+                    </div>
+                    {% if result.venue %}
+                    <div>
+                        <dt>Venue</dt>
+                        <dd>{{ result.venue }}</dd>
+                    </div>
+                    {% endif %}
+                    {% if result.doi %}
+                    <div>
+                        <dt>DOI</dt>
+                        <dd>{{ result.doi }}</dd>
+                    </div>
+                    {% endif %}
+                </dl>
+
+                {% if result.abstract %}
+                <div>
+                    <h4>Abstract</h4>
+                    <p>{{ result.abstract }}</p>
+                </div>
+                {% endif %}
+
+                <div>
+                    <h4>Summary</h4>
+                    <p>{{ result.relevance_summary }}</p>
+                </div>
+
+                {% if result.research_connections %}
+                <div>
+                    <h4>Research Connections</h4>
+                    <ul>
+                        {% for item in result.research_connections %}
+                        <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if result.strengths %}
+                <div>
+                    <h4>Strengths</h4>
+                    <ul>
+                        {% for item in result.strengths %}
+                        <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if result.limitations %}
+                <div>
+                    <h4>Limitations</h4>
+                    <ul>
+                        {% for item in result.limitations %}
+                        <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if result.artifact_content %}
+                <div>
+                    <h4>{{ result.artifact_title or "Paper Summary Artifact" }}</h4>
+                    <p>{{ result.artifact_content }}</p>
+                </div>
+                {% endif %}
+
+                {% if result.warnings %}
+                <div>
+                    <h4>Warnings</h4>
+                    <ul>
+                        {% for warning in result.warnings %}
+                        <li>{{ warning }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if result.source_url %}
+                <div>
+                    <h4>Source</h4>
+                    <p>
+                        <a
+                            href="{{ result.source_url }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Open source document
+                        </a>
+                    </p>
+                </div>
+                {% endif %}
+            </article>
+            {% endfor %}
         </div>
     </section>
     {% endif %}
@@ -260,7 +364,7 @@
             <div>
                 <p class="panel-eyebrow">Artifacts</p>
                 <h2 id="research-artifacts-title">
-                    Research Artifacts
+                    Research Synthesis Artifacts
                 </h2>
             </div>
         </div>
@@ -393,5 +497,232 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 });
+
+const saveButton = document.getElementById("research-results-save");
+
+if (saveButton) {
+    saveButton.addEventListener("click", async () => {
+        const lines = [];
+
+        lines.push("# Project0 Research Agent Results");
+        lines.push("");
+        lines.push("## Research Request");
+        lines.push("");
+        lines.push(
+            `**Question:** {{ page.request_form.question | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
+        );
+        {% if page.request_form.guidance %}
+        lines.push("");
+        lines.push(
+            `**Guidance:** {{ page.request_form.guidance | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
+        );
+        {% endif %}
+
+        {% for result in page.results %}
+        lines.push("");
+        lines.push("---");
+        lines.push("");
+        lines.push(
+            "## Paper {{ result.rank }} — {{ result.title | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}"
+        );
+        lines.push("");
+        {% if result.authors %}
+        lines.push(
+            "**Authors:** {{ result.authors | join(", ") | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}"
+        );
+        {% endif %}
+        lines.push(
+            "**Year:** {{ result.publication_year or "" }}"
+        );
+        lines.push(
+            "**Source:** {{ result.source_name or "" }}"
+        );
+        {% if result.relevance_score is not none %}
+        lines.push(
+            "**Relevance:** {{ result.relevance_score }}"
+        );
+        {% endif %}
+        {% if result.venue %}
+        lines.push(
+            "**Venue:** {{ result.venue | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}"
+        );
+        {% endif %}
+        {% if result.doi %}
+        lines.push(
+            "**DOI:** {{ result.doi | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}"
+        );
+        {% endif %}
+
+        {% if result.abstract %}
+        lines.push("");
+        lines.push("### Abstract");
+        lines.push("");
+        lines.push(
+            `{{ result.abstract | replace("\\", "\\\\") | replace("`", "\\`") }}`
+        );
+        {% endif %}
+
+        lines.push("");
+        lines.push("### Summary");
+        lines.push("");
+        lines.push(
+            `{{ result.relevance_summary | replace("\\", "\\\\") | replace("`", "\\`") }}`
+        );
+
+        {% if result.research_connections %}
+        lines.push("");
+        lines.push("### Research Connections");
+        lines.push("");
+        {% for item in result.research_connections %}
+        lines.push(
+            `- {{ item | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
+        );
+        {% endfor %}
+        {% endif %}
+
+        {% if result.strengths %}
+        lines.push("");
+        lines.push("### Strengths");
+        lines.push("");
+        {% for item in result.strengths %}
+        lines.push(
+            `- {{ item | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
+        );
+        {% endfor %}
+        {% endif %}
+
+        {% if result.limitations %}
+        lines.push("");
+        lines.push("### Limitations");
+        lines.push("");
+        {% for item in result.limitations %}
+        lines.push(
+            `- {{ item | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
+        );
+        {% endfor %}
+        {% endif %}
+
+        {% if result.artifact_content %}
+        lines.push("");
+        lines.push(
+            "### {{ (result.artifact_title or "Paper Summary Artifact") | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}"
+        );
+        lines.push("");
+        lines.push(
+            `{{ result.artifact_content | replace("\\", "\\\\") | replace("`", "\\`") }}`
+        );
+        {% endif %}
+
+        {% if result.warnings %}
+        lines.push("");
+        lines.push("### Warnings");
+        lines.push("");
+        {% for warning in result.warnings %}
+        lines.push(
+            `- {{ warning | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
+        );
+        {% endfor %}
+        {% endif %}
+
+        {% if result.source_url %}
+        lines.push("");
+        lines.push("### Source");
+        lines.push("");
+        lines.push(
+            "{{ result.source_url | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", "") }}"
+        );
+        {% endif %}
+        {% endfor %}
+
+        {% if page.artifacts %}
+        lines.push("");
+        lines.push("---");
+        lines.push("");
+        lines.push("# Research Synthesis Artifacts");
+
+        {% for artifact in page.artifacts %}
+        lines.push("");
+        lines.push(
+            "## {{ artifact.title | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}"
+        );
+        lines.push("");
+        lines.push(
+            `{{ artifact.content | replace("\\", "\\\\") | replace("`", "\\`") }}`
+        );
+
+        {% if artifact.source_ids %}
+        lines.push("");
+        lines.push("### Source References");
+        lines.push("");
+        {% for source_id in artifact.source_ids %}
+        lines.push(
+            "- `{{ source_id | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", "") }}`"
+        );
+        {% endfor %}
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+
+        {% if page.workflow_summary %}
+        lines.push("");
+        lines.push("---");
+        lines.push("");
+        lines.push("# Workflow Summary");
+        lines.push("");
+        lines.push(
+            "**Sources:** {{ page.workflow_summary.source_count }}"
+        );
+        lines.push(
+            "**Papers:** {{ page.workflow_summary.paper_count }}"
+        );
+        lines.push(
+            "**Evaluations:** {{ page.workflow_summary.evaluation_count }}"
+        );
+        lines.push(
+            "**Artifacts:** {{ page.workflow_summary.artifact_count }}"
+        );
+        {% endif %}
+
+        const documentContent = `${lines.join("\n")}\n`;
+
+        if ("showSaveFilePicker" in window) {
+            try {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: "project0_research_results.md",
+                    types: [
+                        {
+                            description: "Markdown files",
+                            accept: {
+                                "text/markdown": [".md"],
+                            },
+                        },
+                    ],
+                });
+                const writable = await handle.createWritable();
+
+                await writable.write(documentContent);
+                await writable.close();
+                return;
+            } catch (error) {
+                if (error.name === "AbortError") {
+                    return;
+                }
+            }
+        }
+
+        const blob = new Blob(
+            [documentContent],
+            { type: "text/markdown;charset=utf-8" }
+        );
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = "project0_research_results.md";
+        link.click();
+
+        URL.revokeObjectURL(url);
+    });
+}
 </script>
 {% endblock %}

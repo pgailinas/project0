@@ -151,18 +151,22 @@ class ResearchAgentUIService:
             default=(),
         )
 
+        workflow_artifacts = self._read_value(
+            workflow_result,
+            "artifacts",
+            default=(),
+        )
+
         results = self._map_results(
             source_references,
             papers,
             evaluations,
+            workflow_artifacts,
         )
 
         artifacts = self._map_artifacts(
-            self._read_value(
-                workflow_result,
-                "artifacts",
-                default=(),
-            )
+            workflow_artifacts,
+            include_paper_summaries=False,
         )
 
         warnings = tuple(
@@ -200,7 +204,7 @@ class ResearchAgentUIService:
                 source_count=len(source_references),
                 paper_count=len(papers),
                 evaluation_count=len(evaluations),
-                artifact_count=len(artifacts),
+                artifact_count=len(workflow_artifacts),
             ),
             warnings=warnings,
             error_message=error_message,
@@ -426,12 +430,14 @@ class ResearchAgentUIService:
         sources: object,
         papers: object,
         evaluations: object,
+        artifacts: object,
     ) -> tuple[ResearchResultView, ...]:
         """Combine source, metadata, and evaluation data."""
 
         source_items = tuple(sources or ())
         paper_items = tuple(papers or ())
         evaluation_items = tuple(evaluations or ())
+        artifact_items = tuple(artifacts or ())
 
         results = []
 
@@ -488,6 +494,37 @@ class ResearchAgentUIService:
                 {},
             )
 
+            artifact = next(
+                (
+                    item
+                    for item in artifact_items
+                    if self._map_artifact_type(
+                        self._read_value(
+                            item,
+                            "artifact_type",
+                            default=ResearchArtifactType.PAPER_SUMMARY,
+                        )
+                    )
+                    is ResearchArtifactType.PAPER_SUMMARY
+                    and source_id
+                    in tuple(
+                        str(
+                            self._read_value(
+                                reference,
+                                "source_id",
+                                default="",
+                            )
+                        )
+                        for reference in self._read_value(
+                            item,
+                            "source_references",
+                            default=(),
+                        )
+                    )
+                ),
+                {},
+            )
+
             results.append(
                 ResearchResultView(
                     rank=index,
@@ -531,10 +568,86 @@ class ResearchAgentUIService:
                             default=(),
                         )
                     ),
-                    source_url=self._normalize_optional_text(
+                    abstract=self._normalize_optional_text(
                         self._read_value(
                             paper,
-                            "source_url",
+                            "abstract",
+                            default=None,
+                        )
+                    ),
+                    venue=self._normalize_optional_text(
+                        self._read_value(
+                            paper,
+                            "venue",
+                            default=None,
+                        )
+                    ),
+                    doi=self._normalize_optional_text(
+                        self._read_value(
+                            paper,
+                            "doi",
+                            default=None,
+                        )
+                    ),
+                    source_url=(
+                        self._normalize_optional_text(
+                            self._read_value(
+                                paper,
+                                "source_url",
+                                default=None,
+                            )
+                        )
+                        or self._normalize_optional_text(
+                            self._read_value(
+                                source,
+                                "source_url",
+                                default=None,
+                            )
+                        )
+                    ),
+                    strengths=tuple(
+                        str(item)
+                        for item in self._read_value(
+                            evaluation,
+                            "strengths",
+                            default=(),
+                        )
+                    ),
+                    limitations=tuple(
+                        str(item)
+                        for item in self._read_value(
+                            evaluation,
+                            "limitations",
+                            default=(),
+                        )
+                    ),
+                    research_connections=tuple(
+                        str(item)
+                        for item in self._read_value(
+                            evaluation,
+                            "research_connections",
+                            default=(),
+                        )
+                    ),
+                    warnings=tuple(
+                        str(item)
+                        for item in self._read_value(
+                            evaluation,
+                            "warnings",
+                            default=(),
+                        )
+                    ),
+                    artifact_title=self._normalize_optional_text(
+                        self._read_value(
+                            artifact,
+                            "title",
+                            default=None,
+                        )
+                    ),
+                    artifact_content=self._normalize_optional_text(
+                        self._read_value(
+                            artifact,
+                            "content",
                             default=None,
                         )
                     ),
@@ -546,6 +659,7 @@ class ResearchAgentUIService:
     def _map_artifacts(
         self,
         artifacts: object,
+        include_paper_summaries: bool = True,
     ) -> tuple[ResearchArtifactView, ...]:
         """Map research artifacts into browser presentation state."""
 
@@ -598,6 +712,17 @@ class ResearchAgentUIService:
                 ),
             )
             for artifact in artifacts
+            if (
+                include_paper_summaries
+                or str(
+                    self._read_value(
+                        artifact,
+                        "artifact_type",
+                        default="",
+                    )
+                )
+                != ResearchArtifactType.PAPER_SUMMARY.value
+            )
         )
 
     def _determine_page_status(
