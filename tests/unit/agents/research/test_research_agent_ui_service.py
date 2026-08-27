@@ -38,12 +38,14 @@ class FakeWorkflow:
         self,
         question: str,
         guidance: str = "",
+        max_results: int = 10,
     ) -> object:
         """Record request arguments and return or raise the configured result."""
 
         self.received_arguments = {
             "question": question,
             "guidance": guidance,
+            "max_results": max_results,
         }
 
         if self.error is not None:
@@ -63,6 +65,7 @@ def test_create_ready_page() -> None:
     assert page.status_message == "Ready for a research request."
     assert page.request_form.question == ""
     assert page.request_form.guidance == ""
+    assert page.request_form.max_results == 10
     assert page.request_id is None
     assert page.has_results is False
     assert page.has_error is False
@@ -103,16 +106,19 @@ def test_submit_request_normalizes_form_values() -> None:
     page = service.submit_request(
         question="  Find relevant VideoQA research.  ",
         guidance=" vision-language alignment using semantic_scholar ",
+        max_results=5,
     )
 
     assert workflow.received_arguments == {
         "question": "Find relevant VideoQA research.",
         "guidance": "vision-language alignment using semantic_scholar",
+        "max_results": 5,
     }
     assert page.request_form.question == (
         "Find relevant VideoQA research."
     )
     assert page.request_form.guidance == "vision-language alignment using semantic_scholar"
+    assert page.request_form.max_results == 5
 
 
     assert page.page_status is ResearchAgentPageStatus.PROCESSING

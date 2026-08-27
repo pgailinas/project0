@@ -42,6 +42,7 @@ class ResearchRequest:
 
     question: str
     guidance: str = ""
+    max_results: int = 10
     constraints: tuple[str, ...] = ()
     focus_areas: tuple[str, ...] = ()
     source_names: tuple[str, ...] = ()

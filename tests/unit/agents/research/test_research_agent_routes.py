@@ -48,12 +48,14 @@ class FakeResearchAgentUIService:
         self,
         question: str,
         guidance: str,
+        max_results: int = 10,
     ) -> ResearchAgentPageView:
         """Record request values and return the configured page."""
 
         self.received_request = {
             "question": question,
             "guidance": guidance,
+            "max_results": max_results,
         }
         return self.request_page
 
@@ -183,6 +185,7 @@ def test_submit_request_route_delegates_form_values(
                 "semantic_scholar. "
                 "arxiv."
             ),
+            "max_results": "5",
         },
     )
 
@@ -197,6 +200,7 @@ def test_submit_request_route_delegates_form_values(
             "semantic_scholar. "
             "arxiv."
         ),
+        "max_results": 5,
     }
     assert "The research workflow completed successfully." in response.text
     assert '<p id="status">completed</p>' in response.text
@@ -222,6 +226,7 @@ def test_submit_request_route_accepts_empty_optional_values(
     assert service.received_request == {
         "question": "Find relevant research.",
         "guidance": "",
+        "max_results": 10,
     }
 
 
@@ -244,6 +249,7 @@ def test_submit_request_route_accepts_blank_question(
     assert service.received_request == {
         "question": "",
         "guidance": "",
+        "max_results": 10,
     }
 
 

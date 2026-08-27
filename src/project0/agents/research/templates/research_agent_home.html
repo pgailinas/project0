@@ -170,6 +170,29 @@
                 </p>
             </div>
 
+            <div class="form-field">
+                <label for="max-results">Maximum results</label>
+                <select
+                    id="max-results"
+                    name="max_results"
+                >
+                    {% for value in [5, 10, 15, 20] %}
+                    <option
+                        value="{{ value }}"
+                        {% if page.request_form.max_results == value %}
+                        selected
+                        {% endif %}
+                    >
+                        {{ value }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <p class="form-help">
+                    Maximum number of highest-relevance research papers
+                    to return.
+                </p>
+            </div>
+
             <div class="form-actions research-request-actions">
                 <button
                     id="research-request-submit"

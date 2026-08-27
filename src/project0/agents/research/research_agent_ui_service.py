@@ -40,6 +40,7 @@ class ResearchWorkflowPort(Protocol):
         self,
         question: str,
         guidance: str = "",
+        max_results: int = 10,
     ) -> object:
         """Execute a research workflow and return its result."""
 
@@ -63,12 +64,14 @@ class ResearchAgentUIService:
         self,
         question: str,
         guidance: str | None = None,
+        max_results: int = 10,
     ) -> ResearchAgentPageView:
         """Submit a research request and return display-ready state."""
 
         request_form = self._build_request_form(
             question=question,
             guidance=guidance,
+            max_results=max_results,
         )
 
         if not request_form.question:
@@ -85,6 +88,7 @@ class ResearchAgentUIService:
             workflow_result = self.workflow.run_research_workflow(
                 question=request_form.question,
                 guidance=request_form.guidance,
+                max_results=request_form.max_results,
             )
         except Exception as exc:
             return self._create_failure_page(
@@ -102,12 +106,14 @@ class ResearchAgentUIService:
         self,
         question: str,
         guidance: str | None,
+        max_results: int,
     ) -> ResearchRequestForm:
         """Normalize browser form values."""
 
         return ResearchRequestForm(
             question=question.strip(),
             guidance=(guidance or "").strip(),
+            max_results=max_results,
         )
 
     def _map_workflow_result(

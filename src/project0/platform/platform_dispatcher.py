@@ -167,6 +167,7 @@ class PlatformDispatcher:
         self,
         question: str,
         guidance: str = "",
+        max_results: int = 10,
     ) -> ResearchResult:
         """Execute the configured Research Agent workflow."""
 
@@ -182,6 +183,7 @@ class PlatformDispatcher:
             ResearchRequest(
                 question=question,
                 guidance=guidance,
+                max_results=max_results,
             )
         )
 

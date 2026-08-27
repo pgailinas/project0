@@ -196,7 +196,9 @@ class StubResearchArtifactService:
         return self._artifacts
 
 
-def _research_request() -> ResearchRequest:
+def _research_request(
+    max_results: int = 10,
+) -> ResearchRequest:
     """Create a research request for workflow tests."""
 
     return ResearchRequest(
@@ -204,6 +206,7 @@ def _research_request() -> ResearchRequest:
             "How can self-supervised video representations "
             "be improved for VideoQA?"
         ),
+        max_results=max_results,
         constraints=(
             "Focus on vision-language alignment.",
         ),
@@ -276,12 +279,13 @@ def _paper_metadata(
 
 def _evaluation(
     paper: PaperMetadata,
+    relevance_score: float | None = 0.9,
 ) -> ResearchEvaluation:
     """Create a research evaluation for workflow tests."""
 
     return ResearchEvaluation(
         paper=paper,
-        relevance_score=0.9,
+        relevance_score=relevance_score,
         relevance_summary="Highly relevant to the research question.",
         strengths=(
             "Uses semantic representation learning.",
@@ -550,6 +554,72 @@ def test_summary_reports_result_counts() -> None:
         "1 evaluation(s), and "
         "1 artifact(s)."
     )
+
+
+def test_workflow_orders_and_limits_results_by_relevance() -> None:
+    """Workflow should return only the highest-relevance results."""
+
+    references = (
+        _source_reference(
+            source_id="2401.11111",
+            title="Lower Relevance Paper",
+        ),
+        _source_reference(
+            source_id="2401.22222",
+            title="Highest Relevance Paper",
+        ),
+        _source_reference(
+            source_id="2401.33333",
+            title="Middle Relevance Paper",
+        ),
+    )
+    papers = tuple(
+        _paper_metadata(reference)
+        for reference in references
+    )
+    evaluations = (
+        _evaluation(papers[0], relevance_score=0.2),
+        _evaluation(papers[1], relevance_score=0.95),
+        _evaluation(papers[2], relevance_score=0.7),
+    )
+
+    components = _create_workflow(
+        references=references,
+        papers=papers,
+        evaluations=evaluations,
+        artifacts=(),
+    )
+    workflow = components[0]
+    artifact_service = components[6]
+
+    request = _research_request(
+        max_results=2
+    )
+    result = workflow.execute(
+        request
+    )
+
+    assert tuple(
+        evaluation.relevance_score
+        for evaluation in result.evaluations
+    ) == (
+        0.95,
+        0.7,
+    )
+    assert tuple(
+        paper.title
+        for paper in result.papers
+    ) == (
+        "Highest Relevance Paper",
+        "Middle Relevance Paper",
+    )
+    assert result.source_references == references
+    assert artifact_service.requests == [
+        (
+            request,
+            result.evaluations,
+        )
+    ]
 
 
 def test_strategy_failure_stops_workflow() -> None:

@@ -96,6 +96,17 @@ class ResearchWorkflow:
                 papers,
             )
 
+            (
+                source_references,
+                papers,
+                evaluations,
+            ) = self._select_results(
+                source_references=source_references,
+                papers=papers,
+                evaluations=evaluations,
+                max_results=request.max_results,
+            )
+
             artifacts = self._artifact_service.generate_artifacts(
                 request,
                 evaluations,
@@ -137,6 +148,44 @@ class ResearchWorkflow:
                 error_message=self._format_error_message(error),
                 warnings=tuple(warnings),
             )
+
+    @staticmethod
+    def _select_results(
+        source_references: tuple,
+        papers: tuple,
+        evaluations: tuple,
+        max_results: int,
+    ) -> tuple[tuple, tuple, tuple]:
+        """Select final research results by descending relevance."""
+
+        if not evaluations:
+            return source_references, papers, evaluations
+
+        ranked_evaluations = tuple(
+            sorted(
+                evaluations,
+                key=lambda evaluation: (
+                    evaluation.relevance_score
+                    if evaluation.relevance_score is not None
+                    else float("-inf")
+                ),
+                reverse=True,
+            )
+        )
+
+        selected_evaluations = ranked_evaluations[
+            :max(1, max_results)
+        ]
+        selected_papers = tuple(
+            evaluation.paper
+            for evaluation in selected_evaluations
+        )
+
+        return (
+            source_references,
+            selected_papers,
+            selected_evaluations,
+        )
 
     @staticmethod
     def _build_summary(

@@ -40,6 +40,7 @@ class ResearchRequestForm:
 
     question: str = ""
     guidance: str = ""
+    max_results: int = 10
 
 
 @dataclass(frozen=True, slots=True)

@@ -64,12 +64,14 @@ def create_research_agent_router(
         request: Request,
         question: str = Form(""),
         guidance: str = Form(""),
+        max_results: int = Form(10),
     ) -> HTMLResponse:
         """Submit a research request and render the resulting state."""
 
         page = ui_service.submit_request(
             question=question,
             guidance=guidance,
+            max_results=max_results,
         )
 
         return _render_page(

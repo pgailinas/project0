@@ -38,12 +38,14 @@ class FakeResearchWorkflow:
         self,
         question: str,
         guidance: str = "",
+        max_results: int = 10,
     ) -> object:
         """Return a representative completed research workflow result."""
 
         self.received_request = {
             "question": question,
             "guidance": guidance,
+            "max_results": max_results,
         }
 
         return {
@@ -212,6 +214,8 @@ def test_research_agent_home_page_renders_shared_dashboard() -> None:
     assert "Research Workflow" in response.text
     assert "Ready for a research request." in response.text
     assert 'action="/agents/research/request"' in response.text
+    assert 'name="max_results"' in response.text
+    assert '<option' in response.text
 
 
 def test_research_request_presents_sources_evaluation_and_artifacts() -> None:
@@ -231,6 +235,7 @@ def test_research_request_presents_sources_evaluation_and_artifacts() -> None:
                 "vision-language alignment "
                 "semantic_scholar"
             ),
+            "max_results": "5",
         },
     )
 
@@ -245,6 +250,7 @@ def test_research_request_presents_sources_evaluation_and_artifacts() -> None:
             "vision-language alignment "
             "semantic_scholar"
         ),
+        "max_results": 5,
     }
 
     assert "The research workflow completed successfully." in response.text
@@ -291,6 +297,7 @@ def test_research_request_preserves_multiline_form_values() -> None:
             "self-supervised video representations\n"
             "semantic_scholar"
         ),
+        "max_results": 10,
     }
 
 
