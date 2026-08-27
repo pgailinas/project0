@@ -1533,7 +1533,7 @@
 <h1 id="research-agent-interface-design">Research Agent Interface Design</h1>
 <p><strong>Version:</strong> 0.2<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-25</p>
+<strong>Last Updated:</strong> 2026-08-26</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="phase-11-alignment">Phase 11 Alignment</h3>
@@ -1560,9 +1560,11 @@ source selection, ranking, and evaluation strategies used by the
 underlying services.</p>
 <p>External research source access is isolated behind Research Agent
 interfaces so that source-specific implementations remain separate from
-Research Agent workflow behavior. Citation and source information are
-preserved through interface contracts so that generated research
-artifacts remain traceable to identifiable research sources.</p>
+Research Agent workflow behavior. Multiple configured research source
+providers may contribute references through the same interface contract.
+Citation and source information are preserved through interface
+contracts so that generated research artifacts remain traceable to
+identifiable research sources.</p>
 <p>Agent-specific UI behavior and presentation details remain outside these
 interfaces and are implemented by the Research Agent UI components.</p>
 <p>The Phase 10 Research Agent implementation validated these interface
@@ -1584,6 +1586,22 @@ provider implementations.</p>
     metadata retrieval and evaluation.</li>
 </ul>
 </li>
+<li>arXiv Source Provider<ul>
+<li>Supports external research source retrieval through arXiv.</li>
+</ul>
+</li>
+<li>Crossref Source Provider<ul>
+<li>Supports external research source retrieval through Crossref.</li>
+</ul>
+</li>
+<li>OpenAlex Source Provider<ul>
+<li>Supports external research source retrieval through OpenAlex.</li>
+</ul>
+</li>
+<li>OpenReview Source Provider<ul>
+<li>Supports external research source retrieval through OpenReview.</li>
+</ul>
+</li>
 <li>Stub Research Source Provider<ul>
 <li>Supports deterministic research workflow validation.</li>
 <li>Provides controlled research source behavior for testing,
@@ -1591,8 +1609,9 @@ provider implementations.</p>
 </ul>
 </li>
 </ul>
-<p>Research source providers preserve source identifiers and citation
-information through the shared interface contracts.</p>
+<p>Research source providers preserve provider-specific source
+identifiers and citation information through the shared interface
+contracts.</p>
 <p>Provider interaction model:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Research Workflow
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>        |
@@ -1602,14 +1621,21 @@ information through the shared interface contracts.</p>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        v
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Research Source Provider Interface
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        |
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        +------------------------------+
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        |                              |
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        v                              v
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>Semantic Scholar Provider        Stub Provider
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>(production source)              (deterministic validation)
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        +---------------------------------------------------------------+
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        |              |              |              |              |
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        v              v              v              v              v
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>Semantic Scholar  arXiv Provider  Crossref       OpenAlex       OpenReview
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>Provider          (external       Provider       Provider       Provider
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>(production       source)         (external      (external      (external
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>source)                           source)        source)        source)
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>        |
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        v
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>Stub Provider
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>(deterministic validation)
 </span></code></pre></div>
 <p>The interface contract allows additional research sources to be added
-without modifying Research Agent workflow behavior.</p>
+or configured together without modifying Research Agent workflow
+behavior.</p>
 <hr />
 <h2 id="research-query-interface-contract">Research Query Interface Contract</h2>
 <p>The Research Agent separates research intent definition from external

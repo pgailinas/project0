@@ -2195,7 +2195,7 @@
 <h1 id="research-agent-testing-guide">Research Agent Testing Guide</h1>
 <p><strong>Version:</strong> 0.6\
 <strong>Owner:</strong> Project0\
-<strong>Last Updated:</strong> 2026-08-25</p>
+<strong>Last Updated:</strong> 2026-08-26</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <p>This document defines the testing strategy, test coverage, execution
@@ -2666,6 +2666,26 @@ both production-oriented providers and deterministic providers.</p>
 <li>Depends on external research source availability.</li>
 </ul>
 </li>
+<li>arXiv Source Provider<ul>
+<li>Validates external research source integration behavior.</li>
+<li>Depends on external research source availability.</li>
+</ul>
+</li>
+<li>Crossref Source Provider<ul>
+<li>Validates external research source integration behavior.</li>
+<li>Depends on external research source availability.</li>
+</ul>
+</li>
+<li>OpenAlex Source Provider<ul>
+<li>Validates external research source integration behavior.</li>
+<li>Depends on external research source availability.</li>
+</ul>
+</li>
+<li>OpenReview Source Provider<ul>
+<li>Validates external research source integration behavior.</li>
+<li>Depends on external research source availability.</li>
+</ul>
+</li>
 <li>Stub Research Source Provider<ul>
 <li>Provides deterministic research references.</li>
 <li>Supports unit, integration, and acceptance testing.</li>
@@ -2676,7 +2696,9 @@ both production-oriented providers and deterministic providers.</p>
 </ul>
 <p>Acceptance testing should use deterministic providers whenever practical
 so that tests validate Research Agent workflow behavior rather than
-external service availability.</p>
+external service availability. Production-oriented provider validation
+should exercise individual providers and configured multi-provider
+combinations.</p>
 <p>Provider validation flow:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>Research Agent UI
 </span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>        |
@@ -2689,15 +2711,21 @@ external service availability.</p>
 </span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>        v
 </span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>Research Source Provider Interface
 </span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>        |
-</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>        +------------------------------+
-</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>        |                              |
-</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>        v                              v
-</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>Semantic Scholar Provider        Stub Provider
-</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>(production source)              (deterministic validation)
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>        +---------------------------------------------------------------+
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>        |              |              |              |              |
+</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>        v              v              v              v              v
+</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>Semantic Scholar  arXiv Provider  Crossref       OpenAlex       OpenReview
+</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>Provider          (external       Provider       Provider       Provider
+</span><span id="__span-14-17"><a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a>(production       source)         (external      (external      (external
+</span><span id="__span-14-18"><a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a>source)                           source)        source)        source)
+</span><span id="__span-14-19"><a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a>        |
+</span><span id="__span-14-20"><a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a>        v
+</span><span id="__span-14-21"><a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a>Stub Provider
+</span><span id="__span-14-22"><a id="__codelineno-14-22" name="__codelineno-14-22" href="#__codelineno-14-22"></a>(deterministic validation)
 </span></code></pre></div>
 <p>The provider-based testing approach allows Research Agent components to
-be validated independently while preserving the production research
-source integration path.</p>
+be validated independently while preserving production research source
+integration paths and configured multi-provider behavior.</p>
 <h2 id="10-research-agent-completion-criteria">10. Research Agent Completion Criteria</h2>
 <p>The Research Agent may be considered complete for its current version
 when:</p>

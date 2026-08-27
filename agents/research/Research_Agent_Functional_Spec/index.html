@@ -1643,7 +1643,7 @@
 <h1 id="research-agent-functional-specification">Research Agent Functional Specification</h1>
 <p><strong>Version:</strong> 0.3<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-25</p>
+<strong>Last Updated:</strong> 2026-08-26</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="mission">Mission</h3>
@@ -1687,6 +1687,7 @@ dashboard infrastructure.</p>
 <li>Generate a research strategy.</li>
 <li>Generate deterministic research queries from the research strategy.</li>
 <li>Search supported external research sources.</li>
+<li>Combine results from multiple configured research source providers.</li>
 <li>Support pluggable research source providers through defined service
     boundaries.</li>
 <li>Support deterministic research source provider behavior for testing,
@@ -1694,6 +1695,11 @@ dashboard infrastructure.</p>
 <li>Retrieve available paper metadata.</li>
 <li>Identify research papers relevant to the research question.</li>
 <li>Evaluate and rank paper relevance.</li>
+<li>Evaluate candidate papers in bounded batches and combine validated
+    batch results.</li>
+<li>Retry research evaluation once within a batch when a reasoning
+    provider response violates required source traceability or coverage
+    constraints.</li>
 <li>Preserve citation and source information.</li>
 <li>Summarize relevant technical papers.</li>
 <li>Compare research methods and approaches.</li>
@@ -1713,6 +1719,9 @@ dashboard infrastructure.</p>
 <li>Supported external research sources<ul>
 <li>Semantic Scholar research source provider</li>
 <li>arXiv research source provider</li>
+<li>Crossref research source provider</li>
+<li>OpenAlex research source provider</li>
+<li>OpenReview research source provider</li>
 </ul>
 </li>
 <li>Available paper metadata</li>
@@ -1767,6 +1776,8 @@ develop an appropriate research strategy.</p>
 <li>Discovers relevant papers through supported research sources.</li>
 <li>Supports multiple research source providers without changing the
     Research Agent workflow architecture.</li>
+<li>Combines usable results from multiple configured research source
+    providers while preserving source identity.</li>
 <li>Retrieves and preserves available paper metadata.</li>
 <li>Identifies and ranks papers relevant to the research question.</li>
 <li>Produces useful, evidence-grounded paper summaries.</li>

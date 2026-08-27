@@ -1997,7 +1997,7 @@
 <h1 id="research-agent-architecture">Research Agent Architecture</h1>
 <p><strong>Version:</strong> 0.3<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-25</p>
+<strong>Last Updated:</strong> 2026-08-26</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="objective">Objective</h3>
@@ -2241,7 +2241,8 @@ that research intent is expressed as searchable queries.</p>
 <p>Responsibilities:</p>
 <ul>
 <li>Execute research searches using a Research Strategy.</li>
-<li>Query supported external research sources.</li>
+<li>Query configured external research source providers.</li>
+<li>Combine results from multiple configured research source providers.</li>
 <li>Normalize returned research source references.</li>
 <li>Preserve source identifiers and locations.</li>
 <li>Return structured source results and errors.</li>
@@ -2327,6 +2328,21 @@ research source implementation.</p>
     single external research source.</li>
 </ul>
 </li>
+<li>Crossref Source Provider<ul>
+<li>Provides research source access through the Crossref API.</li>
+<li>Retrieves identifiable research references from Crossref.</li>
+</ul>
+</li>
+<li>OpenAlex Source Provider<ul>
+<li>Provides research source access through the OpenAlex API.</li>
+<li>Retrieves identifiable research references from OpenAlex.</li>
+</ul>
+</li>
+<li>OpenReview Source Provider<ul>
+<li>Provides research source access through the OpenReview API.</li>
+<li>Retrieves identifiable research references from OpenReview.</li>
+</ul>
+</li>
 <li>Stub Research Source Provider<ul>
 <li>Provides deterministic research source behavior for testing,
     demonstrations, and acceptance validation.</li>
@@ -2336,8 +2352,8 @@ research source implementation.</p>
 </li>
 </ul>
 <p>The provider abstraction preserves the existing workflow architecture
-while allowing research sources to be replaced or extended without
-changing Research Agent workflow components.</p>
+while allowing research sources to be replaced, extended, or configured
+together without changing Research Agent workflow components.</p>
 <p>Initial provider architecture:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Research Workflow
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>        |
@@ -2347,12 +2363,17 @@ changing Research Agent workflow components.</p>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        v
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Research Source Provider Interface
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        |
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        +-------------------------------------------+
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        |                    |                      |
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        v                    v                      v
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>Semantic Scholar       arXiv Provider        Stub Provider
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>Provider               (external source)     (deterministic validation)
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>(production source)
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        +---------------------------------------------------------------+
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        |              |              |              |              |
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        v              v              v              v              v
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>Semantic Scholar  arXiv Provider  Crossref       OpenAlex       OpenReview
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>Provider          (external       Provider       Provider       Provider
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>(production       source)         (external      (external      (external
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>source)                           source)        source)        source)
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>        |
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        v
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>Stub Provider
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>(deterministic validation)
 </span></code></pre></div>
 <p>The provider abstraction supports the Project0 architectural principle
 that platform components depend on interfaces rather than concrete
@@ -2364,6 +2385,9 @@ implementations.</p>
 <li>Supported external research sources<ul>
 <li>Semantic Scholar research source provider</li>
 <li>arXiv research source provider</li>
+<li>Crossref research source provider</li>
+<li>OpenAlex research source provider</li>
+<li>OpenReview research source provider</li>
 </ul>
 </li>
 <li>Technical paper metadata</li>

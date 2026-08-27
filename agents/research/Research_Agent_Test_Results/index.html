@@ -1833,7 +1833,7 @@
 <h1 id="research-agent-test-results">Research Agent Test Results</h1>
 <p><strong>Version:</strong> 0.7<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-25</p>
+<strong>Last Updated:</strong> 2026-08-26</p>
 <hr />
 <h2 id="executive-summary">Executive Summary</h2>
 <p>This document records the updated validation status for the Project0
@@ -1848,6 +1848,7 @@ integration.</p>
 <li>arXiv provider support</li>
 <li>Deterministic stub provider support</li>
 <li>Research workflow orchestration</li>
+<li>Bounded research evaluation batching</li>
 <li>Platform dispatcher integration</li>
 <li>End-to-end Dashboard workflow validation</li>
 </ul>
@@ -1856,7 +1857,7 @@ the Phase 10 completion milestone and updated regression results.</p>
 <p>The previous validation baseline documented 691 passed, 7 skipped during
 early Research Agent validation. The current completed Phase 10 and
 Phase 11 regression baseline is:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>920 passed, 11 skipped
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>1009 passed, 11 skipped
 </span></code></pre></div>
 <p>The Research Agent runtime integration has also been validated through
 successful dashboard startup and complete Dashboard workflow acceptance
@@ -1899,7 +1900,7 @@ validation.</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python -m pytest
 </span></code></pre></div>
 <p>Result:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>908 passed, 11 skipped
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>1009 passed, 11 skipped
 </span></code></pre></div>
 <p>Status:</p>
 <p>PASS</p>
@@ -1997,6 +1998,7 @@ dependencies, including Research Query Service.</p>
 <li>arXiv source provider integration</li>
 <li>arXiv paper metadata handling</li>
 <li>Research evaluation execution</li>
+<li>Bounded research evaluation batching</li>
 <li>Research artifact generation</li>
 <li>End-to-end Dashboard workflow completion</li>
 </ul>
@@ -2022,6 +2024,9 @@ workflow using arXiv as the configured research source.</p>
 <p>External research source availability remains dependent on provider API
 availability and may require future resilience improvements such as
 caching and enhanced rate-limit handling.</p>
+<p>Research evaluation with candidate papers from multiple configured
+sources has been validated using bounded evaluation batches. Validated
+batch results are combined while preserving source traceability.</p>
 <hr />
 <h2 id="9-historical-validation-reference">9. Historical Validation Reference</h2>
 <p>Previous validation records remain preserved in this document history.</p>

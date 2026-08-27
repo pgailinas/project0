@@ -4307,7 +4307,7 @@
 <h1 id="research-agent-design">Research Agent Design</h1>
 <p><strong>Version:</strong> 0.2<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-25</p>
+<strong>Last Updated:</strong> 2026-08-26</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="objective">Objective</h3>
@@ -4658,7 +4658,8 @@ components.</p>
 <h4 id="responsibilities_7">Responsibilities</h4>
 <ul>
 <li>Execute research searches using a Research Strategy.</li>
-<li>Query supported external research sources.</li>
+<li>Query configured external research source providers.</li>
+<li>Combine results from multiple configured research source providers.</li>
 <li>Normalize returned research source references.</li>
 <li>Preserve source identifiers and locations.</li>
 <li>Return structured source results and errors.</li>
@@ -4677,6 +4678,8 @@ components.</p>
 <h4 id="design-notes_9">Design Notes</h4>
 <ul>
 <li>External source access is isolated behind a typed interface.</li>
+<li>Multiple configured providers may contribute source references to a
+    single research workflow.</li>
 <li>The service does not perform research relevance evaluation.</li>
 <li>Source-specific behavior shall remain isolated from the Research
     Workflow.</li>
@@ -4778,6 +4781,11 @@ research strategy.</p>
 <li>Relevance evaluation shall preserve the distinction between source
     facts and generated analysis.</li>
 <li>Evaluation results shall preserve references to supporting papers.</li>
+<li>Candidate papers are evaluated in bounded batches and validated
+    batch results are combined into the complete evaluation result.</li>
+<li>Evaluation provider responses within a batch that violate required
+    source traceability or coverage constraints may be retried once
+    before the evaluation is reported as failed.</li>
 <li>Human research judgment remains authoritative.</li>
 </ul>
 <h4 id="inputs_4">Inputs</h4>
@@ -4895,6 +4903,26 @@ references while preserving source identifiers and locations.</p>
     Scholar.</li>
 </ul>
 </li>
+<li>arXiv Source Provider<ul>
+<li>Provides research source access through the arXiv API.</li>
+<li>Retrieves identifiable academic paper references from arXiv.</li>
+</ul>
+</li>
+<li>Crossref Source Provider<ul>
+<li>Provides research source access through the Crossref API.</li>
+<li>Retrieves identifiable research references from Crossref.</li>
+</ul>
+</li>
+<li>OpenAlex Source Provider<ul>
+<li>Provides research source access through the OpenAlex API.</li>
+<li>Retrieves identifiable research references from OpenAlex.</li>
+</ul>
+</li>
+<li>OpenReview Source Provider<ul>
+<li>Provides research source access through the OpenReview API.</li>
+<li>Retrieves identifiable research references from OpenReview.</li>
+</ul>
+</li>
 <li>Stub Research Source Provider<ul>
 <li>Provides deterministic research source behavior.</li>
 <li>Supports automated testing, demonstrations, and acceptance
@@ -4904,8 +4932,8 @@ references while preserving source identifiers and locations.</p>
 </li>
 </ul>
 <p>The provider abstraction allows Research Agent workflows to remain
-unchanged when external research sources are added, replaced, or tested
-through deterministic implementations.</p>
+unchanged when external research sources are added, replaced, configured
+together, or tested through deterministic implementations.</p>
 <p>Initial provider interaction:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Research Workflow
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>        |
@@ -4915,11 +4943,17 @@ through deterministic implementations.</p>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        v
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Research Source Provider Interface
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        |
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        +------------------------------+
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        |                              |
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        v                              v
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>Semantic Scholar Provider        Stub Provider
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>(production source)              (deterministic validation)
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        +---------------------------------------------------------------+
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        |              |              |              |              |
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        v              v              v              v              v
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>Semantic Scholar  arXiv Provider  Crossref       OpenAlex       OpenReview
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>Provider          (external       Provider       Provider       Provider
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>(production       source)         (external      (external      (external
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>source)                           source)        source)        source)
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>        |
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        v
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>Stub Provider
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>(deterministic validation)
 </span></code></pre></div>
 <p>The provider design follows the Project0 principle that components
 depend on interfaces rather than concrete implementations.</p>
@@ -4974,10 +5008,10 @@ submits Research Agent workflow tasks to the Workflow Engine.</p>
 <li>The Reasoning Service assists with research concept and strategy
     generation when required.</li>
 <li>The Research Strategy Service returns a Research Strategy.</li>
-<li>The Research Source Service searches supported external research
-    sources.</li>
-<li>External source results are normalized into Research Source
-    References.</li>
+<li>The Research Source Service searches configured external research
+    source providers.</li>
+<li>External source results from configured providers are combined and
+    normalized into Research Source References.</li>
 <li>The Paper Metadata Service retrieves and normalizes available
     metadata.</li>
 <li>The Knowledge Service retrieves relevant existing Project0 research
