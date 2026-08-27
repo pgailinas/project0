@@ -64,8 +64,11 @@ The Research Agent shall:
 -   Retrieve available paper metadata.
 -   Identify research papers relevant to the research question.
 -   Evaluate and rank paper relevance.
--   Retry research evaluation once when a reasoning provider response
-    violates required source traceability or coverage constraints.
+-   Evaluate candidate papers in bounded batches and combine validated
+    batch results.
+-   Retry research evaluation once within a batch when a reasoning
+    provider response violates required source traceability or coverage
+    constraints.
 -   Preserve citation and source information.
 -   Summarize relevant technical papers.
 -   Compare research methods and approaches.

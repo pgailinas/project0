@@ -71,8 +71,9 @@ The Research Agent shall demonstrate the ability to:
 -   Search supported external research sources.
 -   Retrieve and normalize available paper metadata.
 -   Identify and rank papers relevant to the research question.
+-   Verify bounded batch processing for research evaluation.
 -   Verify bounded retry behavior for invalid or incomplete research
-    evaluation responses.
+    evaluation responses within a batch.
 -   Preserve citation and source information.
 -   Generate evidence-grounded research artifacts.
 -   Compare research methods and approaches.
@@ -95,6 +96,7 @@ This test plan covers:
 -   Paper metadata retrieval
 -   Candidate paper identification
 -   Paper relevance evaluation
+-   Research evaluation batch processing
 -   Research evaluation retry handling
 -   Citation and source tracking
 -   Paper summary generation
@@ -297,6 +299,8 @@ question.
 
 The Research Agent shall:
 
+-   evaluate candidate papers in bounded batches
+-   combine validated batch results
 -   evaluate paper relevance
 -   rank candidate papers
 -   provide relevance explanations
@@ -721,8 +725,9 @@ or coverage constraints.
 
 The Research Evaluation Service shall:
 
--   detect an invalid or incomplete evaluation response
--   retry research evaluation once
+-   process candidate papers in bounded evaluation batches
+-   detect an invalid or incomplete evaluation response within a batch
+-   retry research evaluation once within the affected batch
 -   accept a valid retry response
 -   report the evaluation failure when the retry response remains
     invalid or incomplete
@@ -1207,7 +1212,7 @@ Phase 10 Research Agent validation baseline:
 ``` text
 python -m pytest
 
-1002 passed, 11 skipped
+1009 passed, 11 skipped
 ```
 
 Research Agent implementation shall not regress the established Project0

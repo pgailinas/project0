@@ -543,9 +543,11 @@ research strategy.
 -   Relevance evaluation shall preserve the distinction between source
     facts and generated analysis.
 -   Evaluation results shall preserve references to supporting papers.
--   Evaluation provider responses that violate required source
-    traceability or coverage constraints may be retried once before the
-    evaluation is reported as failed.
+-   Candidate papers are evaluated in bounded batches and validated
+    batch results are combined into the complete evaluation result.
+-   Evaluation provider responses within a batch that violate required
+    source traceability or coverage constraints may be retried once
+    before the evaluation is reported as failed.
 -   Human research judgment remains authoritative.
 
 #### Inputs

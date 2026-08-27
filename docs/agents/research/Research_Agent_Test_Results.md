@@ -2,7 +2,7 @@
 
 **Version:** 0.7  
 **Owner:** Project0  
-**Last Updated:** 2026-08-25
+**Last Updated:** 2026-08-26
 
 ------------------------------------------------------------------------
 
@@ -21,6 +21,7 @@ The Research Agent now includes:
 -   arXiv provider support
 -   Deterministic stub provider support
 -   Research workflow orchestration
+-   Bounded research evaluation batching
 -   Platform dispatcher integration
 -   End-to-end Dashboard workflow validation
 
@@ -32,7 +33,7 @@ early Research Agent validation. The current completed Phase 10 and
 Phase 11 regression baseline is:
 
 ``` text
-920 passed, 11 skipped
+1009 passed, 11 skipped
 ```
 
 The Research Agent runtime integration has also been validated through
@@ -93,7 +94,7 @@ python -m pytest
 Result:
 
 ``` text
-908 passed, 11 skipped
+1009 passed, 11 skipped
 ```
 
 Status:
@@ -244,6 +245,7 @@ Validated components:
 -   arXiv source provider integration
 -   arXiv paper metadata handling
 -   Research evaluation execution
+-   Bounded research evaluation batching
 -   Research artifact generation
 -   End-to-end Dashboard workflow completion
 
@@ -273,6 +275,10 @@ workflow using arXiv as the configured research source.
 External research source availability remains dependent on provider API
 availability and may require future resilience improvements such as
 caching and enhanced rate-limit handling.
+
+Research evaluation with candidate papers from multiple configured
+sources has been validated using bounded evaluation batches. Validated
+batch results are combined while preserving source traceability.
 
 ------------------------------------------------------------------------
 
