@@ -901,6 +901,25 @@ def test_research_evaluation_service_instructs_relevance_rubric() -> None:
         "Missing or limited metadata must reduce confidence"
         in system_instructions
     )
+    assert (
+        "directly addresses both the primary application or task and "
+        "the central technical problem"
+        in system_instructions
+    )
+    assert (
+        "Do not assign a high score based primarily on keyword or "
+        "topical overlap."
+        in system_instructions
+    )
+    assert (
+        "a major dimension of the research question is absent or only "
+        "indirect"
+        in system_instructions
+    )
+    assert (
+        "Use the same relevance standard for every paper in the batch"
+        in system_instructions
+    )
 
 
 def test_research_evaluation_service_rejects_missing_structured_output() -> None:
