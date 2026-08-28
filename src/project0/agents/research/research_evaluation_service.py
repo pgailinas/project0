@@ -166,10 +166,11 @@ class ResearchEvaluationService:
                             },
                             "relevance_score": {
                                 "type": [
-                                    "number",
-                                    "string",
+                                    "integer",
                                     "null",
                                 ],
+                                "minimum": 0,
+                                "maximum": 100,
                             },
                             "relevance_summary": {
                                 "type": "string",
@@ -221,6 +222,13 @@ class ResearchEvaluationService:
                 "You are the Project0 Research Agent evaluation "
                 "service. Evaluate each supplied paper against the "
                 "research question using only the supplied metadata. "
+                "Assign relevance_score as an integer from 0 to 100: "
+                "90-100 directly addresses the research question; "
+                "75-89 strongly relevant; 50-74 related and potentially "
+                "useful; 25-49 tangential or primarily background "
+                "material; 0-24 weakly related or off-topic. Missing or "
+                "limited metadata must reduce confidence and must not "
+                "support an otherwise unsupported high relevance score. "
                 "Distinguish source information from generated "
                 "analysis. Do not invent unsupported paper content. "
                 "Return one evaluation for each supplied paper. Treat "
@@ -384,7 +392,7 @@ class ResearchEvaluationService:
         self,
         value: Any,
     ) -> float | None:
-        """Parse and normalize an optional relevance score."""
+        """Parse and normalize an optional 0-100 relevance score."""
 
         LOGGER.debug(
             "Raw research relevance score: %r",
@@ -394,60 +402,26 @@ class ResearchEvaluationService:
         if value is None:
             return None
 
-        if isinstance(value, str):
-            value = value.strip()
-
-            if value.endswith("%"):
-                value = value[:-1]
-
-                try:
-                    score = float(value) / 100.0
-                except ValueError as error:
-                    raise TypeError(
-                        "Relevance score must be numeric or null."
-                    ) from error
-
-                return self._validate_score(
-                    score
-                )
-
-            try:
-                value = float(value)
-
-            except ValueError as error:
-                raise TypeError(
-                    "Relevance score must be numeric or null."
-                ) from error
-
-        if not isinstance(value, (int, float)):
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
             raise TypeError(
-                "Relevance score must be numeric or null."
+                "Relevance score must be an integer from 0 to 100 "
+                "or null."
             )
 
         score = float(value)
 
-        if (
-            1.0 < score <= 100.0
-            and score.is_integer()
-        ):
-            score /= 100.0
-
-        return self._validate_score(
-            score
-        )
-
-    @staticmethod
-    def _validate_score(
-        score: float,
-    ) -> float:
-        """Validate normalized relevance score."""
-
-        if not 0.0 <= score <= 1.0:
-            raise ValueError(
-                "Relevance score must be between 0.0 and 1.0."
+        if not score.is_integer():
+            raise TypeError(
+                "Relevance score must be an integer from 0 to 100 "
+                "or null."
             )
 
-        return score
+        if not 0 <= score <= 100:
+            raise ValueError(
+                "Relevance score must be between 0 and 100."
+            )
+
+        return score / 100.0
 
     @staticmethod
     def _require_string(

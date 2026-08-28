@@ -161,7 +161,7 @@ def create_valid_provider_response(
                 else [
                     {
                         "source_id": "paper-001",
-                        "relevance_score": 0.95,
+                        "relevance_score": 95,
                         "relevance_summary": (
                             "The paper is highly relevant to "
                             "the research question."
@@ -199,7 +199,7 @@ def create_provider_response_for_papers(
         evaluations=[
             {
                 "source_id": paper.source_reference.source_id,
-                "relevance_score": 0.8,
+                "relevance_score": 80,
                 "relevance_summary": (
                     f"{paper.title} is relevant."
                 ),
@@ -361,7 +361,7 @@ def test_research_evaluation_service_retries_missing_evaluation() -> None:
         evaluations=[
             {
                 "source_id": "paper-001",
-                "relevance_score": 0.9,
+                "relevance_score": 90,
                 "relevance_summary": "First paper is relevant.",
                 "strengths": [],
                 "limitations": [],
@@ -370,7 +370,7 @@ def test_research_evaluation_service_retries_missing_evaluation() -> None:
             },
             {
                 "source_id": "paper-002",
-                "relevance_score": 0.7,
+                "relevance_score": 70,
                 "relevance_summary": "Second paper is relevant.",
                 "strengths": [],
                 "limitations": [],
@@ -642,7 +642,7 @@ def test_research_evaluation_service_supports_multiple_papers() -> None:
         evaluations=[
             {
                 "source_id": "paper-001",
-                "relevance_score": 0.9,
+                "relevance_score": 90,
                 "relevance_summary": "First paper is relevant.",
                 "strengths": [],
                 "limitations": [],
@@ -651,7 +651,7 @@ def test_research_evaluation_service_supports_multiple_papers() -> None:
             },
             {
                 "source_id": "paper-002",
-                "relevance_score": 0.7,
+                "relevance_score": 70,
                 "relevance_summary": "Second paper is relevant.",
                 "strengths": [],
                 "limitations": [],
@@ -702,8 +702,8 @@ def test_research_evaluation_service_allows_null_score() -> None:
     assert result[0].relevance_score is None
 
 
-def test_research_evaluation_service_normalizes_percentage_score() -> None:
-    """Verify percentage relevance scores are normalized."""
+def test_research_evaluation_service_normalizes_integer_score() -> None:
+    """Verify integer relevance scores are normalized to 0.0-1.0."""
 
     response = create_valid_provider_response()
     response.structured_output[
@@ -724,13 +724,113 @@ def test_research_evaluation_service_normalizes_percentage_score() -> None:
     assert result[0].relevance_score == 0.95
 
 
-def test_research_evaluation_service_normalizes_percentage_string() -> None:
-    """Verify percentage string scores are normalized."""
+def test_research_evaluation_service_normalizes_score_boundaries() -> None:
+    """Verify 0 and 100 map to the supported relevance boundaries."""
+
+    paper = create_paper_metadata()
+
+    for raw_score, expected_score in (
+        (0, 0.0),
+        (100, 1.0),
+    ):
+        response = create_valid_provider_response()
+        response.structured_output[
+            "evaluations"
+        ][0]["relevance_score"] = raw_score
+
+        service = ResearchEvaluationService(
+            provider=StubProvider(response),
+            model_name="qwen3:8b",
+        )
+
+        result = service.evaluate(
+            create_research_request(),
+            create_research_strategy(),
+            (paper,),
+        )
+
+        assert result[0].relevance_score == expected_score
+
+
+def test_research_evaluation_service_preserves_score_ordering() -> None:
+    """Verify 0-100 relevance ordering is preserved after normalization."""
+
+    papers = tuple(
+        create_paper_metadata(
+            source_id=f"paper-{index:03d}",
+            title=f"Paper {index}",
+        )
+        for index in range(1, 6)
+    )
+    raw_scores = (90, 75, 50, 25, 0)
+
+    response = create_valid_provider_response(
+        evaluations=[
+            {
+                "source_id": paper.source_reference.source_id,
+                "relevance_score": raw_score,
+                "relevance_summary": f"{paper.title} relevance.",
+                "strengths": [],
+                "limitations": [],
+                "research_connections": [],
+                "warnings": [],
+            }
+            for paper, raw_score in zip(papers, raw_scores)
+        ]
+    )
+
+    service = ResearchEvaluationService(
+        provider=StubProvider(response),
+        model_name="qwen3:8b",
+    )
+
+    result = service.evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        papers,
+    )
+
+    assert tuple(
+        evaluation.relevance_score
+        for evaluation in result
+    ) == (
+        0.90,
+        0.75,
+        0.50,
+        0.25,
+        0.00,
+    )
+
+
+def test_research_evaluation_service_normalizes_one_as_one_percent() -> None:
+    """Verify raw score 1 normalizes to 0.01 instead of 1.0."""
 
     response = create_valid_provider_response()
     response.structured_output[
         "evaluations"
-    ][0]["relevance_score"] = "95%"
+    ][0]["relevance_score"] = 1
+
+    service = ResearchEvaluationService(
+        provider=StubProvider(response),
+        model_name="qwen3:8b",
+    )
+
+    result = service.evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        (create_paper_metadata(),),
+    )
+
+    assert result[0].relevance_score == 0.01
+
+
+def test_research_evaluation_service_normalizes_integral_float_score() -> None:
+    """Verify integral float relevance scores are normalized."""
+
+    response = create_valid_provider_response()
+    response.structured_output[
+        "evaluations"
+    ][0]["relevance_score"] = 95.0
 
     service = ResearchEvaluationService(
         provider=StubProvider(response),
@@ -746,26 +846,61 @@ def test_research_evaluation_service_normalizes_percentage_string() -> None:
     assert result[0].relevance_score == 0.95
 
 
-def test_research_evaluation_service_normalizes_decimal_string() -> None:
-    """Verify decimal string scores are normalized."""
+def test_research_evaluation_service_rejects_non_integer_score() -> None:
+    """Verify provider relevance scores must use the 0-100 integer scale."""
 
     response = create_valid_provider_response()
     response.structured_output[
         "evaluations"
-    ][0]["relevance_score"] = "0.95"
+    ][0]["relevance_score"] = 0.95
 
     service = ResearchEvaluationService(
         provider=StubProvider(response),
         model_name="qwen3:8b",
     )
 
-    result = service.evaluate(
+    try:
+        service.evaluate(
+            create_research_request(),
+            create_research_strategy(),
+            (create_paper_metadata(),),
+        )
+    except TypeError as error:
+        assert str(error) == (
+            "Relevance score must be an integer from 0 to 100 or null."
+        )
+    else:
+        raise AssertionError("Expected non-integer relevance failure.")
+
+
+def test_research_evaluation_service_instructs_relevance_rubric() -> None:
+    """Verify provider instructions define the 0-100 relevance rubric."""
+
+    provider = StubProvider(
+        create_valid_provider_response()
+    )
+
+    service = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    )
+
+    service.evaluate(
         create_research_request(),
         create_research_strategy(),
         (create_paper_metadata(),),
     )
 
-    assert result[0].relevance_score == 0.95
+    system_instructions = provider.requests[0].system_instructions
+
+    assert (
+        "Assign relevance_score as an integer from 0 to 100"
+        in system_instructions
+    )
+    assert (
+        "Missing or limited metadata must reduce confidence"
+        in system_instructions
+    )
 
 
 def test_research_evaluation_service_rejects_missing_structured_output() -> None:
@@ -957,7 +1092,7 @@ def test_research_evaluation_service_rejects_invalid_score() -> None:
         )
     except TypeError as error:
         assert str(error) == (
-            "Relevance score must be numeric or null."
+            "Relevance score must be an integer from 0 to 100 or null."
         )
     else:
         raise AssertionError("Expected invalid relevance score failure.")
@@ -969,7 +1104,7 @@ def test_research_evaluation_service_rejects_out_of_range_score() -> None:
     response = create_valid_provider_response()
     response.structured_output[
         "evaluations"
-    ][0]["relevance_score"] = 1.5
+    ][0]["relevance_score"] = 101
 
     service = ResearchEvaluationService(
         provider=StubProvider(response),
@@ -984,7 +1119,7 @@ def test_research_evaluation_service_rejects_out_of_range_score() -> None:
         )
     except ValueError as error:
         assert str(error) == (
-            "Relevance score must be between 0.0 and 1.0."
+            "Relevance score must be between 0 and 100."
         )
     else:
         raise AssertionError("Expected out-of-range relevance failure.")

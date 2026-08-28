@@ -185,7 +185,7 @@ def _create_reasoning_provider():
                 content=(
                     '{"evaluations": ['
                     '{"paper_id": "stub-paper-001", '
-                    '"relevance_score": 0.95, '
+                    '"relevance_score": 95, '
                     '"research_connections": '
                     '["vision-language alignment"], '
                     '"summary": "Stub research evaluation.", '
@@ -197,7 +197,7 @@ def _create_reasoning_provider():
                     "evaluations": [
                         {
                             "source_id": "stub-paper-001",
-                            "relevance_score": 0.95,
+                            "relevance_score": 95,
                             "relevance_summary": (
                                 "Stub research evaluation."
                             ),
@@ -303,7 +303,7 @@ def _create_research_reasoning_provider():
             content=(
                 '{"evaluations": ['
                 '{"paper_id": "stub-paper-001", '
-                '"relevance_score": 0.95, '
+                '"relevance_score": 95, '
                 '"research_connections": '
                 '["vision-language alignment"], '
                 '"summary": "Stub research evaluation.", '
@@ -315,7 +315,7 @@ def _create_research_reasoning_provider():
                 "evaluations": [
                     {
                         "source_id": "stub-paper-001",
-                        "relevance_score": 0.95,
+                        "relevance_score": 95,
                         "relevance_summary": (
                             "Stub research evaluation."
                         ),

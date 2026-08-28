@@ -70,7 +70,7 @@ def _create_reasoning_provider() -> StubReasoningProvider:
                 "evaluations": [
                     {
                         "source_id": "paper-001",
-                        "relevance_score": 0.95,
+                        "relevance_score": 95,
                         "relevance_summary": (
                             "The paper is highly relevant to "
                             "vision-language alignment for VideoQA."
