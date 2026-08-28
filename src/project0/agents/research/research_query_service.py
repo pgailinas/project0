@@ -11,7 +11,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from project0.models.research_models import ResearchStrategy
 
@@ -30,7 +30,7 @@ class ResearchQueryService:
     def generate_queries(
         self,
         strategy: ResearchStrategy,
-    ) -> tuple[str, ...]:
+    ) -> ResearchStrategy:
         """Generate deterministic research queries from a strategy."""
 
         queries: list[str] = []
@@ -41,7 +41,10 @@ class ResearchQueryService:
             if normalized:
                 queries.append(normalized)
 
-        return self._deduplicate_queries(queries)
+        return replace(
+            strategy,
+            search_terms=self._deduplicate_queries(queries),
+        )
 
     @staticmethod
     def _normalize_query(

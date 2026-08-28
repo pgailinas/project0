@@ -42,7 +42,7 @@ class ResearchQueryServiceProtocol(Protocol):
     def generate_queries(
         self,
         strategy: ResearchStrategy,
-    ) -> tuple[str, ...]:
+    ) -> ResearchStrategy:
         """Generate deterministic research queries."""
 
         ...

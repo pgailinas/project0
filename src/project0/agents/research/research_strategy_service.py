@@ -39,24 +39,24 @@ class ResearchStrategyService:
     ) -> ResearchStrategy:
         """Build a research strategy for a request."""
 
+        objective = self._build_objective(request)
         concepts = self._build_concepts(request)
-        search_terms = self._build_search_terms(
-            request,
-            concepts,
-        )
+        sub_questions = self._build_sub_questions(request)
 
         LOGGER.debug(
-            "Research strategy: concepts=%d search_terms=%d",
+            "Research strategy: concepts=%d sub_questions=%d",
             len(concepts),
-            len(search_terms),
+            len(sub_questions),
         )
 
         # Empty research requests should not generate
         # executable search strategies.
-        if not concepts and not search_terms:
+        if not objective and not concepts:
             return ResearchStrategy(
                 concepts=(),
                 search_terms=(),
+                objective=None,
+                sub_questions=(),
                 constraints=(),
                 source_names=(),
                 rationale=None,
@@ -70,7 +70,9 @@ class ResearchStrategyService:
 
         return ResearchStrategy(
             concepts=concepts,
-            search_terms=search_terms,
+            search_terms=(),
+            objective=objective,
+            sub_questions=sub_questions,
             constraints=constraints,
             source_names=source_names,
             rationale=(
@@ -80,12 +82,29 @@ class ResearchStrategyService:
         )
 
     @staticmethod
+    def _build_objective(
+        request: ResearchRequest,
+    ) -> str | None:
+        """Build the research objective from the submitted question."""
+
+        question = request.question.strip()
+
+        return question or None
+
+    @classmethod
     def _build_concepts(
+        cls,
         request: ResearchRequest,
     ) -> tuple[str, ...]:
         """Build ordered research concepts from request inputs."""
 
         concepts: list[str] = []
+
+        for focus_area in request.focus_areas:
+            normalized = focus_area.strip()
+
+            if normalized and normalized not in concepts:
+                concepts.append(normalized)
 
         guidance = request.guidance.strip()
 
@@ -93,23 +112,37 @@ class ResearchStrategyService:
             for concept in guidance.split("."):
                 normalized = concept.strip()
 
-                if normalized and normalized not in concepts:
+                if (
+                    normalized
+                    and not cls._is_constraint(normalized)
+                    and not normalized.endswith("?")
+                    and normalized not in concepts
+                ):
                     concepts.append(normalized)
 
-        question = request.question.strip()
+        question_concept = cls._build_question_concept(
+            request.question
+        )
 
-        if question and question not in concepts:
-            concepts.append(question)
+        if question_concept and question_concept not in concepts:
+            concepts.append(question_concept)
 
         return tuple(concepts)
 
-    @staticmethod
+    @classmethod
     def _build_constraints(
+        cls,
         request: ResearchRequest,
     ) -> tuple[str, ...]:
         """Build deterministic strategy constraints from guidance."""
 
         constraints: list[str] = []
+
+        for item in request.constraints:
+            normalized = item.strip()
+
+            if normalized and normalized not in constraints:
+                constraints.append(normalized)
 
         guidance = request.guidance.strip()
 
@@ -120,14 +153,7 @@ class ResearchStrategyService:
                 if not normalized:
                     continue
 
-                lowered = normalized.lower()
-
-                if (
-                    lowered.startswith("prefer ")
-                    or lowered.startswith("focus ")
-                    or lowered.startswith("avoid ")
-                    or lowered.startswith("require ")
-                ):
+                if cls._is_constraint(normalized):
                     constraint = normalized + "."
                     if constraint not in constraints:
                         constraints.append(constraint)
@@ -135,21 +161,57 @@ class ResearchStrategyService:
         return tuple(constraints)
 
     @staticmethod
-    def _build_search_terms(
+    def _build_sub_questions(
         request: ResearchRequest,
-        concepts: tuple[str, ...],
     ) -> tuple[str, ...]:
-        """Build deterministic search terms from research concepts."""
+        """Build explicit research sub-questions from guidance."""
 
-        search_terms: list[str] = []
+        sub_questions: list[str] = []
 
-        for concept in concepts:
-            if concept not in search_terms:
-                search_terms.append(concept)
+        guidance = request.guidance.strip()
 
-        question = request.question.strip()
+        if guidance:
+            for item in guidance.split("."):
+                normalized = item.strip()
 
-        if question and question not in search_terms:
-            search_terms.append(question)
+                if normalized.endswith("?") and normalized not in sub_questions:
+                    sub_questions.append(normalized)
 
-        return tuple(search_terms)
+        return tuple(sub_questions)
+
+    @staticmethod
+    def _build_question_concept(
+        question: str,
+    ) -> str:
+        """Build a concise search concept from the research question."""
+
+        normalized = " ".join(question.split()).strip()
+        lowered = normalized.lower()
+
+        prefixes = (
+            "find recent research on ",
+            "find research on ",
+            "find relevant research on ",
+        )
+
+        for prefix in prefixes:
+            if lowered.startswith(prefix):
+                normalized = normalized[len(prefix):]
+                break
+
+        return normalized.rstrip(".?").strip()
+
+    @staticmethod
+    def _is_constraint(
+        value: str,
+    ) -> bool:
+        """Return whether a guidance item is a strategy constraint."""
+
+        lowered = value.lower()
+
+        return (
+            lowered.startswith("prefer ")
+            or lowered.startswith("focus ")
+            or lowered.startswith("avoid ")
+            or lowered.startswith("require ")
+        )

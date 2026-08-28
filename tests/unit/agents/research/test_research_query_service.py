@@ -46,7 +46,7 @@ def test_research_query_service_generates_queries_from_strategy():
         create_research_strategy()
     )
 
-    assert result == (
+    assert result.search_terms == (
         "video representation learning",
         "multimodal alignment",
     )
@@ -59,7 +59,7 @@ def test_research_query_service_removes_duplicate_queries():
         create_research_strategy()
     )
 
-    assert result.count(
+    assert result.search_terms.count(
         "video representation learning"
     ) == 1
 
@@ -71,7 +71,7 @@ def test_research_query_service_preserves_query_order():
         create_research_strategy()
     )
 
-    assert result == (
+    assert result.search_terms == (
         "video representation learning",
         "multimodal alignment",
     )
@@ -93,7 +93,7 @@ def test_research_query_service_normalizes_query_whitespace():
         strategy
     )
 
-    assert result == (
+    assert result.search_terms == (
         "video representation learning",
     )
 
@@ -108,4 +108,29 @@ def test_research_query_service_handles_empty_strategy():
         )
     )
 
-    assert result == ()
+    assert result.search_terms == ()
+
+
+def test_research_query_service_preserves_strategy_planning_fields():
+    """Verify query generation enriches rather than replaces strategy data."""
+
+    strategy = ResearchStrategy(
+        concepts=("video representation alignment",),
+        search_terms=(),
+        objective="Find relevant alignment research.",
+        sub_questions=("Which methods align video and text?",),
+        constraints=("Prefer recent research.",),
+        source_names=("arxiv",),
+        rationale="Structured research plan.",
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.objective == strategy.objective
+    assert result.sub_questions == strategy.sub_questions
+    assert result.constraints == strategy.constraints
+    assert result.source_names == strategy.source_names
+    assert result.rationale == strategy.rationale
+    assert result.search_terms == (
+        "video representation alignment",
+    )

@@ -67,7 +67,7 @@ class ResearchWorkflow:
                 request
             )
 
-            self._query_service.generate_queries(
+            strategy = self._query_service.generate_queries(
                 strategy
             )
 

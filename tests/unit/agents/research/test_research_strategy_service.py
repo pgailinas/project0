@@ -40,26 +40,20 @@ def test_build_strategy_from_complete_request() -> None:
 
     result = service.build_strategy(request)
 
+    assert result.objective == (
+        "How can self-supervised video representations "
+        "be improved for VideoQA?"
+    )
     assert result.concepts == (
-        "Focus on vision-language alignment",
-        "Prefer recent research",
         "video representation learning",
         "multimodal alignment",
         (
             "How can self-supervised video representations "
-            "be improved for VideoQA?"
+            "be improved for VideoQA"
         ),
     )
-    assert result.search_terms == (
-        "Focus on vision-language alignment",
-        "Prefer recent research",
-        "video representation learning",
-        "multimodal alignment",
-        (
-            "How can self-supervised video representations "
-            "be improved for VideoQA?"
-        ),
-    )
+    assert result.search_terms == ()
+    assert result.sub_questions == ()
     assert result.constraints == (
         "Focus on vision-language alignment.",
         "Prefer recent research.",
@@ -87,12 +81,13 @@ def test_build_strategy_with_question_only() -> None:
 
     result = service.build_strategy(request)
 
+    assert result.objective == (
+        "Find relevant VideoQA representation research."
+    )
     assert result.concepts == (
-        "Find relevant VideoQA representation research.",
+        "Find relevant VideoQA representation research",
     )
-    assert result.search_terms == (
-        "Find relevant VideoQA representation research.",
-    )
+    assert result.search_terms == ()
     assert result.constraints == ()
     assert result.source_names == (
         "semantic_scholar",
@@ -122,7 +117,7 @@ def test_build_strategy_preserves_guidance_concept_order() -> None:
         "second concept",
         "first concept",
         "third concept",
-        "Research question.",
+        "Research question",
     )
 
 
@@ -147,7 +142,7 @@ def test_build_strategy_removes_duplicate_guidance_concepts() -> None:
     assert result.concepts == (
         "video representation learning",
         "multimodal alignment",
-        "Research question.",
+        "Research question",
     )
 
 
@@ -171,7 +166,7 @@ def test_build_strategy_strips_guidance_concept_whitespace() -> None:
     assert result.concepts == (
         "video representation learning",
         "multimodal alignment",
-        "Research question.",
+        "Research question",
     )
 
 
@@ -195,7 +190,7 @@ def test_build_strategy_ignores_empty_guidance_concepts() -> None:
 
     assert result.concepts == (
         "video representation learning",
-        "Research question.",
+        "Research question",
     )
 
 
@@ -212,12 +207,11 @@ def test_build_strategy_strips_question_whitespace() -> None:
 
     result = service.build_strategy(request)
 
+    assert result.objective == "Research question."
     assert result.concepts == (
-        "Research question.",
+        "Research question",
     )
-    assert result.search_terms == (
-        "Research question.",
-    )
+    assert result.search_terms == ()
 
 
 def test_build_strategy_avoids_duplicate_question_concept() -> None:
@@ -239,9 +233,7 @@ def test_build_strategy_avoids_duplicate_question_concept() -> None:
     assert result.concepts == (
         "video representation learning",
     )
-    assert result.search_terms == (
-        "video representation learning",
-    )
+    assert result.search_terms == ()
 
 
 def test_build_strategy_preserves_constraints() -> None:
@@ -326,8 +318,10 @@ def test_build_strategy_allows_empty_question() -> None:
 
     result = service.build_strategy(request)
 
+    assert result.objective is None
     assert result.concepts == ()
     assert result.search_terms == ()
+    assert result.sub_questions == ()
     assert result.constraints == ()
     assert result.source_names == ()
 
@@ -349,8 +343,8 @@ def test_build_strategy_allows_whitespace_question() -> None:
     assert result.search_terms == ()
 
 
-def test_build_strategy_search_terms_match_concepts() -> None:
-    """Verify deterministic search terms follow concept ordering."""
+def test_build_strategy_leaves_search_terms_for_query_service() -> None:
+    """Verify strategy construction defers executable query generation."""
 
     request = ResearchRequest(
         question="Research question.",
@@ -366,7 +360,7 @@ def test_build_strategy_search_terms_match_concepts() -> None:
 
     result = service.build_strategy(request)
 
-    assert result.search_terms == result.concepts
+    assert result.search_terms == ()
 
 
 def test_strategy_defaults_to_multiple_research_sources():
@@ -385,3 +379,50 @@ def test_strategy_defaults_to_multiple_research_sources():
         "arxiv",
     )
     
+
+
+def test_build_strategy_separates_directive_guidance_from_concepts() -> None:
+    """Verify directive guidance is retained only as constraints."""
+
+    request = ResearchRequest(
+        question="Research question.",
+        guidance=(
+            "Focus on vision-language alignment. "
+            "Prefer recent research. "
+            "multimodal alignment."
+        ),
+    )
+
+    result = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    ).build_strategy(request)
+
+    assert result.concepts == (
+        "multimodal alignment",
+        "Research question",
+    )
+    assert result.constraints == (
+        "Focus on vision-language alignment.",
+        "Prefer recent research.",
+    )
+
+
+def test_build_strategy_extracts_benchmark_question_concept() -> None:
+    """Verify benchmark research wording produces a concise concept."""
+
+    question = (
+        "Find recent research on aligning video representations "
+        "with text or vision-language semantic spaces for VideoQA."
+    )
+
+    result = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    ).build_strategy(
+        ResearchRequest(question=question)
+    )
+
+    assert result.objective == question
+    assert result.concepts == (
+        "aligning video representations with text or "
+        "vision-language semantic spaces for VideoQA",
+    )

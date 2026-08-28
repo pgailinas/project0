@@ -50,27 +50,27 @@ class StubResearchStrategyService:
 
 
 class StubResearchQueryService:
-    """Return configured research queries."""
+    """Return a configured research strategy with generated queries."""
 
     def __init__(
         self,
-        queries: tuple[str, ...] = (),
+        strategy: ResearchStrategy,
         error: Exception | None = None,
     ) -> None:
-        self._queries = queries
+        self._strategy = strategy
         self._error = error
         self.requests: list[ResearchStrategy] = []
 
     def generate_queries(
         self,
         strategy: ResearchStrategy,
-    ) -> tuple[str, ...]:
+    ) -> ResearchStrategy:
         self.requests.append(strategy)
 
         if self._error is not None:
             raise self._error
 
-        return self._queries
+        return self._strategy
 
 
 class StubResearchSourceService:
@@ -233,6 +233,11 @@ def _research_strategy() -> ResearchStrategy:
         search_terms=(
             "self-supervised video representation VideoQA",
         ),
+        objective=(
+            "How can self-supervised video representations "
+            "be improved for VideoQA?"
+        ),
+        sub_questions=(),
         constraints=(
             "Focus on vision-language alignment.",
         ),
@@ -368,10 +373,7 @@ def _create_workflow(
         strategy_error,
     )
     query_service = StubResearchQueryService(
-        (
-            "self-supervised learning",
-            "video representation learning",
-        ),
+        configured_strategy,
         query_error,
     )
     source_service = StubResearchSourceService(
@@ -851,3 +853,43 @@ def test_research_result_is_created_from_configured_outputs() -> None:
     assert result.papers == (paper,)
     assert result.evaluations == (evaluation,)
     assert result.artifacts == (artifact,)
+
+
+def test_workflow_uses_query_service_strategy_for_downstream_services() -> None:
+    """Workflow should use query-enriched strategy for later stages."""
+
+    original_strategy = ResearchStrategy(
+        concepts=("video representation alignment",),
+        search_terms=(),
+        objective="Find video representation alignment research.",
+        source_names=("arxiv",),
+    )
+    enriched_strategy = ResearchStrategy(
+        concepts=original_strategy.concepts,
+        search_terms=("video representation alignment",),
+        objective=original_strategy.objective,
+        source_names=original_strategy.source_names,
+    )
+
+    components = _create_workflow(
+        strategy=original_strategy,
+    )
+    (
+        workflow,
+        _,
+        query_service,
+        source_service,
+        _,
+        evaluation_service,
+        _,
+    ) = components
+
+    query_service._strategy = enriched_strategy
+
+    request = _research_request()
+    result = workflow.execute(request)
+
+    assert query_service.requests == [original_strategy]
+    assert source_service.requests == [enriched_strategy]
+    assert evaluation_service.requests[0][1] == enriched_strategy
+    assert result.strategy == enriched_strategy
