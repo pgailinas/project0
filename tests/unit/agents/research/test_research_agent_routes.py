@@ -207,6 +207,31 @@ def test_submit_request_route_delegates_form_values(
     assert '<p id="request-id">research-request</p>' in response.text
 
 
+def test_submit_request_route_uses_threadpool_without_changing_delegation(
+    tmp_path: Path,
+) -> None:
+    """Thread-pool execution should preserve request delegation behavior."""
+
+    client, service = _build_client(tmp_path)
+
+    response = client.post(
+        "/agents/research/request",
+        data={
+            "question": "Find relevant research.",
+            "guidance": "Prefer recent research.",
+            "max_results": "15",
+        },
+    )
+
+    assert response.status_code == 200
+    assert service.received_request == {
+        "question": "Find relevant research.",
+        "guidance": "Prefer recent research.",
+        "max_results": 15,
+    }
+    assert '<p id="status">completed</p>' in response.text
+
+
 def test_submit_request_route_accepts_empty_optional_values(
     tmp_path: Path,
 ) -> None:

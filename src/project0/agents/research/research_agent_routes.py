@@ -16,6 +16,7 @@ from pathlib import Path
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from starlette.concurrency import run_in_threadpool
 
 from project0.agents.research.research_agent_ui_service import (
     ResearchAgentUIService,
@@ -68,7 +69,8 @@ def create_research_agent_router(
     ) -> HTMLResponse:
         """Submit a research request and render the resulting state."""
 
-        page = ui_service.submit_request(
+        page = await run_in_threadpool(
+            ui_service.submit_request,
             question=question,
             guidance=guidance,
             max_results=max_results,

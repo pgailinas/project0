@@ -240,6 +240,29 @@ def test_submit_request_route_delegates_form_values(
     assert '<p id="workflow-id">workflow-request</p>' in response.text
 
 
+def test_submit_request_route_uses_threadpool_without_changing_delegation(
+    tmp_path: Path,
+) -> None:
+    """Thread-pool execution should preserve request delegation behavior."""
+
+    client, service = _build_client(tmp_path)
+
+    response = client.post(
+        "/agents/documentation/request",
+        data={
+            "user_request": "Update the documentation.",
+            "target_paths": "docs/Implementation_Status.md",
+        },
+    )
+
+    assert response.status_code == 200
+    assert service.received_request == {
+        "user_request": "Update the documentation.",
+        "target_paths": ("docs/Implementation_Status.md",),
+    }
+    assert '<p id="status">review_required</p>' in response.text
+
+
 def test_submit_request_route_accepts_empty_optional_paths(
     tmp_path: Path,
 ) -> None:
@@ -292,6 +315,33 @@ def test_submit_review_route_delegates_valid_decision(
     )
     assert '<p id="status">completed</p>' in response.text
     assert '<p id="workflow-id">workflow-review</p>' in response.text
+
+
+def test_submit_review_route_uses_threadpool_without_changing_delegation(
+    tmp_path: Path,
+) -> None:
+    """Thread-pool execution should preserve review delegation behavior."""
+
+    client, service = _build_client(tmp_path)
+
+    response = client.post(
+        "/agents/documentation/review",
+        data={
+            "workflow_id": "workflow-4",
+            "proposal_id": "proposal-4",
+            "decision": "approve",
+            "feedback": "Approved.",
+        },
+    )
+
+    assert response.status_code == 200
+    assert service.received_review == {
+        "workflow_id": "workflow-4",
+        "proposal_id": "proposal-4",
+        "decision": ReviewDecision.APPROVE,
+        "feedback": "Approved.",
+    }
+    assert '<p id="status">completed</p>' in response.text
 
 
 def test_submit_review_route_forwards_blank_feedback(

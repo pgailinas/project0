@@ -115,7 +115,4 @@ python -m project0.dashboard.dashboard_app
 9) REGRESSION BASELINE:
 python -m pytest
 
-Expected Result:
-1011 passed, 11 skipped
-
 

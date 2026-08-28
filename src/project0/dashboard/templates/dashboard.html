@@ -95,15 +95,15 @@
                         </div>
                         <div class="status-row">
                             <dt>GPU</dt>
-                            <dd>{{ gpu_name | default("Unavailable") }}</dd>
+                            <dd id="system-status-gpu">{{ gpu_name | default("Unavailable") }}</dd>
                         </div>
                         <div class="status-row">
                             <dt>Utilization</dt>
-                            <dd>{{ gpu_utilization | default("Unavailable") }}</dd>
+                            <dd id="system-status-gpu-utilization">{{ gpu_utilization | default("Unavailable") }}</dd>
                         </div>
                         <div class="status-row">
                             <dt>VRAM</dt>
-                            <dd>{{ gpu_vram | default("Unavailable") }}</dd>
+                            <dd id="system-status-gpu-vram">{{ gpu_vram | default("Unavailable") }}</dd>
                         </div>
                     </dl>
                 </section>

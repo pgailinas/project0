@@ -367,6 +367,50 @@ def test_dashboard_status_returns_expected_json(
     }
 
 
+def test_dashboard_system_status_returns_gpu_status(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    """System status endpoint returns current GPU information."""
+
+    monkeypatch.setattr(
+        "project0.dashboard.dashboard_routes._read_gpu_status",
+        lambda: ("Test GPU", "42%", "512 / 8192 MiB"),
+    )
+    client, _ = _create_test_client(tmp_path)
+
+    response = client.get("/api/system-status")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "gpu_name": "Test GPU",
+        "gpu_utilization": "42%",
+        "gpu_vram": "512 / 8192 MiB",
+    }
+
+
+def test_dashboard_system_status_handles_unavailable_gpu(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    """System status endpoint preserves unavailable GPU values."""
+
+    monkeypatch.setattr(
+        "project0.dashboard.dashboard_routes._read_gpu_status",
+        lambda: ("Unavailable", "Unavailable", "Unavailable"),
+    )
+    client, _ = _create_test_client(tmp_path)
+
+    response = client.get("/api/system-status")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "gpu_name": "Unavailable",
+        "gpu_utilization": "Unavailable",
+        "gpu_vram": "Unavailable",
+    }
+
+
 def test_unknown_route_returns_not_found(
     tmp_path: Path,
 ) -> None:

@@ -308,6 +308,31 @@ def test_dashboard_status_flow(
     }
 
 
+def test_dashboard_system_status_flow(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    """Dashboard system status is available through the real app."""
+
+    monkeypatch.setattr(
+        "project0.dashboard.dashboard_routes._read_gpu_status",
+        lambda: ("Test GPU", "42%", "512 / 8192 MiB"),
+    )
+    client, _ = _create_integration_client(
+        tmp_path,
+        monkeypatch,
+    )
+
+    response = client.get("/api/system-status")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "gpu_name": "Test GPU",
+        "gpu_utilization": "42%",
+        "gpu_vram": "512 / 8192 MiB",
+    }
+
+
 def test_dashboard_openapi_flow(
     tmp_path: Path,
     monkeypatch,
@@ -332,6 +357,7 @@ def test_dashboard_openapi_flow(
     assert "/agents/documentation/review" in paths
     assert "/agents/{agent_identifier}" in paths
     assert "/api/status" in paths
+    assert "/api/system-status" in paths
 
 
 def test_dashboard_unknown_route_flow(

@@ -475,6 +475,41 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
+    const updateSystemStatus = async () => {
+        try {
+            const response = await fetch("/api/system-status");
+
+            if (!response.ok) {
+                return;
+            }
+
+            const status = await response.json();
+            const gpuName = document.getElementById(
+                "system-status-gpu"
+            );
+            const gpuUtilization = document.getElementById(
+                "system-status-gpu-utilization"
+            );
+            const gpuVram = document.getElementById(
+                "system-status-gpu-vram"
+            );
+
+            if (gpuName) {
+                gpuName.textContent = status.gpu_name;
+            }
+
+            if (gpuUtilization) {
+                gpuUtilization.textContent = status.gpu_utilization;
+            }
+
+            if (gpuVram) {
+                gpuVram.textContent = status.gpu_vram;
+            }
+        } catch (error) {
+            return;
+        }
+    };
+
     form.addEventListener("submit", (event) => {
         event.preventDefault();
 
@@ -512,6 +547,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 "workflow-progress--client-processing"
             );
         }
+
+        updateSystemStatus();
+        window.setInterval(updateSystemStatus, 2000);
 
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {

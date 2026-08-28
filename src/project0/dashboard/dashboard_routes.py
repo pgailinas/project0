@@ -350,4 +350,19 @@ def create_dashboard_router(
             "project_root": str(project_root),
         }
 
+    @router.get(
+        "/api/system-status",
+        name="dashboard_system_status",
+    )
+    async def dashboard_system_status() -> dict[str, object]:
+        """Return current Project0 system status information."""
+
+        gpu_name, gpu_utilization, gpu_vram = _read_gpu_status()
+
+        return {
+            "gpu_name": gpu_name,
+            "gpu_utilization": gpu_utilization,
+            "gpu_vram": gpu_vram,
+        }
+
     return router

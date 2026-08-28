@@ -16,6 +16,7 @@ from pathlib import Path
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from starlette.concurrency import run_in_threadpool
 
 from project0.agents.documentation.documentation_agent_ui_service import (
     DocumentationAgentUIService,
@@ -86,7 +87,8 @@ def create_documentation_agent_router(
     ) -> HTMLResponse:
         """Submit a documentation request and render the resulting state."""
 
-        page = ui_service.submit_request(
+        page = await run_in_threadpool(
+            ui_service.submit_request,
             user_request=user_request,
             target_paths=_parse_target_paths(target_paths),
         )
@@ -122,7 +124,8 @@ def create_documentation_agent_router(
                 error_message=f"Unsupported review decision: {decision}",
             )
         else:
-            page = ui_service.submit_review_decision(
+            page = await run_in_threadpool(
+                ui_service.submit_review_decision,
                 workflow_id=workflow_id,
                 proposal_id=proposal_id,
                 decision=review_decision,
