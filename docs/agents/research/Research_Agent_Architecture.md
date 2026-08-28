@@ -2,7 +2,7 @@
 
 **Version:** 0.3  
 **Owner:** Project0  
-**Last Updated:** 2026-08-26
+**Last Updated:** 2026-08-27
 
 ------------------------------------------------------------------------
 
@@ -117,24 +117,28 @@ flowchart TD
 3.  The Platform Dispatcher dispatches the requested Research Workflow.
 4.  The Research Strategy Service analyzes the Research Request and
     produces a Research Strategy.
-5.  The Research Source Service searches supported external research
+5.  The Research Query Service deterministically enriches the Research
+    Strategy with provider-ready search terms.
+6.  The Research Source Service searches supported external research
     sources.
-6.  The Paper Metadata Service retrieves and normalizes available paper
+7.  The Paper Metadata Service retrieves and normalizes available paper
     metadata.
-7.  The Knowledge Service retrieves relevant existing Project0 research
+8.  The Knowledge Service retrieves relevant existing Project0 research
     context when applicable.
-8.  The Research Evaluation Service evaluates and ranks candidate papers
-    against the research question.
-9.  The Reasoning Service performs AI-assisted research analysis where
+9.  The Research Evaluation Service evaluates candidate papers against
+    the research question using a bounded relevance scale.
+10. The Research Workflow ranks evaluated papers by relevance and retains
+    the configured maximum number of results.
+11. The Reasoning Service performs AI-assisted research analysis where
     required.
-10. The Research Artifact Service generates structured research
+12. The Research Artifact Service generates structured research
+    artifacts from the retained evaluations.
+13. Source and citation information is preserved with generated research
     artifacts.
-11. Source and citation information is preserved with generated research
-    artifacts.
-12. The Validation Service validates required artifact structure and
+14. The Validation Service validates required artifact structure and
     source information.
-13. The Research Workflow returns a structured Research Result.
-14. Research results are presented for human review through the
+15. The Research Workflow returns a structured Research Result.
+16. Research results are presented for human review through the
     Dashboard Framework.
 
 ------------------------------------------------------------------------
@@ -255,9 +259,9 @@ Transforms a Research Request into a structured Research Strategy.
 Responsibilities:
 
 -   Analyze the research request.
--   Identify relevant research concepts and terminology.
+-   Identify the research objective and relevant research concepts.
+-   Identify explicit research sub-questions when present.
 -   Identify optional constraints and focus areas.
--   Generate search concepts for supported research sources.
 -   Produce a structured Research Strategy.
 
 ------------------------------------------------------------------------
@@ -269,13 +273,12 @@ provider-ready research search queries.
 
 Responsibilities:
 
--   Convert research concepts into focused search queries.
--   Generate multiple search perspectives for a research topic.
+-   Convert research concepts into focused search terms.
 -   Preserve deterministic query ordering.
 -   Remove duplicate query terms.
 -   Remain independent from external research source providers.
--   Return structured query results for downstream Research Source
-    Service execution.
+-   Return an enriched Research Strategy containing provider-ready
+    search terms for downstream Research Source Service execution.
 
 The Research Query Service separates research intent definition from
 external search execution. The Research Strategy Service determines what
@@ -327,8 +330,10 @@ Research Strategy.
 
 Responsibilities:
 
--   Evaluate paper relevance.
--   Rank candidate papers.
+-   Evaluate paper relevance using a bounded relevance scale.
+-   Distinguish direct research-question alignment from partial,
+    adjacent, or topical relevance.
+-   Apply consistent relevance criteria across evaluated papers.
 -   Explain relevance to the research question.
 -   Compare research methods and approaches.
 -   Identify potential research gaps.
@@ -358,10 +363,14 @@ Coordinates the complete Research Agent execution pipeline.
 
 Responsibilities:
 
--   Coordinate Research Strategy, Research Source, Paper Metadata,
-    Knowledge, Reasoning, Research Evaluation, Validation, and Research
-    Artifact services.
+-   Coordinate Research Strategy, Research Query, Research Source, Paper
+    Metadata, Knowledge, Reasoning, Research Evaluation, Validation, and
+    Research Artifact services.
 -   Preserve internal workflow state.
+-   Preserve all discovered source references for traceability.
+-   Rank evaluated papers by relevance and retain the configured maximum
+    number of results.
+-   Generate research artifacts from retained evaluations.
 -   Preserve source and citation information.
 -   Produce immutable Research Results.
 -   Support human review of research outputs.

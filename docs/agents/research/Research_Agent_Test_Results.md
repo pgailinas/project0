@@ -169,6 +169,7 @@ Verified:
 
 -   Provider abstraction remains intact.
 -   Semantic Scholar provider supports production-oriented retrieval.
+-   arXiv provider supports external research source retrieval.
 -   Stub provider supports deterministic automated testing.
 -   Research workflow validation does not require external provider
     availability.
@@ -225,6 +226,8 @@ Validated workflow:
 Research Request
         |
         +--> Research Strategy Service
+        |
+        +--> Research Query Service
         |
         +--> Research Source Service
         |

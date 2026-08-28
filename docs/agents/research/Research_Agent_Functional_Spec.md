@@ -2,7 +2,7 @@
 
 **Version:** 0.3  
 **Owner:** Project0  
-**Last Updated:** 2026-08-26
+**Last Updated:** 2026-08-27
 
 ---
 
@@ -53,8 +53,9 @@ The Research Agent shall:
 
 -   Accept and analyze research questions.
 -   Identify relevant research concepts and terminology.
+-   Identify the research objective and explicit research sub-questions.
 -   Generate a research strategy.
--   Generate deterministic research queries from the research strategy.
+-   Generate deterministic research search terms from the research strategy.
 -   Search supported external research sources.
 -   Combine results from multiple configured research source providers.
 -   Support pluggable research source providers through defined service
@@ -63,9 +64,14 @@ The Research Agent shall:
     demonstrations, and validation.
 -   Retrieve available paper metadata.
 -   Identify research papers relevant to the research question.
--   Evaluate and rank paper relevance.
+-   Evaluate paper relevance using a bounded relevance scale.
+-   Distinguish direct research-question alignment from partial,
+    adjacent, or topical relevance.
 -   Evaluate candidate papers in bounded batches and combine validated
     batch results.
+-   Rank evaluated papers by relevance and retain the configured maximum
+    number of results.
+-   Preserve all discovered source references for traceability.
 -   Retry research evaluation once within a batch when a reasoning
     provider response violates required source traceability or coverage
     constraints.
@@ -123,6 +129,8 @@ Candidate Paper Identification
       ↓
 Paper Relevance Evaluation
       ↓
+Relevance Ranking and Result Selection
+      ↓
 Research Knowledge Retrieval
       ↓
 Paper Analysis
@@ -146,7 +154,7 @@ The Research Agent is successful when it:
 
 -   Correctly interprets a research question.
 -   Generates an appropriate research strategy.
--   Generates useful and deterministic research queries from the
+-   Generates useful and deterministic research search terms from the
     research strategy.
 -   Discovers relevant papers through supported research sources.
 -   Supports multiple research source providers without changing the
@@ -154,7 +162,10 @@ The Research Agent is successful when it:
 -   Combines usable results from multiple configured research source
     providers while preserving source identity.
 -   Retrieves and preserves available paper metadata.
--   Identifies and ranks papers relevant to the research question.
+-   Identifies and ranks papers relevant to the research question using
+    consistent semantic relevance criteria.
+-   Retains the configured maximum number of highest-relevance papers
+    while preserving all discovered source references.
 -   Produces useful, evidence-grounded paper summaries.
 -   Generates useful research comparison artifacts.
 -   Preserves citation and source information.

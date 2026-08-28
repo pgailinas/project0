@@ -2,7 +2,7 @@
 
 **Version:** 0.2  
 **Owner:** Project0  
-**Last Updated:** 2026-08-26
+**Last Updated:** 2026-08-27
 
 ------------------------------------------------------------------------
 
@@ -67,10 +67,15 @@ For example, `RA-FUN-001` may be verified by both `INT-RA-FUN-001` and
 The Research Agent shall demonstrate the ability to:
 
 -   Process research requests through the Project0 workflow.
--   Generate an appropriate research strategy.
+-   Generate an appropriate structured research strategy.
+-   Generate deterministic research search terms from the research
+    strategy.
 -   Search supported external research sources.
 -   Retrieve and normalize available paper metadata.
 -   Identify and rank papers relevant to the research question.
+-   Verify bounded semantic relevance scoring and normalization.
+-   Verify configured maximum-result selection while preserving all
+    discovered source references.
 -   Verify bounded batch processing for research evaluation.
 -   Verify bounded retry behavior for invalid or incomplete research
     evaluation responses within a batch.
@@ -92,10 +97,13 @@ This test plan covers:
 
 -   Research request processing
 -   Research strategy generation
+-   Deterministic research query generation
 -   External research source integration
 -   Paper metadata retrieval
 -   Candidate paper identification
 -   Paper relevance evaluation
+-   Research relevance score normalization
+-   Maximum-result ranking and selection
 -   Research evaluation batch processing
 -   Research evaluation retry handling
 -   Citation and source tracking
@@ -241,10 +249,11 @@ topic.
 
 The Research Agent shall:
 
+-   identify the research objective
 -   identify relevant research concepts
--   identify relevant terminology
+-   identify explicit research sub-questions when present
 -   preserve optional constraints and focus areas
--   generate search concepts for supported research sources
+-   generate deterministic provider-ready research search terms
 
 #### Pass Criteria
 
@@ -301,15 +310,22 @@ The Research Agent shall:
 
 -   evaluate candidate papers in bounded batches
 -   combine validated batch results
--   evaluate paper relevance
--   rank candidate papers
+-   evaluate paper relevance using the defined bounded relevance scale
+-   normalize valid provider relevance scores for downstream use
+-   distinguish direct research-question alignment from partial,
+    adjacent, or topical relevance
+-   rank candidate papers by relevance
+-   retain the configured maximum number of highest-relevance papers
+-   preserve all discovered source references for traceability
 -   provide relevance explanations
 -   preserve references to supporting paper information
 
 #### Pass Criteria
 
-Research evaluations are traceable to candidate papers and are
-consistent with the submitted research question.
+Research evaluations are traceable to candidate papers, use consistent
+semantic relevance criteria, preserve relevance ordering after score
+normalization, and retain the configured maximum number of results
+without discarding discovered source references.
 
 ------------------------------------------------------------------------
 
@@ -1126,6 +1142,7 @@ acceptance testing.
 Exploratory AI testing may require human judgment for:
 
 -   research relevance
+-   semantic relevance ranking quality
 -   factual grounding
 -   paper summary usefulness
 -   research comparison quality
@@ -1220,9 +1237,14 @@ The Research Agent may be considered complete when:
 
 -   Research requests process successfully.
 -   Research strategies are generated correctly.
+-   Deterministic research search terms are generated correctly.
 -   Relevant candidate papers can be discovered.
 -   Paper metadata can be retrieved and normalized.
--   Research relevance evaluation operates correctly.
+-   Research relevance evaluation and score normalization operate
+    correctly.
+-   Highest-relevance papers are retained according to the configured
+    maximum result count while discovered source references are
+    preserved.
 -   Structured research artifacts are generated.
 
 ### Research Integrity
