@@ -1997,7 +1997,7 @@
 <h1 id="research-agent-architecture">Research Agent Architecture</h1>
 <p><strong>Version:</strong> 0.3<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-26</p>
+<strong>Last Updated:</strong> 2026-08-27</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="objective">Objective</h3>
@@ -2095,18 +2095,22 @@ Documentation Agent functionality.</p>
 <li>The Platform Dispatcher dispatches the requested Research Workflow.</li>
 <li>The Research Strategy Service analyzes the Research Request and
     produces a Research Strategy.</li>
+<li>The Research Query Service deterministically enriches the Research
+    Strategy with provider-ready search terms.</li>
 <li>The Research Source Service searches supported external research
     sources.</li>
 <li>The Paper Metadata Service retrieves and normalizes available paper
     metadata.</li>
 <li>The Knowledge Service retrieves relevant existing Project0 research
     context when applicable.</li>
-<li>The Research Evaluation Service evaluates and ranks candidate papers
-    against the research question.</li>
+<li>The Research Evaluation Service evaluates candidate papers against
+    the research question using a bounded relevance scale.</li>
+<li>The Research Workflow ranks evaluated papers by relevance and retains
+    the configured maximum number of results.</li>
 <li>The Reasoning Service performs AI-assisted research analysis where
     required.</li>
 <li>The Research Artifact Service generates structured research
-    artifacts.</li>
+    artifacts from the retained evaluations.</li>
 <li>Source and citation information is preserved with generated research
     artifacts.</li>
 <li>The Validation Service validates required artifact structure and
@@ -2211,9 +2215,9 @@ reasoning and does not directly access external research sources.</p>
 <p>Responsibilities:</p>
 <ul>
 <li>Analyze the research request.</li>
-<li>Identify relevant research concepts and terminology.</li>
+<li>Identify the research objective and relevant research concepts.</li>
+<li>Identify explicit research sub-questions when present.</li>
 <li>Identify optional constraints and focus areas.</li>
-<li>Generate search concepts for supported research sources.</li>
 <li>Produce a structured Research Strategy.</li>
 </ul>
 <hr />
@@ -2222,13 +2226,12 @@ reasoning and does not directly access external research sources.</p>
 provider-ready research search queries.</p>
 <p>Responsibilities:</p>
 <ul>
-<li>Convert research concepts into focused search queries.</li>
-<li>Generate multiple search perspectives for a research topic.</li>
+<li>Convert research concepts into focused search terms.</li>
 <li>Preserve deterministic query ordering.</li>
 <li>Remove duplicate query terms.</li>
 <li>Remain independent from external research source providers.</li>
-<li>Return structured query results for downstream Research Source
-    Service execution.</li>
+<li>Return an enriched Research Strategy containing provider-ready
+    search terms for downstream Research Source Service execution.</li>
 </ul>
 <p>The Research Query Service separates research intent definition from
 external search execution. The Research Strategy Service determines what
@@ -2268,8 +2271,10 @@ papers.</p>
 Research Strategy.</p>
 <p>Responsibilities:</p>
 <ul>
-<li>Evaluate paper relevance.</li>
-<li>Rank candidate papers.</li>
+<li>Evaluate paper relevance using a bounded relevance scale.</li>
+<li>Distinguish direct research-question alignment from partial,
+    adjacent, or topical relevance.</li>
+<li>Apply consistent relevance criteria across evaluated papers.</li>
 <li>Explain relevance to the research question.</li>
 <li>Compare research methods and approaches.</li>
 <li>Identify potential research gaps.</li>
@@ -2293,10 +2298,14 @@ Research Strategy.</p>
 <p>Coordinates the complete Research Agent execution pipeline.</p>
 <p>Responsibilities:</p>
 <ul>
-<li>Coordinate Research Strategy, Research Source, Paper Metadata,
-    Knowledge, Reasoning, Research Evaluation, Validation, and Research
-    Artifact services.</li>
+<li>Coordinate Research Strategy, Research Query, Research Source, Paper
+    Metadata, Knowledge, Reasoning, Research Evaluation, Validation, and
+    Research Artifact services.</li>
 <li>Preserve internal workflow state.</li>
+<li>Preserve all discovered source references for traceability.</li>
+<li>Rank evaluated papers by relevance and retain the configured maximum
+    number of results.</li>
+<li>Generate research artifacts from retained evaluations.</li>
 <li>Preserve source and citation information.</li>
 <li>Produce immutable Research Results.</li>
 <li>Support human review of research outputs.</li>

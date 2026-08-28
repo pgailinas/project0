@@ -1643,7 +1643,7 @@
 <h1 id="research-agent-functional-specification">Research Agent Functional Specification</h1>
 <p><strong>Version:</strong> 0.3<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-26</p>
+<strong>Last Updated:</strong> 2026-08-27</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="mission">Mission</h3>
@@ -1684,8 +1684,9 @@ dashboard infrastructure.</p>
 <ul>
 <li>Accept and analyze research questions.</li>
 <li>Identify relevant research concepts and terminology.</li>
+<li>Identify the research objective and explicit research sub-questions.</li>
 <li>Generate a research strategy.</li>
-<li>Generate deterministic research queries from the research strategy.</li>
+<li>Generate deterministic research search terms from the research strategy.</li>
 <li>Search supported external research sources.</li>
 <li>Combine results from multiple configured research source providers.</li>
 <li>Support pluggable research source providers through defined service
@@ -1694,9 +1695,14 @@ dashboard infrastructure.</p>
     demonstrations, and validation.</li>
 <li>Retrieve available paper metadata.</li>
 <li>Identify research papers relevant to the research question.</li>
-<li>Evaluate and rank paper relevance.</li>
+<li>Evaluate paper relevance using a bounded relevance scale.</li>
+<li>Distinguish direct research-question alignment from partial,
+    adjacent, or topical relevance.</li>
 <li>Evaluate candidate papers in bounded batches and combine validated
     batch results.</li>
+<li>Rank evaluated papers by relevance and retain the configured maximum
+    number of results.</li>
+<li>Preserve all discovered source references for traceability.</li>
 <li>Retry research evaluation once within a batch when a reasoning
     provider response violates required source traceability or coverage
     constraints.</li>
@@ -1751,19 +1757,21 @@ develop an appropriate research strategy.</p>
 </span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>      ↓
 </span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>Paper Relevance Evaluation
 </span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>      ↓
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>Research Knowledge Retrieval
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>Relevance Ranking and Result Selection
 </span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>      ↓
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>Paper Analysis
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>Research Knowledge Retrieval
 </span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>      ↓
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>Research Artifact Generation
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>Paper Analysis
 </span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>      ↓
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>Citation and Source Tracking
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>Research Artifact Generation
 </span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>      ↓
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>Validation Service
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>Citation and Source Tracking
 </span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>      ↓
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>User Review
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>Validation Service
 </span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>      ↓
-</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>Research Result
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>User Review
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>      ↓
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>Research Result
 </span></code></pre></div>
 <hr />
 <h2 id="10-success-criteria">10. Success Criteria</h2>
@@ -1771,7 +1779,7 @@ develop an appropriate research strategy.</p>
 <ul>
 <li>Correctly interprets a research question.</li>
 <li>Generates an appropriate research strategy.</li>
-<li>Generates useful and deterministic research queries from the
+<li>Generates useful and deterministic research search terms from the
     research strategy.</li>
 <li>Discovers relevant papers through supported research sources.</li>
 <li>Supports multiple research source providers without changing the
@@ -1779,7 +1787,10 @@ develop an appropriate research strategy.</p>
 <li>Combines usable results from multiple configured research source
     providers while preserving source identity.</li>
 <li>Retrieves and preserves available paper metadata.</li>
-<li>Identifies and ranks papers relevant to the research question.</li>
+<li>Identifies and ranks papers relevant to the research question using
+    consistent semantic relevance criteria.</li>
+<li>Retains the configured maximum number of highest-relevance papers
+    while preserving all discovered source references.</li>
 <li>Produces useful, evidence-grounded paper summaries.</li>
 <li>Generates useful research comparison artifacts.</li>
 <li>Preserves citation and source information.</li>

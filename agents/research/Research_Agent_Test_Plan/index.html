@@ -6301,7 +6301,7 @@
 <h1 id="research-agent-test-plan">Research Agent Test Plan</h1>
 <p><strong>Version:</strong> 0.2<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-26</p>
+<strong>Last Updated:</strong> 2026-08-27</p>
 <hr />
 <h2 id="executive-summary">Executive Summary</h2>
 <p>This document defines the verification criteria and test strategy for
@@ -6352,10 +6352,15 @@ implemented at a specific layer:</p>
 <p>The Research Agent shall demonstrate the ability to:</p>
 <ul>
 <li>Process research requests through the Project0 workflow.</li>
-<li>Generate an appropriate research strategy.</li>
+<li>Generate an appropriate structured research strategy.</li>
+<li>Generate deterministic research search terms from the research
+    strategy.</li>
 <li>Search supported external research sources.</li>
 <li>Retrieve and normalize available paper metadata.</li>
 <li>Identify and rank papers relevant to the research question.</li>
+<li>Verify bounded semantic relevance scoring and normalization.</li>
+<li>Verify configured maximum-result selection while preserving all
+    discovered source references.</li>
 <li>Verify bounded batch processing for research evaluation.</li>
 <li>Verify bounded retry behavior for invalid or incomplete research
     evaluation responses within a batch.</li>
@@ -6374,10 +6379,13 @@ implemented at a specific layer:</p>
 <ul>
 <li>Research request processing</li>
 <li>Research strategy generation</li>
+<li>Deterministic research query generation</li>
 <li>External research source integration</li>
 <li>Paper metadata retrieval</li>
 <li>Candidate paper identification</li>
 <li>Paper relevance evaluation</li>
+<li>Research relevance score normalization</li>
+<li>Maximum-result ranking and selection</li>
 <li>Research evaluation batch processing</li>
 <li>Research evaluation retry handling</li>
 <li>Citation and source tracking</li>
@@ -6483,10 +6491,11 @@ topic.</p>
 <h4 id="expected-behavior_1">Expected Behavior</h4>
 <p>The Research Agent shall:</p>
 <ul>
+<li>identify the research objective</li>
 <li>identify relevant research concepts</li>
-<li>identify relevant terminology</li>
+<li>identify explicit research sub-questions when present</li>
 <li>preserve optional constraints and focus areas</li>
-<li>generate search concepts for supported research sources</li>
+<li>generate deterministic provider-ready research search terms</li>
 </ul>
 <h4 id="pass-criteria_1">Pass Criteria</h4>
 <p>The generated Research Strategy is consistent with the submitted
@@ -6529,14 +6538,21 @@ question.</p>
 <ul>
 <li>evaluate candidate papers in bounded batches</li>
 <li>combine validated batch results</li>
-<li>evaluate paper relevance</li>
-<li>rank candidate papers</li>
+<li>evaluate paper relevance using the defined bounded relevance scale</li>
+<li>normalize valid provider relevance scores for downstream use</li>
+<li>distinguish direct research-question alignment from partial,
+    adjacent, or topical relevance</li>
+<li>rank candidate papers by relevance</li>
+<li>retain the configured maximum number of highest-relevance papers</li>
+<li>preserve all discovered source references for traceability</li>
 <li>provide relevance explanations</li>
 <li>preserve references to supporting paper information</li>
 </ul>
 <h4 id="pass-criteria_3">Pass Criteria</h4>
-<p>Research evaluations are traceable to candidate papers and are
-consistent with the submitted research question.</p>
+<p>Research evaluations are traceable to candidate papers, use consistent
+semantic relevance criteria, preserve relevance ordering after score
+normalization, and retain the configured maximum number of results
+without discarding discovered source references.</p>
 <hr />
 <h3 id="55-ra-fun-005-paper-summary-generation">5.5 RA-FUN-005: Paper Summary Generation</h3>
 <h4 id="verification-layers_4">Verification Layers</h4>
@@ -7130,6 +7146,7 @@ acceptance testing.</p>
 <p>Exploratory AI testing may require human judgment for:</p>
 <ul>
 <li>research relevance</li>
+<li>semantic relevance ranking quality</li>
 <li>factual grounding</li>
 <li>paper summary usefulness</li>
 <li>research comparison quality</li>
@@ -7198,9 +7215,14 @@ platform and Documentation Agent test baseline.</p>
 <ul>
 <li>Research requests process successfully.</li>
 <li>Research strategies are generated correctly.</li>
+<li>Deterministic research search terms are generated correctly.</li>
 <li>Relevant candidate papers can be discovered.</li>
 <li>Paper metadata can be retrieved and normalized.</li>
-<li>Research relevance evaluation operates correctly.</li>
+<li>Research relevance evaluation and score normalization operate
+    correctly.</li>
+<li>Highest-relevance papers are retained according to the configured
+    maximum result count while discovered source references are
+    preserved.</li>
 <li>Structured research artifacts are generated.</li>
 </ul>
 <h3 id="research-integrity">Research Integrity</h3>
