@@ -12,10 +12,15 @@
 from datetime import UTC, datetime
 
 from project0.models.research_models import (
+    ExistingResearchContext,
     PaperMetadata,
     ResearchArtifact,
     ResearchArtifactType,
+    ResearchContextDocument,
+    ResearchContextDocumentType,
+    ResearchContextExtractionStatus,
     ResearchEvaluation,
+    ResearchFinding,
     ResearchRequest,
     ResearchResult,
     ResearchSourceReference,
@@ -36,17 +41,74 @@ class StubResearchStrategyService:
         self._strategy = strategy
         self._error = error
         self.requests: list[ResearchRequest] = []
+        self.contexts: list[ExistingResearchContext | None] = []
 
     def build_strategy(
         self,
         request: ResearchRequest,
+        context: ExistingResearchContext | None = None,
     ) -> ResearchStrategy:
         self.requests.append(request)
+        self.contexts.append(context)
 
         if self._error is not None:
             raise self._error
 
         return self._strategy
+
+
+class StubResearchContextIngestionService:
+    """Return a configured normalized research context document."""
+
+    def __init__(
+        self,
+        document: ResearchContextDocument,
+        error: Exception | None = None,
+    ) -> None:
+        self._document = document
+        self._error = error
+        self.requests: list[tuple[str, bytes]] = []
+
+    def ingest(
+        self,
+        source_name: str,
+        content: bytes,
+    ) -> ResearchContextDocument:
+        self.requests.append(
+            (
+                source_name,
+                content,
+            )
+        )
+
+        if self._error is not None:
+            raise self._error
+
+        return self._document
+
+
+class StubExistingResearchContextAnalysisService:
+    """Return configured existing research context analysis."""
+
+    def __init__(
+        self,
+        context: ExistingResearchContext,
+        error: Exception | None = None,
+    ) -> None:
+        self._context = context
+        self._error = error
+        self.requests: list[ResearchContextDocument] = []
+
+    def analyze(
+        self,
+        document: ResearchContextDocument,
+    ) -> ExistingResearchContext:
+        self.requests.append(document)
+
+        if self._error is not None:
+            raise self._error
+
+        return self._context
 
 
 class StubResearchQueryService:
@@ -248,6 +310,37 @@ def _research_strategy() -> ResearchStrategy:
     )
 
 
+def _context_document() -> ResearchContextDocument:
+    """Create a normalized research context document for workflow tests."""
+
+    return ResearchContextDocument(
+        source_name="prior_research.txt",
+        document_type=ResearchContextDocumentType.TEXT,
+        extraction_method="utf-8",
+        extracted_text=(
+            "Prior research identified limited semantic alignment."
+        ),
+        extraction_status=(
+            ResearchContextExtractionStatus.COMPLETED
+        ),
+    )
+
+
+def _existing_research_context() -> ExistingResearchContext:
+    """Create existing research context for workflow tests."""
+
+    return ExistingResearchContext(
+        limitations=(
+            ResearchFinding(
+                content=(
+                    "Video representations were not aligned with "
+                    "language representations."
+                ),
+            ),
+        ),
+    )
+
+
 def _source_reference(
     source_id: str = "2401.12345",
     title: str = "Example Paper",
@@ -330,6 +423,8 @@ def _create_workflow(
     metadata_error: Exception | None = None,
     evaluation_error: Exception | None = None,
     artifact_error: Exception | None = None,
+    context_ingestion_service=None,
+    context_analysis_service=None,
 ):
     """Create a workflow and its test doubles."""
 
@@ -400,6 +495,8 @@ def _create_workflow(
         metadata_service=metadata_service,
         evaluation_service=evaluation_service,
         artifact_service=artifact_service,
+        context_ingestion_service=context_ingestion_service,
+        context_analysis_service=context_analysis_service,
     )
 
     return (
@@ -893,3 +990,139 @@ def test_workflow_uses_query_service_strategy_for_downstream_services() -> None:
     assert source_service.requests == [enriched_strategy]
     assert evaluation_service.requests[0][1] == enriched_strategy
     assert result.strategy == enriched_strategy
+
+
+def test_workflow_ingests_analyzes_and_forwards_context() -> None:
+    """Context input is normalized, analyzed, and sent to strategy."""
+
+    document = _context_document()
+    context = _existing_research_context()
+    ingestion_service = StubResearchContextIngestionService(
+        document
+    )
+    context_analysis_service = (
+        StubExistingResearchContextAnalysisService(
+            context
+        )
+    )
+
+    components = _create_workflow(
+        context_ingestion_service=ingestion_service,
+        context_analysis_service=context_analysis_service,
+    )
+    workflow = components[0]
+    strategy_service = components[1]
+
+    content = b"Prior research context."
+    result = workflow.execute(
+        _research_request(),
+        context_source_name="prior_research.txt",
+        context_content=content,
+    )
+
+    assert result.status is ResearchStatus.COMPLETED
+    assert ingestion_service.requests == [
+        (
+            "prior_research.txt",
+            content,
+        )
+    ]
+    assert context_analysis_service.requests == [
+        document
+    ]
+    assert strategy_service.contexts == [
+        context
+    ]
+
+
+def test_workflow_rejects_partial_context_input() -> None:
+    """Context source name and content must be supplied together."""
+
+    workflow = _create_workflow()[0]
+
+    source_only_result = workflow.execute(
+        _research_request(),
+        context_source_name="prior_research.txt",
+    )
+    content_only_result = workflow.execute(
+        _research_request(),
+        context_content=b"Prior research context.",
+    )
+
+    assert source_only_result.status is ResearchStatus.FAILED
+    assert source_only_result.error_message == (
+        "Research context source name and content "
+        "must be provided together."
+    )
+    assert content_only_result.status is ResearchStatus.FAILED
+    assert content_only_result.error_message == (
+        "Research context source name and content "
+        "must be provided together."
+    )
+
+
+def test_context_ingestion_failure_stops_workflow() -> None:
+    """A context ingestion failure stops later workflow services."""
+
+    ingestion_service = StubResearchContextIngestionService(
+        _context_document(),
+        ValueError("Context ingestion failed."),
+    )
+    context_analysis_service = (
+        StubExistingResearchContextAnalysisService(
+            _existing_research_context()
+        )
+    )
+
+    components = _create_workflow(
+        context_ingestion_service=ingestion_service,
+        context_analysis_service=context_analysis_service,
+    )
+    workflow = components[0]
+    strategy_service = components[1]
+    query_service = components[2]
+
+    result = workflow.execute(
+        _research_request(),
+        context_source_name="prior_research.txt",
+        context_content=b"Prior research context.",
+    )
+
+    assert result.status is ResearchStatus.FAILED
+    assert result.error_message == "Context ingestion failed."
+    assert context_analysis_service.requests == []
+    assert strategy_service.requests == []
+    assert query_service.requests == []
+
+
+def test_context_analysis_failure_stops_workflow() -> None:
+    """A context analysis failure stops later workflow services."""
+
+    ingestion_service = StubResearchContextIngestionService(
+        _context_document()
+    )
+    context_analysis_service = (
+        StubExistingResearchContextAnalysisService(
+            _existing_research_context(),
+            ValueError("Context analysis failed."),
+        )
+    )
+
+    components = _create_workflow(
+        context_ingestion_service=ingestion_service,
+        context_analysis_service=context_analysis_service,
+    )
+    workflow = components[0]
+    strategy_service = components[1]
+    query_service = components[2]
+
+    result = workflow.execute(
+        _research_request(),
+        context_source_name="prior_research.txt",
+        context_content=b"Prior research context.",
+    )
+
+    assert result.status is ResearchStatus.FAILED
+    assert result.error_message == "Context analysis failed."
+    assert strategy_service.requests == []
+    assert query_service.requests == []

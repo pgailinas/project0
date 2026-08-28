@@ -14,8 +14,12 @@ from __future__ import annotations
 from typing import Protocol
 
 from project0.models.research_models import (
+    ExistingResearchContext,
+    PaperAnalysis,
     PaperMetadata,
     ResearchArtifact,
+    ResearchContextDocument,
+    ResearchDirectionAnalysis,
     ResearchEvaluation,
     ResearchRequest,
     ResearchResult,
@@ -24,12 +28,66 @@ from project0.models.research_models import (
 )
 
 
+class ResearchContextIngestionServiceProtocol(Protocol):
+    """Interface for research context document ingestion services."""
+
+    def ingest(
+        self,
+        source_name: str,
+        content: bytes,
+    ) -> ResearchContextDocument:
+        """Ingest and normalize an existing research document."""
+
+        ...
+
+
+class ExistingResearchContextAnalysisServiceProtocol(Protocol):
+    """Interface for existing research context analysis services."""
+
+    def analyze(
+        self,
+        document: ResearchContextDocument,
+    ) -> ExistingResearchContext:
+        """Analyze a normalized existing research document."""
+
+        ...
+
+
+class PaperAnalysisServiceProtocol(Protocol):
+    """Interface for retained-paper analysis services."""
+
+    def analyze(
+        self,
+        request: ResearchRequest,
+        strategy: ResearchStrategy,
+        papers: tuple[PaperMetadata, ...],
+    ) -> tuple[PaperAnalysis, ...]:
+        """Analyze retained papers for a research request."""
+
+        ...
+
+
+class ResearchDirectionAnalysisServiceProtocol(Protocol):
+    """Interface for research direction analysis services."""
+
+    def analyze(
+        self,
+        request: ResearchRequest,
+        context: ExistingResearchContext | None,
+        paper_analyses: tuple[PaperAnalysis, ...],
+    ) -> ResearchDirectionAnalysis:
+        """Analyze evidence and identify research directions."""
+
+        ...
+
+
 class ResearchStrategyServiceProtocol(Protocol):
     """Interface for Research Agent strategy services."""
 
     def build_strategy(
         self,
         request: ResearchRequest,
+        context: ExistingResearchContext | None = None,
     ) -> ResearchStrategy:
         """Build a research strategy from a research request."""
 
@@ -105,6 +163,8 @@ class ResearchWorkflowProtocol(Protocol):
     def execute(
         self,
         request: ResearchRequest,
+        context_source_name: str | None = None,
+        context_content: bytes | None = None,
     ) -> ResearchResult:
         """Execute the Research Agent workflow."""
 

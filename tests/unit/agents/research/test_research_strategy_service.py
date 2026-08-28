@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 from project0.config.constants import DEFAULT_RESEARCH_SOURCE_PROVIDERS
+from project0.models.research_models import ExistingResearchContext, ResearchFinding
 from project0.models.research_models import ResearchRequest
 from project0.agents.research.research_strategy_service import (
     ResearchStrategyService,
@@ -426,3 +427,181 @@ def test_build_strategy_extracts_benchmark_question_concept() -> None:
         "aligning video representations with text or "
         "vision-language semantic spaces for VideoQA",
     )
+
+
+def test_build_strategy_includes_existing_research_context() -> None:
+    """Verify unresolved existing research informs strategy concepts."""
+
+    context = ExistingResearchContext(
+        research_problem=ResearchFinding(
+            content="Video representations lack semantic alignment.",
+        ),
+        limitations=(
+            ResearchFinding(
+                content=(
+                    "Reconstruction quality does not ensure "
+                    "semantic usefulness."
+                ),
+            ),
+        ),
+        unresolved_questions=(
+            ResearchFinding(
+                content=(
+                    "How should video and text representations "
+                    "be aligned?"
+                ),
+            ),
+        ),
+        stated_future_work=(
+            ResearchFinding(
+                content=(
+                    "Investigate semantic alignment objectives."
+                ),
+            ),
+        ),
+    )
+
+    result = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    ).build_strategy(
+        ResearchRequest(
+            question="What should I investigate next?"
+        ),
+        context=context,
+    )
+
+    assert result.concepts == (
+        "What should I investigate next",
+        "Video representations lack semantic alignment.",
+        (
+            "Reconstruction quality does not ensure "
+            "semantic usefulness."
+        ),
+        (
+            "How should video and text representations "
+            "be aligned?"
+        ),
+        "Investigate semantic alignment objectives.",
+    )
+    assert result.rationale == (
+        "Research strategy derived from the submitted "
+        "research question, guidance, and existing "
+        "research context."
+    )
+
+
+def test_build_strategy_ignores_context_prior_work_and_findings() -> None:
+    """Verify completed prior work does not become search concepts."""
+
+    context = ExistingResearchContext(
+        prior_work=(
+            ResearchFinding(
+                content="Prior reconstruction experiments.",
+            ),
+        ),
+        implemented_approaches=(
+            ResearchFinding(
+                content="Implemented a fusion network.",
+            ),
+        ),
+        findings=(
+            ResearchFinding(
+                content="Reconstruction performance improved.",
+            ),
+        ),
+        limitations=(
+            ResearchFinding(
+                content="Semantic alignment remains unresolved.",
+            ),
+        ),
+    )
+
+    result = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    ).build_strategy(
+        ResearchRequest(
+            question="Find relevant follow-on research."
+        ),
+        context=context,
+    )
+
+    assert result.concepts == (
+        "Find relevant follow-on research",
+        "Semantic alignment remains unresolved.",
+    )
+
+
+def test_build_strategy_deduplicates_context_concepts() -> None:
+    """Verify duplicate context concepts are removed deterministically."""
+
+    context = ExistingResearchContext(
+        limitations=(
+            ResearchFinding(
+                content="semantic alignment",
+            ),
+        ),
+        unresolved_questions=(
+            ResearchFinding(
+                content="semantic alignment",
+            ),
+        ),
+    )
+
+    result = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    ).build_strategy(
+        ResearchRequest(
+            question="Research question.",
+            guidance="semantic alignment.",
+        ),
+        context=context,
+    )
+
+    assert result.concepts == (
+        "semantic alignment",
+        "Research question",
+    )
+
+
+def test_build_strategy_context_none_preserves_existing_behavior() -> None:
+    """Verify explicit no-context strategy matches legacy behavior."""
+
+    request = ResearchRequest(
+        question="Research question.",
+        guidance="video representation learning.",
+    )
+
+    service = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    )
+
+    assert service.build_strategy(
+        request,
+        context=None,
+    ) == service.build_strategy(request)
+
+
+def test_build_strategy_context_only_does_not_execute() -> None:
+    """Verify context alone does not create an executable strategy."""
+
+    context = ExistingResearchContext(
+        limitations=(
+            ResearchFinding(
+                content="Semantic alignment remains unresolved.",
+            ),
+        ),
+    )
+
+    result = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    ).build_strategy(
+        ResearchRequest(question=""),
+        context=context,
+    )
+
+    assert result.objective is None
+    assert result.concepts == ()
+    assert result.search_terms == ()
+    assert result.sub_questions == ()
+    assert result.constraints == ()
+    assert result.source_names == ()

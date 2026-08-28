@@ -41,6 +41,8 @@ class ResearchWorkflowPort(Protocol):
         question: str,
         guidance: str = "",
         max_results: int = 10,
+        context_source_name: str | None = None,
+        context_content: bytes | None = None,
     ) -> object:
         """Execute a research workflow and return its result."""
 
@@ -65,6 +67,8 @@ class ResearchAgentUIService:
         question: str,
         guidance: str | None = None,
         max_results: int = 10,
+        context_source_name: str | None = None,
+        context_content: bytes | None = None,
     ) -> ResearchAgentPageView:
         """Submit a research request and return display-ready state."""
 
@@ -85,11 +89,23 @@ class ResearchAgentUIService:
             )
 
         try:
-            workflow_result = self.workflow.run_research_workflow(
-                question=request_form.question,
-                guidance=request_form.guidance,
-                max_results=request_form.max_results,
-            )
+            if (
+                context_source_name is None
+                and context_content is None
+            ):
+                workflow_result = self.workflow.run_research_workflow(
+                    question=request_form.question,
+                    guidance=request_form.guidance,
+                    max_results=request_form.max_results,
+                )
+            else:
+                workflow_result = self.workflow.run_research_workflow(
+                    question=request_form.question,
+                    guidance=request_form.guidance,
+                    max_results=request_form.max_results,
+                    context_source_name=context_source_name,
+                    context_content=context_content,
+                )
         except Exception as exc:
             return self._create_failure_page(
                 request_form=request_form,

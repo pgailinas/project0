@@ -19,6 +19,9 @@ from uuid import uuid4
 from project0.artifacts.artifact_location_service import (
     ArtifactLocationService,
 )
+from project0.agents.research.existing_research_context_analysis_service import (
+    ExistingResearchContextAnalysisService,
+)
 from project0.agents.research.paper_metadata_service import (
     PaperMetadataService,
 )
@@ -30,6 +33,9 @@ from project0.agents.research.research_evaluation_service import (
 )
 from project0.agents.research.research_query_service import (
     ResearchQueryService,
+)
+from project0.agents.research.research_context_ingestion_service import (
+    ResearchContextIngestionService,
 )
 from project0.agents.research.research_source_service import (
     ResearchSourceService,
@@ -168,6 +174,8 @@ class PlatformDispatcher:
         question: str,
         guidance: str = "",
         max_results: int = 10,
+        context_source_name: str | None = None,
+        context_content: bytes | None = None,
     ) -> ResearchResult:
         """Execute the configured Research Agent workflow."""
 
@@ -179,12 +187,22 @@ class PlatformDispatcher:
         if not question.strip():
             raise ValueError("Research question cannot be empty.")
 
+        request = ResearchRequest(
+            question=question,
+            guidance=guidance,
+            max_results=max_results,
+        )
+
+        if (
+            context_source_name is None
+            and context_content is None
+        ):
+            return self.research_workflow.execute(request)
+
         return self.research_workflow.execute(
-            ResearchRequest(
-                question=question,
-                guidance=guidance,
-                max_results=max_results,
-            )
+            request,
+            context_source_name=context_source_name,
+            context_content=context_content,
         )
 
     def submit_documentation_review(
@@ -409,5 +427,10 @@ def _create_research_workflow(
             model_name=reasoning_model_name,
         ),
         artifact_service=ResearchArtifactService(),
+        context_ingestion_service=ResearchContextIngestionService(),
+        context_analysis_service=ExistingResearchContextAnalysisService(
+            provider=reasoning_provider,
+            model_name=reasoning_model_name,
+        ),
     )
 

@@ -14,6 +14,7 @@ from __future__ import annotations
 import logging
 
 from project0.models.research_models import (
+    ExistingResearchContext,
     ResearchRequest,
     ResearchStrategy,
 )
@@ -36,11 +37,13 @@ class ResearchStrategyService:
     def build_strategy(
         self,
         request: ResearchRequest,
+        context: ExistingResearchContext | None = None,
     ) -> ResearchStrategy:
         """Build a research strategy for a request."""
 
         objective = self._build_objective(request)
-        concepts = self._build_concepts(request)
+        request_concepts = self._build_concepts(request)
+        concepts = self._build_concepts(request, context)
         sub_questions = self._build_sub_questions(request)
 
         LOGGER.debug(
@@ -51,7 +54,7 @@ class ResearchStrategyService:
 
         # Empty research requests should not generate
         # executable search strategies.
-        if not objective and not concepts:
+        if not objective and not request_concepts:
             return ResearchStrategy(
                 concepts=(),
                 search_terms=(),
@@ -76,8 +79,16 @@ class ResearchStrategyService:
             constraints=constraints,
             source_names=source_names,
             rationale=(
-                "Research strategy derived from the submitted "
-                "research question and guidance."
+                (
+                    "Research strategy derived from the submitted "
+                    "research question, guidance, and existing "
+                    "research context."
+                )
+                if context is not None
+                else (
+                    "Research strategy derived from the submitted "
+                    "research question and guidance."
+                )
             ),
         )
 
@@ -95,6 +106,7 @@ class ResearchStrategyService:
     def _build_concepts(
         cls,
         request: ResearchRequest,
+        context: ExistingResearchContext | None = None,
     ) -> tuple[str, ...]:
         """Build ordered research concepts from request inputs."""
 
@@ -126,6 +138,24 @@ class ResearchStrategyService:
 
         if question_concept and question_concept not in concepts:
             concepts.append(question_concept)
+
+        if context is not None:
+            context_findings = (
+                (
+                    (context.research_problem,)
+                    if context.research_problem is not None
+                    else ()
+                )
+                + context.limitations
+                + context.unresolved_questions
+                + context.stated_future_work
+            )
+
+            for finding in context_findings:
+                normalized = finding.content.strip()
+
+                if normalized and normalized not in concepts:
+                    concepts.append(normalized)
 
         return tuple(concepts)
 

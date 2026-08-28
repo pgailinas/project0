@@ -71,6 +71,9 @@ python -m pytest tests/unit/agents/research/test_stub_research_source_provider.p
 python -m pytest tests/unit/agents/research/test_openalex_source_provider.py -v
 python -m pytest tests/unit/agents/research/test_crossref_source_provider.py -v
 python -m pytest tests/unit/agents/research/test_openreview_source_provider.py -v
+python -m pytest tests/unit/agents/research/test_research_context_ingestion_service.py -v
+python -m pytest tests/unit/agents/research/test_existing_research_context_analysis_service.py -v
+
 
 2) FULL UNIT TEST SUITE:
 python -m pytest tests/unit -v

@@ -141,7 +141,23 @@
             class="research-request-form"
             method="post"
             action="/agents/research/request"
+            enctype="multipart/form-data"
         >
+            <div class="form-field">
+                <label for="context-document">
+                    Existing research context
+                </label>
+                <input
+                    id="context-document"
+                    name="context_document"
+                    type="file"
+                    accept=".pdf,.md,.markdown,.txt"
+                >
+                <p class="form-help">
+                    Optional. Provide prior research as PDF, Markdown, or plain text.
+                </p>
+            </div>
+
             <div class="form-field">
                 <label for="question">Research question</label>
                 <textarea

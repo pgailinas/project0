@@ -15,8 +15,14 @@ from typing import Any
 
 import httpx
 
+from project0.agents.research.existing_research_context_analysis_service import (
+    ExistingResearchContextAnalysisService,
+)
 from project0.agents.research.paper_metadata_service import (
     PaperMetadataService,
+)
+from project0.agents.research.research_context_ingestion_service import (
+    ResearchContextIngestionService,
 )
 from project0.agents.research.research_artifact_service import (
     ResearchArtifactService,
@@ -103,6 +109,39 @@ def _provider_response() -> ProviderResponse:
                     "warnings": [],
                 }
             ],
+        },
+    )
+
+
+def _context_provider_response() -> ProviderResponse:
+    """Create deterministic existing research context analysis output."""
+
+    return ProviderResponse(
+        provider_name="stub",
+        model_name="stub-model",
+        content="{}",
+        structured_output={
+            "research_problem": {
+                "content": (
+                    "Improve semantic alignment between video "
+                    "and language representations."
+                ),
+                "section": None,
+            },
+            "prior_work": [],
+            "implemented_approaches": [],
+            "findings": [],
+            "limitations": [
+                {
+                    "content": (
+                        "Video representations were not aligned "
+                        "with language representations."
+                    ),
+                    "section": None,
+                }
+            ],
+            "unresolved_questions": [],
+            "stated_future_work": [],
         },
     )
 
@@ -217,6 +256,7 @@ def _http_response(
 
 def _create_workflow(
     provider: StubReasoningProvider,
+    context_provider: StubReasoningProvider | None = None,
 ) -> ResearchWorkflow:
     """Create the real Research Agent integration pipeline."""
 
@@ -242,6 +282,19 @@ def _create_workflow(
             model_name="stub-model",
         ),
         artifact_service=ResearchArtifactService(),
+        context_ingestion_service=(
+            ResearchContextIngestionService()
+            if context_provider is not None
+            else None
+        ),
+        context_analysis_service=(
+            ExistingResearchContextAnalysisService(
+                provider=context_provider,
+                model_name="stub-model",
+            )
+            if context_provider is not None
+            else None
+        ),
     )
 
 
@@ -480,3 +533,86 @@ def test_research_workflow_returns_warning_when_search_is_empty(
         "No candidate research sources were found.",
     )
     assert provider.requests == []
+
+
+def test_research_workflow_uses_existing_research_context(
+    monkeypatch,
+) -> None:
+    """Existing research context informs the real strategy pipeline."""
+
+    def fake_get(
+        url: str,
+        *,
+        params: dict[str, Any],
+        headers: dict[str, str] | None = None,
+        timeout: float,
+    ) -> httpx.Response:
+        del params
+        del headers
+        del timeout
+
+        if url.endswith("/paper/search"):
+            return _http_response(
+                url,
+                _search_response(),
+            )
+
+        if url.endswith("/paper/paper-001"):
+            return _http_response(
+                url,
+                _metadata_response(),
+            )
+
+        if url.endswith("/api/query"):
+            return _xml_http_response(
+                url,
+                _arxiv_response(),
+            )
+
+        raise AssertionError(
+            f"Unexpected request: {url}"
+        )
+
+    monkeypatch.setattr(
+        httpx,
+        "get",
+        fake_get,
+    )
+
+    evaluation_provider = StubReasoningProvider(
+        _provider_response()
+    )
+    context_provider = StubReasoningProvider(
+        _context_provider_response()
+    )
+    workflow = _create_workflow(
+        evaluation_provider,
+        context_provider,
+    )
+
+    result = workflow.execute(
+        ResearchRequest(
+            question="What should I investigate next?",
+        ),
+        context_source_name="prior_research.txt",
+        context_content=(
+            b"Prior research found limited semantic alignment "
+            b"between video and language representations."
+        ),
+    )
+
+    assert result.status is ResearchStatus.COMPLETED
+    assert result.error_message is None
+    assert result.strategy is not None
+    assert (
+        "Improve semantic alignment between video "
+        "and language representations."
+        in result.strategy.concepts
+    )
+    assert (
+        "Video representations were not aligned "
+        "with language representations."
+        in result.strategy.concepts
+    )
+    assert len(context_provider.requests) == 1
+    assert len(evaluation_provider.requests) == 1

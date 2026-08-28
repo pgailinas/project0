@@ -17,8 +17,10 @@ from datetime import UTC, datetime
 import logging
 
 from project0.interfaces.research_interfaces import (
+    ExistingResearchContextAnalysisServiceProtocol,
     PaperMetadataServiceProtocol,
     ResearchArtifactServiceProtocol,
+    ResearchContextIngestionServiceProtocol,
     ResearchEvaluationServiceProtocol,
     ResearchQueryServiceProtocol,
     ResearchSourceServiceProtocol,
@@ -45,6 +47,12 @@ class ResearchWorkflow:
         metadata_service: PaperMetadataServiceProtocol,
         evaluation_service: ResearchEvaluationServiceProtocol,
         artifact_service: ResearchArtifactServiceProtocol,
+        context_ingestion_service: (
+            ResearchContextIngestionServiceProtocol | None
+        ) = None,
+        context_analysis_service: (
+            ExistingResearchContextAnalysisServiceProtocol | None
+        ) = None,
     ) -> None:
         self._strategy_service = strategy_service
         self._query_service = query_service
@@ -52,10 +60,14 @@ class ResearchWorkflow:
         self._metadata_service = metadata_service
         self._evaluation_service = evaluation_service
         self._artifact_service = artifact_service
+        self._context_ingestion_service = context_ingestion_service
+        self._context_analysis_service = context_analysis_service
 
     def execute(
         self,
         request: ResearchRequest,
+        context_source_name: str | None = None,
+        context_content: bytes | None = None,
     ) -> ResearchResult:
         """Execute a Research Agent workflow."""
 
@@ -63,9 +75,48 @@ class ResearchWorkflow:
         warnings: list[str] = []
 
         try:
-            strategy = self._strategy_service.build_strategy(
-                request
-            )
+            if (
+                (context_source_name is None)
+                != (context_content is None)
+            ):
+                raise ValueError(
+                    "Research context source name and content "
+                    "must be provided together."
+                )
+
+            context = None
+
+            if (
+                context_source_name is not None
+                and context_content is not None
+            ):
+                if (
+                    self._context_ingestion_service is None
+                    or self._context_analysis_service is None
+                ):
+                    raise RuntimeError(
+                        "Research context services are not configured."
+                    )
+
+                context_document = (
+                    self._context_ingestion_service.ingest(
+                        context_source_name,
+                        context_content,
+                    )
+                )
+                context = self._context_analysis_service.analyze(
+                    context_document
+                )
+
+            if context is None:
+                strategy = self._strategy_service.build_strategy(
+                    request
+                )
+            else:
+                strategy = self._strategy_service.build_strategy(
+                    request,
+                    context,
+                )
 
             strategy = self._query_service.generate_queries(
                 strategy

@@ -39,6 +39,8 @@ class FakeResearchWorkflow:
         question: str,
         guidance: str = "",
         max_results: int = 10,
+        context_source_name: str | None = None,
+        context_content: bytes | None = None,
     ) -> object:
         """Return a representative completed research workflow result."""
 
@@ -47,6 +49,17 @@ class FakeResearchWorkflow:
             "guidance": guidance,
             "max_results": max_results,
         }
+
+        if (
+            context_source_name is not None
+            or context_content is not None
+        ):
+            self.received_request.update(
+                {
+                    "context_source_name": context_source_name,
+                    "context_content": context_content,
+                }
+            )
 
         return {
             "request_id": "research-integration-1",
@@ -214,6 +227,8 @@ def test_research_agent_home_page_renders_shared_dashboard() -> None:
     assert "Research Workflow" in response.text
     assert "Ready for a research request." in response.text
     assert 'action="/agents/research/request"' in response.text
+    assert 'enctype="multipart/form-data"' in response.text
+    assert 'name="context_document"' in response.text
     assert 'name="max_results"' in response.text
     assert '<option' in response.text
 
@@ -266,6 +281,36 @@ def test_research_request_presents_sources_evaluation_and_artifacts() -> None:
     assert "Research Gap Analysis" in response.text
     assert "Workflow Summary" in response.text
     assert "Artifacts" in response.text
+
+
+def test_research_request_forwards_uploaded_context_document() -> None:
+    """An uploaded context document should reach the workflow as bytes."""
+
+    client, workflow = _build_client()
+
+    response = client.post(
+        "/agents/research/request",
+        data={
+            "question": "What should I investigate next?",
+            "guidance": "",
+        },
+        files={
+            "context_document": (
+                "prior-research.md",
+                b"# Prior Research\nExisting findings.\n",
+                "text/markdown",
+            ),
+        },
+    )
+
+    assert response.status_code == 200
+    assert workflow.received_request == {
+        "question": "What should I investigate next?",
+        "guidance": "",
+        "max_results": 10,
+        "context_source_name": "prior-research.md",
+        "context_content": b"# Prior Research\nExisting findings.\n",
+    }
 
 
 def test_research_request_preserves_multiline_form_values() -> None:

@@ -14,15 +14,26 @@ from __future__ import annotations
 from datetime import datetime
 
 from project0.models.research_models import (
+    ExistingResearchContext,
+    PaperAnalysis,
     PaperMetadata,
     ResearchArtifact,
     ResearchArtifactType,
+    ResearchContextDocument,
+    ResearchContextDocumentType,
+    ResearchContextExtractionStatus,
+    ResearchDirection,
+    ResearchDirectionAnalysis,
     ResearchEvaluation,
+    ResearchEvidenceReference,
+    ResearchEvidenceSourceType,
+    ResearchFinding,
     ResearchRequest,
     ResearchResult,
     ResearchSourceReference,
     ResearchStatus,
     ResearchStrategy,
+    ResearchSynthesis,
 )
 
 
@@ -56,6 +67,41 @@ def test_research_artifact_type_values() -> None:
     assert (
         ResearchArtifactType.EXPERIMENT_PROPOSAL
         == "experiment_proposal"
+    )
+
+
+def test_research_context_document_type_values() -> None:
+    """Verify supported research context document type values."""
+
+    assert ResearchContextDocumentType.PDF == "pdf"
+    assert ResearchContextDocumentType.MARKDOWN == "markdown"
+    assert ResearchContextDocumentType.TEXT == "text"
+
+
+def test_research_context_extraction_status_values() -> None:
+    """Verify supported research context extraction status values."""
+
+    assert (
+        ResearchContextExtractionStatus.COMPLETED
+        == "completed"
+    )
+    assert (
+        ResearchContextExtractionStatus.COMPLETED_WITH_WARNINGS
+        == "completed_with_warnings"
+    )
+    assert ResearchContextExtractionStatus.FAILED == "failed"
+
+
+def test_research_evidence_source_type_values() -> None:
+    """Verify supported research evidence source type values."""
+
+    assert (
+        ResearchEvidenceSourceType.CONTEXT_DOCUMENT
+        == "context_document"
+    )
+    assert (
+        ResearchEvidenceSourceType.RESEARCH_PAPER
+        == "research_paper"
     )
 
 
@@ -371,6 +417,299 @@ def test_paper_metadata_metadata_is_independent() -> None:
     )
 
     assert first_paper.metadata is not second_paper.metadata
+
+
+def test_research_context_document_creation() -> None:
+    """Verify creation of a normalized research context document."""
+
+    document = ResearchContextDocument(
+        source_name="ECE-551_Project-1.pdf",
+        document_type=ResearchContextDocumentType.PDF,
+        extraction_method="pdf_text",
+        extracted_text="Extracted research context.",
+        extraction_status=(
+            ResearchContextExtractionStatus.COMPLETED
+        ),
+        warnings=("Example warning.",),
+        page_count=8,
+    )
+
+    assert document.source_name == "ECE-551_Project-1.pdf"
+    assert document.document_type == ResearchContextDocumentType.PDF
+    assert document.extraction_method == "pdf_text"
+    assert document.extracted_text == "Extracted research context."
+    assert (
+        document.extraction_status
+        == ResearchContextExtractionStatus.COMPLETED
+    )
+    assert document.warnings == ("Example warning.",)
+    assert document.page_count == 8
+    assert document.document_id
+
+
+def test_research_context_document_ids_are_unique() -> None:
+    """Verify research context documents receive unique identifiers."""
+
+    first_document = ResearchContextDocument(
+        source_name="first.txt",
+        document_type=ResearchContextDocumentType.TEXT,
+        extraction_method="plain_text",
+        extracted_text="First document.",
+        extraction_status=(
+            ResearchContextExtractionStatus.COMPLETED
+        ),
+    )
+
+    second_document = ResearchContextDocument(
+        source_name="second.txt",
+        document_type=ResearchContextDocumentType.TEXT,
+        extraction_method="plain_text",
+        extracted_text="Second document.",
+        extraction_status=(
+            ResearchContextExtractionStatus.COMPLETED
+        ),
+    )
+
+    assert first_document.document_id != second_document.document_id
+
+
+def test_research_evidence_reference_creation() -> None:
+    """Verify creation of research evidence references."""
+
+    context_reference = ResearchEvidenceReference(
+        source_type=ResearchEvidenceSourceType.CONTEXT_DOCUMENT,
+        source_id="context-001",
+        page_number=4,
+        section="Future Work",
+    )
+
+    paper_reference = ResearchEvidenceReference(
+        source_type=ResearchEvidenceSourceType.RESEARCH_PAPER,
+        source_id="2401.12345",
+    )
+
+    assert (
+        context_reference.source_type
+        == ResearchEvidenceSourceType.CONTEXT_DOCUMENT
+    )
+    assert context_reference.source_id == "context-001"
+    assert context_reference.page_number == 4
+    assert context_reference.section == "Future Work"
+    assert (
+        paper_reference.source_type
+        == ResearchEvidenceSourceType.RESEARCH_PAPER
+    )
+    assert paper_reference.source_id == "2401.12345"
+    assert paper_reference.page_number is None
+    assert paper_reference.section is None
+
+
+def test_research_finding_preserves_evidence() -> None:
+    """Verify research findings preserve supporting evidence."""
+
+    evidence = ResearchEvidenceReference(
+        source_type=ResearchEvidenceSourceType.CONTEXT_DOCUMENT,
+        source_id="context-001",
+        page_number=5,
+    )
+
+    finding = ResearchFinding(
+        content="Semantic alignment remains unresolved.",
+        evidence=(evidence,),
+    )
+
+    assert finding.content == (
+        "Semantic alignment remains unresolved."
+    )
+    assert finding.evidence == (evidence,)
+
+
+def test_existing_research_context_creation() -> None:
+    """Verify structured existing research context creation."""
+
+    evidence = ResearchEvidenceReference(
+        source_type=ResearchEvidenceSourceType.CONTEXT_DOCUMENT,
+        source_id="context-001",
+        section="Results",
+    )
+
+    limitation = ResearchFinding(
+        content="Fusion did not resolve semantic alignment.",
+        evidence=(evidence,),
+    )
+
+    context = ExistingResearchContext(
+        limitations=(limitation,),
+    )
+
+    assert context.research_problem is None
+    assert context.prior_work == ()
+    assert context.implemented_approaches == ()
+    assert context.findings == ()
+    assert context.limitations == (limitation,)
+    assert context.unresolved_questions == ()
+    assert context.stated_future_work == ()
+
+
+def test_paper_analysis_creation() -> None:
+    """Verify structured retained-paper analysis creation."""
+
+    reference = ResearchSourceReference(
+        source_name="arxiv",
+        source_id="2401.12345",
+        title="Example Paper",
+    )
+
+    paper = PaperMetadata(
+        source_reference=reference,
+        title="Example Paper",
+    )
+
+    evidence = ResearchEvidenceReference(
+        source_type=ResearchEvidenceSourceType.RESEARCH_PAPER,
+        source_id=reference.source_id,
+        section="Method",
+    )
+
+    problem = ResearchFinding(
+        content="Align video and text representations.",
+        evidence=(evidence,),
+    )
+
+    approach = ResearchFinding(
+        content="Use contrastive multimodal learning.",
+        evidence=(evidence,),
+    )
+
+    analysis = PaperAnalysis(
+        paper=paper,
+        problem=problem,
+        approach=approach,
+        modalities=(
+            ResearchFinding(
+                content="Video and text.",
+                evidence=(evidence,),
+            ),
+        ),
+        research_relevance=ResearchFinding(
+            content="Directly relevant to semantic alignment.",
+            evidence=(evidence,),
+        ),
+    )
+
+    assert analysis.paper == paper
+    assert analysis.problem == problem
+    assert analysis.approach == approach
+    assert analysis.representations == ()
+    assert analysis.modalities[0].content == "Video and text."
+    assert analysis.learning_objectives == ()
+    assert analysis.datasets_tasks == ()
+    assert analysis.findings == ()
+    assert analysis.limitations == ()
+    assert analysis.research_relevance is not None
+
+
+def test_research_synthesis_creation() -> None:
+    """Verify creation of cross-paper research synthesis."""
+
+    finding = ResearchFinding(
+        content="Contrastive alignment is a recurring theme.",
+    )
+
+    synthesis = ResearchSynthesis(
+        themes=(finding,),
+    )
+
+    assert synthesis.themes == (finding,)
+    assert synthesis.comparisons == ()
+    assert synthesis.shared_limitations == ()
+    assert synthesis.unresolved_questions == ()
+
+
+def test_research_direction_creation() -> None:
+    """Verify evidence-grounded research direction creation."""
+
+    context_evidence = ResearchEvidenceReference(
+        source_type=ResearchEvidenceSourceType.CONTEXT_DOCUMENT,
+        source_id="context-001",
+    )
+
+    literature_evidence = ResearchEvidenceReference(
+        source_type=ResearchEvidenceSourceType.RESEARCH_PAPER,
+        source_id="2401.12345",
+    )
+
+    direction = ResearchDirection(
+        direction="Align the video encoder with a semantic space.",
+        rationale="Prior limitations and literature support the direction.",
+        context_evidence=(context_evidence,),
+        literature_evidence=(literature_evidence,),
+    )
+
+    assert direction.direction == (
+        "Align the video encoder with a semantic space."
+    )
+    assert direction.rationale == (
+        "Prior limitations and literature support the direction."
+    )
+    assert direction.context_evidence == (context_evidence,)
+    assert direction.literature_evidence == (literature_evidence,)
+    assert direction.speculative is False
+
+
+def test_research_direction_supports_speculative_state() -> None:
+    """Verify research directions can be explicitly speculative."""
+
+    direction = ResearchDirection(
+        direction="Explore an unvalidated alignment approach.",
+        rationale="The direction requires further literature support.",
+        speculative=True,
+    )
+
+    assert direction.context_evidence == ()
+    assert direction.literature_evidence == ()
+    assert direction.speculative is True
+
+
+def test_research_direction_analysis_creation() -> None:
+    """Verify synthesis and candidate directions are combined."""
+
+    synthesis = ResearchSynthesis(
+        unresolved_questions=(
+            ResearchFinding(
+                content="How should video and text spaces be aligned?",
+            ),
+        ),
+    )
+
+    direction = ResearchDirection(
+        direction="Evaluate shared-space video representations.",
+        rationale="The unresolved question motivates evaluation.",
+        speculative=True,
+    )
+
+    analysis = ResearchDirectionAnalysis(
+        synthesis=synthesis,
+        candidate_directions=(direction,),
+    )
+
+    assert analysis.synthesis == synthesis
+    assert analysis.candidate_directions == (direction,)
+
+
+def test_research_analysis_default_tuples_are_immutable_safe() -> None:
+    """Verify research analysis models use independent tuple defaults."""
+
+    first_finding = ResearchFinding(content="First finding.")
+    second_finding = ResearchFinding(content="Second finding.")
+
+    first_context = ExistingResearchContext()
+    second_context = ExistingResearchContext()
+
+    assert first_finding.evidence == ()
+    assert second_finding.evidence == ()
+    assert first_context.prior_work == ()
+    assert second_context.prior_work == ()
 
 
 def test_research_evaluation_creation() -> None:

@@ -39,6 +39,8 @@ class FakeWorkflow:
         question: str,
         guidance: str = "",
         max_results: int = 10,
+        context_source_name: str | None = None,
+        context_content: bytes | None = None,
     ) -> object:
         """Record request arguments and return or raise the configured result."""
 
@@ -47,6 +49,17 @@ class FakeWorkflow:
             "guidance": guidance,
             "max_results": max_results,
         }
+
+        if (
+            context_source_name is not None
+            or context_content is not None
+        ):
+            self.received_arguments.update(
+                {
+                    "context_source_name": context_source_name,
+                    "context_content": context_content,
+                }
+            )
 
         if self.error is not None:
             raise self.error
@@ -122,6 +135,32 @@ def test_submit_request_normalizes_form_values() -> None:
 
 
     assert page.page_status is ResearchAgentPageStatus.PROCESSING
+
+
+def test_submit_request_forwards_context_document() -> None:
+    """Submitted context filename and bytes should reach the workflow."""
+
+    workflow = FakeWorkflow(
+        result={
+            "request_id": "research-request-context",
+            "status": "pending",
+        }
+    )
+    service = ResearchAgentUIService(workflow=workflow)
+
+    service.submit_request(
+        question="What should I investigate next?",
+        context_source_name="prior-research.md",
+        context_content=b"# Prior Research\n",
+    )
+
+    assert workflow.received_arguments == {
+        "question": "What should I investigate next?",
+        "guidance": "",
+        "max_results": 10,
+        "context_source_name": "prior-research.md",
+        "context_content": b"# Prior Research\n",
+    }
 
 
 def test_submit_request_maps_completed_result() -> None:

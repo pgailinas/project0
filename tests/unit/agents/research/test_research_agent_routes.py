@@ -49,6 +49,8 @@ class FakeResearchAgentUIService:
         question: str,
         guidance: str,
         max_results: int = 10,
+        context_source_name: str | None = None,
+        context_content: bytes | None = None,
     ) -> ResearchAgentPageView:
         """Record request values and return the configured page."""
 
@@ -56,6 +58,8 @@ class FakeResearchAgentUIService:
             "question": question,
             "guidance": guidance,
             "max_results": max_results,
+            "context_source_name": context_source_name,
+            "context_content": context_content,
         }
         return self.request_page
 
@@ -201,6 +205,8 @@ def test_submit_request_route_delegates_form_values(
             "arxiv."
         ),
         "max_results": 5,
+        "context_source_name": None,
+        "context_content": None,
     }
     assert "The research workflow completed successfully." in response.text
     assert '<p id="status">completed</p>' in response.text
@@ -228,6 +234,8 @@ def test_submit_request_route_uses_threadpool_without_changing_delegation(
         "question": "Find relevant research.",
         "guidance": "Prefer recent research.",
         "max_results": 15,
+        "context_source_name": None,
+        "context_content": None,
     }
     assert '<p id="status">completed</p>' in response.text
 
@@ -252,6 +260,8 @@ def test_submit_request_route_accepts_empty_optional_values(
         "question": "Find relevant research.",
         "guidance": "",
         "max_results": 10,
+        "context_source_name": None,
+        "context_content": None,
     }
 
 
@@ -275,6 +285,41 @@ def test_submit_request_route_accepts_blank_question(
         "question": "",
         "guidance": "",
         "max_results": 10,
+        "context_source_name": None,
+        "context_content": None,
+    }
+
+
+
+def test_submit_request_route_delegates_context_document(
+    tmp_path: Path,
+) -> None:
+    """The request route should delegate uploaded context filename and bytes."""
+
+    client, service = _build_client(tmp_path)
+
+    response = client.post(
+        "/agents/research/request",
+        data={
+            "question": "What should I investigate next?",
+            "guidance": "",
+        },
+        files={
+            "context_document": (
+                "existing-research.md",
+                b"# Existing Research\nPrior findings.",
+                "text/markdown",
+            ),
+        },
+    )
+
+    assert response.status_code == 200
+    assert service.received_request == {
+        "question": "What should I investigate next?",
+        "guidance": "",
+        "max_results": 10,
+        "context_source_name": "existing-research.md",
+        "context_content": b"# Existing Research\nPrior findings.",
     }
 
 

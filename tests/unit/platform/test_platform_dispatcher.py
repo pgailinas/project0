@@ -697,6 +697,40 @@ def test_run_research_workflow_forwards_request() -> None:
     assert request.request_id
 
 
+def test_run_research_workflow_forwards_context_document() -> None:
+    """Research dispatch forwards optional context filename and bytes."""
+
+    (
+        dispatcher,
+        _,
+        _,
+        _,
+        _,
+        research_workflow,
+    ) = _dispatcher(include_research_workflow=True)
+    expected = _research_workflow_result()
+
+    assert research_workflow is not None
+    research_workflow.execute.return_value = expected
+
+    result = dispatcher.run_research_workflow(
+        question="What should I investigate next?",
+        context_source_name="prior-research.md",
+        context_content=b"# Prior Research\n",
+    )
+
+    assert result is expected
+
+    request = research_workflow.execute.call_args.args[0]
+
+    assert isinstance(request, ResearchRequest)
+    assert request.question == "What should I investigate next?"
+    assert research_workflow.execute.call_args.kwargs == {
+        "context_source_name": "prior-research.md",
+        "context_content": b"# Prior Research\n",
+    }
+
+
 def test_run_research_workflow_defaults_optional_values() -> None:
     """Research dispatch defaults optional request values."""
 
@@ -977,6 +1011,8 @@ def test_create_research_workflow_assembles_services() -> None:
     assert workflow._metadata_service is not None
     assert workflow._evaluation_service is not None
     assert workflow._artifact_service is not None
+    assert workflow._context_ingestion_service is not None
+    assert workflow._context_analysis_service is not None
 
 
 def test_create_research_workflow_configures_semantic_scholar_metadata_key() -> None:

@@ -36,6 +36,29 @@ class ResearchArtifactType(StrEnum):
     EXPERIMENT_PROPOSAL = "experiment_proposal"
 
 
+class ResearchContextDocumentType(StrEnum):
+    """Supported existing research context document types."""
+
+    PDF = "pdf"
+    MARKDOWN = "markdown"
+    TEXT = "text"
+
+
+class ResearchContextExtractionStatus(StrEnum):
+    """Supported research context extraction states."""
+
+    COMPLETED = "completed"
+    COMPLETED_WITH_WARNINGS = "completed_with_warnings"
+    FAILED = "failed"
+
+
+class ResearchEvidenceSourceType(StrEnum):
+    """Supported Research Agent evidence source types."""
+
+    CONTEXT_DOCUMENT = "context_document"
+    RESEARCH_PAPER = "research_paper"
+
+
 @dataclass(frozen=True, slots=True)
 class ResearchRequest:
     """A request for Research Agent processing."""
@@ -89,6 +112,96 @@ class PaperMetadata:
     doi: str | None = None
     source_url: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True, slots=True)
+class ResearchContextDocument:
+    """Normalized document supplied as existing research context."""
+
+    source_name: str
+    document_type: ResearchContextDocumentType
+    extraction_method: str
+    extracted_text: str
+    extraction_status: ResearchContextExtractionStatus
+    warnings: tuple[str, ...] = ()
+    page_count: int | None = None
+    document_id: str = field(default_factory=lambda: str(uuid4()))
+
+
+@dataclass(frozen=True, slots=True)
+class ResearchEvidenceReference:
+    """Reference to evidence supporting Research Agent analysis."""
+
+    source_type: ResearchEvidenceSourceType
+    source_id: str
+    page_number: int | None = None
+    section: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ResearchFinding:
+    """One evidence-supported Research Agent finding."""
+
+    content: str
+    evidence: tuple[ResearchEvidenceReference, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class ExistingResearchContext:
+    """Structured analysis of supplied existing research."""
+
+    research_problem: ResearchFinding | None = None
+    prior_work: tuple[ResearchFinding, ...] = ()
+    implemented_approaches: tuple[ResearchFinding, ...] = ()
+    findings: tuple[ResearchFinding, ...] = ()
+    limitations: tuple[ResearchFinding, ...] = ()
+    unresolved_questions: tuple[ResearchFinding, ...] = ()
+    stated_future_work: tuple[ResearchFinding, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class PaperAnalysis:
+    """Structured technical analysis of one retained paper."""
+
+    paper: PaperMetadata
+    problem: ResearchFinding
+    approach: ResearchFinding
+    representations: tuple[ResearchFinding, ...] = ()
+    modalities: tuple[ResearchFinding, ...] = ()
+    learning_objectives: tuple[ResearchFinding, ...] = ()
+    datasets_tasks: tuple[ResearchFinding, ...] = ()
+    findings: tuple[ResearchFinding, ...] = ()
+    limitations: tuple[ResearchFinding, ...] = ()
+    research_relevance: ResearchFinding | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ResearchSynthesis:
+    """Cross-paper Research Agent synthesis."""
+
+    themes: tuple[ResearchFinding, ...] = ()
+    comparisons: tuple[ResearchFinding, ...] = ()
+    shared_limitations: tuple[ResearchFinding, ...] = ()
+    unresolved_questions: tuple[ResearchFinding, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class ResearchDirection:
+    """One candidate evidence-grounded research direction."""
+
+    direction: str
+    rationale: str
+    context_evidence: tuple[ResearchEvidenceReference, ...] = ()
+    literature_evidence: tuple[ResearchEvidenceReference, ...] = ()
+    speculative: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class ResearchDirectionAnalysis:
+    """Cross-paper synthesis and candidate research directions."""
+
+    synthesis: ResearchSynthesis
+    candidate_directions: tuple[ResearchDirection, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

@@ -16,6 +16,7 @@ dependencies = [
     "mkdocs",
     "mkdocs-material",
     "pymdown-extensions",
+    "pypdf",
     "python-multipart>=0.0.32",
     "uvicorn>=0.52.1",
 ]

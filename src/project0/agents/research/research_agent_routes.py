@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from fastapi import APIRouter, Form, Request
+from fastapi import APIRouter, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from starlette.concurrency import run_in_threadpool
@@ -66,14 +66,24 @@ def create_research_agent_router(
         question: str = Form(""),
         guidance: str = Form(""),
         max_results: int = Form(10),
+        context_document: UploadFile | None = File(None),
     ) -> HTMLResponse:
         """Submit a research request and render the resulting state."""
+
+        context_source_name = None
+        context_content = None
+
+        if context_document is not None and context_document.filename:
+            context_source_name = context_document.filename
+            context_content = await context_document.read()
 
         page = await run_in_threadpool(
             ui_service.submit_request,
             question=question,
             guidance=guidance,
             max_results=max_results,
+            context_source_name=context_source_name,
+            context_content=context_content,
         )
 
         return _render_page(
