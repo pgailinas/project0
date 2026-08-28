@@ -329,6 +329,32 @@ Deliverables:
 -   Enhanced Documentation Agent maintenance workflow.
 -   Improved documentation artifact preservation.
 
+### Phase 13 --- Research Agent Context-Aware Literature Analysis
+
+Extend the validated Research Agent foundation with context-aware
+literature analysis capabilities.
+
+Primary activities:
+
+-   Support optional existing research context documents.
+-   Analyze existing research context while preserving source
+    provenance.
+-   Produce structured per-paper analysis.
+-   Produce cross-paper synthesis.
+-   Identify evidence-grounded candidate research directions.
+-   Validate research analysis references and provenance.
+-   Preserve existing Research Agent behavior when no context document
+    is provided.
+
+Deliverables:
+
+-   Existing Research Context processing.
+-   Structured per-paper analysis.
+-   Research Direction Analysis.
+-   Cross-paper synthesis.
+-   Evidence-grounded candidate research directions.
+-   Validated Research Agent context-aware literature analysis workflow.
+
 ## 4. Implementation Dependencies
 
 Implementation phases depend upon the completion of earlier foundational
@@ -389,7 +415,6 @@ Future implementation efforts may include:
 -   Vector-based repository search.
 -   Additional AI reasoning providers.
 -   Expanded validation capabilities.
--   Research Agent.
 -   Additional specialized AI agents.
 -   Project0 reusable AI worker/skill framework.
     -   Maintain a common Project0 library of specialized AI worker

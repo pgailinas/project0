@@ -1,8 +1,8 @@
 # Research Agent Testing Guide
 
-**Version:** 0.6\
+**Version:** 0.7\
 **Owner:** Project0\
-**Last Updated:** 2026-08-26
+**Last Updated:** 2026-08-28
 
 ------------------------------------------------------------------------
 
@@ -36,6 +36,11 @@ Research Agent testing is intended to:
     remains unchanged.
 -   Verify repository failures and invalid proposals fail safely.
 -   Validate Dashboard-hosted Research Agent interaction.
+-   Verify optional Existing Research Context document processing.
+-   Verify structured per-paper analysis and Research Direction Analysis.
+-   Verify provenance and reasoning-boundary requirements.
+-   Verify existing workflow behavior remains unchanged when no context
+    document is provided.
 -   Detect regressions in previously corrected workflow behavior.
 -   Verify document discovery behavior when target research paths are
     not provided.
@@ -59,6 +64,10 @@ Research Agent testing follows the general principles defined by
     tests.
 -   Use deterministic research source providers for automated research
     workflow validation.
+-   Use deterministic fixtures for context extraction, provenance, and
+    analysis validation whenever practical.
+-   Verify source-derived context findings, source-derived per-paper
+    interpretation, and Research Agent inference remain distinguishable.
 -   Test real local AI-provider behavior separately from deterministic
     regression tests.
 -   Treat browser-based workflow testing as acceptance testing rather
@@ -175,6 +184,7 @@ Tests verify:
 
 -   Ready-page creation.
 -   Research request validation and normalization.
+-   Optional Existing Research Context file selection/upload behavior.
 -   Mapping workflow results into Research Agent view models.
 -   Proposal and validation presentation.
 -   Repository difference generation.
@@ -186,6 +196,7 @@ Tests verify:
 -   Completed-with-warning presentation.
 -   Preliminary validation failure presentation.
 -   Explicit workflow failure presentation.
+-   Explicit context extraction and analysis failure presentation.
 -   Workflow exception handling.
 -   Review-decision normalization and result mapping.
 -   Safe handling of unknown mapped values.
@@ -213,6 +224,10 @@ including:
 
 -   Knowledge Service.
 -   Reasoning Service.
+-   Context Document Ingestion.
+-   Existing Research Context Analysis.
+-   Per-Paper Analysis.
+-   Research Direction Analysis.
 -   Validation Service.
 -   Review Coordinator.
 -   Repository Update Service.
@@ -261,6 +276,11 @@ Research Agent testing verifies:
 -   Link validation.
 -   MkDocs validation.
 -   Research consistency validation.
+-   Existing Research Context reference validation.
+-   Retained paper identifier validation.
+-   Candidate research direction context motivation and literature
+    evidence validation unless explicitly marked speculative.
+-   Unknown source identifier rejection.
 -   Proper workflow handling when validation fails.
 
 ### 5.6 Research Reasoning Behavior
@@ -270,6 +290,13 @@ including:
 
 -   Construction of research-specific prompts.
 -   Inclusion of appropriate repository and research context.
+-   Existing Research Context extraction into the required structured
+    fields.
+-   Per-paper analysis into the required structured fields.
+-   Cross-paper synthesis containing themes, comparisons, shared
+    limitations, and unresolved questions.
+-   Candidate research direction generation grounded in context
+    motivation and literature evidence unless explicitly speculative.
 -   Conversion of reasoning results into Research Agent proposals.
 -   Research edit intent such as insert and replace behavior.
 -   Selection and preservation of appropriate anchors.
@@ -305,6 +332,8 @@ Platform Dispatcher
         ↓
 Research Workflow
         ↓
+Optional Existing Research Context
+        ↓
 Research Strategy
         ↓
 Research Source Provider
@@ -312,6 +341,10 @@ Research Source Provider
 Metadata Retrieval
         ↓
 Research Evaluation
+        ↓
+Per-Paper Analysis
+        ↓
+Research Direction Analysis
         ↓
 Artifact Generation
         ↓
@@ -443,9 +476,21 @@ scenarios should verify:
 -   Research Agent page renders.
 -   Research request field is available.
 -   Target research path field is available as an optional input.
+-   Existing Research Context file selection/upload is available as an
+    optional input.
 -   Submit Research Request button is available.
 -   Research requests without target paths are accepted and processed
     through discovery where supported.
+-   Research requests without an Existing Research Context document
+    preserve existing workflow behavior.
+-   Supported text-based PDF, Markdown, and plain-text context documents
+    are accepted.
+-   Image-only or scanned PDF context documents requiring OCR fail
+    clearly.
+-   Context extraction or analysis failure does not silently revert to
+    the no-context workflow.
+-   Open-ended research requests are accepted when Existing Research
+    Context is available.
 -   Request submission produces the visible Processing state.
 -   Review/proposal UI is presented.
 -   Reject workflow operates correctly.
@@ -480,7 +525,39 @@ The acceptance suite is distinct from unit and integration testing:
 Acceptance scenarios that are not yet automated shall not be treated as
 passed acceptance requirements.
 
-### 6.9 Complete Project0 Regression Test
+### 6.9 Existing Research Context and Research Analysis Tests
+
+Increment 3 testing should verify:
+
+-   Supported context document ingestion for text-based PDF, Markdown,
+    and plain text.
+-   The selected context source document is not copied into Project0
+    storage.
+-   Page- or section-level provenance is preserved.
+-   Large context documents use bounded chunking with implementation
+    limits to be defined.
+-   Existing Research Context contains the research problem, prior work,
+    implemented approaches, findings, limitations, unresolved questions,
+    stated future work, and source references.
+-   Per-Paper Analysis contains the problem, approach, representations,
+    modalities, learning or alignment objective, datasets or tasks,
+    findings, limitations, relevance to the current research, and
+    evidence references.
+-   Research Direction Analysis produces synthesis findings containing
+    themes, comparisons, shared limitations, and unresolved questions.
+-   Candidate research directions preserve required context motivation
+    and literature evidence unless explicitly marked speculative.
+-   Saved research packages contain the request, context summary,
+    research strategy, retained papers, per-paper analyses, synthesis
+    findings, candidate directions, provenance, and validation status.
+-   `context_document=None` preserves existing workflow semantics and
+    result behavior with new optional fields empty.
+
+The detailed Research Direction Analysis output contract and bounded
+chunking limits remain to be defined and should receive focused tests
+when those design decisions are finalized.
+
+### 6.10 Complete Project0 Regression Test
 
 After Research Agent-specific tests pass, run the complete Project0
 suite:
@@ -531,6 +608,12 @@ Representative browser and exploratory scenarios include:
 -   Verify that unrelated files remain unchanged.
 -   Verify that empty target research paths do not cause unintended
     baseline document inclusion.
+-   Select and process a supported Existing Research Context document.
+-   Verify a context-processing failure is clearly presented.
+-   Verify per-paper analyses and synthesis findings remain traceable to
+    supporting evidence.
+-   Verify candidate research directions distinguish Research Agent
+    inference from source-derived findings.
 
 Observed browser behavior should be compared with the actual repository
 content. Presentation artifacts shall not be assumed to represent
@@ -549,6 +632,9 @@ Local-provider testing should verify:
 -   The configured model can be reached.
 -   Prompt construction includes the required repository context and
     user request.
+-   Optional Existing Research Context is included where required.
+-   Structured context, per-paper analysis, synthesis, and candidate
+    direction outputs satisfy their required contracts.
 -   Reasoning results are converted into valid Research Agent proposals.
 -   Edit intent is interpreted correctly.
 -   Anchors are sufficiently precise for controlled repository updates.
@@ -667,6 +753,13 @@ when:
 -   Real local reasoning-provider behavior has been exercised with
     varied research requests.
 -   Browser-based review and completion workflows are usable.
+-   Existing Research Context ingestion and analysis requirements have
+    been verified.
+-   Per-Paper Analysis and Research Direction Analysis requirements have
+    been verified.
+-   Provenance, reasoning-boundary, and research-analysis validation
+    requirements have been verified.
+-   Backward compatibility without a context document has been verified.
 -   Known non-critical presentation issues are documented separately
     from functional defects.
 -   No known defect permits unauthorized or unintended repository
@@ -744,6 +837,7 @@ Future Research Agent testing may include:
 -   Continuous Integration execution of Research Agent regression
     suites.
 -   Automated acceptance-test reporting.
+-   OCR context-document testing when OCR support is introduced.
 
 ------------------------------------------------------------------------
 

@@ -101,7 +101,7 @@ Project0 follows several core principles:
 
 ## Future Direction
 
-Project0 now provides a reusable AI-agent platform foundation, Dashboard Framework, and first reference agent through the Documentation Agent. The Research Agent is now being developed as the second reference implementation.
+Project0 now provides a reusable AI-agent platform foundation, Dashboard Framework, and first reference agent through the Documentation Agent. The Research Agent V1 is complete and serves as the second reference implementation.
 
 Future work will validate and extend the platform by introducing additional specialized AI agents and reusable infrastructure for areas such as:
 
@@ -136,7 +136,7 @@ The core Project0 platform has completed its Phase 9 Documentation Agent impleme
 
 The Documentation Agent V1 is complete and serves as the first reference implementation of a Project0 AI Agent.
 
-The Research Agent is now being designed as the second reference implementation for validating reuse of Project0 infrastructure by additional specialized AI agents.
+The Research Agent V1 is complete and serves as the second reference implementation for validating reuse of Project0 infrastructure by additional specialized AI agents.
 
 ---
 

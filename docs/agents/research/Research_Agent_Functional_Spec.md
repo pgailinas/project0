@@ -1,8 +1,8 @@
 # Research Agent Functional Specification
 
-**Version:** 0.3  
+**Version:** 0.4  
 **Owner:** Project0  
-**Last Updated:** 2026-08-27
+**Last Updated:** 2026-08-28
 
 ---
 
@@ -20,8 +20,9 @@ direction.
 Define the Version 1 behavior of a standalone agent that accepts
 research questions, develops research strategies, discovers relevant
 technical papers through supported external research sources, retrieves
-paper metadata, evaluates paper relevance, produces structured research
-artifacts, preserves citation and source information, and presents
+paper metadata, evaluates paper relevance, optionally analyzes a
+user-selected existing research context document, produces structured
+research artifacts, preserves citation and source information, and presents
 research results for human review. The Research Agent is presented
 through the Project0 Dashboard Framework but remains independent of the
 dashboard infrastructure.
@@ -76,8 +77,27 @@ The Research Agent shall:
     provider response violates required source traceability or coverage
     constraints.
 -   Preserve citation and source information.
+-   Accept an optional Existing Research Context document.
+-   Extract supported context from text-based PDF, Markdown, and plain-text
+    context documents.
+-   Derive Existing Research Context including the research problem, prior
+    work, implemented approaches, findings, limitations, unresolved
+    questions, stated future work, and source references.
+-   Preserve page- or section-level provenance for derived context.
+-   Process large context documents using bounded chunking with
+    implementation limits to be defined.
+-   Clearly report context extraction or analysis failures without
+    silently reverting to a no-context workflow.
 -   Summarize relevant technical papers.
+-   Produce structured per-paper analysis including the problem, approach,
+    representations, modalities, learning or alignment objective,
+    datasets or tasks, findings, limitations, relevance to the current
+    research, and evidence references.
 -   Compare research methods and approaches.
+-   Produce structured cross-paper synthesis findings including themes,
+    comparisons, shared limitations, and unresolved questions.
+-   Generate evidence-grounded candidate research directions from existing
+    research context and literature analysis.
 -   Identify potential research gaps.
 -   Generate experiment planning suggestions.
 -   Produce structured research artifacts.
@@ -92,6 +112,10 @@ The Research Agent shall:
 -   Optional research constraints
 -   Optional research terminology or focus areas
 -   Optional user-provided papers or references
+-   Optional Existing Research Context document
+    -   Text-based PDF
+    -   Markdown
+    -   Plain text
 -   Supported external research sources
     -   Semantic Scholar research source provider
     -   arXiv research source provider
@@ -106,6 +130,19 @@ When research constraints or source selections are omitted, the Research
 Agent uses the research question and available Project0 services to
 develop an appropriate research strategy.
 
+When an Existing Research Context document is omitted, the Research
+Agent preserves the existing workflow semantics and result behavior,
+with new optional context fields remaining empty.
+
+When an Existing Research Context document is provided, the Research
+Agent uses a simple file-selection/upload interaction, does not store a
+copy of the source document, and derives structured context before
+research strategy generation. Open-ended research requests are supported
+when existing research context is available.
+
+Image-only or scanned PDF documents requiring OCR are not supported in
+this increment.
+
 ---
 
 ## 7. Functional Workflow
@@ -116,6 +153,10 @@ Research Request
 Dashboard Framework (User Interface)
       ↓
 Research Question Analysis
+      ↓
+Optional Existing Research Context Document Ingestion
+      ↓
+Existing Research Context Analysis
       ↓
 Research Strategy Generation
       ↓
@@ -133,7 +174,9 @@ Relevance Ranking and Result Selection
       ↓
 Research Knowledge Retrieval
       ↓
-Paper Analysis
+Per-Paper Analysis
+      ↓
+Research Direction Analysis
       ↓
 Research Artifact Generation
       ↓
@@ -166,12 +209,32 @@ The Research Agent is successful when it:
     consistent semantic relevance criteria.
 -   Retains the configured maximum number of highest-relevance papers
     while preserving all discovered source references.
+-   Preserves existing workflow behavior when no Existing Research
+    Context document is provided.
+-   Derives structured, source-traceable Existing Research Context when a
+    supported context document is provided.
 -   Produces useful, evidence-grounded paper summaries.
+-   Produces structured per-paper technical analysis with evidence
+    references.
 -   Generates useful research comparison artifacts.
+-   Produces structured synthesis findings across retained paper analyses.
+-   Generates candidate research directions grounded in both existing
+    research context and literature evidence unless explicitly identified
+    as speculative.
 -   Preserves citation and source information.
 -   Identifies potential research gaps supported by the reviewed
     literature.
 -   Produces useful experiment planning suggestions.
+-   Validates that referenced context items and paper identifiers exist,
+    that candidate research directions cite context motivation and
+    literature evidence unless explicitly marked speculative, and that
+    unknown source identifiers are rejected.
+-   Distinguishes source-derived context findings, source-derived
+    per-paper interpretation, and Research Agent inference.
+-   Produces saved research packages containing the request, context
+    summary, research strategy, retained papers, per-paper analyses,
+    synthesis findings, candidate directions, provenance, and validation
+    status.
 -   Produces outputs useful for ECE-551 Part 2 research activities.
 -   Operates through Project0's reusable platform architecture.
 -   Integrates with Project0 workflow, validation, artifact, and
@@ -209,3 +272,4 @@ Not included in Version 1:
 -   Scheduled research monitoring
 -   Automatic experiment execution
 -   Interactive dashboard visualizations for research workflows
+-   OCR support for image-only or scanned PDF context documents

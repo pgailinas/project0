@@ -269,3 +269,31 @@ The original validation baseline established:
 The current version extends that baseline with completed Phase 10
 implementation validation.
 
+
+------------------------------------------------------------------------
+
+## 9. Planned Research Analysis Validation
+
+The following Research Agent capabilities are documented for future
+implementation but have not yet been validated:
+
+-   Optional Existing Research Context document ingestion
+-   Existing Research Context analysis
+-   Page- or section-level context provenance
+-   Bounded context document chunking
+-   Structured per-paper analysis
+-   Cross-paper synthesis
+-   Research Direction Analysis
+-   Candidate research direction evidence validation
+-   Saved research package validation
+-   No-context backward compatibility validation
+
+These capabilities shall not be considered part of the validated
+Research Agent baseline until implementation and applicable unit,
+integration, browser acceptance, and regression testing are complete.
+
+The detailed Research Direction Analysis output contract and bounded
+context document chunking limits remain to be defined.
+
+OCR processing for image-only or scanned PDF context documents is not
+included in the planned implementation increment.

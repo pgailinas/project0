@@ -1,8 +1,8 @@
 # Research Agent Test Plan
 
-**Version:** 0.2  
+**Version:** 0.3  
 **Owner:** Project0  
-**Last Updated:** 2026-08-27
+**Last Updated:** 2026-08-28
 
 ------------------------------------------------------------------------
 
@@ -15,10 +15,11 @@ acceptance, and exploratory AI testing.
 The purpose of this test plan is to demonstrate that the Research Agent
 can accept research questions, develop research strategies, discover
 relevant technical papers through supported external research sources,
-retrieve paper metadata, evaluate paper relevance, generate
-evidence-grounded research artifacts, preserve citation and source
-information, and present useful research results while preserving human
-research authority.
+retrieve paper metadata, evaluate paper relevance, optionally process
+Existing Research Context, perform structured per-paper and research
+direction analysis, generate evidence-grounded research artifacts,
+preserve citation and source information, and present useful research
+results while preserving human research authority.
 
 The Research Agent is the second reference implementation of a Project0
 AI Agent. Successful completion of this test plan provides additional
@@ -80,6 +81,14 @@ The Research Agent shall demonstrate the ability to:
 -   Verify bounded retry behavior for invalid or incomplete research
     evaluation responses within a batch.
 -   Preserve citation and source information.
+-   Verify optional Existing Research Context document ingestion and
+    analysis.
+-   Verify structured per-paper analysis.
+-   Verify cross-paper synthesis and Research Direction Analysis.
+-   Verify page- or section-level provenance for context-derived
+    information.
+-   Verify existing workflow semantics when no context document is
+    provided.
 -   Generate evidence-grounded research artifacts.
 -   Compare research methods and approaches.
 -   Identify potential research gaps.
@@ -106,6 +115,14 @@ This test plan covers:
 -   Maximum-result ranking and selection
 -   Research evaluation batch processing
 -   Research evaluation retry handling
+-   Optional Existing Research Context document ingestion
+-   Existing Research Context analysis
+-   Bounded context document chunking
+-   Context provenance tracking
+-   Per-paper analysis
+-   Cross-paper synthesis
+-   Research Direction Analysis
+-   Research analysis validation
 -   Citation and source tracking
 -   Paper summary generation
 -   Literature comparison
@@ -133,6 +150,7 @@ This test plan does not evaluate:
 -   Vector-based knowledge search
 -   Multi-agent research workflows
 -   Autonomous experiment execution
+-   OCR processing for image-only or scanned PDF context documents
 
 ------------------------------------------------------------------------
 
@@ -144,6 +162,10 @@ Research Agent outputs shall be based on identifiable research sources.
 
 AI-generated analysis shall remain distinguishable from source
 information.
+
+Source-derived context findings, source-derived per-paper
+interpretation, and Research Agent inference shall remain
+distinguishable.
 
 ------------------------------------------------------------------------
 
@@ -478,6 +500,140 @@ reviewable Research Result without losing applicable research context.
 
 ------------------------------------------------------------------------
 
+### 5.10 RA-FUN-010: Existing Research Context Processing
+
+#### Verification Layers
+
+-   Unit
+-   Integration
+-   UI Acceptance where applicable
+
+#### Objective
+
+Verify optional Existing Research Context document ingestion and
+analysis.
+
+#### Expected Behavior
+
+The Research Agent shall:
+
+-   accept text-based PDF, Markdown, and plain-text context documents
+-   avoid storing a copy of the selected source document
+-   preserve page- or section-level provenance
+-   use bounded chunking for large documents with implementation limits
+    to be defined
+-   produce structured Existing Research Context containing the research
+    problem, prior work, implemented approaches, findings, limitations,
+    unresolved questions, stated future work, and source references
+-   clearly report extraction or analysis failures
+-   reject image-only or scanned PDF documents requiring OCR
+
+#### Pass Criteria
+
+Supported context documents produce structured, source-traceable
+Existing Research Context, and unsupported or failed context processing
+does not silently revert to the no-context workflow.
+
+------------------------------------------------------------------------
+
+### 5.11 RA-FUN-011: Per-Paper Analysis
+
+#### Verification Layers
+
+-   Unit
+-   Integration
+-   UI Acceptance where applicable
+
+#### Objective
+
+Verify structured technical analysis for retained papers.
+
+#### Expected Behavior
+
+The Research Agent shall produce Paper Analysis containing:
+
+-   problem
+-   approach
+-   representations
+-   modalities
+-   learning or alignment objective
+-   datasets or tasks
+-   findings
+-   limitations
+-   relevance to the current research
+-   evidence references
+
+#### Pass Criteria
+
+Each Paper Analysis is traceable to a retained paper, preserves evidence
+references, and does not invent missing source information.
+
+------------------------------------------------------------------------
+
+### 5.12 RA-FUN-012: Research Direction Analysis
+
+#### Verification Layers
+
+-   Unit
+-   Integration
+-   UI Acceptance where applicable
+
+#### Objective
+
+Verify cross-paper synthesis and evidence-grounded candidate research
+direction generation.
+
+#### Expected Behavior
+
+The Research Agent shall:
+
+-   produce synthesis findings containing themes, comparisons, shared
+    limitations, and unresolved questions
+-   identify candidate research directions
+-   preserve context motivation and literature evidence for candidate
+    directions unless explicitly marked speculative
+-   preserve provenance for referenced context items and papers
+-   distinguish Research Agent inference from source-derived findings
+    and per-paper interpretation
+
+#### Pass Criteria
+
+Research Direction Analysis remains traceable to valid context and paper
+evidence and satisfies the defined synthesis requirements.
+
+The detailed Research Direction Analysis output contract remains to be
+defined and shall receive additional verification criteria when
+finalized.
+
+------------------------------------------------------------------------
+
+### 5.13 RA-FUN-013: No-Context Backward Compatibility
+
+#### Verification Layers
+
+-   Unit
+-   Integration
+-   UI Acceptance where applicable
+
+#### Objective
+
+Verify that the optional Existing Research Context capability does not
+change existing Research Agent behavior when no context document is
+provided.
+
+#### Expected Behavior
+
+The Research Agent shall preserve existing workflow semantics and result
+behavior with new optional context fields empty.
+
+#### Pass Criteria
+
+A request with `context_document=None` follows the existing workflow and
+produces the expected Research Result without requiring context
+processing.
+
+------------------------------------------------------------------------
+
 ## 6. Source and Research Integrity Verification Scenarios
 
 ------------------------------------------------------------------------
@@ -648,6 +804,35 @@ evaluation traceable to an identifiable supplied source reference.
 
 ------------------------------------------------------------------------
 
+### 6.7 RA-SRC-007: Research Analysis Reference Validation
+
+#### Verification Layers
+
+-   Unit
+-   Integration
+
+#### Objective
+
+Verify deterministic validation of context, paper, and candidate
+research direction references.
+
+#### Expected Behavior
+
+The Research Agent shall:
+
+-   verify that referenced context items exist
+-   verify that referenced paper identifiers exist
+-   verify candidate research direction context motivation and
+    literature evidence unless explicitly marked speculative
+-   reject unknown source identifiers
+
+#### Pass Criteria
+
+Invalid or unknown references are rejected and valid analysis remains
+traceable to identifiable supporting evidence.
+
+------------------------------------------------------------------------
+
 ## 7. AI Reasoning Verification Scenarios
 
 ------------------------------------------------------------------------
@@ -806,6 +991,39 @@ human review.
 
 ------------------------------------------------------------------------
 
+### 8.3 RA-ART-003: Saved Research Package Structure
+
+#### Verification Layers
+
+-   Unit
+-   Integration
+-   UI Acceptance where applicable
+
+#### Objective
+
+Verify the minimum structure of a saved research package.
+
+#### Expected Behavior
+
+The saved research package shall contain:
+
+-   request
+-   context summary
+-   research strategy
+-   retained papers
+-   per-paper analyses
+-   synthesis findings
+-   candidate directions
+-   provenance
+-   validation status
+
+#### Pass Criteria
+
+The saved package contains the required information and preserves
+supporting source traceability.
+
+------------------------------------------------------------------------
+
 ## 9. Browser Acceptance Testing
 
 Browser acceptance testing verifies that a real user can successfully
@@ -844,13 +1062,17 @@ the Project0 Dashboard.
 2.  Locate the Research Agent heading.
 3.  Locate the Research Question field.
 4.  Locate optional research constraint controls where implemented.
-5.  Locate the Submit Research Request button.
+5.  Locate optional Existing Research Context file selection/upload
+    control where implemented.
+6.  Locate the Submit Research Request button.
 
 #### Expected Results
 
 -   Research Agent page loads successfully.
 -   Research Agent heading is visible.
 -   Research Question field is visible.
+-   Existing Research Context file selection/upload control is visible
+    where implemented.
 -   Submit Research Request button is visible.
 -   No browser or application error prevents use of the request
     interface.
@@ -1126,6 +1348,52 @@ test_research_agent_ui_request_acceptance.py
 test_UI_RA_FUN_001_visible_research_workflow_result_is_presented
 ```
 
+### 9.8 UI-RA-FUN-010-A: Existing Research Context Can Be Selected
+
+#### Verification Scenario
+
+`RA-FUN-010`
+
+#### Purpose
+
+Verify that a user can select a supported Existing Research Context
+document through the Research Agent interface.
+
+#### Preconditions
+
+-   Project0 Dashboard is running.
+-   Research Agent request page is available.
+-   A supported text-based context document is available.
+
+#### Test Steps
+
+1.  Open `/agents/research`.
+2.  Select a supported Existing Research Context document.
+3.  Submit a research request.
+4.  Wait for workflow completion.
+5.  Inspect the resulting context and research output.
+
+#### Expected Results
+
+-   The selected context document is accepted.
+-   Context-derived information is presented where implemented.
+-   Context provenance is preserved.
+-   The workflow does not require repository storage of the selected
+    source document.
+-   No context extraction or analysis error is silently ignored.
+
+#### Automation File
+
+``` text
+test_research_agent_ui_context_acceptance.py
+```
+
+#### Automation
+
+``` text
+test_UI_RA_FUN_010_existing_research_context_can_be_selected
+```
+
 Playwright automatic waiting should be preferred over arbitrary sleep
 calls because external research source and local reasoning execution
 time may vary. Project0 `--ui-slowmo` may be used to slow headed browser
@@ -1150,6 +1418,10 @@ Exploratory AI testing may require human judgment for:
 -   hallucination detection
 -   research gap usefulness
 -   experiment suggestion quality
+-   Existing Research Context interpretation quality
+-   per-paper technical analysis quality
+-   cross-paper synthesis quality
+-   candidate research direction usefulness and evidence grounding
 
 Real Ollama/qwen2.5:7b execution should therefore complement, rather
 than replace, deterministic unit, integration, and browser acceptance
@@ -1222,6 +1494,9 @@ The Research Agent is considered stable when:
 -   required browser acceptance scenarios pass
 -   source and citation preservation behavior is verified
 -   research artifact validation passes
+-   Existing Research Context and provenance validation passes
+-   per-paper and Research Direction Analysis validation passes
+-   no-context backward compatibility is verified
 -   Project0 platform regression tests remain passing
 
 Research Agent implementation shall not regress the established Project0
@@ -1246,6 +1521,12 @@ The Research Agent may be considered complete when:
     maximum result count while discovered source references are
     preserved.
 -   Structured research artifacts are generated.
+-   Optional Existing Research Context processing operates correctly.
+-   Structured per-paper analyses are generated correctly.
+-   Research Direction Analysis produces required synthesis findings and
+    evidence-grounded candidate directions.
+-   Existing workflow behavior is preserved when no context document is
+    provided.
 
 ### Research Integrity
 
@@ -1253,6 +1534,12 @@ The Research Agent may be considered complete when:
 -   Missing source information is not invented.
 -   Source facts remain distinguishable from generated analysis.
 -   Unsupported research claims are handled safely.
+-   Context and paper provenance is preserved.
+-   Referenced context items and paper identifiers are valid.
+-   Candidate research directions preserve required context motivation
+    and literature evidence unless explicitly marked speculative.
+-   Source-derived context findings, source-derived per-paper
+    interpretation, and Research Agent inference remain distinguishable.
 
 ### Architecture
 
@@ -1281,3 +1568,4 @@ Future versions may include:
 -   Multi-agent research workflow testing
 -   Automated acceptance execution
 -   Agent comparison testing
+-   OCR context-document testing when OCR support is introduced

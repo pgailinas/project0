@@ -21,7 +21,7 @@ file is the editable project planning document.
 
 ## Current Phase
 
-Phase 11 -- Research Agent Expansion and Enhancement (Completed)
+Phase 13 -- Research Agent Context-Aware Literature Analysis (Planned)
 
 ## Overall Status
 
@@ -36,6 +36,7 @@ Phase 11 -- Research Agent Expansion and Enhancement (Completed)
 -   ✅ Phase 9 -- Testing and Verification: Completed
 -   ✅ Phase 10 -- Platform Validation Consolidation: Completed
 -   ✅ Phase 11 -- Research Agent Expansion and Enhancement: Completed
+-   ⏳ Phase 13 -- Research Agent Context-Aware Literature Analysis: Planned
 
 ------------------------------------------------------------------------
 
@@ -58,3 +59,12 @@ Completed capabilities:
 
 Detailed implementation history, architecture decisions, and validation
 results are maintained in the Research Agent documentation set.
+
+Planned next milestone:
+
+Research Agent Context-Aware Literature Analysis
+
+The planned enhancement will extend the Research Agent with optional
+existing research context analysis, structured per-paper analysis,
+cross-paper synthesis, and evidence-grounded research direction
+analysis. These capabilities are not yet implemented or validated.

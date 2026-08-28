@@ -1,8 +1,8 @@
 # Research Agent Architecture
 
-**Version:** 0.3  
+**Version:** 0.4  
 **Owner:** Project0  
-**Last Updated:** 2026-08-27
+**Last Updated:** 2026-08-28
 
 ------------------------------------------------------------------------
 
@@ -58,9 +58,11 @@ generation, and human review through the Platform Dispatcher.
 
 The initial Research Agent implementation establishes a
 human-in-the-loop research workflow. The workflow begins with a research
-request, develops a research strategy, searches supported external
+request, optionally ingests and analyzes an Existing Research Context
+document, develops a research strategy, searches supported external
 research sources, retrieves available paper metadata, evaluates and
-ranks candidate papers, generates structured research artifacts,
+ranks candidate papers, performs structured per-paper analysis and
+research direction analysis, generates structured research artifacts,
 preserves source and citation information, validates the generated
 artifacts, and returns structured research results for human review.
 
@@ -79,6 +81,8 @@ flowchart TD
     B["Platform Dispatcher"]
     C["Research Workflow"]
 
+    X["Context Document Ingestion"]
+    Y["Existing Research Context Analysis"]
     D["Research Strategy Service"]
     Q["Research Query Service"]
     E["Research Source Service"]
@@ -87,6 +91,8 @@ flowchart TD
     G["Knowledge Service"]
     H["Research Evaluation Service"]
     I["Reasoning Service"]
+    M["Per-Paper Analysis"]
+    N["Research Direction Analysis"]
     J["Research Artifact Service"]
     K["Validation Service"]
 
@@ -96,7 +102,9 @@ flowchart TD
     A --> B
     B --> C
 
-    C --> D
+    C --> X
+    X --> Y
+    Y --> D
     D --> Q
     Q --> E
     E --> P
@@ -104,7 +112,9 @@ flowchart TD
     F --> G
     G --> H
     H --> I
-    I --> J
+    I --> M
+    M --> N
+    N --> J
     J --> K
     K --> L
 ```
@@ -115,30 +125,37 @@ flowchart TD
     Research Agent UI services.
 2.  `main.py` creates the Platform Dispatcher.
 3.  The Platform Dispatcher dispatches the requested Research Workflow.
-4.  The Research Strategy Service analyzes the Research Request and
-    produces a Research Strategy.
-5.  The Research Query Service deterministically enriches the Research
+4.  When provided, the selected Existing Research Context document is
+    ingested and analyzed before research strategy generation.
+5.  The Research Strategy Service analyzes the Research Request and
+    optional Existing Research Context and produces a Research Strategy.
+8.  The Research Query Service deterministically enriches the Research
     Strategy with provider-ready search terms.
 6.  The Research Source Service searches supported external research
     sources.
-7.  The Paper Metadata Service retrieves and normalizes available paper
+9.  The Paper Metadata Service retrieves and normalizes available paper
     metadata.
-8.  The Knowledge Service retrieves relevant existing Project0 research
+10.  The Knowledge Service retrieves relevant existing Project0 research
     context when applicable.
-9.  The Research Evaluation Service evaluates candidate papers against
+11.  The Research Evaluation Service evaluates candidate papers against
     the research question using a bounded relevance scale.
-10. The Research Workflow ranks evaluated papers by relevance and retains
+12. The Research Workflow ranks evaluated papers by relevance and retains
     the configured maximum number of results.
-11. The Reasoning Service performs AI-assisted research analysis where
+13. The Reasoning Service performs AI-assisted research analysis where
     required.
-12. The Research Artifact Service generates structured research
-    artifacts from the retained evaluations.
-13. Source and citation information is preserved with generated research
+14. Structured Per-Paper Analysis interprets each retained paper using
+    available source evidence.
+15. Research Direction Analysis performs cross-paper comparison and
+    identifies candidate research directions grounded in existing
+    research context and literature evidence.
+16. The Research Artifact Service generates structured research
+    artifacts from the retained evaluations and analyses.
+17. Source and citation information is preserved with generated research
     artifacts.
-14. The Validation Service validates required artifact structure and
+18. The Validation Service validates required artifact structure and
     source information.
-15. The Research Workflow returns a structured Research Result.
-16. Research results are presented for human review through the
+19. The Research Workflow returns a structured Research Result.
+20. Research results are presented for human review through the
     Dashboard Framework.
 
 ------------------------------------------------------------------------
@@ -197,6 +214,9 @@ Initial Research Agent interfaces:
 -   Research Source Interface
 -   Paper Metadata Interface
 -   Research Evaluation Interface
+-   Existing Research Context Analysis Interface
+-   Per-Paper Analysis Interface
+-   Research Direction Analysis Interface
 -   Research Artifact Interface
 
 Interfaces allow components to depend on required capabilities rather
@@ -215,6 +235,9 @@ Initial Research Agent model groups:
 -   Paper references
 -   Paper metadata
 -   Research evaluations
+-   Existing research contexts
+-   Per-paper analyses
+-   Research direction analyses
 -   Research artifacts
 
 ### Validation Service
@@ -225,6 +248,10 @@ Responsibilities:
 
 -   Validate required research artifact structure.
 -   Validate required source and citation information.
+-   Validate referenced context items and paper identifiers.
+-   Validate candidate research direction context motivation and
+    literature evidence unless explicitly marked speculative.
+-   Reject unknown source identifiers.
 -   Aggregate validator results.
 -   Preserve validator execution order.
 -   Isolate validator execution failures.
@@ -252,6 +279,78 @@ reasoning and does not directly access external research sources.
 
 ------------------------------------------------------------------------
 
+### Context Document Ingestion
+
+Provides controlled ingestion and extraction of an optional Existing
+Research Context document.
+
+Responsibilities:
+
+-   Accept a context document through a simple file-selection/upload
+    interaction.
+-   Support text-based PDF, Markdown, and plain-text context documents.
+-   Extract source content without storing a copy of the source document.
+-   Preserve page- or section-level provenance.
+-   Process large documents using bounded chunking with implementation
+    limits to be defined.
+-   Clearly report extraction failures.
+-   Reject image-only or scanned PDF documents requiring OCR.
+
+------------------------------------------------------------------------
+
+### Existing Research Context Analysis
+
+Transforms extracted context document content into structured Existing
+Research Context.
+
+Responsibilities:
+
+-   Identify the research problem.
+-   Identify prior work and implemented approaches.
+-   Identify findings and limitations.
+-   Identify unresolved questions and stated future work.
+-   Preserve source references for extracted context findings.
+-   Distinguish source-derived context findings from generated analysis.
+-   Clearly report context analysis failures.
+
+------------------------------------------------------------------------
+
+### Per-Paper Analysis
+
+Produces structured technical analysis for each retained paper.
+
+Responsibilities:
+
+-   Identify the paper problem and approach.
+-   Identify representations and modalities.
+-   Identify the learning or alignment objective.
+-   Identify datasets or tasks.
+-   Identify findings and limitations.
+-   Explain relevance to the current research.
+-   Preserve evidence references.
+-   Distinguish source-derived interpretation from source information.
+
+------------------------------------------------------------------------
+
+### Research Direction Analysis
+
+Analyzes retained paper analyses together with optional Existing Research
+Context to identify evidence-grounded research directions.
+
+Responsibilities:
+
+-   Perform cross-paper comparison.
+-   Produce structured synthesis findings including themes, comparisons,
+    shared limitations, and unresolved questions.
+-   Identify candidate research directions.
+-   Ground candidate directions in context motivation and literature
+    evidence unless explicitly marked speculative.
+-   Preserve provenance for supporting context and paper evidence.
+-   Distinguish Research Agent inference from source-derived findings and
+    per-paper interpretation.
+
+------------------------------------------------------------------------
+
 ### Research Strategy Service
 
 Transforms a Research Request into a structured Research Strategy.
@@ -259,6 +358,9 @@ Transforms a Research Request into a structured Research Strategy.
 Responsibilities:
 
 -   Analyze the research request.
+-   Incorporate optional Existing Research Context when provided.
+-   Support open-ended research requests when Existing Research Context
+    is available.
 -   Identify the research objective and relevant research concepts.
 -   Identify explicit research sub-questions when present.
 -   Identify optional constraints and focus areas.
@@ -352,6 +454,10 @@ Responsibilities:
 -   Generate literature comparison artifacts.
 -   Generate research gap artifacts.
 -   Generate experiment planning artifacts.
+-   Generate saved research packages containing the request, context
+    summary, research strategy, retained papers, per-paper analyses,
+    synthesis findings, candidate directions, provenance, and validation
+    status.
 -   Preserve citation and source references.
 -   Return structured Research Artifacts.
 
@@ -367,10 +473,19 @@ Responsibilities:
     Metadata, Knowledge, Reasoning, Research Evaluation, Validation, and
     Research Artifact services.
 -   Preserve internal workflow state.
+-   Preserve existing workflow semantics when no Existing Research
+    Context document is provided.
+-   Coordinate context ingestion and analysis when an Existing Research
+    Context document is provided.
+-   Fail clearly when requested context extraction or analysis fails
+    rather than silently reverting to the no-context workflow.
 -   Preserve all discovered source references for traceability.
 -   Rank evaluated papers by relevance and retain the configured maximum
     number of results.
--   Generate research artifacts from retained evaluations.
+-   Generate per-paper analyses from retained evaluations.
+-   Coordinate Research Direction Analysis across retained paper
+    analyses and optional Existing Research Context.
+-   Generate research artifacts from retained evaluations and analyses.
 -   Preserve source and citation information.
 -   Produce immutable Research Results.
 -   Support human review of research outputs.
@@ -465,6 +580,8 @@ The Research Agent interacts with:
 -   Technical paper metadata
 -   Project0 repository knowledge
 -   Existing research artifacts
+-   Optional text-based PDF, Markdown, and plain-text Existing Research
+    Context documents
 -   Python runtime environment
 -   pytest test framework
 -   Validation tools
@@ -481,6 +598,15 @@ The Research Agent interacts with:
 -   Source information shall remain distinguishable from AI-generated
     analysis.
 -   Missing source or metadata information shall not be invented.
+-   Existing Research Context source documents shall not be copied into
+    Project0 storage by the Research Agent.
+-   Existing Research Context provenance shall be preserved at page- or
+    section-level.
+-   Source-derived context findings, source-derived per-paper
+    interpretation, and Research Agent inference shall remain
+    distinguishable.
+-   Image-only or scanned PDF context documents requiring OCR are outside
+    the current implementation scope.
 -   Platform components shall communicate through typed interfaces.
 -   Shared data models shall define information exchanged between
     components.
@@ -518,3 +644,4 @@ Future versions may introduce:
 -   Additional AI providers
 -   Additional validation services
 -   Asynchronous workflow execution
+-   OCR support for image-only or scanned PDF context documents

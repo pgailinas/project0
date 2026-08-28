@@ -1,8 +1,8 @@
 # Research Agent Charter
 
-**Version:** 0.2  
+**Version:** 0.3  
 **Owner:** Project0  
-**Last Updated:** 2026-08-25
+**Last Updated:** 2026-08-28
 
 ---
 
@@ -61,6 +61,9 @@ The Research Agent shall:
 -   Summarize and evaluate technical papers.
 -   Compare research methods and approaches.
 -   Evaluate paper relevance to the research question.
+-   Support optional analysis of existing research context.
+-   Produce evidence-grounded per-paper and cross-paper research
+    analysis.
 -   Identify potential research gaps.
 -   Support experiment planning and research direction decisions.
 -   Preserve research evidence and source references.
@@ -83,6 +86,9 @@ The Research Agent shall:
 -   Technical paper evaluation.
 -   Literature comparison.
 -   Research relevance evaluation.
+-   Optional existing research context analysis.
+-   Structured per-paper analysis.
+-   Cross-paper synthesis and research direction analysis.
 -   Research gap identification.
 -   Experiment planning support.
 -   Structured research artifact generation.
@@ -100,6 +106,8 @@ The Research Agent shall:
 -   Treat AI-generated summaries as authoritative without source
     verification.
 -   Operate as an uncontrolled autonomous research system.
+-   Perform OCR processing for image-only or scanned research context
+    documents.
 -   Redefine reusable Project0 platform responsibilities for
     research-specific needs.
 
@@ -111,6 +119,10 @@ The Research Agent shall follow these principles:
 
 -   **Evidence Grounding**: Research outputs should be based on
     identifiable sources and preserved references.
+
+-   **Evidence Boundaries**: Source-derived context findings,
+    source-derived paper interpretation, and Research Agent inference
+    should remain distinguishable.
 
 -   **Human-in-the-Loop**: Human authority is preserved for research
     direction, interpretation, and final decisions.
@@ -176,7 +188,11 @@ The Research Agent shall:
 
 -   Present research findings and artifacts for review.
 -   Preserve source references where available.
+-   Preserve provenance for existing research context and paper
+    analysis.
 -   Distinguish source information from generated analysis.
+-   Distinguish source-derived context findings, source-derived paper
+    interpretation, and Research Agent inference.
 -   Report uncertainty when evidence is incomplete.
 -   Avoid unsupported conclusions.
 -   Allow human users to accept, revise, reject, or extend research
@@ -195,7 +211,11 @@ The Research Agent is successful when it can:
     workflow.
 -   Identify relevant research concepts.
 -   Produce useful paper summaries.
+-   Analyze optional existing research context when provided.
+-   Produce structured, evidence-grounded per-paper analysis.
 -   Generate research comparison artifacts.
+-   Produce cross-paper synthesis and evidence-grounded candidate
+    research directions.
 -   Identify potential research opportunities.
 -   Support experiment planning.
 -   Preserve source references and research context.

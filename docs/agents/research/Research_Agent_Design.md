@@ -1,8 +1,8 @@
 # Research Agent Design
 
-**Version:** 0.2  
+**Version:** 0.3  
 **Owner:** Project0  
-**Last Updated:** 2026-08-27
+**Last Updated:** 2026-08-28
 
 ---
 
@@ -73,6 +73,10 @@ Initial Research Agent-specific components include:
 -   Research Source Provider Interface
 -   Paper Metadata Service
 -   Research Evaluation Service
+-   Context Document Ingestion
+-   Existing Research Context Analysis
+-   Per-Paper Analysis
+-   Research Direction Analysis
 -   Research Artifact Service
 
 The Platform Dispatcher provides the platform-level entry point. It
@@ -226,7 +230,10 @@ Perform AI-assisted research reasoning.
 -   Analyze research questions.
 -   Assist research strategy generation.
 -   Analyze technical paper information.
+-   Analyze Existing Research Context document content.
+-   Perform structured per-paper interpretation.
 -   Compare research methods and approaches.
+-   Perform cross-paper synthesis for Research Direction Analysis.
 -   Identify potential research gaps.
 -   Generate experiment planning suggestions.
 -   Generate structured research artifact content.
@@ -244,6 +251,7 @@ Perform AI-assisted research reasoning.
 -   Research question.
 -   Research source information.
 -   Paper metadata.
+-   Optional Existing Research Context.
 -   Project knowledge.
 
 #### Design Notes
@@ -275,6 +283,10 @@ Coordinate validation of Research Agent workflow outputs.
 
 -   Validate required research artifact structure.
 -   Validate required source and citation information.
+-   Validate referenced context items and paper identifiers.
+-   Validate candidate research direction context motivation and
+    literature evidence unless explicitly marked speculative.
+-   Reject unknown source identifiers.
 -   Aggregate validation results.
 -   Preserve structured validation warnings and errors.
 
@@ -307,6 +319,9 @@ components.
 -   Research Source Interface
 -   Paper Metadata Interface
 -   Research Evaluation Interface
+-   Existing Research Context Analysis Interface
+-   Per-Paper Analysis Interface
+-   Research Direction Analysis Interface
 -   Research Artifact Interface
 
 #### Design Notes
@@ -337,6 +352,9 @@ components.
 -   Paper Reference
 -   Paper Metadata
 -   Research Evaluation
+-   Existing Research Context
+-   Paper Analysis
+-   Research Direction Analysis
 -   Research Artifact
 
 #### Design Notes
@@ -349,7 +367,208 @@ components.
 
 ---
 
-### 4.9 Research Strategy Service
+### 4.9 Context Document Ingestion
+
+#### Purpose
+
+Provide controlled ingestion and text extraction for an optional
+Existing Research Context document.
+
+#### Responsibilities
+
+-   Accept a context document through a simple file-selection/upload
+    interaction.
+-   Support text-based PDF, Markdown, and plain-text documents.
+-   Extract source content without storing a copy of the source document.
+-   Preserve page- or section-level provenance.
+-   Process large documents using bounded chunking with implementation
+    limits to be defined.
+-   Clearly report extraction failures.
+-   Reject image-only or scanned PDF documents requiring OCR.
+
+#### Design Notes
+
+-   File handling and text extraction remain separate from research
+    reasoning.
+-   OCR support is deferred to a future enhancement.
+-   A selected context document that cannot be extracted shall not
+    silently revert to the no-context workflow.
+
+#### Inputs
+
+-   Optional Existing Research Context document
+
+#### Outputs
+
+-   Extracted context document content
+-   Source provenance
+-   Extraction warnings or errors
+
+---
+
+### 4.10 Existing Research Context Analysis
+
+#### Purpose
+
+Transform extracted context document content into structured Existing
+Research Context.
+
+#### Responsibilities
+
+-   Identify the research problem.
+-   Identify prior work.
+-   Identify implemented approaches.
+-   Identify findings and limitations.
+-   Identify unresolved questions.
+-   Identify stated future work.
+-   Preserve source references for extracted context findings.
+
+#### Interfaces
+
+##### Provides
+
+-   Analyze Existing Research Context.
+
+##### Consumes
+
+-   Extracted context document content.
+-   Reasoning Service.
+
+#### Design Notes
+
+-   Context findings are source-derived.
+-   Source-derived context findings remain distinguishable from generated
+    analysis.
+-   Context provenance is preserved at page- or section-level.
+-   Context analysis failures are clearly reported.
+
+#### Inputs
+
+-   Extracted context document content
+-   Source provenance
+
+#### Outputs
+
+-   Existing Research Context
+
+#### Required Services
+
+-   Reasoning Service
+
+---
+
+### 4.11 Per-Paper Analysis
+
+#### Purpose
+
+Produce structured technical analysis for each retained paper.
+
+#### Responsibilities
+
+-   Identify the paper problem and approach.
+-   Identify representations and modalities.
+-   Identify the learning or alignment objective.
+-   Identify datasets or tasks.
+-   Identify findings and limitations.
+-   Explain relevance to the current research.
+-   Preserve evidence references.
+
+#### Interfaces
+
+##### Provides
+
+-   Analyze retained paper.
+
+##### Consumes
+
+-   Research Request.
+-   Research Strategy.
+-   Paper Metadata.
+-   Research Evaluation.
+-   Reasoning Service.
+
+#### Design Notes
+
+-   Per-paper analysis is source-derived interpretation.
+-   Missing source information shall not be invented.
+-   Evidence references remain associated with analysis findings.
+
+#### Inputs
+
+-   Research Request
+-   Research Strategy
+-   Paper Metadata
+-   Research Evaluation
+
+#### Outputs
+
+-   Paper Analysis
+
+#### Required Services
+
+-   Reasoning Service
+
+---
+
+### 4.12 Research Direction Analysis
+
+#### Purpose
+
+Analyze retained paper analyses together with optional Existing Research
+Context to identify evidence-grounded research directions.
+
+#### Responsibilities
+
+-   Perform cross-paper comparison.
+-   Produce structured synthesis findings including themes, comparisons,
+    shared limitations, and unresolved questions.
+-   Identify candidate research directions.
+-   Ground candidate directions in context motivation and literature
+    evidence unless explicitly marked speculative.
+-   Preserve provenance for supporting context and paper evidence.
+
+#### Interfaces
+
+##### Provides
+
+-   Analyze research directions.
+
+##### Consumes
+
+-   Research Request.
+-   Research Strategy.
+-   Optional Existing Research Context.
+-   Paper Analyses.
+-   Reasoning Service.
+
+#### Design Notes
+
+-   Cross-paper synthesis is functionality within Research Direction
+    Analysis rather than a separate service.
+-   Research directions are Research Agent inference grounded in
+    source-derived context and per-paper interpretation.
+-   The detailed Research Direction Analysis output contract remains to
+    be defined.
+
+#### Inputs
+
+-   Research Request
+-   Research Strategy
+-   Optional Existing Research Context
+-   Paper Analyses
+
+#### Outputs
+
+-   Synthesis findings
+-   Candidate research directions
+
+#### Required Services
+
+-   Reasoning Service
+
+---
+
+### 4.13 Research Strategy Service
 
 #### Purpose
 
@@ -358,6 +577,9 @@ Transform a research question into a structured research strategy.
 #### Responsibilities
 
 -   Analyze the research request.
+-   Incorporate optional Existing Research Context when provided.
+-   Support open-ended research requests when Existing Research Context
+    is available.
 -   Identify the research objective and relevant research concepts.
 -   Identify explicit research sub-questions when present.
 -   Identify optional constraints and focus areas.
@@ -372,6 +594,7 @@ Transform a research question into a structured research strategy.
 ##### Consumes
 
 -   Research Request.
+-   Optional Existing Research Context.
 -   Reasoning Service.
 
 #### Design Notes
@@ -436,7 +659,7 @@ provider-ready research search terms.
 
 ---
 
-### 4.10 Research Source Service
+### 4.14 Research Source Service
 
 #### Purpose
 
@@ -495,7 +718,7 @@ Provide controlled access to supported external research sources.
 
 ---
 
-### 4.11 Paper Metadata Service
+### 4.15 Paper Metadata Service
 
 #### Purpose
 
@@ -542,7 +765,7 @@ Retrieve and normalize available metadata for candidate research papers.
 
 ---
 
-### 4.12 Research Evaluation Service
+### 4.16 Research Evaluation Service
 
 #### Purpose
 
@@ -556,9 +779,6 @@ research strategy.
     adjacent, or topical relevance.
 -   Apply consistent relevance criteria across evaluated papers.
 -   Explain relevance to the research question.
--   Compare research methods and approaches.
--   Identify potential research gaps.
--   Support experiment planning analysis.
 
 #### Interfaces
 
@@ -566,7 +786,6 @@ research strategy.
 
 -   Evaluate candidate paper.
 -   Rank candidate papers.
--   Compare research approaches.
 
 ##### Consumes
 
@@ -611,7 +830,7 @@ research strategy.
 
 ---
 
-### 4.13 Research Artifact Service
+### 4.17 Research Artifact Service
 
 #### Purpose
 
@@ -624,6 +843,10 @@ Agent outputs.
 -   Generate literature comparison artifacts.
 -   Generate research gap artifacts.
 -   Generate experiment planning artifacts.
+-   Generate saved research packages containing the request, context
+    summary, research strategy, retained papers, per-paper analyses,
+    synthesis findings, candidate directions, provenance, and validation
+    status.
 -   Preserve citation and source references.
 -   Return structured Research Artifacts.
 
@@ -638,6 +861,9 @@ Agent outputs.
 -   Research Evaluations.
 -   Paper Metadata.
 -   Research Request.
+-   Optional Existing Research Context.
+-   Paper Analyses.
+-   Research Direction Analysis.
 
 #### Design Notes
 
@@ -653,6 +879,9 @@ Agent outputs.
 -   Research Evaluations
 -   Paper Metadata
 -   Research Request
+-   Optional Existing Research Context
+-   Paper Analyses
+-   Research Direction Analysis
 
 #### Outputs
 
@@ -666,7 +895,7 @@ Agent outputs.
 
 ---
 
-### 4.14 Research Workflow
+### 4.18 Research Workflow
 
 #### Purpose
 
@@ -678,10 +907,19 @@ Coordinate the complete Research Agent execution pipeline.
     Metadata, Knowledge, Reasoning, Research Evaluation, Validation, and
     Research Artifact services.
 -   Preserve internal workflow state.
+-   Preserve existing workflow semantics when no Existing Research
+    Context document is provided.
+-   Coordinate context ingestion and analysis when an Existing Research
+    Context document is provided.
+-   Clearly report requested context extraction or analysis failures
+    without silently reverting to the no-context workflow.
 -   Rank evaluated papers by relevance and retain the configured maximum
     number of results.
 -   Preserve all discovered source references for traceability.
--   Generate research artifacts from retained evaluations.
+-   Generate per-paper analyses from retained evaluations.
+-   Coordinate Research Direction Analysis across retained paper
+    analyses and optional Existing Research Context.
+-   Generate research artifacts from retained evaluations and analyses.
 -   Produce immutable Research Results.
 -   Preserve source and citation information.
 -   Support human review of research outputs.
@@ -815,7 +1053,7 @@ changes to a generated research request or research output.
 
 ---
 
-## 6. Component Interactions
+## 7. Component Interactions
 
 The Platform Dispatcher provides the platform-level entry point and
 submits Research Agent workflow tasks to the Workflow Engine.
@@ -825,34 +1063,41 @@ The initial Research Workflow follows this sequence:
 1.  The user submits a Research Request through the Dashboard Framework.
 2.  The Platform Dispatcher creates and dispatches the Research
     Workflow.
-3.  The Research Strategy Service analyzes the Research Request.
-4.  The Reasoning Service assists with research concept and strategy
+3.  When provided, the selected Existing Research Context document is
+    ingested and analyzed.
+4.  The Research Strategy Service analyzes the Research Request and
+    optional Existing Research Context.
+5.  The Reasoning Service assists with research concept and strategy
     generation when required.
-5.  The Research Strategy Service returns a Research Strategy.
+6.  The Research Strategy Service returns a Research Strategy.
 6.  The Research Query Service enriches the Research Strategy with
     deterministic provider-ready search terms.
-7.  The Research Source Service searches configured external research
+8.  The Research Source Service searches configured external research
     source providers.
-8.  External source results from configured providers are combined and
+9.  External source results from configured providers are combined and
     normalized into Research Source References.
-9.  The Paper Metadata Service retrieves and normalizes available
+10.  The Paper Metadata Service retrieves and normalizes available
     metadata.
-10. The Knowledge Service retrieves relevant existing Project0 research
+11. The Knowledge Service retrieves relevant existing Project0 research
     context when applicable.
-11. The Research Evaluation Service evaluates candidate papers against
+12. The Research Evaluation Service evaluates candidate papers against
     the Research Request and Research Strategy.
-12. The Reasoning Service performs semantic research evaluation where
+13. The Reasoning Service performs semantic research evaluation where
     required.
-13. Candidate papers are ranked by relevance and the configured maximum
+14. Candidate papers are ranked by relevance and the configured maximum
     number of results is retained.
-14. The Research Artifact Service generates structured research
-    artifacts from retained evaluations.
-15. Citation and source references are preserved with the generated
+15. Per-Paper Analysis produces structured technical analysis for each
+    retained paper.
+16. Research Direction Analysis performs cross-paper comparison and
+    identifies candidate research directions.
+17. The Research Artifact Service generates structured research
+    artifacts from retained evaluations and analyses.
+18. Citation and source references are preserved with the generated
     artifacts.
-16. The Validation Service validates required artifact structure and
+19. The Validation Service validates required artifact structure and
     source information.
-17. The Research Workflow returns a structured Research Result.
-18. Research results are presented for human review through the
+20. The Research Workflow returns a structured Research Result.
+21. Research results are presented for human review through the
     Dashboard Framework.
 
 The Dashboard Framework remains responsible for the shared application
@@ -881,8 +1126,17 @@ behind the Research Source Service and its interfaces.
 -   External research source access shall occur through defined service
     interfaces.
 -   Missing source or metadata information shall not be invented.
+-   Existing Research Context source documents shall not be copied into
+    Project0 storage by the Research Agent.
+-   Existing Research Context provenance shall be preserved at page- or
+    section-level.
+-   Image-only or scanned PDF context documents requiring OCR are outside
+    the current implementation scope.
 -   AI-generated analysis shall remain distinguishable from source
     information.
+-   Source-derived context findings, source-derived per-paper
+    interpretation, and Research Agent inference shall remain
+    distinguishable.
 -   Research evaluation does not independently establish scientific
     correctness.
 -   Human research judgment remains authoritative.

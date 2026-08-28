@@ -35,8 +35,9 @@ It also includes the following implemented components:
 * Git Diff Service
 * Artifact Location Service
 * Documentation Workflow
+* Research Workflow
 
-The communication architecture provides the foundation for future AI agents.
+The communication architecture provides the foundation for multiple specialized AI agents.
 
 ## 3. Design Objectives
 
@@ -159,6 +160,8 @@ The implemented sequence is:
 * Avoid implementing repository, context, or workflow behavior directly.
 * Dispatch Documentation Workflows.
 * Return Documentation Workflow Results.
+* Dispatch Research Workflows.
+* Return Research Workflow Results.
 * Provide workflow state access through platform interfaces.
 
 ### Workflow Engine
@@ -236,6 +239,12 @@ The implemented sequence is:
 * Preserve internal workflow state.
 * Return immutable Documentation Workflow Results.
 
+## Research Workflow
+
+* Coordinate Research Strategy, Research Query, Research Source, Paper Metadata, Research Evaluation, and Research Artifact services.
+* Preserve Research Agent workflow state.
+* Return Research Workflow Results.
+
 ### Shared Interfaces
 
 * Define stable component contracts.
@@ -258,7 +267,6 @@ The following responsibilities remain planned:
 * Dashboard and audit storage
 * Persistent workflow history
 * Distributed communication
-* Additional AI agents
 
 ## 8. Communication Contracts
 
@@ -439,6 +447,11 @@ The validated end-to-end communication flow includes:
 8. Git Diff Service
 9. Documentation Workflow
 10. Documentation Workflow Results
+
+The Research Agent also uses the Platform Dispatcher to execute the
+implemented Research Workflow through reusable Project0 platform
+services while preserving Research Agent-specific workflow
+responsibilities.
 
 The implemented Validation Service coordinates:
 
