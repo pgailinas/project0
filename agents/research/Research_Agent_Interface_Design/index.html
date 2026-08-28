@@ -1258,6 +1258,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#existing-research-context-interface-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Existing Research Context Interface Contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#per-paper-analysis-interface-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-Paper Analysis Interface Contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#research-direction-analysis-interface-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research Direction Analysis Interface Contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#research-source-provider-interface-contract" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1273,6 +1306,17 @@
     <span class="md-ellipsis">
       
         Research Query Interface Contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#research-analysis-validation-interface-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research Analysis Validation Interface Behavior
       
     </span>
   </a>
@@ -1445,6 +1489,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#existing-research-context-interface-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Existing Research Context Interface Contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#per-paper-analysis-interface-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-Paper Analysis Interface Contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#research-direction-analysis-interface-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research Direction Analysis Interface Contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#research-source-provider-interface-contract" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1460,6 +1537,17 @@
     <span class="md-ellipsis">
       
         Research Query Interface Contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#research-analysis-validation-interface-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research Analysis Validation Interface Behavior
       
     </span>
   </a>
@@ -1503,9 +1591,9 @@
 
 
 <h1 id="research-agent-interface-design">Research Agent Interface Design</h1>
-<p><strong>Version:</strong> 0.2<br />
+<p><strong>Version:</strong> 0.3<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-26</p>
+<strong>Last Updated:</strong> 2026-08-28</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="phase-11-alignment">Phase 11 Alignment</h3>
@@ -1520,16 +1608,19 @@ hosted within the Dashboard Work Area. The Dashboard Framework continues
 to provide the shared application shell, navigation, and hosting
 infrastructure. Research Agent interfaces define only agent-specific
 workflow interactions, including research request processing, research
-strategy generation, external research source access, paper metadata
-retrieval, research evaluation, research artifact generation, and
-workflow result handling.</p>
+strategy generation, optional Existing Research Context processing,
+external research source access, paper metadata retrieval, research
+evaluation, per-paper analysis, research direction analysis, research
+artifact generation, and workflow result handling.</p>
 <p>Research request processing supports optional research constraints,
-focus areas, and user-provided papers or references. When these inputs
-are not provided, the Research Agent workflow uses the research question
-and available Project0 services to develop an appropriate research
-strategy. Agent interfaces remain independent of the specific search,
-source selection, ranking, and evaluation strategies used by the
-underlying services.</p>
+focus areas, user-provided papers or references, and an optional Existing
+Research Context document. When these inputs are not provided, the
+Research Agent workflow uses the research question and available Project0
+services to develop an appropriate research strategy. When an Existing
+Research Context document is not provided, existing workflow semantics
+and result behavior are preserved. Agent interfaces remain independent
+of the specific search, source selection, ranking, and evaluation
+strategies used by the underlying services.</p>
 <p>External research source access is isolated behind Research Agent
 interfaces so that source-specific implementations remain separate from
 Research Agent workflow behavior. Multiple configured research source
@@ -1543,6 +1634,70 @@ interfaces and are implemented by the Research Agent UI components.</p>
 contracts through unit, integration, and acceptance testing while
 preserving separation between Research Agent workflow behavior and
 shared Project0 platform infrastructure.</p>
+<hr />
+<h2 id="existing-research-context-interface-contract">Existing Research Context Interface Contract</h2>
+<p>The Research Agent supports an optional Existing Research Context
+document through defined context ingestion and analysis interfaces.</p>
+<p>Context document interaction uses a simple file-selection/upload
+mechanism. Supported initial document types are text-based PDF, Markdown,
+and plain text. The Research Agent does not store a copy of the selected
+source document.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>Accept an optional Existing Research Context document.</li>
+<li>Extract text content from supported document types.</li>
+<li>Preserve page- or section-level source provenance.</li>
+<li>Support bounded document chunking with implementation limits to be
+    defined.</li>
+<li>Clearly report context extraction or analysis failures.</li>
+<li>Reject image-only or scanned PDF documents requiring OCR.</li>
+<li>Produce structured Existing Research Context containing the research
+    problem, prior work, implemented approaches, findings, limitations,
+    unresolved questions, stated future work, and source references.</li>
+</ul>
+<p>When context processing succeeds, the structured Existing Research
+Context is provided to research strategy generation and downstream
+research analysis. Open-ended research requests are supported when
+Existing Research Context is available.</p>
+<p>Context findings are source-derived and remain distinguishable from
+generated analysis.</p>
+<hr />
+<h2 id="per-paper-analysis-interface-contract">Per-Paper Analysis Interface Contract</h2>
+<p>The Per-Paper Analysis interface defines structured technical analysis
+for each retained paper.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>Identify the paper problem and approach.</li>
+<li>Identify representations and modalities.</li>
+<li>Identify the learning or alignment objective.</li>
+<li>Identify datasets or tasks.</li>
+<li>Identify findings and limitations.</li>
+<li>Explain relevance to the current research.</li>
+<li>Preserve evidence references.</li>
+</ul>
+<p>Per-paper analysis is source-derived interpretation and remains
+distinguishable from source information and Research Agent inference.</p>
+<hr />
+<h2 id="research-direction-analysis-interface-contract">Research Direction Analysis Interface Contract</h2>
+<p>The Research Direction Analysis interface defines cross-paper analysis
+and evidence-grounded candidate research direction generation.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>Accept optional Existing Research Context and retained Paper
+    Analyses.</li>
+<li>Produce structured synthesis findings containing themes,
+    comparisons, shared limitations, and unresolved questions.</li>
+<li>Identify candidate research directions.</li>
+<li>Preserve context motivation and literature evidence for candidate
+    directions unless explicitly marked speculative.</li>
+<li>Preserve provenance for referenced context items and papers.</li>
+</ul>
+<p>Cross-paper synthesis remains functionality within Research Direction
+Analysis rather than a separate interface. Research directions are
+Research Agent inference grounded in source-derived context and
+per-paper interpretation.</p>
+<p>The detailed Research Direction Analysis output contract remains to be
+defined.</p>
 <hr />
 <h2 id="research-source-provider-interface-contract">Research Source Provider Interface Contract</h2>
 <p>The Research Agent isolates external research source implementations
@@ -1643,6 +1798,23 @@ into deterministic, provider-ready research queries.</p>
 without modifying external research source implementations or workflow
 coordination behavior.</p>
 <hr />
+<hr />
+<h2 id="research-analysis-validation-interface-behavior">Research Analysis Validation Interface Behavior</h2>
+<p>Research analysis interfaces preserve traceability between generated
+analysis and supporting source information.</p>
+<p>Validation behavior includes:</p>
+<ul>
+<li>verifying that referenced context items exist</li>
+<li>verifying that referenced paper identifiers exist</li>
+<li>verifying candidate research direction context motivation and
+    literature evidence unless explicitly marked speculative</li>
+<li>rejecting unknown source identifiers</li>
+<li>preserving the distinction between source-derived context findings,
+    source-derived per-paper interpretation, and Research Agent inference</li>
+</ul>
+<p>Saved research package interfaces include the request, context summary,
+research strategy, retained papers, per-paper analyses, synthesis
+findings, candidate directions, provenance, and validation status.</p>
 <hr />
 <h2 id="revision-workflow-interface-behavior">Revision Workflow Interface Behavior</h2>
 <p>Research Agent interfaces support revision of generated research

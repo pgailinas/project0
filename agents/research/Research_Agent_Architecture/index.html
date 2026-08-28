@@ -1341,6 +1341,50 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#context-document-ingestion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context Document Ingestion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#existing-research-context-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Existing Research Context Analysis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#per-paper-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-Paper Analysis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#research-direction-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research Direction Analysis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#research-strategy-service" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1816,6 +1860,50 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#context-document-ingestion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context Document Ingestion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#existing-research-context-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Existing Research Context Analysis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#per-paper-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-Paper Analysis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#research-direction-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research Direction Analysis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#research-strategy-service" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1967,9 +2055,9 @@
 
 
 <h1 id="research-agent-architecture">Research Agent Architecture</h1>
-<p><strong>Version:</strong> 0.3<br />
+<p><strong>Version:</strong> 0.4<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-27</p>
+<strong>Last Updated:</strong> 2026-08-28</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="objective">Objective</h3>
@@ -2014,9 +2102,11 @@ knowledge, AI reasoning, research evaluation, validation, artifact
 generation, and human review through the Platform Dispatcher.</p>
 <p>The initial Research Agent implementation establishes a
 human-in-the-loop research workflow. The workflow begins with a research
-request, develops a research strategy, searches supported external
+request, optionally ingests and analyzes an Existing Research Context
+document, develops a research strategy, searches supported external
 research sources, retrieves available paper metadata, evaluates and
-ranks candidate papers, generates structured research artifacts,
+ranks candidate papers, performs structured per-paper analysis and
+research direction analysis, generates structured research artifacts,
 preserves source and citation information, validates the generated
 artifacts, and returns structured research results for human review.</p>
 <p>The Dashboard Framework remains responsible for the shared application
@@ -2031,6 +2121,8 @@ Documentation Agent functionality.</p>
     B["Platform Dispatcher"]
     C["Research Workflow"]
 
+    X["Context Document Ingestion"]
+    Y["Existing Research Context Analysis"]
     D["Research Strategy Service"]
     Q["Research Query Service"]
     E["Research Source Service"]
@@ -2039,6 +2131,8 @@ Documentation Agent functionality.</p>
     G["Knowledge Service"]
     H["Research Evaluation Service"]
     I["Reasoning Service"]
+    M["Per-Paper Analysis"]
+    N["Research Direction Analysis"]
     J["Research Artifact Service"]
     K["Validation Service"]
 
@@ -2048,7 +2142,9 @@ Documentation Agent functionality.</p>
     A --&gt; B
     B --&gt; C
 
-    C --&gt; D
+    C --&gt; X
+    X --&gt; Y
+    Y --&gt; D
     D --&gt; Q
     Q --&gt; E
     E --&gt; P
@@ -2056,7 +2152,9 @@ Documentation Agent functionality.</p>
     F --&gt; G
     G --&gt; H
     H --&gt; I
-    I --&gt; J
+    I --&gt; M
+    M --&gt; N
+    N --&gt; J
     J --&gt; K
     K --&gt; L</code></pre>
 <h3 id="initial-runtime-flow">Initial Runtime Flow</h3>
@@ -2065,8 +2163,10 @@ Documentation Agent functionality.</p>
     Research Agent UI services.</li>
 <li><code>main.py</code> creates the Platform Dispatcher.</li>
 <li>The Platform Dispatcher dispatches the requested Research Workflow.</li>
+<li>When provided, the selected Existing Research Context document is
+    ingested and analyzed before research strategy generation.</li>
 <li>The Research Strategy Service analyzes the Research Request and
-    produces a Research Strategy.</li>
+    optional Existing Research Context and produces a Research Strategy.</li>
 <li>The Research Query Service deterministically enriches the Research
     Strategy with provider-ready search terms.</li>
 <li>The Research Source Service searches supported external research
@@ -2081,8 +2181,13 @@ Documentation Agent functionality.</p>
     the configured maximum number of results.</li>
 <li>The Reasoning Service performs AI-assisted research analysis where
     required.</li>
+<li>Structured Per-Paper Analysis interprets each retained paper using
+    available source evidence.</li>
+<li>Research Direction Analysis performs cross-paper comparison and
+    identifies candidate research directions grounded in existing
+    research context and literature evidence.</li>
 <li>The Research Artifact Service generates structured research
-    artifacts from the retained evaluations.</li>
+    artifacts from the retained evaluations and analyses.</li>
 <li>Source and citation information is preserved with generated research
     artifacts.</li>
 <li>The Validation Service validates required artifact structure and
@@ -2137,6 +2242,9 @@ Documentation Agent functionality.</p>
 <li>Research Source Interface</li>
 <li>Paper Metadata Interface</li>
 <li>Research Evaluation Interface</li>
+<li>Existing Research Context Analysis Interface</li>
+<li>Per-Paper Analysis Interface</li>
+<li>Research Direction Analysis Interface</li>
 <li>Research Artifact Interface</li>
 </ul>
 <p>Interfaces allow components to depend on required capabilities rather
@@ -2152,6 +2260,9 @@ than concrete implementations.</p>
 <li>Paper references</li>
 <li>Paper metadata</li>
 <li>Research evaluations</li>
+<li>Existing research contexts</li>
+<li>Per-paper analyses</li>
+<li>Research direction analyses</li>
 <li>Research artifacts</li>
 </ul>
 <h3 id="validation-service">Validation Service</h3>
@@ -2160,6 +2271,10 @@ than concrete implementations.</p>
 <ul>
 <li>Validate required research artifact structure.</li>
 <li>Validate required source and citation information.</li>
+<li>Validate referenced context items and paper identifiers.</li>
+<li>Validate candidate research direction context motivation and
+    literature evidence unless explicitly marked speculative.</li>
+<li>Reject unknown source identifiers.</li>
 <li>Aggregate validator results.</li>
 <li>Preserve validator execution order.</li>
 <li>Isolate validator execution failures.</li>
@@ -2182,11 +2297,74 @@ Validation Interface.</p>
 <p>The Reasoning Service performs only tasks requiring AI-assisted
 reasoning and does not directly access external research sources.</p>
 <hr />
+<h3 id="context-document-ingestion">Context Document Ingestion</h3>
+<p>Provides controlled ingestion and extraction of an optional Existing
+Research Context document.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>Accept a context document through a simple file-selection/upload
+    interaction.</li>
+<li>Support text-based PDF, Markdown, and plain-text context documents.</li>
+<li>Extract source content without storing a copy of the source document.</li>
+<li>Preserve page- or section-level provenance.</li>
+<li>Process large documents using bounded chunking with implementation
+    limits to be defined.</li>
+<li>Clearly report extraction failures.</li>
+<li>Reject image-only or scanned PDF documents requiring OCR.</li>
+</ul>
+<hr />
+<h3 id="existing-research-context-analysis">Existing Research Context Analysis</h3>
+<p>Transforms extracted context document content into structured Existing
+Research Context.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>Identify the research problem.</li>
+<li>Identify prior work and implemented approaches.</li>
+<li>Identify findings and limitations.</li>
+<li>Identify unresolved questions and stated future work.</li>
+<li>Preserve source references for extracted context findings.</li>
+<li>Distinguish source-derived context findings from generated analysis.</li>
+<li>Clearly report context analysis failures.</li>
+</ul>
+<hr />
+<h3 id="per-paper-analysis">Per-Paper Analysis</h3>
+<p>Produces structured technical analysis for each retained paper.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>Identify the paper problem and approach.</li>
+<li>Identify representations and modalities.</li>
+<li>Identify the learning or alignment objective.</li>
+<li>Identify datasets or tasks.</li>
+<li>Identify findings and limitations.</li>
+<li>Explain relevance to the current research.</li>
+<li>Preserve evidence references.</li>
+<li>Distinguish source-derived interpretation from source information.</li>
+</ul>
+<hr />
+<h3 id="research-direction-analysis">Research Direction Analysis</h3>
+<p>Analyzes retained paper analyses together with optional Existing Research
+Context to identify evidence-grounded research directions.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>Perform cross-paper comparison.</li>
+<li>Produce structured synthesis findings including themes, comparisons,
+    shared limitations, and unresolved questions.</li>
+<li>Identify candidate research directions.</li>
+<li>Ground candidate directions in context motivation and literature
+    evidence unless explicitly marked speculative.</li>
+<li>Preserve provenance for supporting context and paper evidence.</li>
+<li>Distinguish Research Agent inference from source-derived findings and
+    per-paper interpretation.</li>
+</ul>
+<hr />
 <h3 id="research-strategy-service">Research Strategy Service</h3>
 <p>Transforms a Research Request into a structured Research Strategy.</p>
 <p>Responsibilities:</p>
 <ul>
 <li>Analyze the research request.</li>
+<li>Incorporate optional Existing Research Context when provided.</li>
+<li>Support open-ended research requests when Existing Research Context
+    is available.</li>
 <li>Identify the research objective and relevant research concepts.</li>
 <li>Identify explicit research sub-questions when present.</li>
 <li>Identify optional constraints and focus areas.</li>
@@ -2262,6 +2440,10 @@ Research Strategy.</p>
 <li>Generate literature comparison artifacts.</li>
 <li>Generate research gap artifacts.</li>
 <li>Generate experiment planning artifacts.</li>
+<li>Generate saved research packages containing the request, context
+    summary, research strategy, retained papers, per-paper analyses,
+    synthesis findings, candidate directions, provenance, and validation
+    status.</li>
 <li>Preserve citation and source references.</li>
 <li>Return structured Research Artifacts.</li>
 </ul>
@@ -2274,10 +2456,19 @@ Research Strategy.</p>
     Metadata, Knowledge, Reasoning, Research Evaluation, Validation, and
     Research Artifact services.</li>
 <li>Preserve internal workflow state.</li>
+<li>Preserve existing workflow semantics when no Existing Research
+    Context document is provided.</li>
+<li>Coordinate context ingestion and analysis when an Existing Research
+    Context document is provided.</li>
+<li>Fail clearly when requested context extraction or analysis fails
+    rather than silently reverting to the no-context workflow.</li>
 <li>Preserve all discovered source references for traceability.</li>
 <li>Rank evaluated papers by relevance and retain the configured maximum
     number of results.</li>
-<li>Generate research artifacts from retained evaluations.</li>
+<li>Generate per-paper analyses from retained evaluations.</li>
+<li>Coordinate Research Direction Analysis across retained paper
+    analyses and optional Existing Research Context.</li>
+<li>Generate research artifacts from retained evaluations and analyses.</li>
 <li>Preserve source and citation information.</li>
 <li>Produce immutable Research Results.</li>
 <li>Support human review of research outputs.</li>
@@ -2374,6 +2565,8 @@ implementations.</p>
 <li>Technical paper metadata</li>
 <li>Project0 repository knowledge</li>
 <li>Existing research artifacts</li>
+<li>Optional text-based PDF, Markdown, and plain-text Existing Research
+    Context documents</li>
 <li>Python runtime environment</li>
 <li>pytest test framework</li>
 <li>Validation tools</li>
@@ -2389,6 +2582,15 @@ implementations.</p>
 <li>Source information shall remain distinguishable from AI-generated
     analysis.</li>
 <li>Missing source or metadata information shall not be invented.</li>
+<li>Existing Research Context source documents shall not be copied into
+    Project0 storage by the Research Agent.</li>
+<li>Existing Research Context provenance shall be preserved at page- or
+    section-level.</li>
+<li>Source-derived context findings, source-derived per-paper
+    interpretation, and Research Agent inference shall remain
+    distinguishable.</li>
+<li>Image-only or scanned PDF context documents requiring OCR are outside
+    the current implementation scope.</li>
 <li>Platform components shall communicate through typed interfaces.</li>
 <li>Shared data models shall define information exchanged between
     components.</li>
@@ -2424,6 +2626,7 @@ implementations.</p>
 <li>Additional AI providers</li>
 <li>Additional validation services</li>
 <li>Asynchronous workflow execution</li>
+<li>OCR support for image-only or scanned PDF context documents</li>
 </ul>
 
 

@@ -1613,9 +1613,9 @@
 
 
 <h1 id="research-agent-functional-specification">Research Agent Functional Specification</h1>
-<p><strong>Version:</strong> 0.3<br />
+<p><strong>Version:</strong> 0.4<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-27</p>
+<strong>Last Updated:</strong> 2026-08-28</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="mission">Mission</h3>
@@ -1627,8 +1627,9 @@ direction.</p>
 <p>Define the Version 1 behavior of a standalone agent that accepts
 research questions, develops research strategies, discovers relevant
 technical papers through supported external research sources, retrieves
-paper metadata, evaluates paper relevance, produces structured research
-artifacts, preserves citation and source information, and presents
+paper metadata, evaluates paper relevance, optionally analyzes a
+user-selected existing research context document, produces structured
+research artifacts, preserves citation and source information, and presents
 research results for human review. The Research Agent is presented
 through the Project0 Dashboard Framework but remains independent of the
 dashboard infrastructure.</p>
@@ -1679,8 +1680,27 @@ dashboard infrastructure.</p>
     provider response violates required source traceability or coverage
     constraints.</li>
 <li>Preserve citation and source information.</li>
+<li>Accept an optional Existing Research Context document.</li>
+<li>Extract supported context from text-based PDF, Markdown, and plain-text
+    context documents.</li>
+<li>Derive Existing Research Context including the research problem, prior
+    work, implemented approaches, findings, limitations, unresolved
+    questions, stated future work, and source references.</li>
+<li>Preserve page- or section-level provenance for derived context.</li>
+<li>Process large context documents using bounded chunking with
+    implementation limits to be defined.</li>
+<li>Clearly report context extraction or analysis failures without
+    silently reverting to a no-context workflow.</li>
 <li>Summarize relevant technical papers.</li>
+<li>Produce structured per-paper analysis including the problem, approach,
+    representations, modalities, learning or alignment objective,
+    datasets or tasks, findings, limitations, relevance to the current
+    research, and evidence references.</li>
 <li>Compare research methods and approaches.</li>
+<li>Produce structured cross-paper synthesis findings including themes,
+    comparisons, shared limitations, and unresolved questions.</li>
+<li>Generate evidence-grounded candidate research directions from existing
+    research context and literature analysis.</li>
 <li>Identify potential research gaps.</li>
 <li>Generate experiment planning suggestions.</li>
 <li>Produce structured research artifacts.</li>
@@ -1694,6 +1714,12 @@ dashboard infrastructure.</p>
 <li>Optional research constraints</li>
 <li>Optional research terminology or focus areas</li>
 <li>Optional user-provided papers or references</li>
+<li>Optional Existing Research Context document<ul>
+<li>Text-based PDF</li>
+<li>Markdown</li>
+<li>Plain text</li>
+</ul>
+</li>
 <li>Supported external research sources<ul>
 <li>Semantic Scholar research source provider</li>
 <li>arXiv research source provider</li>
@@ -1709,6 +1735,16 @@ dashboard infrastructure.</p>
 <p>When research constraints or source selections are omitted, the Research
 Agent uses the research question and available Project0 services to
 develop an appropriate research strategy.</p>
+<p>When an Existing Research Context document is omitted, the Research
+Agent preserves the existing workflow semantics and result behavior,
+with new optional context fields remaining empty.</p>
+<p>When an Existing Research Context document is provided, the Research
+Agent uses a simple file-selection/upload interaction, does not store a
+copy of the source document, and derives structured context before
+research strategy generation. Open-ended research requests are supported
+when existing research context is available.</p>
+<p>Image-only or scanned PDF documents requiring OCR are not supported in
+this increment.</p>
 <hr />
 <h2 id="7-functional-workflow">7. Functional Workflow</h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Research Request
@@ -1717,33 +1753,39 @@ develop an appropriate research strategy.</p>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>      ↓
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>Research Question Analysis
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>      ↓
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Research Strategy Generation
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Optional Existing Research Context Document Ingestion
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>      ↓
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>Research Query Generation
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>Existing Research Context Analysis
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>      ↓
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>External Research Source Search
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>Research Strategy Generation
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>      ↓
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>Paper Metadata Retrieval
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>Research Query Generation
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>      ↓
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>Candidate Paper Identification
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>External Research Source Search
 </span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>      ↓
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>Paper Relevance Evaluation
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>Paper Metadata Retrieval
 </span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>      ↓
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>Relevance Ranking and Result Selection
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>Candidate Paper Identification
 </span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>      ↓
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>Research Knowledge Retrieval
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>Paper Relevance Evaluation
 </span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>      ↓
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>Paper Analysis
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>Relevance Ranking and Result Selection
 </span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>      ↓
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>Research Artifact Generation
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>Research Knowledge Retrieval
 </span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>      ↓
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>Citation and Source Tracking
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>Per-Paper Analysis
 </span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>      ↓
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>Validation Service
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>Research Direction Analysis
 </span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>      ↓
-</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>User Review
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>Research Artifact Generation
 </span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>      ↓
-</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>Research Result
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>Citation and Source Tracking
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>      ↓
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>Validation Service
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>      ↓
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>User Review
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>      ↓
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>Research Result
 </span></code></pre></div>
 <hr />
 <h2 id="10-success-criteria">10. Success Criteria</h2>
@@ -1763,12 +1805,32 @@ develop an appropriate research strategy.</p>
     consistent semantic relevance criteria.</li>
 <li>Retains the configured maximum number of highest-relevance papers
     while preserving all discovered source references.</li>
+<li>Preserves existing workflow behavior when no Existing Research
+    Context document is provided.</li>
+<li>Derives structured, source-traceable Existing Research Context when a
+    supported context document is provided.</li>
 <li>Produces useful, evidence-grounded paper summaries.</li>
+<li>Produces structured per-paper technical analysis with evidence
+    references.</li>
 <li>Generates useful research comparison artifacts.</li>
+<li>Produces structured synthesis findings across retained paper analyses.</li>
+<li>Generates candidate research directions grounded in both existing
+    research context and literature evidence unless explicitly identified
+    as speculative.</li>
 <li>Preserves citation and source information.</li>
 <li>Identifies potential research gaps supported by the reviewed
     literature.</li>
 <li>Produces useful experiment planning suggestions.</li>
+<li>Validates that referenced context items and paper identifiers exist,
+    that candidate research directions cite context motivation and
+    literature evidence unless explicitly marked speculative, and that
+    unknown source identifiers are rejected.</li>
+<li>Distinguishes source-derived context findings, source-derived
+    per-paper interpretation, and Research Agent inference.</li>
+<li>Produces saved research packages containing the request, context
+    summary, research strategy, retained papers, per-paper analyses,
+    synthesis findings, candidate directions, provenance, and validation
+    status.</li>
 <li>Produces outputs useful for ECE-551 Part 2 research activities.</li>
 <li>Operates through Project0's reusable platform architecture.</li>
 <li>Integrates with Project0 workflow, validation, artifact, and
@@ -1800,6 +1862,7 @@ restarting the research process.</p>
 <li>Scheduled research monitoring</li>
 <li>Automatic experiment execution</li>
 <li>Interactive dashboard visualizations for research workflows</li>
+<li>OCR support for image-only or scanned PDF context documents</li>
 </ul>
 
 

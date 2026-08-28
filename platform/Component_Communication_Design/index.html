@@ -931,7 +931,18 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Documentation Workflow">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#research-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research Workflow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Research Workflow">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2044,7 +2055,18 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Documentation Workflow">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#research-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research Workflow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Research Workflow">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2328,8 +2350,9 @@
 <li>Git Diff Service</li>
 <li>Artifact Location Service</li>
 <li>Documentation Workflow</li>
+<li>Research Workflow</li>
 </ul>
-<p>The communication architecture provides the foundation for future AI agents.</p>
+<p>The communication architecture provides the foundation for multiple specialized AI agents.</p>
 <h2 id="3-design-objectives">3. Design Objectives</h2>
 <p>The communication architecture shall:</p>
 <ul>
@@ -2438,6 +2461,8 @@
 <li>Avoid implementing repository, context, or workflow behavior directly.</li>
 <li>Dispatch Documentation Workflows.</li>
 <li>Return Documentation Workflow Results.</li>
+<li>Dispatch Research Workflows.</li>
+<li>Return Research Workflow Results.</li>
 <li>Provide workflow state access through platform interfaces.</li>
 </ul>
 <h3 id="workflow-engine">Workflow Engine</h3>
@@ -2515,6 +2540,12 @@
 <li>Preserve internal workflow state.</li>
 <li>Return immutable Documentation Workflow Results.</li>
 </ul>
+<h2 id="research-workflow">Research Workflow</h2>
+<ul>
+<li>Coordinate Research Strategy, Research Query, Research Source, Paper Metadata, Research Evaluation, and Research Artifact services.</li>
+<li>Preserve Research Agent workflow state.</li>
+<li>Return Research Workflow Results.</li>
+</ul>
 <h3 id="shared-interfaces">Shared Interfaces</h3>
 <ul>
 <li>Define stable component contracts.</li>
@@ -2536,7 +2567,6 @@
 <li>Dashboard and audit storage</li>
 <li>Persistent workflow history</li>
 <li>Distributed communication</li>
-<li>Additional AI agents</li>
 </ul>
 <h2 id="8-communication-contracts">8. Communication Contracts</h2>
 <p>Implemented communication objects include:</p>
@@ -2699,6 +2729,10 @@ validated through comprehensive unit and integration testing.</p>
 <li>Documentation Workflow</li>
 <li>Documentation Workflow Results</li>
 </ol>
+<p>The Research Agent also uses the Platform Dispatcher to execute the
+implemented Research Workflow through reusable Project0 platform
+services while preserving Research Agent-specific workflow
+responsibilities.</p>
 <p>The implemented Validation Service coordinates:</p>
 <ul>
 <li>Markdown Validator</li>

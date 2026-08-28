@@ -1535,10 +1535,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#69-complete-project0-regression-test" class="md-nav__link">
+  <a href="#69-existing-research-context-and-research-analysis-tests" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6.9 Complete Project0 Regression Test
+        6.9 Existing Research Context and Research Analysis Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#610-complete-project0-regression-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.10 Complete Project0 Regression Test
       
     </span>
   </a>
@@ -2025,10 +2036,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#69-complete-project0-regression-test" class="md-nav__link">
+  <a href="#69-existing-research-context-and-research-analysis-tests" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6.9 Complete Project0 Regression Test
+        6.9 Existing Research Context and Research Analysis Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#610-complete-project0-regression-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.10 Complete Project0 Regression Test
       
     </span>
   </a>
@@ -2165,9 +2187,9 @@
 
 
 <h1 id="research-agent-testing-guide">Research Agent Testing Guide</h1>
-<p><strong>Version:</strong> 0.6\
+<p><strong>Version:</strong> 0.7\
 <strong>Owner:</strong> Project0\
-<strong>Last Updated:</strong> 2026-08-26</p>
+<strong>Last Updated:</strong> 2026-08-28</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <p>This document defines the testing strategy, test coverage, execution
@@ -2193,6 +2215,11 @@ work accurately, predictably, safely, and under human control.</p>
     remains unchanged.</li>
 <li>Verify repository failures and invalid proposals fail safely.</li>
 <li>Validate Dashboard-hosted Research Agent interaction.</li>
+<li>Verify optional Existing Research Context document processing.</li>
+<li>Verify structured per-paper analysis and Research Direction Analysis.</li>
+<li>Verify provenance and reasoning-boundary requirements.</li>
+<li>Verify existing workflow behavior remains unchanged when no context
+    document is provided.</li>
 <li>Detect regressions in previously corrected workflow behavior.</li>
 <li>Verify document discovery behavior when target research paths are
     not provided.</li>
@@ -2214,6 +2241,10 @@ work accurately, predictably, safely, and under human control.</p>
     tests.</li>
 <li>Use deterministic research source providers for automated research
     workflow validation.</li>
+<li>Use deterministic fixtures for context extraction, provenance, and
+    analysis validation whenever practical.</li>
+<li>Verify source-derived context findings, source-derived per-paper
+    interpretation, and Research Agent inference remain distinguishable.</li>
 <li>Test real local AI-provider behavior separately from deterministic
     regression tests.</li>
 <li>Treat browser-based workflow testing as acceptance testing rather
@@ -2305,6 +2336,7 @@ function.</p>
 <ul>
 <li>Ready-page creation.</li>
 <li>Research request validation and normalization.</li>
+<li>Optional Existing Research Context file selection/upload behavior.</li>
 <li>Mapping workflow results into Research Agent view models.</li>
 <li>Proposal and validation presentation.</li>
 <li>Repository difference generation.</li>
@@ -2316,6 +2348,7 @@ function.</p>
 <li>Completed-with-warning presentation.</li>
 <li>Preliminary validation failure presentation.</li>
 <li>Explicit workflow failure presentation.</li>
+<li>Explicit context extraction and analysis failure presentation.</li>
 <li>Workflow exception handling.</li>
 <li>Review-decision normalization and result mapping.</li>
 <li>Safe handling of unknown mapped values.</li>
@@ -2340,6 +2373,10 @@ including:</p>
 <ul>
 <li>Knowledge Service.</li>
 <li>Reasoning Service.</li>
+<li>Context Document Ingestion.</li>
+<li>Existing Research Context Analysis.</li>
+<li>Per-Paper Analysis.</li>
+<li>Research Direction Analysis.</li>
 <li>Validation Service.</li>
 <li>Review Coordinator.</li>
 <li>Repository Update Service.</li>
@@ -2381,6 +2418,11 @@ repository change to be applied.</p>
 <li>Link validation.</li>
 <li>MkDocs validation.</li>
 <li>Research consistency validation.</li>
+<li>Existing Research Context reference validation.</li>
+<li>Retained paper identifier validation.</li>
+<li>Candidate research direction context motivation and literature
+    evidence validation unless explicitly marked speculative.</li>
+<li>Unknown source identifier rejection.</li>
 <li>Proper workflow handling when validation fails.</li>
 </ul>
 <h3 id="56-research-reasoning-behavior">5.6 Research Reasoning Behavior</h3>
@@ -2389,6 +2431,13 @@ including:</p>
 <ul>
 <li>Construction of research-specific prompts.</li>
 <li>Inclusion of appropriate repository and research context.</li>
+<li>Existing Research Context extraction into the required structured
+    fields.</li>
+<li>Per-paper analysis into the required structured fields.</li>
+<li>Cross-paper synthesis containing themes, comparisons, shared
+    limitations, and unresolved questions.</li>
+<li>Candidate research direction generation grounded in context
+    motivation and literature evidence unless explicitly speculative.</li>
 <li>Conversion of reasoning results into Research Agent proposals.</li>
 <li>Research edit intent such as insert and replace behavior.</li>
 <li>Selection and preservation of appropriate anchors.</li>
@@ -2418,17 +2467,23 @@ deterministic automated tests because model output may vary.</p>
 </span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>        ↓
 </span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>Research Workflow
 </span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>        ↓
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>Research Strategy
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>Optional Existing Research Context
 </span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>        ↓
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>Research Source Provider
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>Research Strategy
 </span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>        ↓
-</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>Metadata Retrieval
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>Research Source Provider
 </span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>        ↓
-</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>Research Evaluation
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>Metadata Retrieval
 </span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>        ↓
-</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>Artifact Generation
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>Research Evaluation
 </span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>        ↓
-</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>Workflow Result
+</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>Per-Paper Analysis
+</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>        ↓
+</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>Research Direction Analysis
+</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>        ↓
+</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>Artifact Generation
+</span><span id="__span-3-22"><a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>        ↓
+</span><span id="__span-3-23"><a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>Workflow Result
 </span></code></pre></div>
 <hr />
 <h2 id="6-running-research-agent-tests">6. Running Research Agent Tests</h2>
@@ -2513,9 +2568,21 @@ scenarios should verify:</p>
 <li>Research Agent page renders.</li>
 <li>Research request field is available.</li>
 <li>Target research path field is available as an optional input.</li>
+<li>Existing Research Context file selection/upload is available as an
+    optional input.</li>
 <li>Submit Research Request button is available.</li>
 <li>Research requests without target paths are accepted and processed
     through discovery where supported.</li>
+<li>Research requests without an Existing Research Context document
+    preserve existing workflow behavior.</li>
+<li>Supported text-based PDF, Markdown, and plain-text context documents
+    are accepted.</li>
+<li>Image-only or scanned PDF context documents requiring OCR fail
+    clearly.</li>
+<li>Context extraction or analysis failure does not silently revert to
+    the no-context workflow.</li>
+<li>Open-ended research requests are accepted when Existing Research
+    Context is available.</li>
 <li>Request submission produces the visible Processing state.</li>
 <li>Review/proposal UI is presented.</li>
 <li>Reject workflow operates correctly.</li>
@@ -2544,7 +2611,37 @@ Playwright <code>slow_mo</code>. This delay shall not be used for synchronizatio
 </ul>
 <p>Acceptance scenarios that are not yet automated shall not be treated as
 passed acceptance requirements.</p>
-<h3 id="69-complete-project0-regression-test">6.9 Complete Project0 Regression Test</h3>
+<h3 id="69-existing-research-context-and-research-analysis-tests">6.9 Existing Research Context and Research Analysis Tests</h3>
+<p>Increment 3 testing should verify:</p>
+<ul>
+<li>Supported context document ingestion for text-based PDF, Markdown,
+    and plain text.</li>
+<li>The selected context source document is not copied into Project0
+    storage.</li>
+<li>Page- or section-level provenance is preserved.</li>
+<li>Large context documents use bounded chunking with implementation
+    limits to be defined.</li>
+<li>Existing Research Context contains the research problem, prior work,
+    implemented approaches, findings, limitations, unresolved questions,
+    stated future work, and source references.</li>
+<li>Per-Paper Analysis contains the problem, approach, representations,
+    modalities, learning or alignment objective, datasets or tasks,
+    findings, limitations, relevance to the current research, and
+    evidence references.</li>
+<li>Research Direction Analysis produces synthesis findings containing
+    themes, comparisons, shared limitations, and unresolved questions.</li>
+<li>Candidate research directions preserve required context motivation
+    and literature evidence unless explicitly marked speculative.</li>
+<li>Saved research packages contain the request, context summary,
+    research strategy, retained papers, per-paper analyses, synthesis
+    findings, candidate directions, provenance, and validation status.</li>
+<li><code>context_document=None</code> preserves existing workflow semantics and
+    result behavior with new optional fields empty.</li>
+</ul>
+<p>The detailed Research Direction Analysis output contract and bounded
+chunking limits remain to be defined and should receive focused tests
+when those design decisions are finalized.</p>
+<h3 id="610-complete-project0-regression-test">6.10 Complete Project0 Regression Test</h3>
 <p>After Research Agent-specific tests pass, run the complete Project0
 suite:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest
@@ -2584,6 +2681,12 @@ detection, rationale usefulness, and appropriateness of edits.</p>
 <li>Verify that unrelated files remain unchanged.</li>
 <li>Verify that empty target research paths do not cause unintended
     baseline document inclusion.</li>
+<li>Select and process a supported Existing Research Context document.</li>
+<li>Verify a context-processing failure is clearly presented.</li>
+<li>Verify per-paper analyses and synthesis findings remain traceable to
+    supporting evidence.</li>
+<li>Verify candidate research directions distinguish Research Agent
+    inference from source-derived findings.</li>
 </ul>
 <p>Observed browser behavior should be compared with the actual repository
 content. Presentation artifacts shall not be assumed to represent
@@ -2598,6 +2701,9 @@ Project0 Reasoning Service.</p>
 <li>The configured model can be reached.</li>
 <li>Prompt construction includes the required repository context and
     user request.</li>
+<li>Optional Existing Research Context is included where required.</li>
+<li>Structured context, per-paper analysis, synthesis, and candidate
+    direction outputs satisfy their required contracts.</li>
 <li>Reasoning results are converted into valid Research Agent proposals.</li>
 <li>Edit intent is interpreted correctly.</li>
 <li>Anchors are sufficiently precise for controlled repository updates.</li>
@@ -2715,6 +2821,13 @@ when:</p>
 <li>Real local reasoning-provider behavior has been exercised with
     varied research requests.</li>
 <li>Browser-based review and completion workflows are usable.</li>
+<li>Existing Research Context ingestion and analysis requirements have
+    been verified.</li>
+<li>Per-Paper Analysis and Research Direction Analysis requirements have
+    been verified.</li>
+<li>Provenance, reasoning-boundary, and research-analysis validation
+    requirements have been verified.</li>
+<li>Backward compatibility without a context document has been verified.</li>
 <li>Known non-critical presentation issues are documented separately
     from functional defects.</li>
 <li>No known defect permits unauthorized or unintended repository
@@ -2783,6 +2896,7 @@ and should not be duplicated in this document.</p>
 <li>Continuous Integration execution of Research Agent regression
     suites.</li>
 <li>Automated acceptance-test reporting.</li>
+<li>OCR context-document testing when OCR support is introduced.</li>
 </ul>
 <hr />
 <h2 id="14-summary">14. Summary</h2>
