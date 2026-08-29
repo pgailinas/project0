@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
 from typing import Any
 
 import httpx
@@ -18,11 +19,20 @@ import httpx
 from project0.agents.research.existing_research_context_analysis_service import (
     ExistingResearchContextAnalysisService,
 )
+from project0.agents.research.paper_analysis_service import (
+    PaperAnalysisService,
+)
 from project0.agents.research.paper_metadata_service import (
     PaperMetadataService,
 )
 from project0.agents.research.research_context_ingestion_service import (
     ResearchContextIngestionService,
+)
+from project0.agents.research.research_paper_acquisition_service import (
+    ResearchPaperAcquisitionService,
+)
+from project0.agents.research.research_paper_ingestion_service import (
+    ResearchPaperIngestionService,
 )
 from project0.agents.research.research_artifact_service import (
     ResearchArtifactService,
@@ -109,6 +119,73 @@ def _provider_response() -> ProviderResponse:
                     "warnings": [],
                 }
             ],
+        },
+    )
+
+
+def _paper_analysis_provider_response() -> ProviderResponse:
+    """Create deterministic retained-paper full-text analysis output."""
+
+    return ProviderResponse(
+        provider_name="stub",
+        model_name="stub-model",
+        content="{}",
+        structured_output={
+            "source_id": "paper-001",
+            "problem": {
+                "content": (
+                    "The paper studies semantic video representation "
+                    "alignment."
+                ),
+                "page_numbers": [1],
+                "section": None,
+            },
+            "approach": {
+                "content": (
+                    "The paper uses semantic representation learning."
+                ),
+                "page_numbers": [1],
+                "section": None,
+            },
+            "representations": [
+                {
+                    "content": (
+                        "Video representations are analyzed for "
+                        "semantic alignment."
+                    ),
+                    "page_numbers": [1],
+                    "section": None,
+                }
+            ],
+            "modalities": [
+                {
+                    "content": "The paper studies video representations.",
+                    "page_numbers": [1],
+                    "section": None,
+                }
+            ],
+            "learning_objectives": [],
+            "datasets_tasks": [],
+            "findings": [
+                {
+                    "content": (
+                        "Semantic representation learning is relevant "
+                        "to the research question."
+                    ),
+                    "page_numbers": [1],
+                    "section": None,
+                }
+            ],
+            "limitations": [],
+            "research_relevance": {
+                "content": (
+                    "The paper informs semantic video-language "
+                    "alignment research."
+                ),
+                "page_numbers": [1],
+                "section": None,
+            },
+            "warnings": [],
         },
     )
 
@@ -257,6 +334,7 @@ def _http_response(
 def _create_workflow(
     provider: StubReasoningProvider,
     context_provider: StubReasoningProvider | None = None,
+    paper_analysis_provider: StubReasoningProvider | None = None,
 ) -> ResearchWorkflow:
     """Create the real Research Agent integration pipeline."""
 
@@ -293,6 +371,24 @@ def _create_workflow(
                 model_name="stub-model",
             )
             if context_provider is not None
+            else None
+        ),
+        paper_acquisition_service=(
+            ResearchPaperAcquisitionService()
+            if paper_analysis_provider is not None
+            else None
+        ),
+        paper_ingestion_service=(
+            ResearchPaperIngestionService()
+            if paper_analysis_provider is not None
+            else None
+        ),
+        paper_analysis_service=(
+            PaperAnalysisService(
+                provider=paper_analysis_provider,
+                model_name="stub-model",
+            )
+            if paper_analysis_provider is not None
             else None
         ),
     )
@@ -616,3 +712,127 @@ def test_research_workflow_uses_existing_research_context(
     )
     assert len(context_provider.requests) == 1
     assert len(evaluation_provider.requests) == 1
+
+def test_research_workflow_runs_full_text_paper_analysis_pipeline(
+    monkeypatch,
+) -> None:
+    """Retained papers pass through real acquisition, ingestion, and analysis."""
+
+    requested_urls: list[str] = []
+
+    def fake_get(
+        url: str,
+        **kwargs: Any,
+    ) -> httpx.Response:
+        del kwargs
+        requested_urls.append(url)
+
+        if url.endswith("/paper/search"):
+            return _http_response(
+                url,
+                _search_response(),
+            )
+
+        if url.endswith("/paper/paper-001"):
+            return _http_response(
+                url,
+                _metadata_response(),
+            )
+
+        if url.endswith("/api/query"):
+            return _xml_http_response(
+                url,
+                _arxiv_response(),
+            )
+
+        if url == "https://doi.org/10.1000/example":
+            return httpx.Response(
+                200,
+                content=b"%PDF-example",
+                headers={
+                    "Content-Type": "application/pdf",
+                },
+                request=httpx.Request(
+                    "GET",
+                    url,
+                ),
+            )
+
+        raise AssertionError(
+            f"Unexpected request: {url}"
+        )
+
+    monkeypatch.setattr(
+        httpx,
+        "get",
+        fake_get,
+    )
+
+    monkeypatch.setattr(
+        "project0.agents.research."
+        "research_paper_ingestion_service.PdfReader",
+        lambda stream: SimpleNamespace(
+            pages=(
+                SimpleNamespace(
+                    extract_text=lambda: (
+                        "The paper studies semantic video "
+                        "representation alignment."
+                    ),
+                ),
+            ),
+        ),
+    )
+
+    evaluation_provider = StubReasoningProvider(
+        _provider_response()
+    )
+    paper_analysis_provider = StubReasoningProvider(
+        _paper_analysis_provider_response()
+    )
+    workflow = _create_workflow(
+        evaluation_provider,
+        paper_analysis_provider=paper_analysis_provider,
+    )
+
+    result = workflow.execute(
+        ResearchRequest(
+            question=(
+                "How can self-supervised video representations "
+                "be improved for VideoQA?"
+            ),
+            guidance="Focus on vision-language alignment.",
+        )
+    )
+
+    assert result.status is ResearchStatus.COMPLETED
+    assert result.error_message is None
+    assert len(result.papers) == 1
+    assert len(evaluation_provider.requests) == 1
+    assert len(paper_analysis_provider.requests) == 1
+    assert "https://doi.org/10.1000/example" in requested_urls
+
+    analysis_request = paper_analysis_provider.requests[0]
+
+    assert analysis_request.metadata[
+        "paper_source_id"
+    ] == "paper-001"
+    assert analysis_request.metadata[
+        "analysis_basis"
+    ] == "full_text"
+
+    analysis_payload = __import__("json").loads(
+        analysis_request.user_prompt
+    )
+
+    assert analysis_payload["paper"]["source_id"] == "paper-001"
+    assert analysis_payload["paper"]["analysis_basis"] == "full_text"
+    assert analysis_payload["paper"]["pages"] == [
+        {
+            "page_number": 1,
+            "text": (
+                "The paper studies semantic video "
+                "representation alignment."
+            ),
+        }
+    ]
+

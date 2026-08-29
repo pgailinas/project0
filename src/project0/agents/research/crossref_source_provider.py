@@ -252,7 +252,10 @@ class CrossrefSourceProvider(
             publication_year=self._get_publication_year(
                 item
             ),
-            metadata={},
+            metadata=self._get_metadata(
+                item,
+                doi,
+            ),
         )
 
     @staticmethod
@@ -279,6 +282,39 @@ class CrossrefSourceProvider(
             )
 
         return title
+
+    def _get_metadata(
+        self,
+        item: dict[str, Any],
+        doi: str,
+    ) -> dict[str, Any]:
+        """Return acquisition metadata from a Crossref result."""
+
+        metadata: dict[str, Any] = {
+            "doi": doi,
+        }
+
+        links = item.get(
+            "link"
+        )
+
+        if isinstance(links, list):
+            for link in links:
+                if not isinstance(link, dict):
+                    continue
+
+                if link.get("content-type") != "application/pdf":
+                    continue
+
+                document_url = link.get(
+                    "URL"
+                )
+
+                if isinstance(document_url, str):
+                    metadata["document_url"] = document_url
+                    break
+
+        return metadata
 
     @staticmethod
     def _get_source_url(

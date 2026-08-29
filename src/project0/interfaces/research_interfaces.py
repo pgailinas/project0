@@ -18,6 +18,8 @@ from project0.models.research_models import (
     PaperAnalysis,
     PaperMetadata,
     ResearchArtifact,
+    ResearchPaperAcquisition,
+    ResearchPaperDocument,
     ResearchContextDocument,
     ResearchDirectionAnalysis,
     ResearchEvaluation,
@@ -53,6 +55,30 @@ class ExistingResearchContextAnalysisServiceProtocol(Protocol):
         ...
 
 
+class ResearchPaperAcquisitionServiceProtocol(Protocol):
+    """Interface for retained research paper acquisition services."""
+
+    def acquire(
+        self,
+        paper: PaperMetadata,
+    ) -> ResearchPaperAcquisition:
+        """Acquire full-text content for one retained research paper."""
+
+        ...
+
+
+class ResearchPaperIngestionServiceProtocol(Protocol):
+    """Interface for retained research paper ingestion services."""
+
+    def ingest(
+        self,
+        acquisition: ResearchPaperAcquisition,
+    ) -> ResearchPaperDocument:
+        """Extract and normalize one acquired research paper."""
+
+        ...
+
+
 class PaperAnalysisServiceProtocol(Protocol):
     """Interface for retained-paper analysis services."""
 
@@ -61,6 +87,7 @@ class PaperAnalysisServiceProtocol(Protocol):
         request: ResearchRequest,
         strategy: ResearchStrategy,
         papers: tuple[PaperMetadata, ...],
+        paper_documents: tuple[ResearchPaperDocument, ...] = (),
     ) -> tuple[PaperAnalysis, ...]:
         """Analyze retained papers for a research request."""
 

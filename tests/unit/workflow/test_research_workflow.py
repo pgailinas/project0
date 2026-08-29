@@ -21,6 +21,13 @@ from project0.models.research_models import (
     ResearchContextExtractionStatus,
     ResearchEvaluation,
     ResearchFinding,
+    ResearchPaperAcquisition,
+    ResearchPaperAcquisitionStatus,
+    ResearchPaperAnalysisBasis,
+    ResearchPaperDocument,
+    ResearchPaperDocumentType,
+    ResearchPaperExtractionStatus,
+    ResearchPaperPage,
     ResearchRequest,
     ResearchResult,
     ResearchSourceReference,
@@ -223,6 +230,90 @@ class StubResearchEvaluationService:
         return self._evaluations
 
 
+class StubResearchPaperAcquisitionService:
+    """Return configured retained-paper acquisition results."""
+
+    def __init__(
+        self,
+        acquisitions: dict[str, ResearchPaperAcquisition],
+        error: Exception | None = None,
+    ) -> None:
+        self._acquisitions = acquisitions
+        self._error = error
+        self.requests: list[PaperMetadata] = []
+
+    def acquire(
+        self,
+        paper: PaperMetadata,
+    ) -> ResearchPaperAcquisition:
+        self.requests.append(paper)
+
+        if self._error is not None:
+            raise self._error
+
+        return self._acquisitions[
+            paper.source_reference.source_id
+        ]
+
+
+class StubResearchPaperIngestionService:
+    """Return configured normalized retained-paper documents."""
+
+    def __init__(
+        self,
+        documents: dict[str, ResearchPaperDocument],
+        error: Exception | None = None,
+    ) -> None:
+        self._documents = documents
+        self._error = error
+        self.requests: list[ResearchPaperAcquisition] = []
+
+    def ingest(
+        self,
+        acquisition: ResearchPaperAcquisition,
+    ) -> ResearchPaperDocument:
+        self.requests.append(acquisition)
+
+        if self._error is not None:
+            raise self._error
+
+        return self._documents[
+            acquisition.paper.source_reference.source_id
+        ]
+
+
+class StubPaperAnalysisService:
+    """Record retained-paper analysis requests."""
+
+    def __init__(
+        self,
+        error: Exception | None = None,
+    ) -> None:
+        self._error = error
+        self.requests: list[tuple] = []
+
+    def analyze(
+        self,
+        request: ResearchRequest,
+        strategy: ResearchStrategy,
+        papers: tuple[PaperMetadata, ...],
+        paper_documents: tuple[ResearchPaperDocument, ...] = (),
+    ) -> tuple:
+        self.requests.append(
+            (
+                request,
+                strategy,
+                papers,
+                paper_documents,
+            )
+        )
+
+        if self._error is not None:
+            raise self._error
+
+        return ()
+
+
 class StubResearchArtifactService:
     """Return configured research artifacts."""
 
@@ -397,6 +488,51 @@ def _evaluation(
     )
 
 
+def _paper_acquisition(
+    paper: PaperMetadata,
+    *,
+    acquired: bool = True,
+) -> ResearchPaperAcquisition:
+    """Create retained-paper acquisition data for workflow tests."""
+
+    if not acquired:
+        return ResearchPaperAcquisition(
+            paper=paper,
+            source_url=None,
+            content=None,
+            acquisition_status=ResearchPaperAcquisitionStatus.UNAVAILABLE,
+            warnings=("Full text unavailable.",),
+        )
+
+    return ResearchPaperAcquisition(
+        paper=paper,
+        source_url="https://example.test/paper.pdf",
+        content=b"%PDF-example",
+        acquisition_status=ResearchPaperAcquisitionStatus.ACQUIRED,
+        content_type="application/pdf",
+    )
+
+
+def _paper_document(
+    paper: PaperMetadata,
+) -> ResearchPaperDocument:
+    """Create a normalized retained-paper document for workflow tests."""
+
+    return ResearchPaperDocument(
+        paper=paper,
+        source_url="https://example.test/paper.pdf",
+        document_type=ResearchPaperDocumentType.PDF,
+        extraction_method="pypdf",
+        pages=(
+            ResearchPaperPage(
+                page_number=1,
+                text="Example full-text research paper content.",
+            ),
+        ),
+        extraction_status=ResearchPaperExtractionStatus.COMPLETED,
+    )
+
+
 def _artifact(
     reference: ResearchSourceReference,
 ) -> ResearchArtifact:
@@ -425,6 +561,9 @@ def _create_workflow(
     artifact_error: Exception | None = None,
     context_ingestion_service=None,
     context_analysis_service=None,
+    paper_acquisition_service=None,
+    paper_ingestion_service=None,
+    paper_analysis_service=None,
 ):
     """Create a workflow and its test doubles."""
 
@@ -497,6 +636,9 @@ def _create_workflow(
         artifact_service=artifact_service,
         context_ingestion_service=context_ingestion_service,
         context_analysis_service=context_analysis_service,
+        paper_acquisition_service=paper_acquisition_service,
+        paper_ingestion_service=paper_ingestion_service,
+        paper_analysis_service=paper_analysis_service,
     )
 
     return (
@@ -1126,3 +1268,366 @@ def test_context_analysis_failure_stops_workflow() -> None:
     assert result.error_message == "Context analysis failed."
     assert strategy_service.requests == []
     assert query_service.requests == []
+
+def test_workflow_acquires_ingests_and_analyzes_retained_papers() -> None:
+    """Retained papers are acquired, ingested, and analyzed."""
+
+    reference = _source_reference()
+    paper = _paper_metadata(reference)
+    acquisition = _paper_acquisition(paper)
+    document = _paper_document(paper)
+
+    acquisition_service = StubResearchPaperAcquisitionService(
+        {
+            reference.source_id: acquisition,
+        }
+    )
+    ingestion_service = StubResearchPaperIngestionService(
+        {
+            reference.source_id: document,
+        }
+    )
+    analysis_service = StubPaperAnalysisService()
+
+    workflow = _create_workflow(
+        references=(reference,),
+        papers=(paper,),
+        evaluations=(
+            _evaluation(paper),
+        ),
+        paper_acquisition_service=acquisition_service,
+        paper_ingestion_service=ingestion_service,
+        paper_analysis_service=analysis_service,
+    )[0]
+
+    request = _research_request()
+    result = workflow.execute(request)
+
+    assert result.status is ResearchStatus.COMPLETED
+    assert acquisition_service.requests == [
+        paper
+    ]
+    assert ingestion_service.requests == [
+        acquisition
+    ]
+    assert analysis_service.requests == [
+        (
+            request,
+            result.strategy,
+            result.papers,
+            (document,),
+        )
+    ]
+
+
+def test_workflow_analyzes_only_selected_retained_papers() -> None:
+    """Full-paper processing occurs only after relevance selection."""
+
+    references = (
+        _source_reference(
+            source_id="2401.11111",
+            title="Lower Relevance Paper",
+        ),
+        _source_reference(
+            source_id="2401.22222",
+            title="Highest Relevance Paper",
+        ),
+    )
+    papers = tuple(
+        _paper_metadata(reference)
+        for reference in references
+    )
+    evaluations = (
+        _evaluation(
+            papers[0],
+            relevance_score=0.2,
+        ),
+        _evaluation(
+            papers[1],
+            relevance_score=0.95,
+        ),
+    )
+
+    selected_paper = papers[1]
+    acquisition = _paper_acquisition(
+        selected_paper
+    )
+    document = _paper_document(
+        selected_paper
+    )
+
+    acquisition_service = StubResearchPaperAcquisitionService(
+        {
+            references[1].source_id: acquisition,
+        }
+    )
+    ingestion_service = StubResearchPaperIngestionService(
+        {
+            references[1].source_id: document,
+        }
+    )
+    analysis_service = StubPaperAnalysisService()
+
+    workflow = _create_workflow(
+        references=references,
+        papers=papers,
+        evaluations=evaluations,
+        artifacts=(),
+        paper_acquisition_service=acquisition_service,
+        paper_ingestion_service=ingestion_service,
+        paper_analysis_service=analysis_service,
+    )[0]
+
+    request = _research_request(
+        max_results=1
+    )
+    result = workflow.execute(
+        request
+    )
+
+    assert result.papers == (
+        selected_paper,
+    )
+    assert acquisition_service.requests == [
+        selected_paper
+    ]
+    assert ingestion_service.requests == [
+        acquisition
+    ]
+    assert analysis_service.requests[0][2] == (
+        selected_paper,
+    )
+    assert analysis_service.requests[0][3] == (
+        document,
+    )
+
+
+def test_unavailable_full_text_uses_metadata_analysis_fallback() -> None:
+    """Unavailable full text still permits retained-paper analysis."""
+
+    reference = _source_reference()
+    paper = _paper_metadata(reference)
+    acquisition = _paper_acquisition(
+        paper,
+        acquired=False,
+    )
+
+    acquisition_service = StubResearchPaperAcquisitionService(
+        {
+            reference.source_id: acquisition,
+        }
+    )
+    ingestion_service = StubResearchPaperIngestionService(
+        {}
+    )
+    analysis_service = StubPaperAnalysisService()
+
+    workflow = _create_workflow(
+        references=(reference,),
+        papers=(paper,),
+        evaluations=(
+            _evaluation(paper),
+        ),
+        paper_acquisition_service=acquisition_service,
+        paper_ingestion_service=ingestion_service,
+        paper_analysis_service=analysis_service,
+    )[0]
+
+    request = _research_request()
+    result = workflow.execute(request)
+
+    assert (
+        result.status
+        is ResearchStatus.COMPLETED_WITH_WARNINGS
+    )
+    assert ingestion_service.requests == []
+    assert analysis_service.requests == [
+        (
+            request,
+            result.strategy,
+            result.papers,
+            (),
+        )
+    ]
+    assert result.warnings == (
+        "Full text was unavailable for retained paper: "
+        "Example Paper.",
+    )
+
+
+def test_full_text_extraction_failure_uses_metadata_fallback() -> None:
+    """Unextractable acquired PDF falls back to metadata analysis."""
+
+    reference = _source_reference()
+    paper = _paper_metadata(reference)
+    acquisition = _paper_acquisition(paper)
+
+    acquisition_service = StubResearchPaperAcquisitionService(
+        {
+            reference.source_id: acquisition,
+        }
+    )
+    ingestion_service = StubResearchPaperIngestionService(
+        {},
+        error=ValueError(
+            "Research paper PDF contains no meaningful extractable text."
+        ),
+    )
+    analysis_service = StubPaperAnalysisService()
+
+    workflow = _create_workflow(
+        references=(reference,),
+        papers=(paper,),
+        evaluations=(
+            _evaluation(paper),
+        ),
+        paper_acquisition_service=acquisition_service,
+        paper_ingestion_service=ingestion_service,
+        paper_analysis_service=analysis_service,
+    )[0]
+
+    request = _research_request()
+    result = workflow.execute(request)
+
+    assert (
+        result.status
+        is ResearchStatus.COMPLETED_WITH_WARNINGS
+    )
+    assert analysis_service.requests == [
+        (
+            request,
+            result.strategy,
+            result.papers,
+            (),
+        )
+    ]
+    assert result.warnings == (
+        "Full-text extraction failed for retained paper "
+        "'Example Paper': Research paper PDF contains no "
+        "meaningful extractable text.",
+    )
+
+
+def test_partial_paper_analysis_configuration_fails_workflow() -> None:
+    """Paper analysis services must be configured as one complete set."""
+
+    reference = _source_reference()
+    paper = _paper_metadata(reference)
+
+    workflow = _create_workflow(
+        references=(reference,),
+        papers=(paper,),
+        evaluations=(
+            _evaluation(paper),
+        ),
+        paper_acquisition_service=StubResearchPaperAcquisitionService(
+            {
+                reference.source_id: _paper_acquisition(paper),
+            }
+        ),
+    )[0]
+
+    result = workflow.execute(
+        _research_request()
+    )
+
+    assert result.status is ResearchStatus.FAILED
+    assert result.error_message == (
+        "Research paper analysis services are not fully configured."
+    )
+
+
+def test_paper_acquisition_failure_returns_failed_result() -> None:
+    """Operational paper acquisition failures stop the workflow."""
+
+    reference = _source_reference()
+    paper = _paper_metadata(reference)
+
+    acquisition_service = StubResearchPaperAcquisitionService(
+        {},
+        error=RuntimeError(
+            "Research paper acquisition request failed."
+        ),
+    )
+    ingestion_service = StubResearchPaperIngestionService(
+        {}
+    )
+    analysis_service = StubPaperAnalysisService()
+
+    workflow = _create_workflow(
+        references=(reference,),
+        papers=(paper,),
+        evaluations=(
+            _evaluation(paper),
+        ),
+        paper_acquisition_service=acquisition_service,
+        paper_ingestion_service=ingestion_service,
+        paper_analysis_service=analysis_service,
+    )[0]
+
+    result = workflow.execute(
+        _research_request()
+    )
+
+    assert result.status is ResearchStatus.FAILED
+    assert result.error_message == (
+        "Research paper acquisition request failed."
+    )
+    assert ingestion_service.requests == []
+    assert analysis_service.requests == []
+
+
+def test_paper_analysis_failure_returns_failed_result() -> None:
+    """Structured retained-paper analysis failures stop the workflow."""
+
+    reference = _source_reference()
+    paper = _paper_metadata(reference)
+    acquisition = _paper_acquisition(paper)
+    document = _paper_document(paper)
+
+    acquisition_service = StubResearchPaperAcquisitionService(
+        {
+            reference.source_id: acquisition,
+        }
+    )
+    ingestion_service = StubResearchPaperIngestionService(
+        {
+            reference.source_id: document,
+        }
+    )
+    analysis_service = StubPaperAnalysisService(
+        error=ValueError(
+            "Paper analysis failed."
+        )
+    )
+
+    workflow = _create_workflow(
+        references=(reference,),
+        papers=(paper,),
+        evaluations=(
+            _evaluation(paper),
+        ),
+        paper_acquisition_service=acquisition_service,
+        paper_ingestion_service=ingestion_service,
+        paper_analysis_service=analysis_service,
+    )[0]
+
+    result = workflow.execute(
+        _research_request()
+    )
+
+    assert result.status is ResearchStatus.FAILED
+    assert result.error_message == "Paper analysis failed."
+
+
+def test_legacy_workflow_skips_unconfigured_paper_analysis() -> None:
+    """Existing workflow behavior remains unchanged without Task 6 services."""
+
+    components = _create_workflow()
+    result = components[0].execute(
+        _research_request()
+    )
+
+    assert result.status is ResearchStatus.COMPLETED
+    assert result.warnings == ()
+

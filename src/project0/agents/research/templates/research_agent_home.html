@@ -275,7 +275,19 @@
                         <p class="proposal-card__number">
                             Rank {{ result.rank }} of {{ page.results | length }}
                         </p>
+                        {% if result.source_url %}
+                        <h3>
+                            <a
+                                href="{{ result.source_url }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                {{ result.title }}
+                            </a>
+                        </h3>
+                        {% else %}
                         <h3>{{ result.title }}</h3>
+                        {% endif %}
                         {% if result.authors %}
                         <p>{{ result.authors | join(", ") }}</p>
                         {% endif %}
@@ -383,7 +395,7 @@
                             target="_blank"
                             rel="noopener noreferrer"
                         >
-                            Open source document
+                            {{ result.source_url }}
                         </a>
                     </p>
                 </div>

@@ -59,6 +59,34 @@ class ResearchEvidenceSourceType(StrEnum):
     RESEARCH_PAPER = "research_paper"
 
 
+class ResearchPaperDocumentType(StrEnum):
+    """Supported retained research paper document types."""
+
+    PDF = "pdf"
+
+
+class ResearchPaperAcquisitionStatus(StrEnum):
+    """Supported retained research paper acquisition states."""
+
+    ACQUIRED = "acquired"
+    UNAVAILABLE = "unavailable"
+
+
+class ResearchPaperExtractionStatus(StrEnum):
+    """Supported retained research paper extraction states."""
+
+    COMPLETED = "completed"
+    COMPLETED_WITH_WARNINGS = "completed_with_warnings"
+    FAILED = "failed"
+
+
+class ResearchPaperAnalysisBasis(StrEnum):
+    """Supported retained research paper analysis evidence bases."""
+
+    FULL_TEXT = "full_text"
+    ABSTRACT_METADATA = "abstract_metadata"
+
+
 @dataclass(frozen=True, slots=True)
 class ResearchRequest:
     """A request for Research Agent processing."""
@@ -115,6 +143,40 @@ class PaperMetadata:
 
 
 @dataclass(frozen=True, slots=True)
+class ResearchPaperAcquisition:
+    """Acquisition result for one retained research paper."""
+
+    paper: PaperMetadata
+    source_url: str | None
+    content: bytes | None
+    acquisition_status: ResearchPaperAcquisitionStatus
+    content_type: str | None = None
+    warnings: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class ResearchPaperPage:
+    """Extracted text for one retained research paper page."""
+
+    page_number: int
+    text: str
+
+
+@dataclass(frozen=True, slots=True)
+class ResearchPaperDocument:
+    """Normalized full-text document for one retained research paper."""
+
+    paper: PaperMetadata
+    source_url: str
+    document_type: ResearchPaperDocumentType
+    extraction_method: str
+    pages: tuple[ResearchPaperPage, ...]
+    extraction_status: ResearchPaperExtractionStatus
+    warnings: tuple[str, ...] = ()
+    document_id: str = field(default_factory=lambda: str(uuid4()))
+
+
+@dataclass(frozen=True, slots=True)
 class ResearchContextDocument:
     """Normalized document supplied as existing research context."""
 
@@ -166,6 +228,9 @@ class PaperAnalysis:
     paper: PaperMetadata
     problem: ResearchFinding
     approach: ResearchFinding
+    analysis_basis: ResearchPaperAnalysisBasis = (
+        ResearchPaperAnalysisBasis.ABSTRACT_METADATA
+    )
     representations: tuple[ResearchFinding, ...] = ()
     modalities: tuple[ResearchFinding, ...] = ()
     learning_objectives: tuple[ResearchFinding, ...] = ()
@@ -173,6 +238,7 @@ class PaperAnalysis:
     findings: tuple[ResearchFinding, ...] = ()
     limitations: tuple[ResearchFinding, ...] = ()
     research_relevance: ResearchFinding | None = None
+    warnings: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

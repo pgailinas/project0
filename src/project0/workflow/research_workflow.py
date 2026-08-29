@@ -18,8 +18,11 @@ import logging
 
 from project0.interfaces.research_interfaces import (
     ExistingResearchContextAnalysisServiceProtocol,
+    PaperAnalysisServiceProtocol,
     PaperMetadataServiceProtocol,
     ResearchArtifactServiceProtocol,
+    ResearchPaperAcquisitionServiceProtocol,
+    ResearchPaperIngestionServiceProtocol,
     ResearchContextIngestionServiceProtocol,
     ResearchEvaluationServiceProtocol,
     ResearchQueryServiceProtocol,
@@ -27,6 +30,7 @@ from project0.interfaces.research_interfaces import (
     ResearchStrategyServiceProtocol,
 )
 from project0.models.research_models import (
+    ResearchPaperAcquisitionStatus,
     ResearchRequest,
     ResearchResult,
     ResearchStatus,
@@ -53,6 +57,15 @@ class ResearchWorkflow:
         context_analysis_service: (
             ExistingResearchContextAnalysisServiceProtocol | None
         ) = None,
+        paper_acquisition_service: (
+            ResearchPaperAcquisitionServiceProtocol | None
+        ) = None,
+        paper_ingestion_service: (
+            ResearchPaperIngestionServiceProtocol | None
+        ) = None,
+        paper_analysis_service: (
+            PaperAnalysisServiceProtocol | None
+        ) = None,
     ) -> None:
         self._strategy_service = strategy_service
         self._query_service = query_service
@@ -62,6 +75,9 @@ class ResearchWorkflow:
         self._artifact_service = artifact_service
         self._context_ingestion_service = context_ingestion_service
         self._context_analysis_service = context_analysis_service
+        self._paper_acquisition_service = paper_acquisition_service
+        self._paper_ingestion_service = paper_ingestion_service
+        self._paper_analysis_service = paper_analysis_service
 
     def execute(
         self,
@@ -157,6 +173,63 @@ class ResearchWorkflow:
                 evaluations=evaluations,
                 max_results=request.max_results,
             )
+
+            paper_analysis_services = (
+                self._paper_acquisition_service,
+                self._paper_ingestion_service,
+                self._paper_analysis_service,
+            )
+
+            if any(
+                service is not None
+                for service in paper_analysis_services
+            ):
+                if not all(
+                    service is not None
+                    for service in paper_analysis_services
+                ):
+                    raise RuntimeError(
+                        "Research paper analysis services are not "
+                        "fully configured."
+                    )
+
+                paper_documents = []
+
+                for paper in papers:
+                    acquisition = (
+                        self._paper_acquisition_service.acquire(
+                            paper
+                        )
+                    )
+
+                    if (
+                        acquisition.acquisition_status
+                        != ResearchPaperAcquisitionStatus.ACQUIRED
+                    ):
+                        warnings.append(
+                            "Full text was unavailable for retained "
+                            f"paper: {paper.title}."
+                        )
+                        continue
+
+                    try:
+                        paper_documents.append(
+                            self._paper_ingestion_service.ingest(
+                                acquisition
+                            )
+                        )
+                    except ValueError as error:
+                        warnings.append(
+                            "Full-text extraction failed for retained "
+                            f"paper '{paper.title}': {error}"
+                        )
+
+                self._paper_analysis_service.analyze(
+                    request,
+                    strategy,
+                    papers,
+                    tuple(paper_documents),
+                )
 
             artifacts = self._artifact_service.generate_artifacts(
                 request,

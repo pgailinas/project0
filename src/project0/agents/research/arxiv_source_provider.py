@@ -244,6 +244,25 @@ class ArxivSourceProvider:
                 )
             )
 
+            document_url = None
+
+            for link in entry.findall(
+                "atom:link",
+                namespace,
+            ):
+                if link.get("title") == "pdf":
+                    href = link.get("href")
+
+                    if isinstance(href, str):
+                        document_url = href
+
+                    break
+
+            metadata = {}
+
+            if document_url is not None:
+                metadata["document_url"] = document_url
+
             references.append(
                 ResearchSourceReference(
                     source_name="arxiv",
@@ -252,7 +271,7 @@ class ArxivSourceProvider:
                     source_url=paper_id,
                     authors=authors,
                     publication_year=year,
-                    metadata={},
+                    metadata=metadata,
                 )
             )
 

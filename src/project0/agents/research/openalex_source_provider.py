@@ -236,8 +236,39 @@ class OpenAlexSourceProvider(
                 item,
                 "publication_year",
             ),
-            metadata={},
+            metadata=self._get_metadata(
+                item,
+            ),
         )
+
+    def _get_metadata(
+        self,
+        item: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Return acquisition metadata from an OpenAlex result."""
+
+        metadata: dict[str, Any] = {}
+
+        primary_location = item.get(
+            "primary_location"
+        )
+
+        if isinstance(primary_location, dict):
+            document_url = primary_location.get(
+                "pdf_url"
+            )
+
+            if isinstance(document_url, str):
+                metadata["document_url"] = document_url
+
+        doi = item.get(
+            "doi"
+        )
+
+        if isinstance(doi, str):
+            metadata["doi"] = doi
+
+        return metadata
 
     def _get_source_url(
         self,

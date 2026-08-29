@@ -271,6 +271,18 @@ def test_research_request_presents_sources_evaluation_and_artifacts() -> None:
     assert "The research workflow completed successfully." in response.text
     assert "Research Results" in response.text
     assert "Example Video Representation Paper" in response.text
+    assert (
+        'href="https://www.semanticscholar.org/paper/paper-001"'
+        in response.text
+    )
+    assert 'target="_blank"' in response.text
+    assert 'rel="noopener noreferrer"' in response.text
+    assert (
+        ">\n                            "
+        "https://www.semanticscholar.org/paper/paper-001\n"
+        "                        </a>"
+        in response.text
+    )
     assert "Research Results" in response.text
     assert "The paper is highly relevant to" in response.text
     assert "The paper is highly relevant to" in response.text

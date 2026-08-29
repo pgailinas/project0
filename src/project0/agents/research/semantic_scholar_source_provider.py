@@ -65,7 +65,10 @@ class SemanticScholarSourceProvider(
         params = {
             "query": query,
             "limit": self.maximum_results,
-            "fields": "paperId,title,authors,year,url",
+            "fields": (
+                "paperId,title,authors,year,url,"
+                "openAccessPdf,externalIds"
+            ),
         }
 
         LOGGER.debug(
@@ -237,8 +240,44 @@ class SemanticScholarSourceProvider(
                 item,
                 "year",
             ),
-            metadata={},
+            metadata=self._get_metadata(
+                item,
+            ),
         )
+
+    def _get_metadata(
+        self,
+        item: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Return acquisition metadata from a Semantic Scholar result."""
+
+        metadata: dict[str, Any] = {}
+
+        open_access_pdf = item.get(
+            "openAccessPdf"
+        )
+
+        if isinstance(open_access_pdf, dict):
+            document_url = open_access_pdf.get(
+                "url"
+            )
+
+            if isinstance(document_url, str):
+                metadata["document_url"] = document_url
+
+        external_ids = item.get(
+            "externalIds"
+        )
+
+        if isinstance(external_ids, dict):
+            doi = external_ids.get(
+                "DOI"
+            )
+
+            if isinstance(doi, str):
+                metadata["doi"] = doi
+
+        return metadata
 
     def _get_authors(
         self,

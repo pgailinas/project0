@@ -269,8 +269,37 @@ class OpenReviewSourceProvider(
             publication_year=self._get_publication_year(
                 note
             ),
-            metadata={},
+            metadata=self._get_metadata(
+                content,
+            ),
         )
+
+    def _get_metadata(
+        self,
+        content: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Return acquisition metadata from an OpenReview result."""
+
+        metadata: dict[str, Any] = {}
+
+        pdf = content.get(
+            "pdf"
+        )
+
+        if isinstance(pdf, dict):
+            value = pdf.get(
+                "value"
+            )
+
+            if isinstance(value, str):
+                if value.startswith("http"):
+                    metadata["document_url"] = value
+                elif value.startswith("/"):
+                    metadata["document_url"] = (
+                        f"https://openreview.net{value}"
+                    )
+
+        return metadata
 
     def _get_content_string(
         self,
