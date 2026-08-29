@@ -21,7 +21,7 @@ file is the editable project planning document.
 
 ## Current Phase
 
-Phase 13 -- Research Agent Context-Aware Literature Analysis (Planned)
+Phase 13 -- Research Agent Context-Aware Literature Analysis (In Progress)
 
 ## Overall Status
 
@@ -36,7 +36,7 @@ Phase 13 -- Research Agent Context-Aware Literature Analysis (Planned)
 -   ✅ Phase 9 -- Testing and Verification: Completed
 -   ✅ Phase 10 -- Platform Validation Consolidation: Completed
 -   ✅ Phase 11 -- Research Agent Expansion and Enhancement: Completed
--   ⏳ Phase 13 -- Research Agent Context-Aware Literature Analysis: Planned
+-   ⏳ Phase 13 -- Research Agent Context-Aware Literature Analysis: In Progress
 
 ------------------------------------------------------------------------
 
@@ -44,27 +44,29 @@ Phase 13 -- Research Agent Context-Aware Literature Analysis (Planned)
 
 ## Current Milestone
 
-Research Agent V1 Functional Validation Completed
+Research Agent Context-Aware Literature Analysis In Progress
 
-The Research Agent milestone has been completed using reusable Project0
-platform services.
+The Research Agent context-aware literature analysis milestone is in
+progress using reusable Project0 platform services.
 
 Completed capabilities:
 
--   Research workflow integration.
--   Research source provider abstraction.
--   Multiple research source provider support.
--   Dashboard integration.
--   Unit, integration, and acceptance validation.
+-   Optional Existing Research Context document ingestion and analysis.
+-   Context-aware Research Strategy generation.
+-   Existing Research Context Dashboard integration.
+-   Full-paper acquisition for retained papers.
+-   Page-preserving research-paper PDF extraction.
+-   Structured per-paper analysis with full-text evidence when available.
+-   Metadata and abstract fallback when full text is unavailable.
+-   Research Workflow integration and validation.
+-   Research evaluation missing-paper retry behavior.
 
 Detailed implementation history, architecture decisions, and validation
 results are maintained in the Research Agent documentation set.
 
 Planned next milestone:
 
-Research Agent Context-Aware Literature Analysis
+Research Direction Analysis
 
-The planned enhancement will extend the Research Agent with optional
-existing research context analysis, structured per-paper analysis,
-cross-paper synthesis, and evidence-grounded research direction
-analysis. These capabilities are not yet implemented or validated.
+The next enhancement will extend the Research Agent with cross-paper
+synthesis and evidence-grounded research direction analysis.

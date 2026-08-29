@@ -355,6 +355,21 @@ Deliverables:
 -   Evidence-grounded candidate research directions.
 -   Validated Research Agent context-aware literature analysis workflow.
 
+Current progress:
+
+-   Existing Research Context processing completed and validated.
+-   Context-aware Research Strategy integration completed and validated.
+-   Existing Research Context Dashboard integration completed and
+    validated.
+-   Full-paper acquisition and page-preserving PDF extraction completed
+    and validated.
+-   Structured per-paper analysis completed and validated.
+-   Research Workflow per-paper analysis integration completed and
+    validated.
+-   Research evaluation missing-paper retry behavior completed and
+    validated.
+-   Research Direction Analysis remains the next planned activity.
+
 ## 4. Implementation Dependencies
 
 Implementation phases depend upon the completion of earlier foundational

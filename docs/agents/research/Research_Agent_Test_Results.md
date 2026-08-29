@@ -272,22 +272,51 @@ implementation validation.
 
 ------------------------------------------------------------------------
 
-## 9. Planned Research Analysis Validation
+## 9. Phase 13 Context and Per-Paper Analysis Validation
+
+### Existing Research Context and Structured Per-Paper Analysis
+
+Status:
+
+**COMPLETE THROUGH TASK 6**
+
+Validated components:
+
+-   Optional Existing Research Context document ingestion
+-   Existing Research Context analysis
+-   Context-aware Research Strategy generation
+-   Existing Research Context Dashboard upload workflow
+-   Full-paper acquisition for retained papers
+-   Page-preserving research-paper PDF extraction
+-   Structured per-paper analysis
+-   Full-text analysis with page-level evidence references
+-   Metadata and abstract fallback when full text is unavailable
+-   Research Workflow integration after relevance ranking and selection
+-   Research evaluation missing-paper retry behavior
+
+Browser acceptance validation completed successfully with configured
+Maximum Results values of 5, 10, and 20. The Maximum Results 20 scenario
+completed with 19 discovered sources, 19 retained papers, 19 validated
+evaluations, and 22 generated artifacts.
+
+Research evaluation robustness was additionally validated after
+introducing missing-paper retry behavior. Valid partial evaluations are
+preserved when the only provider-response defect is missing expected
+source identifiers, and only the missing papers are retried. Unknown or
+duplicate source identifiers continue to require complete-batch retry.
+
+------------------------------------------------------------------------
+
+## 10. Planned Research Analysis Validation
 
 The following Research Agent capabilities are documented for future
 implementation but have not yet been validated:
 
--   Optional Existing Research Context document ingestion
--   Existing Research Context analysis
--   Page- or section-level context provenance
 -   Bounded context document chunking
--   Structured per-paper analysis
 -   Cross-paper synthesis
 -   Research Direction Analysis
 -   Candidate research direction evidence validation
 -   Saved research package validation
--   No-context backward compatibility validation
-
 These capabilities shall not be considered part of the validated
 Research Agent baseline until implementation and applicable unit,
 integration, browser acceptance, and regression testing are complete.
