@@ -1363,6 +1363,28 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#full-paper-acquisition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full-Paper Acquisition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#paper-content-extraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Paper Content Extraction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#per-paper-analysis" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1882,6 +1904,28 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#full-paper-acquisition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full-Paper Acquisition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#paper-content-extraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Paper Content Extraction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#per-paper-analysis" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2131,6 +2175,8 @@ Documentation Agent functionality.</p>
     G["Knowledge Service"]
     H["Research Evaluation Service"]
     I["Reasoning Service"]
+    O["Full-Paper Acquisition"]
+    R["Paper Content Extraction"]
     M["Per-Paper Analysis"]
     N["Research Direction Analysis"]
     J["Research Artifact Service"]
@@ -2152,7 +2198,9 @@ Documentation Agent functionality.</p>
     F --&gt; G
     G --&gt; H
     H --&gt; I
-    I --&gt; M
+    I --&gt; O
+    O --&gt; R
+    R --&gt; M
     M --&gt; N
     N --&gt; J
     J --&gt; K
@@ -2181,8 +2229,13 @@ Documentation Agent functionality.</p>
     the configured maximum number of results.</li>
 <li>The Reasoning Service performs AI-assisted research analysis where
     required.</li>
+<li>Full-paper acquisition attempts to retrieve available PDF content for
+    each retained paper.</li>
+<li>Paper content extraction preserves physical PDF page boundaries and
+    page numbers for available full-text evidence.</li>
 <li>Structured Per-Paper Analysis interprets each retained paper using
-    available source evidence.</li>
+    full-text evidence when available and explicitly falls back to
+    metadata and abstract analysis when full text is unavailable.</li>
 <li>Research Direction Analysis performs cross-paper comparison and
     identifies candidate research directions grounded in existing
     research context and literature evidence.</li>
@@ -2327,6 +2380,35 @@ Research Context.</p>
 <li>Clearly report context analysis failures.</li>
 </ul>
 <hr />
+<h3 id="full-paper-acquisition">Full-Paper Acquisition</h3>
+<p>Retrieves available full-text PDF content for retained papers after
+relevance ranking and result selection.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>Attempt full-paper acquisition only for retained papers.</li>
+<li>Prefer normalized document locations while preserving bibliographic
+    source locations separately.</li>
+<li>Support PDF full-text acquisition.</li>
+<li>Validate returned PDF media type and content signature.</li>
+<li>Retry transient acquisition failures using bounded retry behavior.</li>
+<li>Report unavailable full text without failing otherwise valid research
+    processing.</li>
+</ul>
+<hr />
+<h3 id="paper-content-extraction">Paper Content Extraction</h3>
+<p>Extracts normalized page-preserving text from acquired research-paper
+PDF content.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>Extract PDF text using <code>pypdf</code>.</li>
+<li>Preserve physical page boundaries and page numbers.</li>
+<li>Preserve empty individual pages when required for page-number
+    traceability.</li>
+<li>Clearly report malformed or extraction-poor PDF content.</li>
+<li>Reject PDFs containing no meaningful extractable text.</li>
+<li>Exclude OCR from the current implementation scope.</li>
+</ul>
+<hr />
 <h3 id="per-paper-analysis">Per-Paper Analysis</h3>
 <p>Produces structured technical analysis for each retained paper.</p>
 <p>Responsibilities:</p>
@@ -2338,6 +2420,9 @@ Research Context.</p>
 <li>Identify findings and limitations.</li>
 <li>Explain relevance to the current research.</li>
 <li>Preserve evidence references.</li>
+<li>Use full-text evidence with page-level provenance when available.</li>
+<li>Explicitly identify metadata and abstract fallback analysis when full
+    text is unavailable.</li>
 <li>Distinguish source-derived interpretation from source information.</li>
 </ul>
 <hr />
@@ -2430,6 +2515,13 @@ Research Strategy.</p>
 <li>Identify potential research gaps.</li>
 <li>Support experiment planning analysis.</li>
 <li>Preserve references to supporting research sources.</li>
+<li>Evaluate papers in bounded batches of five.</li>
+<li>Require one validated evaluation for each supplied paper.</li>
+<li>Preserve valid partial evaluations and retry only missing papers when
+    an otherwise valid provider response omits expected source
+    identifiers.</li>
+<li>Retry the complete batch when source identity is unknown or
+    duplicated.</li>
 </ul>
 <hr />
 <h3 id="research-artifact-service">Research Artifact Service</h3>
@@ -2465,7 +2557,10 @@ Research Strategy.</p>
 <li>Preserve all discovered source references for traceability.</li>
 <li>Rank evaluated papers by relevance and retain the configured maximum
     number of results.</li>
-<li>Generate per-paper analyses from retained evaluations.</li>
+<li>Acquire and extract available full-text PDF content only for retained
+    papers.</li>
+<li>Generate per-paper analyses from retained evaluations using full-text
+    evidence when available and metadata or abstract fallback otherwise.</li>
 <li>Coordinate Research Direction Analysis across retained paper
     analyses and optional Existing Research Context.</li>
 <li>Generate research artifacts from retained evaluations and analyses.</li>
@@ -2563,6 +2658,7 @@ implementations.</p>
 </ul>
 </li>
 <li>Technical paper metadata</li>
+<li>Available full-text research-paper PDF content</li>
 <li>Project0 repository knowledge</li>
 <li>Existing research artifacts</li>
 <li>Optional text-based PDF, Markdown, and plain-text Existing Research
@@ -2591,6 +2687,11 @@ implementations.</p>
     distinguishable.</li>
 <li>Image-only or scanned PDF context documents requiring OCR are outside
     the current implementation scope.</li>
+<li>Full-paper analysis shall use page-preserving PDF extraction when
+    available and shall explicitly identify metadata or abstract fallback
+    analysis when full text is unavailable.</li>
+<li>OCR processing of research-paper PDFs is outside the current
+    implementation scope.</li>
 <li>Platform components shall communicate through typed interfaces.</li>
 <li>Shared data models shall define information exchanged between
     components.</li>

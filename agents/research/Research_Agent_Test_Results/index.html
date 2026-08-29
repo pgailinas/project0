@@ -1496,10 +1496,38 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#9-planned-research-analysis-validation" class="md-nav__link">
+  <a href="#9-phase-13-context-and-per-paper-analysis-validation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9. Planned Research Analysis Validation
+        9. Phase 13 Context and Per-Paper Analysis Validation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Phase 13 Context and Per-Paper Analysis Validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#existing-research-context-and-structured-per-paper-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Existing Research Context and Structured Per-Paper Analysis
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-planned-research-analysis-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Planned Research Analysis Validation
       
     </span>
   </a>
@@ -1733,10 +1761,38 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#9-planned-research-analysis-validation" class="md-nav__link">
+  <a href="#9-phase-13-context-and-per-paper-analysis-validation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9. Planned Research Analysis Validation
+        9. Phase 13 Context and Per-Paper Analysis Validation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Phase 13 Context and Per-Paper Analysis Validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#existing-research-context-and-structured-per-paper-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Existing Research Context and Structured Per-Paper Analysis
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-planned-research-analysis-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Planned Research Analysis Validation
       
     </span>
   </a>
@@ -1965,24 +2021,47 @@ batch results are combined while preserving source traceability.</p>
 <p>The current version extends that baseline with completed Phase 10
 implementation validation.</p>
 <hr />
-<h2 id="9-planned-research-analysis-validation">9. Planned Research Analysis Validation</h2>
-<p>The following Research Agent capabilities are documented for future
-implementation but have not yet been validated:</p>
+<h2 id="9-phase-13-context-and-per-paper-analysis-validation">9. Phase 13 Context and Per-Paper Analysis Validation</h2>
+<h3 id="existing-research-context-and-structured-per-paper-analysis">Existing Research Context and Structured Per-Paper Analysis</h3>
+<p>Status:</p>
+<p><strong>COMPLETE THROUGH TASK 6</strong></p>
+<p>Validated components:</p>
 <ul>
 <li>Optional Existing Research Context document ingestion</li>
 <li>Existing Research Context analysis</li>
-<li>Page- or section-level context provenance</li>
-<li>Bounded context document chunking</li>
+<li>Context-aware Research Strategy generation</li>
+<li>Existing Research Context Dashboard upload workflow</li>
+<li>Full-paper acquisition for retained papers</li>
+<li>Page-preserving research-paper PDF extraction</li>
 <li>Structured per-paper analysis</li>
+<li>Full-text analysis with page-level evidence references</li>
+<li>Metadata and abstract fallback when full text is unavailable</li>
+<li>Research Workflow integration after relevance ranking and selection</li>
+<li>Research evaluation missing-paper retry behavior</li>
+</ul>
+<p>Browser acceptance validation completed successfully with configured
+Maximum Results values of 5, 10, and 20. The Maximum Results 20 scenario
+completed with 19 discovered sources, 19 retained papers, 19 validated
+evaluations, and 22 generated artifacts.</p>
+<p>Research evaluation robustness was additionally validated after
+introducing missing-paper retry behavior. Valid partial evaluations are
+preserved when the only provider-response defect is missing expected
+source identifiers, and only the missing papers are retried. Unknown or
+duplicate source identifiers continue to require complete-batch retry.</p>
+<hr />
+<h2 id="10-planned-research-analysis-validation">10. Planned Research Analysis Validation</h2>
+<p>The following Research Agent capabilities are documented for future
+implementation but have not yet been validated:</p>
+<ul>
+<li>Bounded context document chunking</li>
 <li>Cross-paper synthesis</li>
 <li>Research Direction Analysis</li>
 <li>Candidate research direction evidence validation</li>
-<li>Saved research package validation</li>
-<li>No-context backward compatibility validation</li>
-</ul>
-<p>These capabilities shall not be considered part of the validated
+<li>Saved research package validation
+These capabilities shall not be considered part of the validated
 Research Agent baseline until implementation and applicable unit,
-integration, browser acceptance, and regression testing are complete.</p>
+integration, browser acceptance, and regression testing are complete.</li>
+</ul>
 <p>The detailed Research Direction Analysis output contract and bounded
 context document chunking limits remain to be defined.</p>
 <p>OCR processing for image-only or scanned PDF context documents is not

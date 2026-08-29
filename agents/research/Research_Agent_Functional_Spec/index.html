@@ -1679,6 +1679,10 @@ dashboard infrastructure.</p>
 <li>Retry research evaluation once within a batch when a reasoning
     provider response violates required source traceability or coverage
     constraints.</li>
+<li>Preserve valid partial evaluations and retry only missing papers when
+    an otherwise valid provider response omits expected source identifiers.</li>
+<li>Retry the complete evaluation batch when a provider response contains
+    unknown or duplicate source identifiers.</li>
 <li>Preserve citation and source information.</li>
 <li>Accept an optional Existing Research Context document.</li>
 <li>Extract supported context from text-based PDF, Markdown, and plain-text
@@ -1692,6 +1696,13 @@ dashboard infrastructure.</p>
 <li>Clearly report context extraction or analysis failures without
     silently reverting to a no-context workflow.</li>
 <li>Summarize relevant technical papers.</li>
+<li>Attempt full-text PDF acquisition only for retained papers.</li>
+<li>Preserve bibliographic source locations separately from full-text
+    document locations.</li>
+<li>Extract acquired research-paper PDF content with physical page
+    boundaries and page numbers preserved.</li>
+<li>Explicitly fall back to metadata and abstract analysis when full text
+    is unavailable or cannot be meaningfully extracted.</li>
 <li>Produce structured per-paper analysis including the problem, approach,
     representations, modalities, learning or alignment objective,
     datasets or tasks, findings, limitations, relevance to the current
@@ -1773,19 +1784,23 @@ this increment.</p>
 </span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>      ↓
 </span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>Research Knowledge Retrieval
 </span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>      ↓
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>Per-Paper Analysis
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>Full-Paper Acquisition
 </span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>      ↓
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>Research Direction Analysis
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>Paper Content Extraction
 </span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>      ↓
-</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>Research Artifact Generation
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>Per-Paper Analysis
 </span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>      ↓
-</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>Citation and Source Tracking
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>Research Direction Analysis
 </span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>      ↓
-</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>Validation Service
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>Research Artifact Generation
 </span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>      ↓
-</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>User Review
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>Citation and Source Tracking
 </span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>      ↓
-</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>Research Result
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>Validation Service
+</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>      ↓
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>User Review
+</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>      ↓
+</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>Research Result
 </span></code></pre></div>
 <hr />
 <h2 id="10-success-criteria">10. Success Criteria</h2>
@@ -1812,6 +1827,9 @@ this increment.</p>
 <li>Produces useful, evidence-grounded paper summaries.</li>
 <li>Produces structured per-paper technical analysis with evidence
     references.</li>
+<li>Uses full-text paper evidence with page-level provenance when
+    available and explicitly identifies metadata or abstract fallback
+    analysis when full text is unavailable.</li>
 <li>Generates useful research comparison artifacts.</li>
 <li>Produces structured synthesis findings across retained paper analyses.</li>
 <li>Generates candidate research directions grounded in both existing
