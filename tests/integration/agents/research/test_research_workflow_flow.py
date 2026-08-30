@@ -678,6 +678,10 @@ def test_research_workflow_uses_existing_research_context(
     assert result.error_message is None
     assert result.strategy is not None
     assert (
+        "What should I investigate next"
+        not in result.strategy.search_terms
+    )
+    assert (
         "Improve semantic alignment between video "
         "and language representations."
         in result.strategy.concepts

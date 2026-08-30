@@ -34,9 +34,15 @@ class ResearchQueryService:
         """Generate deterministic research queries from a strategy."""
 
         queries: list[str] = []
+        constraint_queries = tuple(
+            self._focus_constraint_query(constraint)
+            for constraint in strategy.constraints
+            if self._focus_constraint_query(constraint)
+        )
         candidates = (
             *strategy.search_terms,
             *strategy.concepts,
+            *constraint_queries,
         )
         objective = self._normalize_query(
             strategy.objective or ""
@@ -50,8 +56,8 @@ class ResearchQueryService:
 
             if (
                 objective
-                and normalized.casefold()
-                == objective.casefold()
+                and normalized.rstrip(".?").casefold()
+                == objective.rstrip(".?").casefold()
             ):
                 continue
 
@@ -74,8 +80,8 @@ class ResearchQueryService:
                 fallback_queries = [
                     query
                     for query in fallback_queries
-                    if query.casefold()
-                    != objective.casefold()
+                    if query.rstrip(".?").casefold()
+                    != objective.rstrip(".?").casefold()
                 ]
 
             if fallback_queries:
@@ -104,6 +110,19 @@ class ResearchQueryService:
         """Normalize query whitespace."""
 
         return " ".join(query.split()).strip()
+
+    @staticmethod
+    def _focus_constraint_query(
+        constraint: str,
+    ) -> str:
+        """Return a query phrase from a Focus on constraint."""
+
+        normalized = " ".join(constraint.split()).strip()
+
+        if not normalized.casefold().startswith("focus on "):
+            return ""
+
+        return normalized[9:].rstrip(".?").strip()
 
     @staticmethod
     def _deduplicate_queries(

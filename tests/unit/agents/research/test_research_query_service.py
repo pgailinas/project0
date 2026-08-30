@@ -134,3 +134,74 @@ def test_research_query_service_preserves_strategy_planning_fields():
     assert result.search_terms == (
         "video representation alignment",
     )
+
+
+def test_research_query_service_excludes_objective_question_concept():
+    """Verify objective question text is not used as a provider query."""
+
+    strategy = ResearchStrategy(
+        concepts=(
+            "What should I investigate next",
+            "semantic alignment objectives",
+        ),
+        search_terms=(),
+        objective="What should I investigate next?",
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms == (
+        "semantic alignment objectives",
+    )
+
+
+def test_research_query_service_excludes_objective_from_fallback():
+    """Verify fallback does not restore the objective question."""
+
+    strategy = ResearchStrategy(
+        concepts=(
+            "What should I investigate next",
+            (
+                "Video representations require stronger semantic "
+                "alignment with language representations"
+            ),
+        ),
+        search_terms=(),
+        objective="What should I investigate next?",
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms == (
+        (
+            "Video representations require stronger semantic "
+            "alignment with language"
+        ),
+    )
+
+
+def test_research_query_service_uses_focus_constraint_when_needed():
+    """Verify a Focus on constraint can supply a technical query."""
+
+    strategy = ResearchStrategy(
+        concepts=(
+            (
+                "How can self-supervised video representations "
+                "be improved for VideoQA"
+            ),
+        ),
+        search_terms=(),
+        objective=(
+            "How can self-supervised video representations "
+            "be improved for VideoQA?"
+        ),
+        constraints=(
+            "Focus on vision-language alignment.",
+        ),
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms == (
+        "vision-language alignment",
+    )
