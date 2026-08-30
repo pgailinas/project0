@@ -207,8 +207,8 @@ def test_research_query_service_uses_focus_constraint_when_needed():
     )
 
 
-def test_research_query_service_preserves_fallback_concept_priority():
-    """Verify fallback uses the highest-priority remaining concept."""
+def test_research_query_service_combines_prioritized_fallback_concepts():
+    """Verify fallback combines follow-on and unresolved concepts."""
 
     strategy = ResearchStrategy(
         concepts=(
@@ -216,6 +216,10 @@ def test_research_query_service_preserves_fallback_concept_priority():
             (
                 "Investigate semantic alignment objectives for "
                 "video representations and language models"
+            ),
+            (
+                "How should video representations be aligned "
+                "with language representations?"
             ),
             (
                 "The primary challenge is learning compact "
@@ -230,7 +234,7 @@ def test_research_query_service_preserves_fallback_concept_priority():
 
     assert result.search_terms == (
         (
-            "Investigate semantic alignment objectives for video "
-            "representations and"
+            "semantic alignment objectives for video "
+            "representations be aligned"
         ),
     )

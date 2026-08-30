@@ -86,14 +86,82 @@ class ResearchQueryService:
 
             if fallback_queries:
                 queries.append(
-                    " ".join(
-                        fallback_queries[0].split()[:8]
+                    self._build_fallback_query(
+                        fallback_queries
                     )
                 )
 
         return replace(
             strategy,
             search_terms=self._deduplicate_queries(queries),
+        )
+
+    @classmethod
+    def _build_fallback_query(
+        cls,
+        candidates: list[str],
+    ) -> str:
+        """Build a bounded fallback from prioritized concepts."""
+
+        if len(candidates) == 1:
+            return " ".join(
+                candidates[0].split()[:8]
+            )
+
+        first_fragment = cls._query_fragment(
+            candidates[0],
+            maximum_words=4,
+        )
+        second_fragment = cls._query_fragment(
+            candidates[1],
+            maximum_words=4,
+        )
+
+        combined = cls._normalize_query(
+            f"{first_fragment} {second_fragment}"
+        )
+
+        return " ".join(
+            combined.split()[:8]
+        )
+
+    @staticmethod
+    def _query_fragment(
+        query: str,
+        maximum_words: int,
+    ) -> str:
+        """Extract a bounded technical phrase from a concept."""
+
+        normalized = " ".join(query.split()).strip()
+        lowered = normalized.casefold()
+
+        prefixes = (
+            "future work should explore ",
+            "future work should investigate ",
+            "investigate ",
+            "explore ",
+            "how should ",
+            "how can ",
+            "how do ",
+            "how are ",
+        )
+
+        for prefix in prefixes:
+            if lowered.startswith(prefix):
+                normalized = normalized[len(prefix):]
+                break
+
+        words = [
+            token.strip(",.;:?")
+            for token in normalized.split()
+        ]
+
+        return " ".join(
+            [
+                word
+                for word in words
+                if word
+            ][:maximum_words]
         )
 
     @staticmethod
