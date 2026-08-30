@@ -85,16 +85,9 @@ class ResearchQueryService:
                 ]
 
             if fallback_queries:
-                shortest_query = min(
-                    fallback_queries,
-                    key=lambda query: (
-                        len(query.split()),
-                        len(query),
-                    ),
-                )
                 queries.append(
                     " ".join(
-                        shortest_query.split()[:8]
+                        fallback_queries[0].split()[:8]
                     )
                 )
 

@@ -205,3 +205,32 @@ def test_research_query_service_uses_focus_constraint_when_needed():
     assert result.search_terms == (
         "vision-language alignment",
     )
+
+
+def test_research_query_service_preserves_fallback_concept_priority():
+    """Verify fallback uses the highest-priority remaining concept."""
+
+    strategy = ResearchStrategy(
+        concepts=(
+            "What should I investigate next",
+            (
+                "Investigate semantic alignment objectives for "
+                "video representations and language models"
+            ),
+            (
+                "The primary challenge is learning compact "
+                "representations that preserve useful information"
+            ),
+        ),
+        search_terms=(),
+        objective="What should I investigate next?",
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms == (
+        (
+            "Investigate semantic alignment objectives for video "
+            "representations and"
+        ),
+    )

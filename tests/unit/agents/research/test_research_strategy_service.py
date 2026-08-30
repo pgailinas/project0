@@ -472,16 +472,16 @@ def test_build_strategy_includes_existing_research_context() -> None:
 
     assert result.concepts == (
         "What should I investigate next",
-        "Video representations lack semantic alignment.",
-        (
-            "Reconstruction quality does not ensure "
-            "semantic usefulness."
-        ),
+        "Investigate semantic alignment objectives.",
         (
             "How should video and text representations "
             "be aligned?"
         ),
-        "Investigate semantic alignment objectives.",
+        (
+            "Reconstruction quality does not ensure "
+            "semantic usefulness."
+        ),
+        "Video representations lack semantic alignment.",
     )
     assert result.rationale == (
         "Research strategy derived from the submitted "
@@ -605,3 +605,69 @@ def test_build_strategy_context_only_does_not_execute() -> None:
     assert result.sub_questions == ()
     assert result.constraints == ()
     assert result.source_names == ()
+
+
+def test_build_strategy_prioritizes_follow_on_context_concepts() -> None:
+    """Verify follow-on context precedes broad problem prose."""
+
+    context = ExistingResearchContext(
+        research_problem=ResearchFinding(
+            content=(
+                "The primary challenge is learning compact "
+                "representations that preserve useful information."
+            ),
+        ),
+        limitations=(
+            ResearchFinding(
+                content=(
+                    "Current reconstruction metrics do not measure "
+                    "semantic alignment with language."
+                ),
+            ),
+        ),
+        unresolved_questions=(
+            ResearchFinding(
+                content=(
+                    "How should video representations be aligned "
+                    "with language representations?"
+                ),
+            ),
+        ),
+        stated_future_work=(
+            ResearchFinding(
+                content=(
+                    "Investigate semantic alignment objectives for "
+                    "video representations."
+                ),
+            ),
+        ),
+    )
+
+    result = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    ).build_strategy(
+        ResearchRequest(
+            question="What should I investigate next?"
+        ),
+        context=context,
+    )
+
+    assert result.concepts == (
+        "What should I investigate next",
+        (
+            "Investigate semantic alignment objectives for "
+            "video representations."
+        ),
+        (
+            "How should video representations be aligned "
+            "with language representations?"
+        ),
+        (
+            "Current reconstruction metrics do not measure "
+            "semantic alignment with language."
+        ),
+        (
+            "The primary challenge is learning compact "
+            "representations that preserve useful information."
+        ),
+    )

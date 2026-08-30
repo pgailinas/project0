@@ -141,14 +141,14 @@ class ResearchStrategyService:
 
         if context is not None:
             context_findings = (
-                (
+                context.stated_future_work
+                + context.unresolved_questions
+                + context.limitations
+                + (
                     (context.research_problem,)
                     if context.research_problem is not None
                     else ()
                 )
-                + context.limitations
-                + context.unresolved_questions
-                + context.stated_future_work
             )
 
             for finding in context_findings:
