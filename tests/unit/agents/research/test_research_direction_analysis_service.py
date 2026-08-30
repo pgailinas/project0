@@ -209,6 +209,11 @@ def test_analyze_retries_once_after_invalid_output_then_succeeds():
 
     assert result.candidate_directions
     assert len(provider.requests) == 2
+    retry_payload = json.loads(provider.requests[1].user_prompt)
+    assert retry_payload["validation_feedback"] == (
+        "Provider field 'candidate_directions.literature_evidence_ids' "
+        "referenced unknown evidence identifier: unknown-evidence-id"
+    )
 
 
 def test_analyze_raises_after_second_invalid_output():
@@ -296,6 +301,41 @@ def test_provider_request_uses_structured_findings_and_prohibits_novelty_claims(
     ] == "E0"
     assert payload["paper_analyses"][0]["problem"]["finding_id"] == "E1"
     assert "page_number" not in request.user_prompt
+    assert payload["allowed_evidence_ids"]["context_evidence_ids"] == [
+        "E0"
+    ]
+    assert payload["allowed_evidence_ids"]["literature_evidence_ids"] == [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9",
+        "E10",
+    ]
+    assert payload["validation_feedback"] is None
+
+    direction_schema = request.response_schema["properties"][
+        "candidate_directions"
+    ]["items"]["properties"]
+    assert direction_schema["context_evidence_ids"]["items"]["enum"] == [
+        "E0"
+    ]
+    assert direction_schema["literature_evidence_ids"]["items"]["enum"] == [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9",
+        "E10",
+    ]
 
     instructions = request.system_instructions.lower()
     assert "do not use outside knowledge" in instructions

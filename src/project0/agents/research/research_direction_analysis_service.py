@@ -103,6 +103,15 @@ class ResearchDirectionAnalysisService:
                 "or provenance validation; retrying once: %s",
                 error,
             )
+            validation_error = str(error)
+
+        provider_request = self._build_provider_request(
+            request=request,
+            context=context,
+            paper_analyses=paper_analyses,
+            evidence_catalog=evidence_catalog,
+            validation_error=validation_error,
+        )
 
         provider_response = self._provider.generate(
             provider_request
@@ -225,6 +234,7 @@ class ResearchDirectionAnalysisService:
         context: ExistingResearchContext | None,
         paper_analyses: tuple[PaperAnalysis, ...],
         evidence_catalog: dict[str, _EvidenceCatalogEntry],
+        validation_error: str | None = None,
     ) -> ProviderRequest:
         """Build a provider-neutral research direction analysis request."""
 
@@ -246,6 +256,19 @@ class ResearchDirectionAnalysisService:
             for index, analysis in enumerate(paper_analyses)
         ]
 
+        context_evidence_ids = [
+            entry.provider_id
+            for entry in evidence_catalog.values()
+            if entry.source_type
+            == ResearchEvidenceSourceType.CONTEXT_DOCUMENT
+        ]
+        literature_evidence_ids = [
+            entry.provider_id
+            for entry in evidence_catalog.values()
+            if entry.source_type
+            == ResearchEvidenceSourceType.RESEARCH_PAPER
+        ]
+
         user_prompt = json.dumps(
             {
                 "research_request": {
@@ -254,6 +277,11 @@ class ResearchDirectionAnalysisService:
                     "constraints": list(request.constraints),
                     "focus_areas": list(request.focus_areas),
                 },
+                "allowed_evidence_ids": {
+                    "context_evidence_ids": context_evidence_ids,
+                    "literature_evidence_ids": literature_evidence_ids,
+                },
+                "validation_feedback": validation_error,
                 "existing_research_context": context_payload,
                 "paper_analyses": paper_payload,
             },
@@ -279,11 +307,17 @@ class ResearchDirectionAnalysisService:
                 "rationale": {"type": "string"},
                 "context_evidence_ids": {
                     "type": "array",
-                    "items": {"type": "string"},
+                    "items": {
+                        "type": "string",
+                        "enum": context_evidence_ids,
+                    },
                 },
                 "literature_evidence_ids": {
                     "type": "array",
-                    "items": {"type": "string"},
+                    "items": {
+                        "type": "string",
+                        "enum": literature_evidence_ids,
+                    },
                 },
                 "speculative": {"type": "boolean"},
             },
@@ -351,9 +385,13 @@ class ResearchDirectionAnalysisService:
                 "something is absent from the supplied analyses. Do not claim "
                 "novelty, no prior work, or a global research gap unless such "
                 "a broader claim is explicitly supported by supplied evidence. "
-                "When existing research context is supplied, a non-speculative "
-                "candidate direction must connect at least one context finding "
-                "with at least one literature finding. Without existing "
+                "For candidate directions, use context_evidence_ids only "
+                "from allowed_evidence_ids.context_evidence_ids and use "
+                "literature_evidence_ids only from "
+                "allowed_evidence_ids.literature_evidence_ids. When existing "
+                "research context is supplied, a non-speculative candidate "
+                "direction must connect at least one context finding with at "
+                "least one literature finding. Without existing "
                 "research context, non-speculative directions must still be "
                 "grounded in literature evidence and must return no context "
                 "evidence identifiers. Speculative directions are allowed only "

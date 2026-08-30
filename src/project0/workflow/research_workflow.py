@@ -186,11 +186,29 @@ class ResearchWorkflow:
                         "analysis service."
                     )
 
-                direction_analysis = self._direction_analysis_service.analyze(
-                    request,
-                    context,
-                    paper_analyses,
-                )
+                try:
+                    direction_analysis = (
+                        self._direction_analysis_service.analyze(
+                            request,
+                            context,
+                            paper_analyses,
+                        )
+                    )
+                except (
+                    OSError,
+                    RuntimeError,
+                    TypeError,
+                    ValueError,
+                ) as error:
+                    logger.warning(
+                        "Research direction analysis failed for request %s: %s",
+                        request.request_id,
+                        error,
+                    )
+                    warnings.append(
+                        "Research direction analysis could not be completed: "
+                        f"{self._format_error_message(error)}"
+                    )
 
             artifacts = self._artifact_service.generate_artifacts(
                 request,

@@ -1502,8 +1502,8 @@ def test_direction_analysis_without_paper_analysis_fails_workflow() -> None:
     assert direction_analysis_service.requests == []
 
 
-def test_direction_analysis_failure_returns_failed_result() -> None:
-    """Research direction analysis failures stop the workflow."""
+def test_direction_analysis_failure_returns_completed_result_with_warning() -> None:
+    """Research direction analysis failures preserve completed prior work."""
 
     reference = _source_reference()
     paper = _paper_metadata(reference)
@@ -1535,8 +1535,16 @@ def test_direction_analysis_failure_returns_failed_result() -> None:
         _research_request()
     )
 
-    assert result.status is ResearchStatus.FAILED
-    assert result.error_message == (
-        "Research direction analysis failed."
+    assert result.status is ResearchStatus.COMPLETED_WITH_WARNINGS
+    assert result.direction_analysis is None
+    assert result.papers == (paper,)
+    assert result.evaluations == (
+        _evaluation(paper),
     )
+    assert result.artifacts
+    assert result.warnings == (
+        "Research direction analysis could not be completed: "
+        "Research direction analysis failed.",
+    )
+    assert result.error_message is None
 
