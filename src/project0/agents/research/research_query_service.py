@@ -34,12 +34,63 @@ class ResearchQueryService:
         """Generate deterministic research queries from a strategy."""
 
         queries: list[str] = []
+        candidates = (
+            *strategy.search_terms,
+            *strategy.concepts,
+        )
+        objective = self._normalize_query(
+            strategy.objective or ""
+        )
 
-        for concept in strategy.concepts:
-            normalized = self._normalize_query(concept)
+        for candidate in candidates:
+            normalized = self._normalize_query(candidate)
 
-            if normalized:
-                queries.append(normalized)
+            if not normalized:
+                continue
+
+            if (
+                objective
+                and normalized.casefold()
+                == objective.casefold()
+            ):
+                continue
+
+            if len(normalized.split()) > 8:
+                continue
+
+            queries.append(normalized)
+
+            if len(queries) >= 4:
+                break
+
+        if not queries:
+            fallback_queries = [
+                self._normalize_query(candidate)
+                for candidate in candidates
+                if self._normalize_query(candidate)
+            ]
+
+            if objective:
+                fallback_queries = [
+                    query
+                    for query in fallback_queries
+                    if query.casefold()
+                    != objective.casefold()
+                ]
+
+            if fallback_queries:
+                shortest_query = min(
+                    fallback_queries,
+                    key=lambda query: (
+                        len(query.split()),
+                        len(query),
+                    ),
+                )
+                queries.append(
+                    " ".join(
+                        shortest_query.split()[:8]
+                    )
+                )
 
         return replace(
             strategy,

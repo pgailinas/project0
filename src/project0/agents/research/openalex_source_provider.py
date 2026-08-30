@@ -198,10 +198,15 @@ class OpenAlexSourceProvider(
         terms = []
 
         for term in strategy.search_terms:
-            normalized = term.strip()
+            normalized = " ".join(
+                term.split()[:8]
+            ).strip()
 
             if normalized and normalized not in terms:
                 terms.append(normalized)
+
+            if len(terms) >= 4:
+                break
 
         return " ".join(terms)
 

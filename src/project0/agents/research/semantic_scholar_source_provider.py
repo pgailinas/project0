@@ -52,10 +52,10 @@ class SemanticScholarSourceProvider(
     ) -> tuple[ResearchSourceReference, ...]:
         """Search Semantic Scholar for references."""
 
-        if not strategy.search_terms:
-            return ()
+        query = self._build_query(strategy)
 
-        query = " ".join(strategy.search_terms)
+        if not query:
+            return ()
 
         endpoint = (
             f"{self.semantic_scholar_base_url.rstrip('/')}"
@@ -181,6 +181,27 @@ class SemanticScholarSourceProvider(
         ]
 
         return tuple(references)
+
+    @staticmethod
+    def _build_query(
+        strategy: ResearchStrategy,
+    ) -> str:
+        """Build deterministic Semantic Scholar query text."""
+
+        terms = []
+
+        for term in strategy.search_terms:
+            normalized = " ".join(
+                term.split()[:8]
+            ).strip()
+
+            if normalized and normalized not in terms:
+                terms.append(normalized)
+
+            if len(terms) >= 4:
+                break
+
+        return " ".join(terms)
 
     def _retry_delay_seconds(
         self,
