@@ -168,9 +168,17 @@ class ResearchWorkflow:
                 max_results=request.max_results,
             )
 
+            if source_references and not evaluations:
+                warnings.append(
+                    "No research papers met the minimum relevance threshold."
+                )
+
             paper_analyses = ()
 
-            if self._paper_analysis_service is not None:
+            if (
+                self._paper_analysis_service is not None
+                and papers
+            ):
                 paper_analyses = self._paper_analysis_service.analyze(
                     request,
                     strategy,
@@ -186,29 +194,30 @@ class ResearchWorkflow:
                         "analysis service."
                     )
 
-                try:
-                    direction_analysis = (
-                        self._direction_analysis_service.analyze(
-                            request,
-                            context,
-                            paper_analyses,
+                if paper_analyses:
+                    try:
+                        direction_analysis = (
+                            self._direction_analysis_service.analyze(
+                                request,
+                                context,
+                                paper_analyses,
+                            )
                         )
-                    )
-                except (
-                    OSError,
-                    RuntimeError,
-                    TypeError,
-                    ValueError,
-                ) as error:
-                    logger.warning(
-                        "Research direction analysis failed for request %s: %s",
-                        request.request_id,
-                        error,
-                    )
-                    warnings.append(
-                        "Research direction analysis could not be completed: "
-                        f"{self._format_error_message(error)}"
-                    )
+                    except (
+                        OSError,
+                        RuntimeError,
+                        TypeError,
+                        ValueError,
+                    ) as error:
+                        logger.warning(
+                            "Research direction analysis failed for request %s: %s",
+                            request.request_id,
+                            error,
+                        )
+                        warnings.append(
+                            "Research direction analysis could not be completed: "
+                            f"{self._format_error_message(error)}"
+                        )
 
             artifacts = self._artifact_service.generate_artifacts(
                 request,
@@ -277,7 +286,14 @@ class ResearchWorkflow:
             )
         )
 
-        selected_evaluations = ranked_evaluations[
+        selected_evaluations = tuple(
+            evaluation
+            for evaluation in ranked_evaluations
+            if (
+                evaluation.relevance_score is not None
+                and evaluation.relevance_score >= 0.75
+            )
+        )[
             :max(1, max_results)
         ]
         selected_papers = tuple(

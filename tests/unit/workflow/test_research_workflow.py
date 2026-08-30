@@ -770,7 +770,7 @@ def test_workflow_orders_and_limits_results_by_relevance() -> None:
     evaluations = (
         _evaluation(papers[0], relevance_score=0.2),
         _evaluation(papers[1], relevance_score=0.95),
-        _evaluation(papers[2], relevance_score=0.7),
+        _evaluation(papers[2], relevance_score=0.8),
     )
 
     components = _create_workflow(
@@ -794,7 +794,7 @@ def test_workflow_orders_and_limits_results_by_relevance() -> None:
         for evaluation in result.evaluations
     ) == (
         0.95,
-        0.7,
+        0.8,
     )
     assert tuple(
         paper.title
@@ -810,6 +810,83 @@ def test_workflow_orders_and_limits_results_by_relevance() -> None:
             result.evaluations,
         )
     ]
+
+
+def test_workflow_excludes_results_below_relevance_threshold() -> None:
+    """Workflow should retain only directly relevant results."""
+
+    references = (
+        _source_reference(
+            source_id="2401.11111",
+            title="Indirect Relevance Paper",
+        ),
+        _source_reference(
+            source_id="2401.22222",
+            title="Direct Relevance Paper",
+        ),
+    )
+    papers = tuple(
+        _paper_metadata(reference)
+        for reference in references
+    )
+    evaluations = (
+        _evaluation(papers[0], relevance_score=0.74),
+        _evaluation(papers[1], relevance_score=0.75),
+    )
+
+    result = _create_workflow(
+        references=references,
+        papers=papers,
+        evaluations=evaluations,
+        artifacts=(),
+    )[0].execute(
+        _research_request()
+    )
+
+    assert result.papers == (
+        papers[1],
+    )
+    assert result.evaluations == (
+        evaluations[1],
+    )
+
+
+def test_workflow_skips_analysis_when_no_results_meet_threshold() -> None:
+    """Irrelevant results should not enter downstream analysis."""
+
+    reference = _source_reference()
+    paper = _paper_metadata(reference)
+    paper_analysis_service = StubPaperAnalysisService()
+    direction_analysis_service = (
+        StubResearchDirectionAnalysisService()
+    )
+
+    workflow = _create_workflow(
+        references=(reference,),
+        papers=(paper,),
+        evaluations=(
+            _evaluation(
+                paper,
+                relevance_score=0.50,
+            ),
+        ),
+        artifacts=(),
+        paper_analysis_service=paper_analysis_service,
+        direction_analysis_service=direction_analysis_service,
+    )[0]
+
+    result = workflow.execute(
+        _research_request()
+    )
+
+    assert result.status is ResearchStatus.COMPLETED_WITH_WARNINGS
+    assert result.papers == ()
+    assert result.evaluations == ()
+    assert paper_analysis_service.requests == []
+    assert direction_analysis_service.requests == []
+    assert result.warnings == (
+        "No research papers met the minimum relevance threshold.",
+    )
 
 
 def test_strategy_failure_stops_workflow() -> None:
