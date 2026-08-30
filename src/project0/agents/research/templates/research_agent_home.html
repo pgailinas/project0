@@ -406,6 +406,205 @@
     </section>
     {% endif %}
 
+    {% if page.direction_analysis %}
+    <section
+        class="content-panel"
+        aria-labelledby="research-direction-analysis-title"
+    >
+        <div class="panel-heading">
+            <div>
+                <p class="panel-eyebrow">Analysis</p>
+                <h2 id="research-direction-analysis-title">
+                    Research Direction Analysis
+                </h2>
+            </div>
+        </div>
+
+        {% set synthesis = page.direction_analysis.synthesis %}
+
+        {% if synthesis.themes %}
+        <div class="research-analysis-section">
+            <h3>Themes</h3>
+            <div class="proposal-list">
+                {% for finding in synthesis.themes %}
+                <article class="proposal-card">
+                    <p>{{ finding.content }}</p>
+                    {% if finding.evidence %}
+                    <ul class="research-evidence-list">
+                        {% for evidence in finding.evidence %}
+                        <li>
+                            <code>{{ evidence.source_id }}</code>
+                            {% if evidence.page_number is not none %}
+                            — page {{ evidence.page_number }}
+                            {% endif %}
+                            {% if evidence.section %}
+                            — {{ evidence.section }}
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </article>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if synthesis.comparisons %}
+        <div class="research-analysis-section">
+            <h3>Comparisons</h3>
+            <div class="proposal-list">
+                {% for finding in synthesis.comparisons %}
+                <article class="proposal-card">
+                    <p>{{ finding.content }}</p>
+                    {% if finding.evidence %}
+                    <ul class="research-evidence-list">
+                        {% for evidence in finding.evidence %}
+                        <li>
+                            <code>{{ evidence.source_id }}</code>
+                            {% if evidence.page_number is not none %}
+                            — page {{ evidence.page_number }}
+                            {% endif %}
+                            {% if evidence.section %}
+                            — {{ evidence.section }}
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </article>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if synthesis.shared_limitations %}
+        <div class="research-analysis-section">
+            <h3>Shared Limitations</h3>
+            <div class="proposal-list">
+                {% for finding in synthesis.shared_limitations %}
+                <article class="proposal-card">
+                    <p>{{ finding.content }}</p>
+                    {% if finding.evidence %}
+                    <ul class="research-evidence-list">
+                        {% for evidence in finding.evidence %}
+                        <li>
+                            <code>{{ evidence.source_id }}</code>
+                            {% if evidence.page_number is not none %}
+                            — page {{ evidence.page_number }}
+                            {% endif %}
+                            {% if evidence.section %}
+                            — {{ evidence.section }}
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </article>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if synthesis.unresolved_questions %}
+        <div class="research-analysis-section">
+            <h3>Unresolved Questions</h3>
+            <div class="proposal-list">
+                {% for finding in synthesis.unresolved_questions %}
+                <article class="proposal-card">
+                    <p>{{ finding.content }}</p>
+                    {% if finding.evidence %}
+                    <ul class="research-evidence-list">
+                        {% for evidence in finding.evidence %}
+                        <li>
+                            <code>{{ evidence.source_id }}</code>
+                            {% if evidence.page_number is not none %}
+                            — page {{ evidence.page_number }}
+                            {% endif %}
+                            {% if evidence.section %}
+                            — {{ evidence.section }}
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </article>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if page.direction_analysis.candidate_directions %}
+        <div class="research-analysis-section">
+            <h3>Candidate Research Directions</h3>
+            <div class="proposal-list">
+                {% for direction in page.direction_analysis.candidate_directions %}
+                <article class="proposal-card">
+                    <header class="proposal-card__header">
+                        <div>
+                            <p class="proposal-card__number">
+                                Direction {{ loop.index }} of {{ page.direction_analysis.candidate_directions | length }}
+                            </p>
+                            <h4>{{ direction.direction }}</h4>
+                        </div>
+
+                        {% if direction.speculative %}
+                        <span class="status-badge">
+                            Speculative
+                        </span>
+                        {% endif %}
+                    </header>
+
+                    <div class="proposal-rationale">
+                        <strong>Rationale</strong>
+                        <p>{{ direction.rationale }}</p>
+                    </div>
+
+                    {% if direction.context_evidence %}
+                    <div>
+                        <h4>Context Evidence</h4>
+                        <ul class="research-evidence-list">
+                            {% for evidence in direction.context_evidence %}
+                            <li>
+                                <code>{{ evidence.source_id }}</code>
+                                {% if evidence.page_number is not none %}
+                                — page {{ evidence.page_number }}
+                                {% endif %}
+                                {% if evidence.section %}
+                                — {{ evidence.section }}
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    {% if direction.literature_evidence %}
+                    <div>
+                        <h4>Literature Evidence</h4>
+                        <ul class="research-evidence-list">
+                            {% for evidence in direction.literature_evidence %}
+                            <li>
+                                <code>{{ evidence.source_id }}</code>
+                                {% if evidence.page_number is not none %}
+                                — page {{ evidence.page_number }}
+                                {% endif %}
+                                {% if evidence.section %}
+                                — {{ evidence.section }}
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </article>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </section>
+    {% endif %}
+
     {% if page.artifacts %}
     <section
         class="content-panel"
@@ -722,6 +921,101 @@ if (saveButton) {
         );
         {% endif %}
         {% endfor %}
+
+        {% if page.direction_analysis %}
+        lines.push("");
+        lines.push("---");
+        lines.push("");
+        lines.push("# Research Direction Analysis");
+
+        {% set synthesis = page.direction_analysis.synthesis %}
+
+        {% if synthesis.themes %}
+        lines.push("");
+        lines.push("## Themes");
+        lines.push("");
+        {% for finding in synthesis.themes %}
+        lines.push(
+            `- {{ finding.content | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
+        );
+        {% endfor %}
+        {% endif %}
+
+        {% if synthesis.comparisons %}
+        lines.push("");
+        lines.push("## Comparisons");
+        lines.push("");
+        {% for finding in synthesis.comparisons %}
+        lines.push(
+            `- {{ finding.content | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
+        );
+        {% endfor %}
+        {% endif %}
+
+        {% if synthesis.shared_limitations %}
+        lines.push("");
+        lines.push("## Shared Limitations");
+        lines.push("");
+        {% for finding in synthesis.shared_limitations %}
+        lines.push(
+            `- {{ finding.content | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
+        );
+        {% endfor %}
+        {% endif %}
+
+        {% if synthesis.unresolved_questions %}
+        lines.push("");
+        lines.push("## Unresolved Questions");
+        lines.push("");
+        {% for finding in synthesis.unresolved_questions %}
+        lines.push(
+            `- {{ finding.content | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
+        );
+        {% endfor %}
+        {% endif %}
+
+        {% if page.direction_analysis.candidate_directions %}
+        lines.push("");
+        lines.push("## Candidate Research Directions");
+
+        {% for direction in page.direction_analysis.candidate_directions %}
+        lines.push("");
+        lines.push(
+            "### {{ direction.direction | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}"
+        );
+        lines.push("");
+        lines.push(
+            `{{ direction.rationale | replace("\\", "\\\\") | replace("`", "\\`") }}`
+        );
+        {% if direction.speculative %}
+        lines.push("");
+        lines.push("**Speculative:** Yes");
+        {% endif %}
+
+        {% if direction.context_evidence %}
+        lines.push("");
+        lines.push("#### Context Evidence");
+        lines.push("");
+        {% for evidence in direction.context_evidence %}
+        lines.push(
+            "- `{{ evidence.source_id | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", "") }}`{% if evidence.page_number is not none %} — page {{ evidence.page_number }}{% endif %}{% if evidence.section %} — {{ evidence.section | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}{% endif %}"
+        );
+        {% endfor %}
+        {% endif %}
+
+        {% if direction.literature_evidence %}
+        lines.push("");
+        lines.push("#### Literature Evidence");
+        lines.push("");
+        {% for evidence in direction.literature_evidence %}
+        lines.push(
+            "- `{{ evidence.source_id | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", "") }}`{% if evidence.page_number is not none %} — page {{ evidence.page_number }}{% endif %}{% if evidence.section %} — {{ evidence.section | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}{% endif %}"
+        );
+        {% endfor %}
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+        {% endif %}
 
         {% if page.artifacts %}
         lines.push("");

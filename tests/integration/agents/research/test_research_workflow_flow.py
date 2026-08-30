@@ -11,7 +11,6 @@
 
 from __future__ import annotations
 
-from types import SimpleNamespace
 from typing import Any
 
 import httpx
@@ -27,12 +26,6 @@ from project0.agents.research.paper_metadata_service import (
 )
 from project0.agents.research.research_context_ingestion_service import (
     ResearchContextIngestionService,
-)
-from project0.agents.research.research_paper_acquisition_service import (
-    ResearchPaperAcquisitionService,
-)
-from project0.agents.research.research_paper_ingestion_service import (
-    ResearchPaperIngestionService,
 )
 from project0.agents.research.research_artifact_service import (
     ResearchArtifactService,
@@ -124,7 +117,7 @@ def _provider_response() -> ProviderResponse:
 
 
 def _paper_analysis_provider_response() -> ProviderResponse:
-    """Create deterministic retained-paper full-text analysis output."""
+    """Create deterministic retained-paper metadata analysis output."""
 
     return ProviderResponse(
         provider_name="stub",
@@ -137,14 +130,12 @@ def _paper_analysis_provider_response() -> ProviderResponse:
                     "The paper studies semantic video representation "
                     "alignment."
                 ),
-                "page_numbers": [1],
                 "section": None,
             },
             "approach": {
                 "content": (
                     "The paper uses semantic representation learning."
                 ),
-                "page_numbers": [1],
                 "section": None,
             },
             "representations": [
@@ -153,15 +144,13 @@ def _paper_analysis_provider_response() -> ProviderResponse:
                         "Video representations are analyzed for "
                         "semantic alignment."
                     ),
-                    "page_numbers": [1],
-                    "section": None,
+                        "section": None,
                 }
             ],
             "modalities": [
                 {
                     "content": "The paper studies video representations.",
-                    "page_numbers": [1],
-                    "section": None,
+                        "section": None,
                 }
             ],
             "learning_objectives": [],
@@ -172,8 +161,7 @@ def _paper_analysis_provider_response() -> ProviderResponse:
                         "Semantic representation learning is relevant "
                         "to the research question."
                     ),
-                    "page_numbers": [1],
-                    "section": None,
+                        "section": None,
                 }
             ],
             "limitations": [],
@@ -182,7 +170,6 @@ def _paper_analysis_provider_response() -> ProviderResponse:
                     "The paper informs semantic video-language "
                     "alignment research."
                 ),
-                "page_numbers": [1],
                 "section": None,
             },
             "warnings": [],
@@ -371,16 +358,6 @@ def _create_workflow(
                 model_name="stub-model",
             )
             if context_provider is not None
-            else None
-        ),
-        paper_acquisition_service=(
-            ResearchPaperAcquisitionService()
-            if paper_analysis_provider is not None
-            else None
-        ),
-        paper_ingestion_service=(
-            ResearchPaperIngestionService()
-            if paper_analysis_provider is not None
             else None
         ),
         paper_analysis_service=(
@@ -713,10 +690,11 @@ def test_research_workflow_uses_existing_research_context(
     assert len(context_provider.requests) == 1
     assert len(evaluation_provider.requests) == 1
 
-def test_research_workflow_runs_full_text_paper_analysis_pipeline(
+
+def test_research_workflow_runs_metadata_paper_analysis_pipeline(
     monkeypatch,
 ) -> None:
-    """Retained papers pass through real acquisition, ingestion, and analysis."""
+    """Retained papers are analyzed from metadata and abstract."""
 
     requested_urls: list[str] = []
 
@@ -745,19 +723,6 @@ def test_research_workflow_runs_full_text_paper_analysis_pipeline(
                 _arxiv_response(),
             )
 
-        if url == "https://doi.org/10.1000/example":
-            return httpx.Response(
-                200,
-                content=b"%PDF-example",
-                headers={
-                    "Content-Type": "application/pdf",
-                },
-                request=httpx.Request(
-                    "GET",
-                    url,
-                ),
-            )
-
         raise AssertionError(
             f"Unexpected request: {url}"
         )
@@ -766,21 +731,6 @@ def test_research_workflow_runs_full_text_paper_analysis_pipeline(
         httpx,
         "get",
         fake_get,
-    )
-
-    monkeypatch.setattr(
-        "project0.agents.research."
-        "research_paper_ingestion_service.PdfReader",
-        lambda stream: SimpleNamespace(
-            pages=(
-                SimpleNamespace(
-                    extract_text=lambda: (
-                        "The paper studies semantic video "
-                        "representation alignment."
-                    ),
-                ),
-            ),
-        ),
     )
 
     evaluation_provider = StubReasoningProvider(
@@ -809,7 +759,7 @@ def test_research_workflow_runs_full_text_paper_analysis_pipeline(
     assert len(result.papers) == 1
     assert len(evaluation_provider.requests) == 1
     assert len(paper_analysis_provider.requests) == 1
-    assert "https://doi.org/10.1000/example" in requested_urls
+    assert "https://doi.org/10.1000/example" not in requested_urls
 
     analysis_request = paper_analysis_provider.requests[0]
 
@@ -818,21 +768,15 @@ def test_research_workflow_runs_full_text_paper_analysis_pipeline(
     ] == "paper-001"
     assert analysis_request.metadata[
         "analysis_basis"
-    ] == "full_text"
+    ] == "abstract_metadata"
 
     analysis_payload = __import__("json").loads(
         analysis_request.user_prompt
     )
 
     assert analysis_payload["paper"]["source_id"] == "paper-001"
-    assert analysis_payload["paper"]["analysis_basis"] == "full_text"
-    assert analysis_payload["paper"]["pages"] == [
-        {
-            "page_number": 1,
-            "text": (
-                "The paper studies semantic video "
-                "representation alignment."
-            ),
-        }
-    ]
-
+    assert analysis_payload["paper"]["analysis_basis"] == "abstract_metadata"
+    assert analysis_payload["paper"]["abstract"] == (
+        "A paper about semantic video representation learning."
+    )
+    assert "pages" not in analysis_payload["paper"]

@@ -59,31 +59,9 @@ class ResearchEvidenceSourceType(StrEnum):
     RESEARCH_PAPER = "research_paper"
 
 
-class ResearchPaperDocumentType(StrEnum):
-    """Supported retained research paper document types."""
-
-    PDF = "pdf"
-
-
-class ResearchPaperAcquisitionStatus(StrEnum):
-    """Supported retained research paper acquisition states."""
-
-    ACQUIRED = "acquired"
-    UNAVAILABLE = "unavailable"
-
-
-class ResearchPaperExtractionStatus(StrEnum):
-    """Supported retained research paper extraction states."""
-
-    COMPLETED = "completed"
-    COMPLETED_WITH_WARNINGS = "completed_with_warnings"
-    FAILED = "failed"
-
-
 class ResearchPaperAnalysisBasis(StrEnum):
     """Supported retained research paper analysis evidence bases."""
 
-    FULL_TEXT = "full_text"
     ABSTRACT_METADATA = "abstract_metadata"
 
 
@@ -140,40 +118,6 @@ class PaperMetadata:
     doi: str | None = None
     source_url: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass(frozen=True, slots=True)
-class ResearchPaperAcquisition:
-    """Acquisition result for one retained research paper."""
-
-    paper: PaperMetadata
-    source_url: str | None
-    content: bytes | None
-    acquisition_status: ResearchPaperAcquisitionStatus
-    content_type: str | None = None
-    warnings: tuple[str, ...] = ()
-
-
-@dataclass(frozen=True, slots=True)
-class ResearchPaperPage:
-    """Extracted text for one retained research paper page."""
-
-    page_number: int
-    text: str
-
-
-@dataclass(frozen=True, slots=True)
-class ResearchPaperDocument:
-    """Normalized full-text document for one retained research paper."""
-
-    paper: PaperMetadata
-    source_url: str
-    document_type: ResearchPaperDocumentType
-    extraction_method: str
-    pages: tuple[ResearchPaperPage, ...]
-    extraction_status: ResearchPaperExtractionStatus
-    warnings: tuple[str, ...] = ()
-    document_id: str = field(default_factory=lambda: str(uuid4()))
 
 
 @dataclass(frozen=True, slots=True)
@@ -308,6 +252,7 @@ class ResearchResult:
     evaluations: tuple[ResearchEvaluation, ...]
     artifacts: tuple[ResearchArtifact, ...]
     created_at: datetime
+    direction_analysis: ResearchDirectionAnalysis | None = None
     warnings: tuple[str, ...] = ()
     error_message: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)

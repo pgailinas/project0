@@ -76,6 +76,7 @@ python -m pytest tests/unit/agents/research/test_existing_research_context_analy
 python -m pytest tests/unit/agents/research/test_research_paper_acquisition_service.py -v
 python -m pytest tests/unit/agents/research/test_research_paper_ingestion_service.py -v
 python -m pytest tests/unit/agents/research/test_paper_analysis_service.py -v
+python -m pytest tests/unit/agents/research/test_research_direction_analysis_service.py -v
 
 
 2) FULL UNIT TEST SUITE:

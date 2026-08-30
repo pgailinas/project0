@@ -102,6 +102,13 @@ def test_UI_RA_FUN_005_A_completed_research_matches_visible_results(
     expect(
         page.get_by_role(
             "heading",
+            name="Research Direction Analysis",
+        )
+    ).to_be_visible()
+
+    expect(
+        page.get_by_role(
+            "heading",
             name="Workflow Summary",
         )
     ).to_be_visible()

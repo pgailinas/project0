@@ -33,7 +33,10 @@ from project0.agents.research.research_agent_ui_service import (
 from project0.common.logging_config import configure_logging
 from project0.config.settings import SETTINGS
 from project0.dashboard.dashboard_routes import create_dashboard_router
-from project0.models.reasoning_models import ProviderResponse
+from project0.models.reasoning_models import (
+    ProviderRequest,
+    ProviderResponse,
+)
 from project0.platform.platform_dispatcher import create_platform_dispatcher
 from project0.reasoning.providers.ollama_provider import (
     OllamaReasoningProvider,
@@ -293,25 +296,27 @@ def _create_documentation_reasoning_provider():
     )
 
 
-def _create_research_reasoning_provider():
-    """Create deterministic Research Agent reasoning behavior."""
+class _ResearchStubReasoningProvider:
+    """Provide deterministic output for Research Agent reasoning stages."""
 
-    return StubReasoningProvider(
-        response=ProviderResponse(
-            provider_name="stub",
-            model_name="stub-model",
-            content=(
-                '{"evaluations": ['
-                '{"paper_id": "stub-paper-001", '
-                '"relevance_score": 95, '
-                '"research_connections": '
-                '["vision-language alignment"], '
-                '"summary": "Stub research evaluation.", '
-                '"limitations": '
-                '"Stub evaluation for deterministic testing."'
-                '}]}'
-            ),
-            structured_output={
+    def __init__(self) -> None:
+        self.requests: list[ProviderRequest] = []
+
+    def generate(
+        self,
+        request: ProviderRequest,
+    ) -> ProviderResponse:
+        """Return deterministic output matching the requested schema."""
+
+        self.requests.append(request)
+
+        properties = request.response_schema.get(
+            "properties",
+            {}
+        )
+
+        if "evaluations" in properties:
+            structured_output = {
                 "evaluations": [
                     {
                         "source_id": "stub-paper-001",
@@ -331,14 +336,129 @@ def _create_research_reasoning_provider():
                         "warnings": [],
                     },
                 ],
-            },
+            }
+        elif "problem" in properties and "approach" in properties:
+            structured_output = {
+                "problem": {
+                    "content": (
+                        "The paper studies self-supervised video "
+                        "representations for VideoQA."
+                    ),
+                    "evidence_ids": [],
+                    "section": None,
+                },
+                "approach": {
+                    "content": (
+                        "The paper evaluates semantic video "
+                        "representation learning."
+                    ),
+                    "evidence_ids": [],
+                    "section": None,
+                },
+                "representations": [
+                    {
+                        "content": (
+                            "Self-supervised video representations."
+                        ),
+                        "evidence_ids": [],
+                        "section": None,
+                    }
+                ],
+                "modalities": [
+                    {
+                        "content": "Video and language.",
+                        "evidence_ids": [],
+                        "section": None,
+                    }
+                ],
+                "learning_objectives": [],
+                "datasets_tasks": [],
+                "findings": [
+                    {
+                        "content": (
+                            "Semantic alignment is relevant to VideoQA."
+                        ),
+                        "evidence_ids": [],
+                        "section": None,
+                    }
+                ],
+                "limitations": [
+                    {
+                        "content": (
+                            "Direct VideoQA evaluation is limited."
+                        ),
+                        "evidence_ids": [],
+                        "section": None,
+                    }
+                ],
+                "research_relevance": {
+                    "content": (
+                        "The paper informs vision-language alignment "
+                        "for VideoQA."
+                    ),
+                    "evidence_ids": [],
+                    "section": None,
+                },
+                "warnings": [],
+            }
+        elif "synthesis" in properties:
+            structured_output = {
+                "synthesis": {
+                    "themes": [],
+                    "comparisons": [],
+                    "shared_limitations": [],
+                    "unresolved_questions": [
+                        {
+                            "content": (
+                                "The analyzed evidence does not establish "
+                                "the best semantic alignment objective."
+                            ),
+                            "evidence_ids": [
+                                "E5",
+                            ],
+                        }
+                    ],
+                },
+                "candidate_directions": [
+                    {
+                        "direction": (
+                            "Investigate improved semantic "
+                            "video-language alignment."
+                        ),
+                        "rationale": (
+                            "The retained paper supports further "
+                            "investigation of semantic alignment."
+                        ),
+                        "context_evidence_ids": [],
+                        "literature_evidence_ids": [
+                            "E6",
+                        ],
+                        "speculative": False,
+                    }
+                ],
+            }
+        else:
+            raise ValueError(
+                "Unsupported Research Agent stub response schema."
+            )
+
+        return ProviderResponse(
+            provider_name="stub",
+            model_name="stub-model",
+            content="",
+            structured_output=structured_output,
             duration_seconds=0.0,
             metadata={
                 "stub": True,
                 "purpose": "research-agent-development",
             },
         )
-    )
+
+
+def _create_research_reasoning_provider():
+    """Create deterministic Research Agent reasoning behavior."""
+
+    return _ResearchStubReasoningProvider()
 
 
 def create_project0_dashboard_app() -> FastAPI:

@@ -114,6 +114,43 @@ class ResearchEvaluationService:
                 error,
             )
 
+            if self._is_missing_evaluation_error(error):
+                retained, missing_papers = (
+                    self._create_partial_evaluations(
+                        papers=papers,
+                        provider_response=provider_response,
+                    )
+                )
+
+                retry_request = self._build_provider_request(
+                    request=request,
+                    strategy=strategy,
+                    papers=missing_papers,
+                )
+                retry_response = self._provider.generate(
+                    retry_request
+                )
+                retry_evaluations = self._create_evaluations(
+                    papers=missing_papers,
+                    provider_response=retry_response,
+                )
+
+                evaluations_by_source_id = {
+                    evaluation.paper.source_reference.source_id:
+                    evaluation
+                    for evaluation in (
+                        *retained,
+                        *retry_evaluations,
+                    )
+                }
+
+                return tuple(
+                    evaluations_by_source_id[
+                        paper.source_reference.source_id
+                    ]
+                    for paper in papers
+                )
+
         provider_response = self._provider.generate(
             provider_request
         )
@@ -121,6 +158,112 @@ class ResearchEvaluationService:
         return self._create_evaluations(
             papers=papers,
             provider_response=provider_response,
+        )
+
+    def _create_partial_evaluations(
+        self,
+        papers: tuple[PaperMetadata, ...],
+        provider_response: ProviderResponse,
+    ) -> tuple[
+        tuple[ResearchEvaluation, ...],
+        tuple[PaperMetadata, ...],
+    ]:
+        """Create valid evaluations and identify missing papers."""
+
+        structured_output = provider_response.structured_output
+
+        if structured_output is None:
+            raise ValueError(
+                "Provider response did not include structured output."
+            )
+
+        items = self._require_list(
+            structured_output.get("evaluations"),
+            "evaluations",
+        )
+
+        paper_by_source_id = {
+            paper.source_reference.source_id: paper
+            for paper in papers
+        }
+
+        evaluations: list[ResearchEvaluation] = []
+        seen_source_ids: set[str] = set()
+
+        for item in items:
+            mapping = self._require_mapping(
+                item,
+                "evaluation",
+            )
+
+            source_id = self._require_string(
+                mapping,
+                "source_id",
+            )
+
+            if source_id in seen_source_ids:
+                raise ValueError(
+                    "Duplicate research evaluation source identifier: "
+                    f"{source_id}"
+                )
+
+            paper = paper_by_source_id.get(source_id)
+
+            if paper is None:
+                raise ValueError(
+                    "Research evaluation referenced an unknown "
+                    f"source identifier: {source_id}"
+                )
+
+            seen_source_ids.add(source_id)
+
+            evaluations.append(
+                ResearchEvaluation(
+                    paper=paper,
+                    relevance_score=self._parse_score(
+                        mapping.get("relevance_score")
+                    ),
+                    relevance_summary=self._require_string(
+                        mapping,
+                        "relevance_summary",
+                    ),
+                    strengths=self._parse_string_tuple(
+                        mapping.get("strengths"),
+                        "strengths",
+                    ),
+                    limitations=self._parse_string_tuple(
+                        mapping.get("limitations"),
+                        "limitations",
+                    ),
+                    research_connections=self._parse_string_tuple(
+                        mapping.get("research_connections"),
+                        "research_connections",
+                    ),
+                    warnings=self._parse_string_tuple(
+                        mapping.get("warnings"),
+                        "warnings",
+                    ),
+                )
+            )
+
+        missing_papers = tuple(
+            paper
+            for paper in papers
+            if paper.source_reference.source_id
+            not in seen_source_ids
+        )
+
+        return tuple(evaluations), missing_papers
+
+    @staticmethod
+    def _is_missing_evaluation_error(
+        error: ValueError,
+    ) -> bool:
+        """Return whether validation failed from missing coverage."""
+
+        return str(error).startswith(
+            "Provider response did not include evaluations "
+            "for source identifiers:"
         )
 
     def _build_provider_request(

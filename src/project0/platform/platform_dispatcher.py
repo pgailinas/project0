@@ -22,11 +22,17 @@ from project0.artifacts.artifact_location_service import (
 from project0.agents.research.existing_research_context_analysis_service import (
     ExistingResearchContextAnalysisService,
 )
+from project0.agents.research.paper_analysis_service import (
+    PaperAnalysisService,
+)
 from project0.agents.research.paper_metadata_service import (
     PaperMetadataService,
 )
 from project0.agents.research.research_artifact_service import (
     ResearchArtifactService,
+)
+from project0.agents.research.research_direction_analysis_service import (
+    ResearchDirectionAnalysisService,
 )
 from project0.agents.research.research_evaluation_service import (
     ResearchEvaluationService,
@@ -429,6 +435,14 @@ def _create_research_workflow(
         artifact_service=ResearchArtifactService(),
         context_ingestion_service=ResearchContextIngestionService(),
         context_analysis_service=ExistingResearchContextAnalysisService(
+            provider=reasoning_provider,
+            model_name=reasoning_model_name,
+        ),
+        paper_analysis_service=PaperAnalysisService(
+            provider=reasoning_provider,
+            model_name=reasoning_model_name,
+        ),
+        direction_analysis_service=ResearchDirectionAnalysisService(
             provider=reasoning_provider,
             model_name=reasoning_model_name,
         ),

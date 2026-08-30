@@ -29,7 +29,6 @@ from project0.models.research_models import (
     ResearchEvidenceSourceType,
     ResearchFinding,
     ResearchPaperAnalysisBasis,
-    ResearchPaperDocument,
     ResearchRequest,
     ResearchStrategy,
 )
@@ -56,26 +55,17 @@ class PaperAnalysisService:
         request: ResearchRequest,
         strategy: ResearchStrategy,
         papers: tuple[PaperMetadata, ...],
-        paper_documents: tuple[ResearchPaperDocument, ...] = (),
     ) -> tuple[PaperAnalysis, ...]:
         """Analyze retained papers for a research request."""
 
         if not papers:
             return ()
 
-        document_by_source_id = self._index_documents(
-            papers=papers,
-            paper_documents=paper_documents,
-        )
-
         return tuple(
             self._analyze_paper(
                 request=request,
                 strategy=strategy,
                 paper=paper,
-                document=document_by_source_id.get(
-                    paper.source_reference.source_id
-                ),
             )
             for paper in papers
         )
@@ -86,7 +76,6 @@ class PaperAnalysisService:
         request: ResearchRequest,
         strategy: ResearchStrategy,
         paper: PaperMetadata,
-        document: ResearchPaperDocument | None,
     ) -> PaperAnalysis:
         """Analyze one retained paper with one validation retry."""
 
@@ -94,7 +83,6 @@ class PaperAnalysisService:
             request=request,
             strategy=strategy,
             paper=paper,
-            document=document,
         )
 
         provider_response = self._provider.generate(
@@ -104,7 +92,6 @@ class PaperAnalysisService:
         try:
             return self._create_analysis(
                 paper=paper,
-                document=document,
                 provider_response=provider_response,
             )
         except ValueError as error:
@@ -114,8 +101,8 @@ class PaperAnalysisService:
                 raise
 
             LOGGER.warning(
-                "Paper analysis response failed structural or "
-                "provenance validation; retrying once: %s",
+                "Paper analysis response failed structural "
+                "validation; retrying once: %s",
                 error,
             )
 
@@ -125,7 +112,6 @@ class PaperAnalysisService:
 
         return self._create_analysis(
             paper=paper,
-            document=document,
             provider_response=provider_response,
         )
 
@@ -135,31 +121,10 @@ class PaperAnalysisService:
         request: ResearchRequest,
         strategy: ResearchStrategy,
         paper: PaperMetadata,
-        document: ResearchPaperDocument | None,
     ) -> ProviderRequest:
         """Build a provider-neutral retained-paper analysis request."""
 
         source_id = paper.source_reference.source_id
-
-        if document is not None:
-            evidence_basis = {
-                "analysis_basis": ResearchPaperAnalysisBasis.FULL_TEXT,
-                "document_id": document.document_id,
-                "pages": [
-                    {
-                        "page_number": page.page_number,
-                        "text": page.text,
-                    }
-                    for page in document.pages
-                ],
-            }
-        else:
-            evidence_basis = {
-                "analysis_basis": (
-                    ResearchPaperAnalysisBasis.ABSTRACT_METADATA
-                ),
-                "abstract": paper.abstract,
-            }
 
         user_prompt = json.dumps(
             {
@@ -173,7 +138,10 @@ class PaperAnalysisService:
                     "publication_year": paper.publication_year,
                     "venue": paper.venue,
                     "doi": paper.doi,
-                    **evidence_basis,
+                    "analysis_basis": (
+                        ResearchPaperAnalysisBasis.ABSTRACT_METADATA
+                    ),
+                    "abstract": paper.abstract,
                 },
             },
             indent=2,
@@ -185,13 +153,6 @@ class PaperAnalysisService:
                 "content": {
                     "type": "string",
                 },
-                "page_numbers": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer",
-                        "minimum": 1,
-                    },
-                },
                 "section": {
                     "type": [
                         "string",
@@ -201,7 +162,6 @@ class PaperAnalysisService:
             },
             "required": [
                 "content",
-                "page_numbers",
                 "section",
             ],
         }
@@ -218,9 +178,6 @@ class PaperAnalysisService:
         response_schema = {
             "type": "object",
             "properties": {
-                "source_id": {
-                    "type": "string",
-                },
                 "problem": finding_schema,
                 "approach": finding_schema,
                 "representations": {
@@ -256,7 +213,6 @@ class PaperAnalysisService:
                 },
             },
             "required": [
-                "source_id",
                 "problem",
                 "approach",
                 "representations",
@@ -270,30 +226,12 @@ class PaperAnalysisService:
             ],
         }
 
-        if document is not None:
-            evidence_instructions = (
-                "The supplied paper includes page-preserving full text. "
-                "Every substantive finding must cite one or more supplied "
-                "page numbers that directly support it. Use only page "
-                "numbers present in the supplied pages. Section values may "
-                "identify a recognizable paper section when supported by "
-                "the page text; otherwise return null."
-            )
-        else:
-            evidence_instructions = (
-                "The supplied paper does not include full text. Analyze "
-                "only the supplied metadata and abstract. Return an empty "
-                "page_numbers array for every finding and do not invent "
-                "page-level provenance. Section values should be null "
-                "unless the supplied abstract or metadata explicitly "
-                "supports a section name."
-            )
-
         return ProviderRequest(
             system_instructions=(
                 "You are the Project0 Research Agent retained-paper "
                 "analysis service. Analyze one supplied retained paper "
-                "against the research question. Return concise, atomic, "
+                "against the research question using only the supplied "
+                "paper metadata and abstract. Return concise, atomic, "
                 "evidence-supported findings for the paper's problem, "
                 "approach, representations, modalities, learning or "
                 "alignment objectives, datasets or tasks, findings, "
@@ -302,10 +240,13 @@ class PaperAnalysisService:
                 "interpretation. Do not use outside knowledge. Do not "
                 "invent unsupported paper content. Omit unsupported "
                 "optional findings by returning empty arrays or null. "
-                "The supplied source_id is an opaque identifier and must "
-                "be returned exactly as supplied. Do not modify, expand, "
-                "normalize, format, or invent source identifiers. "
-                + evidence_instructions
+                "Do not infer full-paper content, page-level provenance, "
+                "or unsupported section details. Section values should "
+                "be null unless the supplied metadata or abstract "
+                "explicitly supports a section name. The supplied "
+                "source_id identifies the paper being analyzed and is "
+                "context only. Do not return or generate source "
+                "identifiers in the analysis response."
             ),
             user_prompt=user_prompt,
             response_schema=response_schema,
@@ -315,9 +256,7 @@ class PaperAnalysisService:
                 "research_request_id": request.request_id,
                 "paper_source_id": source_id,
                 "analysis_basis": (
-                    ResearchPaperAnalysisBasis.FULL_TEXT
-                    if document is not None
-                    else ResearchPaperAnalysisBasis.ABSTRACT_METADATA
+                    ResearchPaperAnalysisBasis.ABSTRACT_METADATA
                 ),
             },
         )
@@ -326,7 +265,6 @@ class PaperAnalysisService:
         self,
         *,
         paper: PaperMetadata,
-        document: ResearchPaperDocument | None,
         provider_response: ProviderResponse,
     ) -> PaperAnalysis:
         """Create one structured retained-paper analysis."""
@@ -343,110 +281,64 @@ class PaperAnalysisService:
                 "Provider structured output must be an object."
             )
 
-        source_id = structured_output.get(
-            "source_id"
-        )
-
-        if not isinstance(source_id, str):
-            raise ValueError(
-                "Provider field 'source_id' must be a string."
-            )
-
-        expected_source_id = (
-            paper.source_reference.source_id
-        )
-
-        if source_id != expected_source_id:
-            raise ValueError(
-                "Paper analysis referenced an unknown source "
-                f"identifier: {source_id}"
-            )
-
-        analysis_basis = (
-            ResearchPaperAnalysisBasis.FULL_TEXT
-            if document is not None
-            else ResearchPaperAnalysisBasis.ABSTRACT_METADATA
-        )
-
-        warnings = list(
-            self._parse_string_tuple(
-                structured_output.get("warnings"),
-                "warnings",
-            )
-        )
-
-        if document is None:
-            warnings.insert(
-                0,
-                "Full text was unavailable; analysis is limited to "
-                "paper metadata and abstract.",
-            )
-
         return PaperAnalysis(
             paper=paper,
             problem=self._parse_finding(
                 paper=paper,
-                document=document,
                 value=structured_output.get("problem"),
                 field_name="problem",
             ),
             approach=self._parse_finding(
                 paper=paper,
-                document=document,
                 value=structured_output.get("approach"),
                 field_name="approach",
             ),
-            analysis_basis=analysis_basis,
+            analysis_basis=ResearchPaperAnalysisBasis.ABSTRACT_METADATA,
             representations=self._parse_findings(
                 paper=paper,
-                document=document,
                 value=structured_output.get("representations"),
                 field_name="representations",
             ),
             modalities=self._parse_findings(
                 paper=paper,
-                document=document,
                 value=structured_output.get("modalities"),
                 field_name="modalities",
             ),
             learning_objectives=self._parse_findings(
                 paper=paper,
-                document=document,
                 value=structured_output.get("learning_objectives"),
                 field_name="learning_objectives",
             ),
             datasets_tasks=self._parse_findings(
                 paper=paper,
-                document=document,
                 value=structured_output.get("datasets_tasks"),
                 field_name="datasets_tasks",
             ),
             findings=self._parse_findings(
                 paper=paper,
-                document=document,
                 value=structured_output.get("findings"),
                 field_name="findings",
             ),
             limitations=self._parse_findings(
                 paper=paper,
-                document=document,
                 value=structured_output.get("limitations"),
                 field_name="limitations",
             ),
             research_relevance=self._parse_optional_finding(
                 paper=paper,
-                document=document,
                 value=structured_output.get("research_relevance"),
                 field_name="research_relevance",
             ),
-            warnings=tuple(warnings),
+            warnings=self._parse_string_tuple(
+                structured_output.get("warnings"),
+                "warnings",
+            ),
         )
 
     def _parse_optional_finding(
         self,
         *,
         paper: PaperMetadata,
-        document: ResearchPaperDocument | None,
         value: Any,
         field_name: str,
     ) -> ResearchFinding | None:
@@ -457,7 +349,6 @@ class PaperAnalysisService:
 
         return self._parse_finding(
             paper=paper,
-            document=document,
             value=value,
             field_name=field_name,
         )
@@ -466,7 +357,6 @@ class PaperAnalysisService:
         self,
         *,
         paper: PaperMetadata,
-        document: ResearchPaperDocument | None,
         value: Any,
         field_name: str,
     ) -> tuple[ResearchFinding, ...]:
@@ -480,7 +370,6 @@ class PaperAnalysisService:
         return tuple(
             self._parse_finding(
                 paper=paper,
-                document=document,
                 value=item,
                 field_name=field_name,
             )
@@ -491,7 +380,6 @@ class PaperAnalysisService:
         self,
         *,
         paper: PaperMetadata,
-        document: ResearchPaperDocument | None,
         value: Any,
         field_name: str,
     ) -> ResearchFinding:
@@ -510,34 +398,6 @@ class PaperAnalysisService:
                 "must be a non-empty string."
             )
 
-        page_numbers = value.get(
-            "page_numbers"
-        )
-
-        if not isinstance(page_numbers, list):
-            raise ValueError(
-                f"Provider field '{field_name}' finding page_numbers "
-                "must be an array."
-            )
-
-        if (
-            any(
-                isinstance(page_number, bool)
-                or not isinstance(page_number, int)
-                for page_number in page_numbers
-            )
-        ):
-            raise ValueError(
-                f"Provider field '{field_name}' finding page_numbers "
-                "must contain integers only."
-            )
-
-        if len(page_numbers) != len(set(page_numbers)):
-            raise ValueError(
-                f"Provider field '{field_name}' finding page_numbers "
-                "must not contain duplicates."
-            )
-
         section = value.get(
             "section"
         )
@@ -551,115 +411,18 @@ class PaperAnalysisService:
         if isinstance(section, str):
             section = section.strip() or None
 
-        source_id = paper.source_reference.source_id
-
-        if document is None:
-            if page_numbers:
-                raise ValueError(
-                    f"Provider field '{field_name}' invented page "
-                    "provenance for metadata-only analysis."
-                )
-
-            evidence = (
-                ResearchEvidenceReference(
-                    source_type=ResearchEvidenceSourceType.RESEARCH_PAPER,
-                    source_id=source_id,
-                    section=section,
-                ),
-            )
-        else:
-            valid_page_numbers = {
-                page.page_number
-                for page in document.pages
-            }
-
-            if not page_numbers:
-                raise ValueError(
-                    f"Provider field '{field_name}' full-text finding "
-                    "must cite at least one page."
-                )
-
-            invalid_page_numbers = [
-                page_number
-                for page_number in page_numbers
-                if page_number not in valid_page_numbers
-            ]
-
-            if invalid_page_numbers:
-                invalid = ", ".join(
-                    str(page_number)
-                    for page_number in invalid_page_numbers
-                )
-                raise ValueError(
-                    f"Provider field '{field_name}' referenced unknown "
-                    f"paper page numbers: {invalid}"
-                )
-
-            evidence = tuple(
-                ResearchEvidenceReference(
-                    source_type=ResearchEvidenceSourceType.RESEARCH_PAPER,
-                    source_id=source_id,
-                    page_number=page_number,
-                    section=section,
-                )
-                for page_number in page_numbers
-            )
+        evidence = (
+            ResearchEvidenceReference(
+                source_type=ResearchEvidenceSourceType.RESEARCH_PAPER,
+                source_id=paper.source_reference.source_id,
+                section=section,
+            ),
+        )
 
         return ResearchFinding(
             content=content.strip(),
             evidence=evidence,
         )
-
-    def _index_documents(
-        self,
-        *,
-        papers: tuple[PaperMetadata, ...],
-        paper_documents: tuple[ResearchPaperDocument, ...],
-    ) -> dict[str, ResearchPaperDocument]:
-        """Validate and index supplied full-text paper documents."""
-
-        paper_by_source_id = {
-            paper.source_reference.source_id: paper
-            for paper in papers
-        }
-
-        document_by_source_id: dict[
-            str,
-            ResearchPaperDocument,
-        ] = {}
-
-        for document in paper_documents:
-            source_id = (
-                document.paper.source_reference.source_id
-            )
-
-            if source_id not in paper_by_source_id:
-                raise ValueError(
-                    "Paper analysis received a document for an unknown "
-                    f"source identifier: {source_id}"
-                )
-
-            if source_id in document_by_source_id:
-                raise ValueError(
-                    "Paper analysis received duplicate documents for "
-                    f"source identifier: {source_id}"
-                )
-
-            expected_paper = paper_by_source_id[
-                source_id
-            ]
-
-            if document.paper != expected_paper:
-                raise ValueError(
-                    "Paper analysis document metadata did not match "
-                    f"retained paper source identifier: {source_id}"
-                )
-
-            document_by_source_id[
-                source_id
-            ] = document
-
-        return document_by_source_id
 
     @staticmethod
     def _parse_string_tuple(
@@ -694,7 +457,4 @@ class PaperAnalysisService:
         return (
             "structured output" in message.lower()
             or "provider field" in message.lower()
-            or message.startswith(
-                "Paper analysis referenced an unknown source identifier:"
-            )
         )

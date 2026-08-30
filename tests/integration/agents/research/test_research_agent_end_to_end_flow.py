@@ -49,24 +49,36 @@ import httpx
 import pytest
 
 from project0.config.settings import ProjectSettings
-from project0.models.reasoning_models import ProviderResponse
+from project0.models.reasoning_models import (
+    ProviderRequest,
+    ProviderResponse,
+)
 from project0.models.research_models import (
     ResearchArtifactType,
     ResearchStatus,
 )
 from project0.platform.platform_dispatcher import create_platform_dispatcher
-from project0.reasoning.providers.stub_provider import StubReasoningProvider
+class StubResearchReasoningProvider:
+    """Return deterministic output for each Research Agent reasoning stage."""
 
+    def __init__(self) -> None:
+        self.requests: list[ProviderRequest] = []
 
-def _create_reasoning_provider() -> StubReasoningProvider:
-    """Create deterministic research evaluation output."""
+    def generate(
+        self,
+        request: ProviderRequest,
+    ) -> ProviderResponse:
+        """Return output matching the supplied response schema."""
 
-    return StubReasoningProvider(
-        response=ProviderResponse(
-            provider_name="stub",
-            model_name="stub-model",
-            content="",
-            structured_output={
+        self.requests.append(request)
+
+        properties = request.response_schema.get(
+            "properties",
+            {}
+        )
+
+        if "evaluations" in properties:
+            structured_output = {
                 "evaluations": [
                     {
                         "source_id": "paper-001",
@@ -90,9 +102,109 @@ def _create_reasoning_provider() -> StubReasoningProvider:
                         "warnings": [],
                     }
                 ],
-            },
+            }
+        elif "problem" in properties and "approach" in properties:
+            structured_output = {
+                "problem": {
+                    "content": (
+                        "The paper studies semantic video "
+                        "representation alignment."
+                    ),
+                    "evidence_ids": [],
+                    "section": None,
+                },
+                "approach": {
+                    "content": (
+                        "The paper uses semantic representation learning."
+                    ),
+                    "evidence_ids": [],
+                    "section": None,
+                },
+                "representations": [
+                    {
+                        "content": (
+                            "Video representations are analyzed for "
+                            "semantic alignment."
+                        ),
+                        "evidence_ids": [],
+                        "section": None,
+                    }
+                ],
+                "modalities": [
+                    {
+                        "content": (
+                            "The paper studies video representations."
+                        ),
+                        "evidence_ids": [],
+                        "section": None,
+                    }
+                ],
+                "learning_objectives": [],
+                "datasets_tasks": [],
+                "findings": [
+                    {
+                        "content": (
+                            "Semantic representation learning is relevant "
+                            "to the research question."
+                        ),
+                        "evidence_ids": [],
+                        "section": None,
+                    }
+                ],
+                "limitations": [],
+                "research_relevance": {
+                    "content": (
+                        "The paper informs semantic video-language "
+                        "alignment research."
+                    ),
+                    "evidence_ids": [],
+                    "section": None,
+                },
+                "warnings": [],
+            }
+        elif "synthesis" in properties:
+            structured_output = {
+                "synthesis": {
+                    "themes": [],
+                    "comparisons": [],
+                    "shared_limitations": [],
+                    "unresolved_questions": [],
+                },
+                "candidate_directions": [
+                    {
+                        "direction": (
+                            "Investigate improved semantic "
+                            "video-language alignment."
+                        ),
+                        "rationale": (
+                            "The retained paper supports further "
+                            "investigation of semantic alignment."
+                        ),
+                        "context_evidence_ids": [],
+                        "literature_evidence_ids": [
+                            "E5",
+                        ],
+                        "speculative": False,
+                    }
+                ],
+            }
+        else:
+            raise AssertionError(
+                "Unexpected Research Agent reasoning request."
+            )
+
+        return ProviderResponse(
+            provider_name="stub",
+            model_name="stub-model",
+            content="",
+            structured_output=structured_output,
         )
-    )
+
+
+def _create_reasoning_provider() -> StubResearchReasoningProvider:
+    """Create deterministic Research Agent reasoning output."""
+
+    return StubResearchReasoningProvider()
 
 
 def _search_response() -> dict[str, Any]:
@@ -214,7 +326,7 @@ site_name: Integration Test Documentation
 def _create_dispatcher(
     repository_path: Path,
     monkeypatch,
-) -> tuple[object, StubReasoningProvider]:
+) -> tuple[object, StubResearchReasoningProvider]:
     """Create a dispatcher using deterministic research dependencies."""
 
     provider = _create_reasoning_provider()
@@ -234,13 +346,15 @@ def _create_dispatcher(
     def fake_get(
         url: str,
         *,
-        params: dict[str, Any],
+        params: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
         timeout: float,
+        follow_redirects: bool = False,
     ) -> httpx.Response:
         del params
         del headers
         del timeout
+        del follow_redirects
 
         if url.endswith("/paper/search"):
             return _http_response(
@@ -259,6 +373,7 @@ def _create_dispatcher(
                 url,
                 _arxiv_response(),
             )
+
 
         raise AssertionError(
             f"Unexpected request: {url}"
@@ -305,6 +420,7 @@ def test_INT_RA_FUN_001_research_request_processing(
 
     assert result.status is ResearchStatus.COMPLETED
     assert result.error_message is None
+    assert result.warnings == ()
 
 
 def test_INT_RA_FUN_002_research_source_discovery(

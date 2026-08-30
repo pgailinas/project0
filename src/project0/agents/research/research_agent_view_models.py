@@ -114,6 +114,53 @@ class ResearchResultView:
 
 
 @dataclass(frozen=True, slots=True)
+class ResearchEvidenceReferenceView:
+    """Evidence reference prepared for browser display."""
+
+    source_type: str
+    source_id: str
+    page_number: int | None = None
+    section: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ResearchFindingView:
+    """Evidence-supported finding prepared for browser display."""
+
+    content: str
+    evidence: tuple[ResearchEvidenceReferenceView, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class ResearchSynthesisView:
+    """Cross-paper synthesis prepared for browser display."""
+
+    themes: tuple[ResearchFindingView, ...] = ()
+    comparisons: tuple[ResearchFindingView, ...] = ()
+    shared_limitations: tuple[ResearchFindingView, ...] = ()
+    unresolved_questions: tuple[ResearchFindingView, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class ResearchDirectionView:
+    """Candidate research direction prepared for browser display."""
+
+    direction: str
+    rationale: str
+    context_evidence: tuple[ResearchEvidenceReferenceView, ...] = ()
+    literature_evidence: tuple[ResearchEvidenceReferenceView, ...] = ()
+    speculative: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class ResearchDirectionAnalysisView:
+    """Research synthesis and candidate directions for display."""
+
+    synthesis: ResearchSynthesisView
+    candidate_directions: tuple[ResearchDirectionView, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
 class ResearchArtifactView:
     """One Research Agent artifact prepared for browser display."""
 
@@ -151,6 +198,7 @@ class ResearchAgentPageView:
     workflow_status: ResearchStatus | None = None
     results: tuple[ResearchResultView, ...] = ()
     artifacts: tuple[ResearchArtifactView, ...] = ()
+    direction_analysis: ResearchDirectionAnalysisView | None = None
     workflow_summary: ResearchWorkflowSummaryView | None = None
     warnings: tuple[str, ...] = ()
     error_message: str | None = None
@@ -162,6 +210,7 @@ class ResearchAgentPageView:
         return bool(
             self.results
             or self.artifacts
+            or self.direction_analysis
         )
 
     @property

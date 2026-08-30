@@ -346,7 +346,7 @@ def test_research_evaluation_service_retries_unknown_source_id() -> None:
 
 
 def test_research_evaluation_service_retries_missing_evaluation() -> None:
-    """Verify incomplete evaluation coverage triggers one bounded retry."""
+    """Verify incomplete coverage retries only the missing papers."""
 
     first_paper = create_paper_metadata(
         source_id="paper-001",
@@ -357,7 +357,7 @@ def test_research_evaluation_service_retries_missing_evaluation() -> None:
         title="Second Paper",
     )
 
-    complete_response = create_valid_provider_response(
+    first_response = create_valid_provider_response(
         evaluations=[
             {
                 "source_id": "paper-001",
@@ -368,6 +368,10 @@ def test_research_evaluation_service_retries_missing_evaluation() -> None:
                 "research_connections": [],
                 "warnings": [],
             },
+        ]
+    )
+    retry_response = create_valid_provider_response(
+        evaluations=[
             {
                 "source_id": "paper-002",
                 "relevance_score": 70,
@@ -382,8 +386,8 @@ def test_research_evaluation_service_retries_missing_evaluation() -> None:
 
     provider = SequentialStubProvider(
         (
-            create_valid_provider_response(),
-            complete_response,
+            first_response,
+            retry_response,
         )
     )
 
@@ -403,6 +407,77 @@ def test_research_evaluation_service_retries_missing_evaluation() -> None:
 
     assert len(result) == 2
     assert len(provider.requests) == 2
+    assert [
+        request.metadata["paper_count"]
+        for request in provider.requests
+    ] == [2, 1]
+    assert result[0].paper == first_paper
+    assert result[1].paper == second_paper
+
+def test_research_evaluation_service_merges_missing_retry_in_order() -> None:
+    """Verify retained and retried evaluations preserve paper order."""
+
+    papers = tuple(
+        create_paper_metadata(
+            source_id=f"paper-{index:03d}",
+            title=f"Paper {index}",
+        )
+        for index in range(1, 4)
+    )
+
+    first_response = create_valid_provider_response(
+        evaluations=[
+            {
+                "source_id": "paper-001",
+                "relevance_score": 90,
+                "relevance_summary": "First paper is relevant.",
+                "strengths": [],
+                "limitations": [],
+                "research_connections": [],
+                "warnings": [],
+            },
+            {
+                "source_id": "paper-003",
+                "relevance_score": 60,
+                "relevance_summary": "Third paper is relevant.",
+                "strengths": [],
+                "limitations": [],
+                "research_connections": [],
+                "warnings": [],
+            },
+        ]
+    )
+    retry_response = create_provider_response_for_papers(
+        (papers[1],)
+    )
+
+    provider = SequentialStubProvider(
+        (
+            first_response,
+            retry_response,
+        )
+    )
+
+    service = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    )
+
+    result = service.evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        papers,
+    )
+
+    assert tuple(
+        evaluation.paper
+        for evaluation in result
+    ) == papers
+    assert [
+        request.metadata["paper_count"]
+        for request in provider.requests
+    ] == [3, 1]
+
 
 
 def test_research_evaluation_service_stops_after_one_retry() -> None:
@@ -1067,10 +1142,17 @@ def test_research_evaluation_service_rejects_missing_paper_evaluation() -> None:
         title="Second Paper",
     )
 
+    provider = SequentialStubProvider(
+        (
+            create_valid_provider_response(),
+            create_valid_provider_response(
+                evaluations=[]
+            ),
+        )
+    )
+
     service = ResearchEvaluationService(
-        provider=StubProvider(
-            create_valid_provider_response()
-        ),
+        provider=provider,
         model_name="qwen3:8b",
     )
 

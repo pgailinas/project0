@@ -20,8 +20,13 @@ from project0.agents.research.research_agent_view_models import (
     ResearchAgentPageStatus,
     ResearchAgentPageView,
     ResearchArtifactView,
+    ResearchDirectionAnalysisView,
+    ResearchDirectionView,
+    ResearchEvidenceReferenceView,
+    ResearchFindingView,
     ResearchRequestForm,
     ResearchResultView,
+    ResearchSynthesisView,
     ResearchWorkflowSummaryView,
 )
 from project0.models.research_models import (
@@ -191,6 +196,14 @@ class ResearchAgentUIService:
             include_paper_summaries=False,
         )
 
+        direction_analysis = self._map_direction_analysis(
+            self._read_value(
+                workflow_result,
+                "direction_analysis",
+                default=None,
+            )
+        )
+
         warnings = tuple(
             str(item)
             for item in self._read_value(
@@ -222,6 +235,7 @@ class ResearchAgentUIService:
             workflow_status=workflow_status,
             results=results,
             artifacts=artifacts,
+            direction_analysis=direction_analysis,
             workflow_summary=ResearchWorkflowSummaryView(
                 source_count=len(source_references),
                 paper_count=len(papers),
@@ -745,6 +759,162 @@ class ResearchAgentUIService:
                 )
                 != ResearchArtifactType.PAPER_SUMMARY.value
             )
+        )
+
+    def _map_direction_analysis(
+        self,
+        direction_analysis: object | None,
+    ) -> ResearchDirectionAnalysisView | None:
+        """Map research direction analysis into presentation state."""
+
+        if direction_analysis is None:
+            return None
+
+        synthesis = self._read_value(
+            direction_analysis,
+            "synthesis",
+            default={},
+        )
+
+        return ResearchDirectionAnalysisView(
+            synthesis=ResearchSynthesisView(
+                themes=self._map_findings(
+                    self._read_value(
+                        synthesis,
+                        "themes",
+                        default=(),
+                    )
+                ),
+                comparisons=self._map_findings(
+                    self._read_value(
+                        synthesis,
+                        "comparisons",
+                        default=(),
+                    )
+                ),
+                shared_limitations=self._map_findings(
+                    self._read_value(
+                        synthesis,
+                        "shared_limitations",
+                        default=(),
+                    )
+                ),
+                unresolved_questions=self._map_findings(
+                    self._read_value(
+                        synthesis,
+                        "unresolved_questions",
+                        default=(),
+                    )
+                ),
+            ),
+            candidate_directions=tuple(
+                ResearchDirectionView(
+                    direction=str(
+                        self._read_value(
+                            direction,
+                            "direction",
+                            default="",
+                        )
+                    ),
+                    rationale=str(
+                        self._read_value(
+                            direction,
+                            "rationale",
+                            default="",
+                        )
+                    ),
+                    context_evidence=self._map_evidence(
+                        self._read_value(
+                            direction,
+                            "context_evidence",
+                            default=(),
+                        )
+                    ),
+                    literature_evidence=self._map_evidence(
+                        self._read_value(
+                            direction,
+                            "literature_evidence",
+                            default=(),
+                        )
+                    ),
+                    speculative=bool(
+                        self._read_value(
+                            direction,
+                            "speculative",
+                            default=False,
+                        )
+                    ),
+                )
+                for direction in self._read_value(
+                    direction_analysis,
+                    "candidate_directions",
+                    default=(),
+                )
+            ),
+        )
+
+    def _map_findings(
+        self,
+        findings: object,
+    ) -> tuple[ResearchFindingView, ...]:
+        """Map evidence-supported findings into presentation state."""
+
+        return tuple(
+            ResearchFindingView(
+                content=str(
+                    self._read_value(
+                        finding,
+                        "content",
+                        default="",
+                    )
+                ),
+                evidence=self._map_evidence(
+                    self._read_value(
+                        finding,
+                        "evidence",
+                        default=(),
+                    )
+                ),
+            )
+            for finding in findings or ()
+        )
+
+    def _map_evidence(
+        self,
+        evidence: object,
+    ) -> tuple[ResearchEvidenceReferenceView, ...]:
+        """Map evidence references into presentation state."""
+
+        return tuple(
+            ResearchEvidenceReferenceView(
+                source_type=str(
+                    self._read_value(
+                        reference,
+                        "source_type",
+                        default="",
+                    )
+                ),
+                source_id=str(
+                    self._read_value(
+                        reference,
+                        "source_id",
+                        default="",
+                    )
+                ),
+                page_number=self._read_value(
+                    reference,
+                    "page_number",
+                    default=None,
+                ),
+                section=self._normalize_optional_text(
+                    self._read_value(
+                        reference,
+                        "section",
+                        default=None,
+                    )
+                ),
+            )
+            for reference in evidence or ()
         )
 
     def _determine_page_status(

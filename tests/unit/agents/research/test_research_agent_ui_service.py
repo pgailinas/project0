@@ -503,3 +503,116 @@ def test_warning_without_explicit_status_uses_warning_page() -> None:
         is ResearchAgentPageStatus.COMPLETED_WITH_WARNINGS
     )
     assert page.has_warnings is True
+
+def test_submit_request_maps_research_direction_analysis() -> None:
+    """Research direction analysis should be preserved for display."""
+
+    workflow = FakeWorkflow(
+        result={
+            "request_id": "research-request-directions",
+            "status": "completed",
+            "direction_analysis": {
+                "synthesis": {
+                    "themes": (
+                        {
+                            "content": (
+                                "Contrastive alignment recurs across "
+                                "the analyzed papers."
+                            ),
+                            "evidence": (
+                                {
+                                    "source_type": "research_paper",
+                                    "source_id": "paper-001",
+                                    "page_number": 4,
+                                },
+                                {
+                                    "source_type": "research_paper",
+                                    "source_id": "paper-002",
+                                    "page_number": 6,
+                                },
+                            ),
+                        },
+                    ),
+                    "comparisons": (),
+                    "shared_limitations": (),
+                    "unresolved_questions": (
+                        {
+                            "content": (
+                                "The analyzed evidence does not establish "
+                                "which alignment objective is best for VideoQA."
+                            ),
+                            "evidence": (
+                                {
+                                    "source_type": "research_paper",
+                                    "source_id": "paper-002",
+                                },
+                            ),
+                        },
+                    ),
+                },
+                "candidate_directions": (
+                    {
+                        "direction": (
+                            "Investigate contrastive video-language "
+                            "alignment for VideoQA."
+                        ),
+                        "rationale": (
+                            "Prior work identified semantic misalignment "
+                            "and the analyzed literature supports "
+                            "contrastive alignment."
+                        ),
+                        "context_evidence": (
+                            {
+                                "source_type": "context_document",
+                                "source_id": "context-001",
+                                "page_number": 8,
+                                "section": "Limitations",
+                            },
+                        ),
+                        "literature_evidence": (
+                            {
+                                "source_type": "research_paper",
+                                "source_id": "paper-001",
+                                "page_number": 4,
+                            },
+                        ),
+                        "speculative": False,
+                    },
+                ),
+            },
+        }
+    )
+    service = ResearchAgentUIService(workflow=workflow)
+
+    page = service.submit_request(
+        question="What should I investigate next?"
+    )
+
+    assert page.page_status is ResearchAgentPageStatus.COMPLETED
+    assert page.direction_analysis is not None
+    assert page.has_results is True
+    assert page.direction_analysis.synthesis.themes[0].content == (
+        "Contrastive alignment recurs across the analyzed papers."
+    )
+    assert tuple(
+        evidence.source_id
+        for evidence
+        in page.direction_analysis.synthesis.themes[0].evidence
+    ) == (
+        "paper-001",
+        "paper-002",
+    )
+    assert (
+        page.direction_analysis.candidate_directions[0].direction
+        == "Investigate contrastive video-language alignment for VideoQA."
+    )
+    assert (
+        page.direction_analysis.candidate_directions[0]
+        .context_evidence[0].section
+        == "Limitations"
+    )
+    assert (
+        page.direction_analysis.candidate_directions[0].speculative
+        is False
+    )
+

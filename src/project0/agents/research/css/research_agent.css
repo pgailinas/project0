@@ -1261,6 +1261,45 @@ Table of Contents:
 }
 
 
+.research-analysis-section + .research-analysis-section {
+
+    margin-top: var(--spacing-md);
+
+}
+
+.research-analysis-section > h3 {
+
+    margin-bottom: 0;
+
+    font-size: 1rem;
+
+}
+
+.research-analysis-section .proposal-card > p {
+
+    margin: 0;
+
+    line-height: 1.55;
+
+}
+
+.research-evidence-list {
+
+    margin-bottom: 0;
+
+    color: var(--text-muted);
+
+    font-size: 0.86rem;
+
+}
+
+.research-evidence-list code {
+
+    color: var(--text-secondary);
+
+}
+
+
 /*=============================================================
 2. Responsive Layout
 =============================================================*/

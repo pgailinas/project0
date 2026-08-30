@@ -981,7 +981,7 @@ def test_create_research_workflow_requires_model_name() -> None:
 
 
 def test_create_research_workflow_uses_reasoning_provider_and_model() -> None:
-    """Research evaluation service uses configured reasoning settings."""
+    """Research reasoning services use configured reasoning settings."""
 
     reasoning_provider = Mock()
 
@@ -994,6 +994,16 @@ def test_create_research_workflow_uses_reasoning_provider_and_model() -> None:
     assert workflow is not None
     assert workflow._evaluation_service._provider is reasoning_provider
     assert workflow._evaluation_service._model_name == "qwen2.5:7b"
+    assert workflow._paper_analysis_service._provider is reasoning_provider
+    assert workflow._paper_analysis_service._model_name == "qwen2.5:7b"
+    assert (
+        workflow._direction_analysis_service._provider
+        is reasoning_provider
+    )
+    assert (
+        workflow._direction_analysis_service._model_name
+        == "qwen2.5:7b"
+    )
 
 
 def test_create_research_workflow_assembles_services() -> None:
@@ -1013,6 +1023,8 @@ def test_create_research_workflow_assembles_services() -> None:
     assert workflow._artifact_service is not None
     assert workflow._context_ingestion_service is not None
     assert workflow._context_analysis_service is not None
+    assert workflow._paper_analysis_service is not None
+    assert workflow._direction_analysis_service is not None
 
 
 def test_create_research_workflow_configures_semantic_scholar_metadata_key() -> None:
