@@ -183,9 +183,6 @@ def create_valid_response() -> ProviderResponse:
                 ),
             ],
             "limitations": [],
-            "research_relevance": finding(
-                "The method directly informs video-language alignment."
-            ),
             "warnings": [],
         },
         input_tokens=512,
@@ -233,7 +230,6 @@ def test_metadata_analysis_creates_structured_analysis() -> None:
     assert analysis.datasets_tasks == ()
     assert len(analysis.findings) == 1
     assert analysis.limitations == ()
-    assert analysis.research_relevance is not None
     assert analysis.warnings == ()
 
 
@@ -288,6 +284,9 @@ def test_metadata_request_supplies_abstract_without_full_text() -> None:
     assert payload["paper"]["source_id"] == "paper-001"
     assert payload["paper"]["analysis_basis"] == "abstract_metadata"
     assert payload["paper"]["abstract"] == paper.abstract
+    assert "research_question" not in payload
+    assert "guidance" not in payload
+    assert "research_concepts" not in payload
     assert "pages" not in payload["paper"]
     assert "document_id" not in payload["paper"]
 
@@ -339,6 +338,8 @@ def test_response_schema_does_not_require_source_id() -> None:
 
     assert "source_id" not in response_schema["properties"]
     assert "source_id" not in response_schema["required"]
+    assert "research_relevance" not in response_schema["properties"]
+    assert "research_relevance" not in response_schema["required"]
 
 
 def test_missing_structured_output_retries_once() -> None:

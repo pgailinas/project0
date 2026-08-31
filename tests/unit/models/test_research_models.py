@@ -591,10 +591,6 @@ def test_paper_analysis_creation() -> None:
                 evidence=(evidence,),
             ),
         ),
-        research_relevance=ResearchFinding(
-            content="Directly relevant to semantic alignment.",
-            evidence=(evidence,),
-        ),
     )
 
     assert analysis.paper == paper
@@ -606,7 +602,6 @@ def test_paper_analysis_creation() -> None:
     assert analysis.datasets_tasks == ()
     assert analysis.findings == ()
     assert analysis.limitations == ()
-    assert analysis.research_relevance is not None
 
 
 def test_research_synthesis_creation() -> None:

@@ -181,7 +181,6 @@ class PaperAnalysis:
     datasets_tasks: tuple[ResearchFinding, ...] = ()
     findings: tuple[ResearchFinding, ...] = ()
     limitations: tuple[ResearchFinding, ...] = ()
-    research_relevance: ResearchFinding | None = None
     warnings: tuple[str, ...] = ()
 
 

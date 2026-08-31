@@ -70,11 +70,6 @@ def _paper_analysis(source_id: str, title: str, page: int) -> PaperAnalysis:
         limitations=(
             _paper_finding(source_id, f"{title} limitation", page),
         ),
-        research_relevance=_paper_finding(
-            source_id,
-            f"{title} relevance",
-            page,
-        ),
     )
 
 
@@ -118,7 +113,7 @@ def _valid_output(*, with_context: bool = True):
                     ["E0"] if with_context else []
                 ),
                 "literature_evidence_ids": [
-                    "E5"
+                    "E3"
                 ],
                 "speculative": False,
             }
@@ -171,7 +166,7 @@ def test_analyze_creates_context_grounded_synthesis_and_direction():
     assert direction.context_evidence == context.limitations[0].evidence
     assert (
         direction.literature_evidence
-        == papers[0].research_relevance.evidence
+        == papers[0].findings[0].evidence
     )
     assert direction.speculative is False
     assert len(provider.requests) == 1
@@ -313,8 +308,6 @@ def test_provider_request_uses_structured_findings_and_prohibits_novelty_claims(
         "E6",
         "E7",
         "E8",
-        "E9",
-        "E10",
     ]
     assert payload["validation_feedback"] is None
 
@@ -333,8 +326,6 @@ def test_provider_request_uses_structured_findings_and_prohibits_novelty_claims(
         "E6",
         "E7",
         "E8",
-        "E9",
-        "E10",
     ]
 
     instructions = request.system_instructions.lower()

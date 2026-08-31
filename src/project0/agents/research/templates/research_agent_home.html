@@ -564,28 +564,6 @@
                 {% endif %}
                 {% endfor %}
 
-                {% if analysis.research_relevance %}
-                <div>
-                    <h4>Research Relevance</h4>
-                    <p>{{ analysis.research_relevance.content }}</p>
-                    {% if analysis.research_relevance.evidence %}
-                    <ul class="research-evidence-list">
-                        {% for evidence in analysis.research_relevance.evidence %}
-                        <li>
-                            <code>{{ evidence.source_id }}</code>
-                            {% if evidence.page_number is not none %}
-                            — page {{ evidence.page_number }}
-                            {% endif %}
-                            {% if evidence.section %}
-                            — {{ evidence.section }}
-                            {% endif %}
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
-                </div>
-                {% endif %}
-
                 {% if analysis.warnings %}
                 <div>
                     <h4>Warnings</h4>
@@ -1203,15 +1181,6 @@ if (saveButton) {
         {% endfor %}
         {% endif %}
         {% endfor %}
-
-        {% if analysis.research_relevance %}
-        lines.push("");
-        lines.push("### Research Relevance");
-        lines.push("");
-        lines.push(
-            `{{ analysis.research_relevance.content | replace("\\", "\\\\") | replace("`", "\\`") }}`
-        );
-        {% endif %}
 
         {% if analysis.warnings %}
         lines.push("");

@@ -887,24 +887,20 @@ class ResearchAgentUIService:
                         default="",
                     )
                 ),
-                problem=self._map_findings(
-                    (
-                        self._read_value(
-                            analysis,
-                            "problem",
-                            default={},
-                        ),
+                problem=self._map_required_finding(
+                    self._read_value(
+                        analysis,
+                        "problem",
+                        default={},
                     )
-                )[0],
-                approach=self._map_findings(
-                    (
-                        self._read_value(
-                            analysis,
-                            "approach",
-                            default={},
-                        ),
+                ),
+                approach=self._map_required_finding(
+                    self._read_value(
+                        analysis,
+                        "approach",
+                        default={},
                     )
-                )[0],
+                ),
                 representations=self._map_findings(
                     self._read_value(
                         analysis,
@@ -946,23 +942,6 @@ class ResearchAgentUIService:
                         "limitations",
                         default=(),
                     )
-                ),
-                research_relevance=(
-                    self._map_findings(
-                        (
-                            self._read_value(
-                                analysis,
-                                "research_relevance",
-                                default=None,
-                            ),
-                        )
-                    )[0]
-                    if self._read_value(
-                        analysis,
-                        "research_relevance",
-                        default=None,
-                    ) is not None
-                    else None
                 ),
                 warnings=tuple(
                     str(item)
@@ -1074,24 +1053,58 @@ class ResearchAgentUIService:
     ) -> tuple[ResearchFindingView, ...]:
         """Map evidence-supported findings into presentation state."""
 
-        return tuple(
-            ResearchFindingView(
-                content=str(
-                    self._read_value(
-                        finding,
-                        "content",
-                        default="",
-                    )
-                ),
-                evidence=self._map_evidence(
-                    self._read_value(
-                        finding,
-                        "evidence",
-                        default=(),
-                    )
-                ),
+        mapped_findings = []
+
+        for finding in findings or ():
+            content = self._normalize_optional_text(
+                self._read_value(
+                    finding,
+                    "content",
+                    default=None,
+                )
             )
-            for finding in findings or ()
+
+            if (
+                content is None
+                or content.casefold() in {"null", "none"}
+            ):
+                continue
+
+            mapped_findings.append(
+                ResearchFindingView(
+                    content=content,
+                    evidence=self._map_evidence(
+                        self._read_value(
+                            finding,
+                            "evidence",
+                            default=(),
+                        )
+                    ),
+                )
+            )
+
+        return tuple(
+            mapped_findings
+        )
+
+    def _map_required_finding(
+        self,
+        finding: object,
+    ) -> ResearchFindingView:
+        """Map one required finding with an explicit unavailable value."""
+
+        mapped_findings = self._map_findings(
+            (
+                finding,
+            )
+        )
+
+        if mapped_findings:
+            return mapped_findings[0]
+
+        return ResearchFindingView(
+            content="Not available from metadata/abstract.",
+            evidence=(),
         )
 
     def _map_evidence(

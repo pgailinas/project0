@@ -69,7 +69,7 @@ class ResearchDirectionAnalysisService:
     ) -> ResearchDirectionAnalysis:
         """Synthesize analyzed literature and identify research directions."""
 
-        if not paper_analyses:
+        if len(paper_analyses) < 2:
             return ResearchDirectionAnalysis(
                 synthesis=ResearchSynthesis(),
                 candidate_directions=(),
@@ -189,16 +189,6 @@ class ResearchDirectionAnalysisService:
                             ResearchEvidenceSourceType.RESEARCH_PAPER
                         ),
                     )
-
-            if analysis.research_relevance is not None:
-                catalog[
-                    f"{prefix}:research_relevance:0"
-                ] = _EvidenceCatalogEntry(
-                    finding=analysis.research_relevance,
-                    source_type=(
-                        ResearchEvidenceSourceType.RESEARCH_PAPER
-                    ),
-                )
 
         return {
             finding_id: _EvidenceCatalogEntry(
@@ -485,13 +475,6 @@ class ResearchDirectionAnalysisService:
                 )
                 for index, _ in enumerate(getattr(analysis, field_name))
             ]
-
-        result["research_relevance"] = (
-            self._serialize_optional_catalog_finding(
-                evidence_catalog,
-                f"{prefix}:research_relevance:0",
-            )
-        )
 
         return result
 

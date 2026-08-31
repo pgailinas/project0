@@ -61,13 +61,35 @@ class PaperAnalysisService:
         if not papers:
             return ()
 
-        return tuple(
-            self._analyze_paper(
-                request=request,
-                strategy=strategy,
-                paper=paper,
+        analyses = []
+
+        for paper in papers:
+            try:
+                analysis = self._analyze_paper(
+                    request=request,
+                    strategy=strategy,
+                    paper=paper,
+                )
+            except ValueError as error:
+                if not self._is_insufficient_required_finding_error(
+                    error
+                ):
+                    raise
+
+                LOGGER.warning(
+                    "Skipping retained-paper analysis for source %s "
+                    "because required paper evidence was unavailable: %s",
+                    paper.source_reference.source_id,
+                    error,
+                )
+                continue
+
+            analyses.append(
+                analysis
             )
-            for paper in papers
+
+        return tuple(
+            analyses
         )
 
     def _analyze_paper(
@@ -128,9 +150,6 @@ class PaperAnalysisService:
 
         user_prompt = json.dumps(
             {
-                "research_question": request.question,
-                "guidance": request.guidance,
-                "research_concepts": list(strategy.concepts),
                 "paper": {
                     "source_id": source_id,
                     "title": paper.title,
@@ -166,15 +185,6 @@ class PaperAnalysisService:
             ],
         }
 
-        optional_finding_schema = {
-            "anyOf": [
-                finding_schema,
-                {
-                    "type": "null",
-                },
-            ],
-        }
-
         response_schema = {
             "type": "object",
             "properties": {
@@ -204,7 +214,6 @@ class PaperAnalysisService:
                     "type": "array",
                     "items": finding_schema,
                 },
-                "research_relevance": optional_finding_schema,
                 "warnings": {
                     "type": "array",
                     "items": {
@@ -221,7 +230,6 @@ class PaperAnalysisService:
                 "datasets_tasks",
                 "findings",
                 "limitations",
-                "research_relevance",
                 "warnings",
             ],
         }
@@ -230,16 +238,15 @@ class PaperAnalysisService:
             system_instructions=(
                 "You are the Project0 Research Agent retained-paper "
                 "analysis service. Analyze one supplied retained paper "
-                "against the research question using only the supplied "
-                "paper metadata and abstract. Return concise, atomic, "
-                "evidence-supported findings for the paper's problem, "
-                "approach, representations, modalities, learning or "
-                "alignment objectives, datasets or tasks, findings, "
-                "limitations, and relevance to the current research. "
-                "Distinguish what the paper states from generated "
-                "interpretation. Do not use outside knowledge. Do not "
-                "invent unsupported paper content. Omit unsupported "
-                "optional findings by returning empty arrays or null. "
+                "using only the supplied paper metadata and abstract. "
+                "Return concise, atomic, evidence-supported findings "
+                "for the paper's problem, approach, representations, "
+                "modalities, learning or alignment objectives, datasets "
+                "or tasks, findings, and limitations. Distinguish what "
+                "the paper states from generated interpretation. Do not "
+                "use outside knowledge. Do not invent unsupported paper "
+                "content. Omit unsupported optional findings by "
+                "returning empty arrays. "
                 "Do not infer full-paper content, page-level provenance, "
                 "or unsupported section details. Section values should "
                 "be null unless the supplied metadata or abstract "
@@ -324,33 +331,10 @@ class PaperAnalysisService:
                 value=structured_output.get("limitations"),
                 field_name="limitations",
             ),
-            research_relevance=self._parse_optional_finding(
-                paper=paper,
-                value=structured_output.get("research_relevance"),
-                field_name="research_relevance",
-            ),
             warnings=self._parse_string_tuple(
                 structured_output.get("warnings"),
                 "warnings",
             ),
-        )
-
-    def _parse_optional_finding(
-        self,
-        *,
-        paper: PaperMetadata,
-        value: Any,
-        field_name: str,
-    ) -> ResearchFinding | None:
-        """Parse one optional retained-paper finding."""
-
-        if value is None:
-            return None
-
-        return self._parse_finding(
-            paper=paper,
-            value=value,
-            field_name=field_name,
         )
 
     def _parse_findings(
@@ -445,6 +429,23 @@ class PaperAnalysisService:
             )
 
         return tuple(value)
+
+    @staticmethod
+    def _is_insufficient_required_finding_error(
+        error: ValueError,
+    ) -> bool:
+        """Return whether required paper evidence was unavailable."""
+
+        message = str(
+            error
+        )
+
+        return (
+            "Provider field 'problem' finding content "
+            "must be a non-empty string." == message
+            or "Provider field 'approach' finding content "
+            "must be a non-empty string." == message
+        )
 
     @staticmethod
     def _is_retryable_analysis_error(
