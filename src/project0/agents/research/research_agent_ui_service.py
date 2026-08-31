@@ -17,6 +17,8 @@ from dataclasses import dataclass
 from typing import Protocol, Sequence
 
 from project0.agents.research.research_agent_view_models import (
+    ExistingResearchContextView,
+    PaperAnalysisView,
     ResearchAgentPageStatus,
     ResearchAgentPageView,
     ResearchArtifactView,
@@ -196,6 +198,22 @@ class ResearchAgentUIService:
             include_paper_summaries=False,
         )
 
+        existing_research_context = self._map_existing_research_context(
+            self._read_value(
+                workflow_result,
+                "existing_research_context",
+                default=None,
+            )
+        )
+
+        paper_analyses = self._map_paper_analyses(
+            self._read_value(
+                workflow_result,
+                "paper_analyses",
+                default=(),
+            )
+        )
+
         direction_analysis = self._map_direction_analysis(
             self._read_value(
                 workflow_result,
@@ -235,6 +253,8 @@ class ResearchAgentUIService:
             workflow_status=workflow_status,
             results=results,
             artifacts=artifacts,
+            existing_research_context=existing_research_context,
+            paper_analyses=paper_analyses,
             direction_analysis=direction_analysis,
             workflow_summary=ResearchWorkflowSummaryView(
                 source_count=len(source_references),
@@ -759,6 +779,201 @@ class ResearchAgentUIService:
                 )
                 != ResearchArtifactType.PAPER_SUMMARY.value
             )
+        )
+
+    def _map_existing_research_context(
+        self,
+        context: object | None,
+    ) -> ExistingResearchContextView | None:
+        """Map existing research context into presentation state."""
+
+        if context is None:
+            return None
+
+        research_problem = self._read_value(
+            context,
+            "research_problem",
+            default=None,
+        )
+
+        return ExistingResearchContextView(
+            research_problem=(
+                self._map_findings((research_problem,))[0]
+                if research_problem is not None
+                else None
+            ),
+            prior_work=self._map_findings(
+                self._read_value(
+                    context,
+                    "prior_work",
+                    default=(),
+                )
+            ),
+            implemented_approaches=self._map_findings(
+                self._read_value(
+                    context,
+                    "implemented_approaches",
+                    default=(),
+                )
+            ),
+            findings=self._map_findings(
+                self._read_value(
+                    context,
+                    "findings",
+                    default=(),
+                )
+            ),
+            limitations=self._map_findings(
+                self._read_value(
+                    context,
+                    "limitations",
+                    default=(),
+                )
+            ),
+            unresolved_questions=self._map_findings(
+                self._read_value(
+                    context,
+                    "unresolved_questions",
+                    default=(),
+                )
+            ),
+            stated_future_work=self._map_findings(
+                self._read_value(
+                    context,
+                    "stated_future_work",
+                    default=(),
+                )
+            ),
+        )
+
+    def _map_paper_analyses(
+        self,
+        paper_analyses: object,
+    ) -> tuple[PaperAnalysisView, ...]:
+        """Map retained-paper analyses into presentation state."""
+
+        return tuple(
+            PaperAnalysisView(
+                source_id=str(
+                    self._read_value(
+                        self._read_value(
+                            self._read_value(
+                                analysis,
+                                "paper",
+                                default={},
+                            ),
+                            "source_reference",
+                            default={},
+                        ),
+                        "source_id",
+                        default="",
+                    )
+                ),
+                title=str(
+                    self._read_value(
+                        self._read_value(
+                            analysis,
+                            "paper",
+                            default={},
+                        ),
+                        "title",
+                        default="",
+                    )
+                ),
+                analysis_basis=str(
+                    self._read_value(
+                        analysis,
+                        "analysis_basis",
+                        default="",
+                    )
+                ),
+                problem=self._map_findings(
+                    (
+                        self._read_value(
+                            analysis,
+                            "problem",
+                            default={},
+                        ),
+                    )
+                )[0],
+                approach=self._map_findings(
+                    (
+                        self._read_value(
+                            analysis,
+                            "approach",
+                            default={},
+                        ),
+                    )
+                )[0],
+                representations=self._map_findings(
+                    self._read_value(
+                        analysis,
+                        "representations",
+                        default=(),
+                    )
+                ),
+                modalities=self._map_findings(
+                    self._read_value(
+                        analysis,
+                        "modalities",
+                        default=(),
+                    )
+                ),
+                learning_objectives=self._map_findings(
+                    self._read_value(
+                        analysis,
+                        "learning_objectives",
+                        default=(),
+                    )
+                ),
+                datasets_tasks=self._map_findings(
+                    self._read_value(
+                        analysis,
+                        "datasets_tasks",
+                        default=(),
+                    )
+                ),
+                findings=self._map_findings(
+                    self._read_value(
+                        analysis,
+                        "findings",
+                        default=(),
+                    )
+                ),
+                limitations=self._map_findings(
+                    self._read_value(
+                        analysis,
+                        "limitations",
+                        default=(),
+                    )
+                ),
+                research_relevance=(
+                    self._map_findings(
+                        (
+                            self._read_value(
+                                analysis,
+                                "research_relevance",
+                                default=None,
+                            ),
+                        )
+                    )[0]
+                    if self._read_value(
+                        analysis,
+                        "research_relevance",
+                        default=None,
+                    ) is not None
+                    else None
+                ),
+                warnings=tuple(
+                    str(item)
+                    for item in self._read_value(
+                        analysis,
+                        "warnings",
+                        default=(),
+                    )
+                ),
+            )
+            for analysis in paper_analyses or ()
         )
 
     def _map_direction_analysis(

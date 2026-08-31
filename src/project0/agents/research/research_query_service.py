@@ -271,6 +271,7 @@ class ResearchQueryService:
         lowered = normalized.casefold()
 
         prefixes = (
+            "additional research may investigate ",
             "future work should explore ",
             "future work should investigate ",
             "future research should focus on ",

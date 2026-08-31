@@ -132,6 +132,38 @@ class ResearchFindingView:
 
 
 @dataclass(frozen=True, slots=True)
+class ExistingResearchContextView:
+    """Existing research context analysis prepared for browser display."""
+
+    research_problem: ResearchFindingView | None = None
+    prior_work: tuple[ResearchFindingView, ...] = ()
+    implemented_approaches: tuple[ResearchFindingView, ...] = ()
+    findings: tuple[ResearchFindingView, ...] = ()
+    limitations: tuple[ResearchFindingView, ...] = ()
+    unresolved_questions: tuple[ResearchFindingView, ...] = ()
+    stated_future_work: tuple[ResearchFindingView, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class PaperAnalysisView:
+    """Structured retained-paper analysis prepared for browser display."""
+
+    source_id: str
+    title: str
+    analysis_basis: str
+    problem: ResearchFindingView
+    approach: ResearchFindingView
+    representations: tuple[ResearchFindingView, ...] = ()
+    modalities: tuple[ResearchFindingView, ...] = ()
+    learning_objectives: tuple[ResearchFindingView, ...] = ()
+    datasets_tasks: tuple[ResearchFindingView, ...] = ()
+    findings: tuple[ResearchFindingView, ...] = ()
+    limitations: tuple[ResearchFindingView, ...] = ()
+    research_relevance: ResearchFindingView | None = None
+    warnings: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
 class ResearchSynthesisView:
     """Cross-paper synthesis prepared for browser display."""
 
@@ -198,6 +230,8 @@ class ResearchAgentPageView:
     workflow_status: ResearchStatus | None = None
     results: tuple[ResearchResultView, ...] = ()
     artifacts: tuple[ResearchArtifactView, ...] = ()
+    existing_research_context: ExistingResearchContextView | None = None
+    paper_analyses: tuple[PaperAnalysisView, ...] = ()
     direction_analysis: ResearchDirectionAnalysisView | None = None
     workflow_summary: ResearchWorkflowSummaryView | None = None
     warnings: tuple[str, ...] = ()
@@ -210,6 +244,8 @@ class ResearchAgentPageView:
         return bool(
             self.results
             or self.artifacts
+            or self.existing_research_context
+            or self.paper_analyses
             or self.direction_analysis
         )
 

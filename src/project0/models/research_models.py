@@ -252,6 +252,8 @@ class ResearchResult:
     evaluations: tuple[ResearchEvaluation, ...]
     artifacts: tuple[ResearchArtifact, ...]
     created_at: datetime
+    existing_research_context: ExistingResearchContext | None = None
+    paper_analyses: tuple[PaperAnalysis, ...] = ()
     direction_analysis: ResearchDirectionAnalysis | None = None
     warnings: tuple[str, ...] = ()
     error_message: str | None = None

@@ -253,6 +253,8 @@ class ResearchWorkflow:
                 evaluations=evaluations,
                 artifacts=artifacts,
                 created_at=created_at,
+                existing_research_context=context,
+                paper_analyses=paper_analyses,
                 direction_analysis=direction_analysis,
                 warnings=tuple(warnings),
             )

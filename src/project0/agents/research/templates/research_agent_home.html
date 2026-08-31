@@ -406,6 +406,202 @@
     </section>
     {% endif %}
 
+    {% if page.existing_research_context %}
+    <section
+        class="content-panel"
+        aria-labelledby="existing-research-context-title"
+    >
+        <div class="panel-heading">
+            <div>
+                <p class="panel-eyebrow">Context</p>
+                <h2 id="existing-research-context-title">
+                    Existing Research Context Analysis
+                </h2>
+            </div>
+        </div>
+
+        {% set context = page.existing_research_context %}
+
+        {% if context.research_problem %}
+        <div class="research-analysis-section">
+            <h3>Research Problem</h3>
+            <article class="proposal-card">
+                <p>{{ context.research_problem.content }}</p>
+                {% if context.research_problem.evidence %}
+                <ul class="research-evidence-list">
+                    {% for evidence in context.research_problem.evidence %}
+                    <li>
+                        <code>{{ evidence.source_id }}</code>
+                        {% if evidence.page_number is not none %}
+                        — page {{ evidence.page_number }}
+                        {% endif %}
+                        {% if evidence.section %}
+                        — {{ evidence.section }}
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </article>
+        </div>
+        {% endif %}
+
+        {% for title, findings in [
+            ("Prior Work", context.prior_work),
+            ("Implemented Approaches", context.implemented_approaches),
+            ("Findings", context.findings),
+            ("Limitations", context.limitations),
+            ("Unresolved Questions", context.unresolved_questions),
+            ("Stated Future Work", context.stated_future_work)
+        ] %}
+        {% if findings %}
+        <div class="research-analysis-section">
+            <h3>{{ title }}</h3>
+            <div class="proposal-list">
+                {% for finding in findings %}
+                <article class="proposal-card">
+                    <p>{{ finding.content }}</p>
+                    {% if finding.evidence %}
+                    <ul class="research-evidence-list">
+                        {% for evidence in finding.evidence %}
+                        <li>
+                            <code>{{ evidence.source_id }}</code>
+                            {% if evidence.page_number is not none %}
+                            — page {{ evidence.page_number }}
+                            {% endif %}
+                            {% if evidence.section %}
+                            — {{ evidence.section }}
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </article>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if page.paper_analyses %}
+    <section
+        class="content-panel"
+        aria-labelledby="paper-analysis-title"
+    >
+        <div class="panel-heading">
+            <div>
+                <p class="panel-eyebrow">Analysis</p>
+                <h2 id="paper-analysis-title">
+                    Structured Paper Analysis
+                </h2>
+            </div>
+        </div>
+
+        <div class="proposal-list">
+            {% for analysis in page.paper_analyses %}
+            <article class="proposal-card">
+                <header class="proposal-card__header">
+                    <div>
+                        <p class="proposal-card__number">
+                            Paper {{ loop.index }} of {{ page.paper_analyses | length }}
+                        </p>
+                        <h3>{{ analysis.title }}</h3>
+                    </div>
+
+                    <span class="status-badge">
+                        {{ analysis.analysis_basis
+                            | replace("_", " ")
+                            | title }}
+                    </span>
+                </header>
+
+                <div>
+                    <h4>Problem</h4>
+                    <p>{{ analysis.problem.content }}</p>
+                </div>
+
+                <div>
+                    <h4>Approach</h4>
+                    <p>{{ analysis.approach.content }}</p>
+                </div>
+
+                {% for title, findings in [
+                    ("Representations", analysis.representations),
+                    ("Modalities", analysis.modalities),
+                    ("Learning / Alignment Objectives", analysis.learning_objectives),
+                    ("Datasets / Tasks", analysis.datasets_tasks),
+                    ("Findings", analysis.findings),
+                    ("Limitations", analysis.limitations)
+                ] %}
+                {% if findings %}
+                <div>
+                    <h4>{{ title }}</h4>
+                    <ul>
+                        {% for finding in findings %}
+                        <li>
+                            {{ finding.content }}
+                            {% if finding.evidence %}
+                            <ul class="research-evidence-list">
+                                {% for evidence in finding.evidence %}
+                                <li>
+                                    <code>{{ evidence.source_id }}</code>
+                                    {% if evidence.page_number is not none %}
+                                    — page {{ evidence.page_number }}
+                                    {% endif %}
+                                    {% if evidence.section %}
+                                    — {{ evidence.section }}
+                                    {% endif %}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                {% endfor %}
+
+                {% if analysis.research_relevance %}
+                <div>
+                    <h4>Research Relevance</h4>
+                    <p>{{ analysis.research_relevance.content }}</p>
+                    {% if analysis.research_relevance.evidence %}
+                    <ul class="research-evidence-list">
+                        {% for evidence in analysis.research_relevance.evidence %}
+                        <li>
+                            <code>{{ evidence.source_id }}</code>
+                            {% if evidence.page_number is not none %}
+                            — page {{ evidence.page_number }}
+                            {% endif %}
+                            {% if evidence.section %}
+                            — {{ evidence.section }}
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {% if analysis.warnings %}
+                <div>
+                    <h4>Warnings</h4>
+                    <ul>
+                        {% for warning in analysis.warnings %}
+                        <li>{{ warning }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
     {% if page.direction_analysis %}
     <section
         class="content-panel"
@@ -921,6 +1117,114 @@ if (saveButton) {
         );
         {% endif %}
         {% endfor %}
+
+        {% if page.existing_research_context %}
+        lines.push("");
+        lines.push("---");
+        lines.push("");
+        lines.push("# Existing Research Context Analysis");
+
+        {% set context = page.existing_research_context %}
+
+        {% if context.research_problem %}
+        lines.push("");
+        lines.push("## Research Problem");
+        lines.push("");
+        lines.push(
+            `{{ context.research_problem.content | replace("\\", "\\\\") | replace("`", "\\`") }}`
+        );
+        {% endif %}
+
+        {% for title, findings in [
+            ("Prior Work", context.prior_work),
+            ("Implemented Approaches", context.implemented_approaches),
+            ("Findings", context.findings),
+            ("Limitations", context.limitations),
+            ("Unresolved Questions", context.unresolved_questions),
+            ("Stated Future Work", context.stated_future_work)
+        ] %}
+        {% if findings %}
+        lines.push("");
+        lines.push("## {{ title }}");
+        lines.push("");
+        {% for finding in findings %}
+        lines.push(
+            `- {{ finding.content | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
+        );
+        {% endfor %}
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+
+        {% if page.paper_analyses %}
+        lines.push("");
+        lines.push("---");
+        lines.push("");
+        lines.push("# Structured Paper Analysis");
+
+        {% for analysis in page.paper_analyses %}
+        lines.push("");
+        lines.push(
+            "## Paper {{ loop.index }} — {{ analysis.title | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}"
+        );
+        lines.push("");
+        lines.push(
+            "**Analysis Basis:** {{ analysis.analysis_basis | replace("_", " ") | title }}"
+        );
+        lines.push("");
+        lines.push("### Problem");
+        lines.push("");
+        lines.push(
+            `{{ analysis.problem.content | replace("\\", "\\\\") | replace("`", "\\`") }}`
+        );
+        lines.push("");
+        lines.push("### Approach");
+        lines.push("");
+        lines.push(
+            `{{ analysis.approach.content | replace("\\", "\\\\") | replace("`", "\\`") }}`
+        );
+
+        {% for title, findings in [
+            ("Representations", analysis.representations),
+            ("Modalities", analysis.modalities),
+            ("Learning / Alignment Objectives", analysis.learning_objectives),
+            ("Datasets / Tasks", analysis.datasets_tasks),
+            ("Findings", analysis.findings),
+            ("Limitations", analysis.limitations)
+        ] %}
+        {% if findings %}
+        lines.push("");
+        lines.push("### {{ title }}");
+        lines.push("");
+        {% for finding in findings %}
+        lines.push(
+            `- {{ finding.content | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
+        );
+        {% endfor %}
+        {% endif %}
+        {% endfor %}
+
+        {% if analysis.research_relevance %}
+        lines.push("");
+        lines.push("### Research Relevance");
+        lines.push("");
+        lines.push(
+            `{{ analysis.research_relevance.content | replace("\\", "\\\\") | replace("`", "\\`") }}`
+        );
+        {% endif %}
+
+        {% if analysis.warnings %}
+        lines.push("");
+        lines.push("### Warnings");
+        lines.push("");
+        {% for warning in analysis.warnings %}
+        lines.push(
+            `- {{ warning | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
+        );
+        {% endfor %}
+        {% endif %}
+        {% endfor %}
+        {% endif %}
 
         {% if page.direction_analysis %}
         lines.push("");
