@@ -18,6 +18,7 @@ import pytest
 
 from project0.config.constants import (
     DEFAULT_OLLAMA_TIMEOUT_SECONDS,
+    DEFAULT_RESEARCH_DIRECTION_ANALYSIS_ENABLED,
 )
 from project0.config.settings import (
     SETTINGS,
@@ -83,6 +84,21 @@ def test_project_settings_uses_default_reasoning_settings(
     assert settings.ollama_timeout_seconds == DEFAULT_OLLAMA_TIMEOUT_SECONDS
 
 
+def test_project_settings_uses_default_research_direction_analysis(
+    tmp_path: Path,
+) -> None:
+    settings = ProjectSettings(
+        project_root=tmp_path,
+        docs_dir=tmp_path / "docs",
+        source_dir=tmp_path / "src",
+        tests_dir=tmp_path / "tests",
+    )
+
+    assert settings.research_direction_analysis_enabled is (
+        DEFAULT_RESEARCH_DIRECTION_ANALYSIS_ENABLED
+    )
+
+
 def test_project_settings_uses_default_semantic_scholar_api_key(
     tmp_path: Path,
 ) -> None:
@@ -94,6 +110,19 @@ def test_project_settings_uses_default_semantic_scholar_api_key(
     )
 
     assert settings.semantic_scholar_api_key is None
+
+
+def test_load_settings_uses_research_direction_analysis_environment_override(
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv(
+        "PROJECT0_ENABLE_RESEARCH_DIRECTION_ANALYSIS",
+        "false",
+    )
+
+    settings = load_settings()
+
+    assert settings.research_direction_analysis_enabled is False
 
 
 def test_load_settings_uses_semantic_scholar_api_key_environment_override(

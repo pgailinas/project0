@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass, replace
 
 from project0.models.research_models import ResearchStrategy
@@ -112,18 +113,152 @@ class ResearchQueryService:
             candidates[0],
             maximum_words=4,
         )
-        second_fragment = cls._query_fragment(
-            candidates[1],
+        shared_fragment = cls._shared_terms_fragment(
+            candidates,
+            excluded_words=set(first_fragment.casefold().split()),
+            maximum_words=4,
+        )
+        domain_fragment = cls._query_fragment(
+            candidates[-1],
             maximum_words=4,
         )
 
-        combined = cls._normalize_query(
-            f"{first_fragment} {second_fragment}"
+        combined = cls._deduplicate_words(
+            (
+                first_fragment,
+                shared_fragment,
+                domain_fragment,
+            )
         )
 
         return " ".join(
             combined.split()[:8]
         )
+
+    @classmethod
+    def _shared_terms_fragment(
+        cls,
+        candidates: list[str],
+        excluded_words: set[str],
+        maximum_words: int,
+    ) -> str:
+        """Extract recurring technical terms across concepts."""
+
+        ignored_words = {
+            "a",
+            "an",
+            "and",
+            "are",
+            "be",
+            "for",
+            "from",
+            "in",
+            "is",
+            "it",
+            "of",
+            "on",
+            "or",
+            "research",
+            "should",
+            "that",
+            "the",
+            "to",
+            "with",
+            "work",
+        }
+        candidate_words: list[list[str]] = []
+        term_counts: Counter[str] = Counter()
+        first_positions: dict[str, int] = {}
+        position = 0
+
+        for candidate in candidates:
+            words = [
+                token.strip(",.;:?()").casefold()
+                for token in cls._normalize_query(candidate).split()
+            ]
+            filtered_words = [
+                word
+                for word in words
+                if (
+                    word
+                    and word not in ignored_words
+                )
+            ]
+            candidate_words.append(filtered_words)
+            term_counts.update(set(filtered_words))
+
+            for word in filtered_words:
+                if word not in first_positions:
+                    first_positions[word] = position
+                    position += 1
+
+        excluded_stems = {
+            cls._word_stem(word)
+            for word in excluded_words
+        }
+
+        shared_words = sorted(
+            (
+                word
+                for word, count in term_counts.items()
+                if (
+                    count >= 2
+                    and word not in excluded_words
+                    and cls._word_stem(word) not in excluded_stems
+                )
+            ),
+            key=lambda word: (
+                -term_counts[word],
+                first_positions[word],
+            ),
+        )
+
+        return " ".join(
+            shared_words[:maximum_words]
+        )
+
+    @staticmethod
+    def _word_stem(
+        word: str,
+    ) -> str:
+        """Normalize common word endings for query deduplication."""
+
+        normalized = word.casefold()
+
+        for suffix in (
+            "ment",
+            "ing",
+            "ed",
+            "s",
+        ):
+            if (
+                normalized.endswith(suffix)
+                and len(normalized) > len(suffix) + 3
+            ):
+                return normalized[:-len(suffix)]
+
+        return normalized
+
+    @staticmethod
+    def _deduplicate_words(
+        fragments: tuple[str, ...],
+    ) -> str:
+        """Combine query fragments without repeated words."""
+
+        words: list[str] = []
+        seen: set[str] = set()
+
+        for fragment in fragments:
+            for word in fragment.split():
+                key = word.casefold()
+
+                if key in seen:
+                    continue
+
+                seen.add(key)
+                words.append(word)
+
+        return " ".join(words)
 
     @staticmethod
     def _query_fragment(
@@ -138,6 +273,10 @@ class ResearchQueryService:
         prefixes = (
             "future work should explore ",
             "future work should investigate ",
+            "future research should focus on ",
+            "future research should focus ",
+            "future research should explore ",
+            "future research should investigate ",
             "investigate ",
             "explore ",
             "how should ",

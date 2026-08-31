@@ -52,6 +52,13 @@ class ResearchStrategyService:
             len(sub_questions),
         )
 
+        for index, concept in enumerate(concepts):
+            LOGGER.debug(
+                "Research strategy concept[%d]=%s",
+                index,
+                concept,
+            )
+
         # Empty research requests should not generate
         # executable search strategies.
         if not objective and not request_concepts:

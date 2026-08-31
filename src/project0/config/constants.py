@@ -27,6 +27,8 @@ DEFAULT_RESEARCH_SOURCE_PROVIDERS = (
     "arxiv",
 )
 
+DEFAULT_RESEARCH_DIRECTION_ANALYSIS_ENABLED = True
+
 # Supported providers
 SUPPORTED_RESEARCH_SOURCE_PROVIDERS = (
     "semantic_scholar",

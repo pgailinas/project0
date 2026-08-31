@@ -207,8 +207,8 @@ def test_research_query_service_uses_focus_constraint_when_needed():
     )
 
 
-def test_research_query_service_combines_prioritized_fallback_concepts():
-    """Verify fallback combines follow-on and unresolved concepts."""
+def test_research_query_service_combines_fallback_with_domain_concept():
+    """Verify fallback combines follow-on and domain concepts."""
 
     strategy = ResearchStrategy(
         concepts=(
@@ -222,8 +222,8 @@ def test_research_query_service_combines_prioritized_fallback_concepts():
                 "with language representations?"
             ),
             (
-                "The primary challenge is learning compact "
-                "representations that preserve useful information"
+                "VideoQA requires semantically aligned video and "
+                "language representations for question answering"
             ),
         ),
         search_terms=(),
@@ -235,6 +235,87 @@ def test_research_query_service_combines_prioritized_fallback_concepts():
     assert result.search_terms == (
         (
             "semantic alignment objectives for video "
-            "representations be aligned"
+            "representations language VideoQA"
         ),
     )
+
+def test_research_query_service_strips_future_research_framing():
+    """Verify future-research framing does not consume query budget."""
+
+    strategy = ResearchStrategy(
+        concepts=(
+            "What should I investigate next",
+            (
+                "Contrastive objectives latent-space regularization "
+                "for representation learning approaches in video"
+            ),
+            (
+                "Future research should focus on video language "
+                "semantic alignment"
+            ),
+        ),
+        search_terms=(),
+        objective="What should I investigate next?",
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms == (
+        (
+            "Contrastive objectives latent-space regularization "
+            "video language semantic alignment"
+        ),
+    )
+
+def test_research_query_service_uses_shared_context_terms_for_fallback():
+    """Verify fallback preserves recurring domain terms from context."""
+
+    strategy = ResearchStrategy(
+        concepts=(
+            "What should I investigate next",
+            (
+                "Future work should explore contrastive objectives, "
+                "latent-space regularization, transformer-based video "
+                "encoders, and more sophisticated hybrid fusion methods."
+            ),
+            (
+                "Future research should focus on improving semantic "
+                "organization of self-supervised video representations "
+                "rather than just reconstruction quality."
+            ),
+            (
+                "The primary challenge is learning compact "
+                "representations that preserve semantic structure, "
+                "not just visual ones."
+            ),
+            (
+                "The self-supervised autoencoder was optimized for "
+                "visual reconstruction rather than semantic "
+                "understanding, leading to lower accuracy in VideoQA tasks."
+            ),
+            (
+                "Increasing the training subset did not improve "
+                "performance, suggesting that additional data alone "
+                "is insufficient to enhance video representation quality."
+            ),
+            (
+                "The research problem is to investigate the effectiveness "
+                "of self-supervised video representations for Video "
+                "Question Answering (VideoQA) tasks, specifically comparing "
+                "them with pretrained CLIP and hybrid CLIP-autoencoder "
+                "approaches."
+            ),
+        ),
+        search_terms=(),
+        objective="What should I investigate next?",
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms == (
+        (
+            "contrastive objectives latent-space regularization "
+            "video semantic self-supervised representations"
+        ),
+    )
+

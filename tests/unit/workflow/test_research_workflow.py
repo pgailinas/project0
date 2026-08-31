@@ -514,6 +514,7 @@ def _create_workflow(
     context_analysis_service=None,
     paper_analysis_service=None,
     direction_analysis_service=None,
+    direction_analysis_enabled: bool = True,
 ):
     """Create a workflow and its test doubles."""
 
@@ -588,6 +589,7 @@ def _create_workflow(
         context_analysis_service=context_analysis_service,
         paper_analysis_service=paper_analysis_service,
         direction_analysis_service=direction_analysis_service,
+        direction_analysis_enabled=direction_analysis_enabled,
     )
 
     return (
@@ -1503,6 +1505,40 @@ def test_workflow_forwards_paper_analysis_to_direction_analysis() -> None:
             (paper_analysis,),
         )
     ]
+
+
+def test_workflow_skips_disabled_direction_analysis() -> None:
+    """Disabled direction analysis should not invoke the service."""
+
+    reference = _source_reference()
+    paper = _paper_metadata(reference)
+    paper_analysis = _paper_analysis(paper)
+
+    paper_analysis_service = StubPaperAnalysisService(
+        analyses=(paper_analysis,)
+    )
+    direction_analysis_service = (
+        StubResearchDirectionAnalysisService()
+    )
+
+    workflow = _create_workflow(
+        references=(reference,),
+        papers=(paper,),
+        evaluations=(
+            _evaluation(paper),
+        ),
+        paper_analysis_service=paper_analysis_service,
+        direction_analysis_service=direction_analysis_service,
+        direction_analysis_enabled=False,
+    )[0]
+
+    result = workflow.execute(
+        _research_request()
+    )
+
+    assert result.status is ResearchStatus.COMPLETED
+    assert result.direction_analysis is None
+    assert direction_analysis_service.requests == []
 
 
 def test_workflow_forwards_context_to_direction_analysis() -> None:

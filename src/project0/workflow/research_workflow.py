@@ -16,6 +16,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 import logging
 
+from project0.config.settings import SETTINGS
 from project0.interfaces.research_interfaces import (
     ExistingResearchContextAnalysisServiceProtocol,
     PaperAnalysisServiceProtocol,
@@ -61,6 +62,9 @@ class ResearchWorkflow:
         direction_analysis_service: (
             ResearchDirectionAnalysisServiceProtocol | None
         ) = None,
+        direction_analysis_enabled: bool = (
+            SETTINGS.research_direction_analysis_enabled
+        ),
     ) -> None:
         self._strategy_service = strategy_service
         self._query_service = query_service
@@ -72,6 +76,7 @@ class ResearchWorkflow:
         self._context_analysis_service = context_analysis_service
         self._paper_analysis_service = paper_analysis_service
         self._direction_analysis_service = direction_analysis_service
+        self._direction_analysis_enabled = direction_analysis_enabled
 
     def execute(
         self,
@@ -187,7 +192,10 @@ class ResearchWorkflow:
 
             direction_analysis = None
 
-            if self._direction_analysis_service is not None:
+            if (
+                self._direction_analysis_enabled
+                and self._direction_analysis_service is not None
+            ):
                 if self._paper_analysis_service is None:
                     raise RuntimeError(
                         "Research direction analysis requires paper "

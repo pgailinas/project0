@@ -16,6 +16,7 @@ from pathlib import Path
 from project0.config.constants import (
     DEFAULT_LOG_LEVEL,
     DEFAULT_OLLAMA_TIMEOUT_SECONDS,
+    DEFAULT_RESEARCH_DIRECTION_ANALYSIS_ENABLED,
     DEFAULT_RESEARCH_SOURCE_PROVIDERS,
 )
 
@@ -31,6 +32,7 @@ class ProjectSettings:
     log_level: str = DEFAULT_LOG_LEVEL
     reasoning_provider: str = "ollama"
     research_source_providers: tuple[str, ...] = DEFAULT_RESEARCH_SOURCE_PROVIDERS
+    research_direction_analysis_enabled: bool = DEFAULT_RESEARCH_DIRECTION_ANALYSIS_ENABLED
     semantic_scholar_api_key: str | None = None
     ollama_model: str = "qwen2.5:7b"
     ollama_base_url: str = "http://127.0.0.1:11434"
@@ -46,6 +48,16 @@ def _parse_provider_list(value: str) -> tuple[str, ...]:
         for provider in value.split(",")
         if provider.strip()
     )
+
+def _parse_boolean(value: str) -> bool:
+    """Parse boolean configuration values."""
+
+    return value.strip().casefold() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
 
 def load_settings() -> ProjectSettings:
     """Create the shared Project0 configuration."""
@@ -69,6 +81,12 @@ def load_settings() -> ProjectSettings:
             os.getenv(
                 "PROJECT0_RESEARCH_SOURCE_PROVIDERS",
                 ",".join(DEFAULT_RESEARCH_SOURCE_PROVIDERS),
+            )
+        ),
+        research_direction_analysis_enabled=_parse_boolean(
+            os.getenv(
+                "PROJECT0_ENABLE_RESEARCH_DIRECTION_ANALYSIS",
+                str(DEFAULT_RESEARCH_DIRECTION_ANALYSIS_ENABLED),
             )
         ),
         semantic_scholar_api_key=os.getenv(
