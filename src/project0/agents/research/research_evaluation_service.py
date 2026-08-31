@@ -45,7 +45,7 @@ class ResearchEvaluationService:
 
         self._provider = provider
         self._model_name = model_name
-        self._batch_size = 5
+        self._batch_size = 1
 
     def evaluate(
         self,
@@ -301,6 +301,8 @@ class ResearchEvaluationService:
             "properties": {
                 "evaluations": {
                     "type": "array",
+                    "minItems": len(papers),
+                    "maxItems": len(papers),
                     "items": {
                         "type": "object",
                         "properties": {

@@ -410,7 +410,7 @@ def test_research_evaluation_service_retries_missing_evaluation() -> None:
     assert [
         request.metadata["paper_count"]
         for request in provider.requests
-    ] == [2, 1]
+    ] == [1, 1]
     assert result[0].paper == first_paper
     assert result[1].paper == second_paper
 
@@ -425,36 +425,10 @@ def test_research_evaluation_service_merges_missing_retry_in_order() -> None:
         for index in range(1, 4)
     )
 
-    first_response = create_valid_provider_response(
-        evaluations=[
-            {
-                "source_id": "paper-001",
-                "relevance_score": 90,
-                "relevance_summary": "First paper is relevant.",
-                "strengths": [],
-                "limitations": [],
-                "research_connections": [],
-                "warnings": [],
-            },
-            {
-                "source_id": "paper-003",
-                "relevance_score": 60,
-                "relevance_summary": "Third paper is relevant.",
-                "strengths": [],
-                "limitations": [],
-                "research_connections": [],
-                "warnings": [],
-            },
-        ]
-    )
-    retry_response = create_provider_response_for_papers(
-        (papers[1],)
-    )
-
     provider = SequentialStubProvider(
-        (
-            first_response,
-            retry_response,
+        tuple(
+            create_provider_response_for_papers((paper,))
+            for paper in papers
         )
     )
 
@@ -476,7 +450,7 @@ def test_research_evaluation_service_merges_missing_retry_in_order() -> None:
     assert [
         request.metadata["paper_count"]
         for request in provider.requests
-    ] == [3, 1]
+    ] == [1, 1, 1]
 
 
 
@@ -520,7 +494,7 @@ def test_research_evaluation_service_stops_after_one_retry() -> None:
 
 
 def test_research_evaluation_service_batches_six_papers() -> None:
-    """Verify six papers are evaluated in two bounded provider calls."""
+    """Verify six papers are evaluated in six bounded provider calls."""
 
     papers = tuple(
         create_paper_metadata(
@@ -530,13 +504,10 @@ def test_research_evaluation_service_batches_six_papers() -> None:
         for index in range(1, 7)
     )
 
-    first_batch = papers[:5]
-    second_batch = papers[5:]
-
     provider = SequentialStubProvider(
-        (
-            create_provider_response_for_papers(first_batch),
-            create_provider_response_for_papers(second_batch),
+        tuple(
+            create_provider_response_for_papers((paper,))
+            for paper in papers
         )
     )
 
@@ -552,13 +523,15 @@ def test_research_evaluation_service_batches_six_papers() -> None:
     )
 
     assert len(result) == 6
-    assert len(provider.requests) == 2
-    assert provider.requests[0].metadata["paper_count"] == 5
-    assert provider.requests[1].metadata["paper_count"] == 1
+    assert len(provider.requests) == 6
+    assert [
+        request.metadata["paper_count"]
+        for request in provider.requests
+    ] == [1, 1, 1, 1, 1, 1]
 
 
 def test_research_evaluation_service_batches_eleven_papers() -> None:
-    """Verify eleven papers are evaluated in three provider calls."""
+    """Verify eleven papers are evaluated in eleven provider calls."""
 
     papers = tuple(
         create_paper_metadata(
@@ -569,10 +542,9 @@ def test_research_evaluation_service_batches_eleven_papers() -> None:
     )
 
     provider = SequentialStubProvider(
-        (
-            create_provider_response_for_papers(papers[:5]),
-            create_provider_response_for_papers(papers[5:10]),
-            create_provider_response_for_papers(papers[10:]),
+        tuple(
+            create_provider_response_for_papers((paper,))
+            for paper in papers
         )
     )
 
@@ -588,11 +560,11 @@ def test_research_evaluation_service_batches_eleven_papers() -> None:
     )
 
     assert len(result) == 11
-    assert len(provider.requests) == 3
+    assert len(provider.requests) == 11
     assert [
         request.metadata["paper_count"]
         for request in provider.requests
-    ] == [5, 5, 1]
+    ] == [1] * 11
 
 
 def test_research_evaluation_service_preserves_order_across_batches() -> None:
@@ -607,9 +579,9 @@ def test_research_evaluation_service_preserves_order_across_batches() -> None:
     )
 
     provider = SequentialStubProvider(
-        (
-            create_provider_response_for_papers(papers[:5]),
-            create_provider_response_for_papers(papers[5:]),
+        tuple(
+            create_provider_response_for_papers((paper,))
+            for paper in papers
         )
     )
 
@@ -641,22 +613,20 @@ def test_research_evaluation_service_retries_only_failed_batch() -> None:
         for index in range(1, 7)
     )
 
-    first_batch_response = create_provider_response_for_papers(
-        papers[:5]
-    )
-    invalid_second_batch_response = create_valid_provider_response()
-    invalid_second_batch_response.structured_output[
+    invalid_response = create_valid_provider_response()
+    invalid_response.structured_output[
         "evaluations"
     ][0]["source_id"] = "paper-999"
-    valid_second_batch_response = create_provider_response_for_papers(
-        papers[5:]
-    )
 
     provider = SequentialStubProvider(
         (
-            first_batch_response,
-            invalid_second_batch_response,
-            valid_second_batch_response,
+            create_provider_response_for_papers((papers[0],)),
+            invalid_response,
+            create_provider_response_for_papers((papers[1],)),
+            create_provider_response_for_papers((papers[2],)),
+            create_provider_response_for_papers((papers[3],)),
+            create_provider_response_for_papers((papers[4],)),
+            create_provider_response_for_papers((papers[5],)),
         )
     )
 
@@ -672,11 +642,11 @@ def test_research_evaluation_service_retries_only_failed_batch() -> None:
     )
 
     assert len(result) == 6
-    assert len(provider.requests) == 3
+    assert len(provider.requests) == 7
     assert [
         request.metadata["paper_count"]
         for request in provider.requests
-    ] == [5, 1, 1]
+    ] == [1, 1, 1, 1, 1, 1, 1]
 
 
 def test_research_evaluation_service_returns_empty_for_no_papers() -> None:
@@ -713,31 +683,15 @@ def test_research_evaluation_service_supports_multiple_papers() -> None:
         title="Second Paper",
     )
 
-    provider_response = create_valid_provider_response(
-        evaluations=[
-            {
-                "source_id": "paper-001",
-                "relevance_score": 90,
-                "relevance_summary": "First paper is relevant.",
-                "strengths": [],
-                "limitations": [],
-                "research_connections": [],
-                "warnings": [],
-            },
-            {
-                "source_id": "paper-002",
-                "relevance_score": 70,
-                "relevance_summary": "Second paper is relevant.",
-                "strengths": [],
-                "limitations": [],
-                "research_connections": [],
-                "warnings": [],
-            },
-        ]
+    provider = SequentialStubProvider(
+        (
+            create_provider_response_for_papers((first_paper,)),
+            create_provider_response_for_papers((second_paper,)),
+        )
     )
 
     service = ResearchEvaluationService(
-        provider=StubProvider(provider_response),
+        provider=provider,
         model_name="qwen3:8b",
     )
 
@@ -839,23 +793,27 @@ def test_research_evaluation_service_preserves_score_ordering() -> None:
     )
     raw_scores = (90, 75, 50, 25, 0)
 
-    response = create_valid_provider_response(
-        evaluations=[
-            {
-                "source_id": paper.source_reference.source_id,
-                "relevance_score": raw_score,
-                "relevance_summary": f"{paper.title} relevance.",
-                "strengths": [],
-                "limitations": [],
-                "research_connections": [],
-                "warnings": [],
-            }
+    provider = SequentialStubProvider(
+        tuple(
+            create_valid_provider_response(
+                evaluations=[
+                    {
+                        "source_id": paper.source_reference.source_id,
+                        "relevance_score": raw_score,
+                        "relevance_summary": f"{paper.title} relevance.",
+                        "strengths": [],
+                        "limitations": [],
+                        "research_connections": [],
+                        "warnings": [],
+                    }
+                ]
+            )
             for paper, raw_score in zip(papers, raw_scores)
-        ]
+        )
     )
 
     service = ResearchEvaluationService(
-        provider=StubProvider(response),
+        provider=provider,
         model_name="qwen3:8b",
     )
 
@@ -1145,6 +1103,9 @@ def test_research_evaluation_service_rejects_missing_paper_evaluation() -> None:
     provider = SequentialStubProvider(
         (
             create_valid_provider_response(),
+            create_valid_provider_response(
+                evaluations=[]
+            ),
             create_valid_provider_response(
                 evaluations=[]
             ),
