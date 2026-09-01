@@ -282,10 +282,7 @@ class ResearchDirectionAnalysisService:
             "type": "object",
             "properties": {
                 "content": {"type": "string"},
-                "evidence_ids": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                },
+                "evidence_ids": {"type": "array"},
             },
             "required": ["content", "evidence_ids"],
         }
@@ -295,20 +292,8 @@ class ResearchDirectionAnalysisService:
             "properties": {
                 "direction": {"type": "string"},
                 "rationale": {"type": "string"},
-                "context_evidence_ids": {
-                    "type": "array",
-                    "items": {
-                        "type": "string",
-                        "enum": context_evidence_ids,
-                    },
-                },
-                "literature_evidence_ids": {
-                    "type": "array",
-                    "items": {
-                        "type": "string",
-                        "enum": literature_evidence_ids,
-                    },
-                },
+                "context_evidence_ids": {"type": "array"},
+                "literature_evidence_ids": {"type": "array"},
                 "speculative": {"type": "boolean"},
             },
             "required": [
@@ -590,49 +575,57 @@ class ResearchDirectionAnalysisService:
         findings: list[ResearchFinding] = []
 
         for item in value:
-            if not isinstance(item, dict):
-                raise ValueError(
-                    f"Provider field '{field_name}' findings must be objects."
+            try:
+                if not isinstance(item, dict):
+                    raise ValueError(
+                        f"Provider field '{field_name}' findings must be objects."
+                    )
+
+                content = self._require_non_empty_string(
+                    item.get("content"),
+                    f"{field_name}.content",
+                )
+                evidence_ids = self._parse_evidence_ids(
+                    item.get("evidence_ids"),
+                    f"{field_name}.evidence_ids",
                 )
 
-            content = self._require_non_empty_string(
-                item.get("content"),
-                f"{field_name}.content",
-            )
-            evidence_ids = self._parse_evidence_ids(
-                item.get("evidence_ids"),
-                f"{field_name}.evidence_ids",
-            )
-
-            evidence = self._resolve_evidence(
-                evidence_ids=evidence_ids,
-                field_name=f"{field_name}.evidence_ids",
-                expected_source_type=(
-                    ResearchEvidenceSourceType.RESEARCH_PAPER
-                ),
-                evidence_catalog=evidence_catalog,
-            )
-
-            distinct_papers = {
-                reference.source_id
-                for reference in evidence
-                if reference.source_type
-                == ResearchEvidenceSourceType.RESEARCH_PAPER
-            }
-
-            if len(distinct_papers) < minimum_distinct_papers:
-                raise ValueError(
-                    f"Provider field '{field_name}' requires evidence from "
-                    f"at least {minimum_distinct_papers} distinct paper"
-                    f"{'s' if minimum_distinct_papers != 1 else ''}."
+                evidence = self._resolve_evidence(
+                    evidence_ids=evidence_ids,
+                    field_name=f"{field_name}.evidence_ids",
+                    expected_source_type=(
+                        ResearchEvidenceSourceType.RESEARCH_PAPER
+                    ),
+                    evidence_catalog=evidence_catalog,
                 )
 
-            findings.append(
-                ResearchFinding(
-                    content=content,
-                    evidence=evidence,
+                distinct_papers = {
+                    reference.source_id
+                    for reference in evidence
+                    if reference.source_type
+                    == ResearchEvidenceSourceType.RESEARCH_PAPER
+                }
+
+                if len(distinct_papers) < minimum_distinct_papers:
+                    raise ValueError(
+                        f"Provider field '{field_name}' requires evidence from "
+                        f"at least {minimum_distinct_papers} distinct paper"
+                        f"{'s' if minimum_distinct_papers != 1 else ''}."
+                    )
+
+                findings.append(
+                    ResearchFinding(
+                        content=content,
+                        evidence=evidence,
+                    )
                 )
-            )
+            except ValueError as error:
+                LOGGER.warning(
+                    "Skipping invalid research direction synthesis finding "
+                    "for field '%s': %s",
+                    field_name,
+                    error,
+                )
 
         return tuple(findings)
 
@@ -675,11 +668,11 @@ class ResearchDirectionAnalysisService:
                     "must be a boolean."
                 )
 
-            context_ids = self._parse_evidence_ids(
+            context_ids = self._parse_candidate_evidence_ids(
                 item.get("context_evidence_ids"),
                 "candidate_directions.context_evidence_ids",
             )
-            literature_ids = self._parse_evidence_ids(
+            literature_ids = self._parse_candidate_evidence_ids(
                 item.get("literature_evidence_ids"),
                 "candidate_directions.literature_evidence_ids",
             )
@@ -736,6 +729,25 @@ class ResearchDirectionAnalysisService:
             )
 
         return tuple(directions)
+
+    @staticmethod
+    def _parse_candidate_evidence_ids(
+        value: Any,
+        field_name: str,
+    ) -> tuple[str, ...]:
+        """Parse candidate evidence handles and remove duplicates."""
+
+        if not isinstance(value, list):
+            raise ValueError(
+                f"Provider field '{field_name}' must be an array."
+            )
+
+        if not all(isinstance(item, str) for item in value):
+            raise ValueError(
+                f"Provider field '{field_name}' must contain strings only."
+            )
+
+        return tuple(dict.fromkeys(value))
 
     @staticmethod
     def _parse_evidence_ids(

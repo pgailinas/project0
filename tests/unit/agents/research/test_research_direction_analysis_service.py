@@ -211,22 +211,46 @@ def test_analyze_retries_once_after_invalid_output_then_succeeds():
     )
 
 
-def test_analyze_raises_after_second_invalid_output():
+def test_analyze_skips_invalid_synthesis_finding_without_retry():
     invalid = _valid_output()
     invalid["synthesis"]["themes"][0]["evidence_ids"] = [
         "E2"
     ]
-    provider = StubProvider([invalid, invalid])
+    provider = StubProvider([invalid])
     service = ResearchDirectionAnalysisService(provider, "test-model")
     papers = (
         _paper_analysis("Paper-A", "Paper A", 3),
         _paper_analysis("Paper-B", "Paper B", 7),
     )
 
-    with pytest.raises(ValueError, match="at least 2 distinct papers"):
-        service.analyze(_request(), _context(), papers)
+    result = service.analyze(_request(), _context(), papers)
 
-    assert len(provider.requests) == 2
+    assert result.synthesis.themes == ()
+    assert result.candidate_directions
+    assert len(provider.requests) == 1
+
+
+def test_analyze_deduplicates_candidate_evidence_ids_without_retry():
+    output = _valid_output()
+    output["candidate_directions"][0]["literature_evidence_ids"] = [
+        "E3",
+        "E3",
+    ]
+    provider = StubProvider([output])
+    service = ResearchDirectionAnalysisService(provider, "test-model")
+    papers = (
+        _paper_analysis("Paper-A", "Paper A", 3),
+        _paper_analysis("Paper-B", "Paper B", 7),
+    )
+
+    result = service.analyze(_request(), _context(), papers)
+
+    direction = result.candidate_directions[0]
+    assert (
+        direction.literature_evidence
+        == papers[0].findings[0].evidence
+    )
+    assert len(provider.requests) == 1
 
 
 def test_analyze_accepts_valid_empty_provider_result_without_retry():
@@ -314,19 +338,12 @@ def test_provider_request_uses_structured_findings_and_prohibits_novelty_claims(
     direction_schema = request.response_schema["properties"][
         "candidate_directions"
     ]["items"]["properties"]
-    assert direction_schema["context_evidence_ids"]["items"]["enum"] == [
-        "E0"
-    ]
-    assert direction_schema["literature_evidence_ids"]["items"]["enum"] == [
-        "E1",
-        "E2",
-        "E3",
-        "E4",
-        "E5",
-        "E6",
-        "E7",
-        "E8",
-    ]
+    assert direction_schema["context_evidence_ids"] == {
+        "type": "array"
+    }
+    assert direction_schema["literature_evidence_ids"] == {
+        "type": "array"
+    }
 
     instructions = request.system_instructions.lower()
     assert "do not use outside knowledge" in instructions

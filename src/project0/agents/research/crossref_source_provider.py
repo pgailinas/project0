@@ -269,9 +269,18 @@ class CrossrefSourceProvider(
     ) -> str:
         """Return the primary Crossref title."""
 
+        if isinstance(value, str):
+            if not value:
+                raise TypeError(
+                    "Crossref title must not be empty."
+                )
+
+            return value
+
         if not isinstance(value, list):
             raise TypeError(
-                "Crossref title must be a list."
+                "Crossref title must be a list or string; "
+                f"received {type(value).__name__}."
             )
 
         if not value:

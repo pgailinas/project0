@@ -14,6 +14,7 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import time
@@ -63,6 +64,19 @@ class OllamaReasoningProvider:
                 "temperature": self.temperature,
             },
         }
+
+        debug_capture_path = request.metadata.get(
+            "debug_capture_path"
+        )
+        if isinstance(debug_capture_path, str) and debug_capture_path:
+            Path(debug_capture_path).write_text(
+                json.dumps(payload, indent=2),
+                encoding="utf-8",
+            )
+            LOGGER.debug(
+                "Ollama request payload captured: %s",
+                debug_capture_path,
+            )
 
         LOGGER.debug(
             "Ollama request endpoint=%s model=%s system_length=%d "

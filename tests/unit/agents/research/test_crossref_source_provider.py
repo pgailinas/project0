@@ -298,6 +298,62 @@ def test_crossref_provider_normalizes_references(
     )
 
 
+def test_crossref_provider_accepts_scalar_title(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify scalar Crossref titles are normalized."""
+
+    response_data = create_crossref_response_data()
+    response_data["message"]["items"][0]["title"] = (
+        "Example Video Representation Paper"
+    )
+
+    monkeypatch.setattr(
+        httpx,
+        "get",
+        lambda *args, **kwargs: create_http_response(
+            data=response_data,
+        ),
+    )
+
+    result = CrossrefSourceProvider().search(
+        create_strategy()
+    )
+
+    assert len(result) == 1
+    assert result[0].title == (
+        "Example Video Representation Paper"
+    )
+
+
+def test_crossref_provider_reports_invalid_title_type(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Verify invalid Crossref title types identify the received type."""
+
+    response_data = create_crossref_response_data()
+    response_data["message"]["items"][0]["title"] = None
+
+    monkeypatch.setattr(
+        httpx,
+        "get",
+        lambda *args, **kwargs: create_http_response(
+            data=response_data,
+        ),
+    )
+
+    result = CrossrefSourceProvider().search(
+        create_strategy()
+    )
+
+    assert result == ()
+    assert (
+        "Crossref title must be a list or string; "
+        "received NoneType."
+    ) in caplog.text
+
+
 def test_crossref_provider_uses_doi_url_fallback(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -742,4 +798,3 @@ def test_crossref_provider_skips_invalid_search_results(
     assert result[0].title == (
         "Example Video Representation Paper"
     )
-
