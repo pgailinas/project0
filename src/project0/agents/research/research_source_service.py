@@ -11,7 +11,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from project0.agents.research.research_source_provider import (
     ResearchSourceProviderProtocol,
@@ -43,6 +43,13 @@ class ResearchSourceService:
 
         references: list[ResearchSourceReference] = []
         failures: list[str] = []
+        query_strategies = tuple(
+            replace(
+                strategy,
+                search_terms=(query,),
+            )
+            for query in strategy.search_terms
+        ) or (strategy,)
 
         for source_name in source_names:
             provider = self.providers.get(source_name)
@@ -52,16 +59,17 @@ class ResearchSourceService:
                     f"Unsupported research source: {source_name}"
                 )
 
-            try:
-                references.extend(
-                    provider.search(strategy)
-                )
+            for query_strategy in query_strategies:
+                try:
+                    references.extend(
+                        provider.search(query_strategy)
+                    )
 
-            except RuntimeError as error:
-                failures.append(
-                    f"{source_name}: {error}"
-                )
-                continue
+                except RuntimeError as error:
+                    failures.append(
+                        f"{source_name}: {error}"
+                    )
+                    continue
 
         if not references and failures:
             raise RuntimeError(

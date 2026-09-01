@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable
 from pathlib import Path
 
@@ -316,10 +317,14 @@ class _ResearchStubReasoningProvider:
         )
 
         if "evaluations" in properties:
+            source_id = json.loads(
+                request.user_prompt
+            )["papers"][0]["source_id"]
+
             structured_output = {
                 "evaluations": [
                     {
-                        "source_id": "stub-paper-001",
+                        "source_id": source_id,
                         "relevance_score": 95,
                         "relevance_summary": (
                             "Stub research evaluation."

@@ -20,6 +20,7 @@ from project0.agents.documentation.documentation_agent_ui_service import (
     DocumentationAgentUIService,
 )
 from project0.dashboard.dashboard_app import (
+    _create_research_reasoning_provider,
     _create_reasoning_provider,
     create_dashboard_app,
     create_project0_dashboard_app,
@@ -542,6 +543,29 @@ def test_create_reasoning_provider_can_use_stub(
             },
         ],
     }
+
+
+def test_create_research_reasoning_provider_uses_request_source_id() -> None:
+    """The Research Agent stub preserves evaluation source identifiers."""
+
+    reasoning_provider = _create_research_reasoning_provider()
+
+    response = reasoning_provider.generate(
+        SimpleNamespace(
+            response_schema={
+                "properties": {
+                    "evaluations": {},
+                },
+            },
+            user_prompt=(
+                '{"papers": [{"source_id": "paper-001"}]}'
+            ),
+        )
+    )
+
+    assert response.structured_output["evaluations"][0][
+        "source_id"
+    ] == "paper-001"
 
 
 def test_create_reasoning_provider_rejects_unsupported_provider(

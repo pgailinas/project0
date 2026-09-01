@@ -62,13 +62,9 @@ class ResearchQueryService:
             ):
                 continue
 
-            if len(normalized.split()) > 8:
-                continue
-
-            queries.append(normalized)
-
-            if len(queries) >= 4:
-                break
+            queries.append(
+                self._build_dimension_query(normalized)
+            )
 
         if not queries:
             fallback_queries = [
@@ -94,7 +90,41 @@ class ResearchQueryService:
 
         return replace(
             strategy,
-            search_terms=self._deduplicate_queries(queries),
+            search_terms=self._select_bounded_queries(
+                self._deduplicate_complementary_queries(queries)
+            ),
+        )
+
+    @classmethod
+    def _build_dimension_query(
+        cls,
+        candidate: str,
+    ) -> str:
+        """Build one bounded query for a strategy dimension."""
+
+        normalized = cls._normalize_query(candidate)
+
+        if len(normalized.split()) <= 8:
+            return normalized
+
+        return cls._query_fragment(
+            normalized,
+            maximum_words=8,
+        )
+
+    @staticmethod
+    def _select_bounded_queries(
+        queries: tuple[str, ...],
+    ) -> tuple[str, ...]:
+        """Select at most three ordered query dimensions."""
+
+        if len(queries) <= 3:
+            return queries
+
+        return (
+            queries[0],
+            queries[1],
+            queries[-1],
         )
 
     @classmethod
@@ -260,8 +290,9 @@ class ResearchQueryService:
 
         return " ".join(words)
 
-    @staticmethod
+    @classmethod
     def _query_fragment(
+        cls,
         query: str,
         maximum_words: int,
     ) -> str:
@@ -271,6 +302,8 @@ class ResearchQueryService:
         lowered = normalized.casefold()
 
         prefixes = (
+            "the research problem is to investigate the ",
+            "the research problem is to investigate ",
             "additional research may investigate ",
             "future work should explore ",
             "future work should investigate ",
@@ -292,16 +325,64 @@ class ResearchQueryService:
                 break
 
         words = [
-            token.strip(",.;:?")
+            token.strip(",.;:?()")
             for token in normalized.split()
         ]
-
-        return " ".join(
-            [
+        words = [
+            word
+            for word in words
+            if word
+        ]
+        salient_words = cls._deduplicate_words(
+            tuple(
                 word
                 for word in words
-                if word
-            ][:maximum_words]
+                if cls._is_salient_term(word)
+            )
+        ).split()[:2]
+        base_word_count = max(
+            maximum_words - len(salient_words),
+            0,
+        )
+        selected_words = cls._deduplicate_words(
+            (
+                *words[:base_word_count],
+                *salient_words,
+            )
+        ).split()[:maximum_words]
+
+        while (
+            selected_words
+            and selected_words[-1].casefold()
+            in {
+                "and",
+                "or",
+                "rather",
+                "than",
+            }
+        ):
+            selected_words.pop()
+
+        return " ".join(selected_words)
+
+    @staticmethod
+    def _is_salient_term(
+        term: str,
+    ) -> bool:
+        """Return whether a term carries acronym-like domain detail."""
+
+        letters = [
+            character
+            for character in term
+            if character.isalpha()
+        ]
+
+        if len(letters) < 2:
+            return False
+
+        return (
+            all(character.isupper() for character in letters)
+            or any(character.isupper() for character in term[1:])
         )
 
     @staticmethod
@@ -342,3 +423,81 @@ class ResearchQueryService:
             unique_queries.append(query)
 
         return tuple(unique_queries)
+
+    @classmethod
+    def _deduplicate_complementary_queries(
+        cls,
+        queries: list[str],
+    ) -> tuple[str, ...]:
+        """Remove duplicate and substantially overlapping queries."""
+
+        unique_queries: list[str] = []
+
+        for query in cls._deduplicate_queries(queries):
+            query_terms = cls._query_term_stems(query)
+
+            if not query_terms:
+                continue
+
+            if any(
+                cls._query_overlap(
+                    query_terms,
+                    cls._query_term_stems(existing_query),
+                ) >= 0.75
+                for existing_query in unique_queries
+            ):
+                continue
+
+            unique_queries.append(query)
+
+        return tuple(unique_queries)
+
+    @classmethod
+    def _query_term_stems(
+        cls,
+        query: str,
+    ) -> set[str]:
+        """Return meaningful normalized terms for query comparison."""
+
+        ignored_words = {
+            "a",
+            "an",
+            "and",
+            "are",
+            "be",
+            "for",
+            "from",
+            "in",
+            "is",
+            "it",
+            "of",
+            "on",
+            "or",
+            "the",
+            "to",
+            "with",
+        }
+
+        return {
+            cls._word_stem(word)
+            for word in (
+                token.strip(",.;:?()").casefold()
+                for token in query.split()
+            )
+            if word and word not in ignored_words
+        }
+
+    @staticmethod
+    def _query_overlap(
+        first_terms: set[str],
+        second_terms: set[str],
+    ) -> float:
+        """Return overlap relative to the smaller query dimension."""
+
+        if not first_terms or not second_terms:
+            return 0.0
+
+        return (
+            len(first_terms & second_terms)
+            / min(len(first_terms), len(second_terms))
+        )

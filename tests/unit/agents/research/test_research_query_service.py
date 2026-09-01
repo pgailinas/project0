@@ -155,8 +155,8 @@ def test_research_query_service_excludes_objective_question_concept():
     )
 
 
-def test_research_query_service_excludes_objective_from_fallback():
-    """Verify fallback does not restore the objective question."""
+def test_research_query_service_excludes_objective_from_long_concept_query():
+    """Verify a long concept query does not restore the objective."""
 
     strategy = ResearchStrategy(
         concepts=(
@@ -207,8 +207,8 @@ def test_research_query_service_uses_focus_constraint_when_needed():
     )
 
 
-def test_research_query_service_combines_fallback_with_domain_concept():
-    """Verify fallback combines follow-on and domain concepts."""
+def test_research_query_service_preserves_follow_on_and_domain_queries():
+    """Verify distinct follow-on and domain queries are preserved."""
 
     strategy = ResearchStrategy(
         concepts=(
@@ -235,7 +235,10 @@ def test_research_query_service_combines_fallback_with_domain_concept():
     assert result.search_terms == (
         (
             "semantic alignment objectives for video "
-            "representations language VideoQA"
+            "representations and language"
+        ),
+        (
+            "VideoQA requires semantically aligned video and language"
         ),
     )
 
@@ -262,13 +265,16 @@ def test_research_query_service_strips_future_research_framing():
 
     assert result.search_terms == (
         (
-            "Contrastive objectives latent-space regularization "
+            "Contrastive objectives latent-space regularization for "
+            "representation learning approaches"
+        ),
+        (
             "video language semantic alignment"
         ),
     )
 
-def test_research_query_service_uses_shared_context_terms_for_fallback():
-    """Verify fallback preserves recurring domain terms from context."""
+def test_research_query_service_generates_complementary_context_queries():
+    """Verify context concepts produce complementary bounded queries."""
 
     strategy = ResearchStrategy(
         concepts=(
@@ -315,7 +321,56 @@ def test_research_query_service_uses_shared_context_terms_for_fallback():
     assert result.search_terms == (
         (
             "contrastive objectives latent-space regularization "
-            "video semantic self-supervised representations"
+            "transformer-based video encoders"
+        ),
+        (
+            "improving semantic organization of self-supervised "
+            "video representations"
+        ),
+        (
+            "effectiveness of self-supervised video representations "
+            "for VideoQA CLIP"
         ),
     )
 
+
+def test_research_query_service_limits_query_dimensions():
+    """Verify provider query count is bounded to three dimensions."""
+
+    strategy = ResearchStrategy(
+        concepts=(
+            "first representation objective",
+            "second alignment objective",
+            "third evaluation objective",
+            "fourth application objective",
+        ),
+        search_terms=(),
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms == (
+        "first representation objective",
+        "second alignment objective",
+        "fourth application objective",
+    )
+
+
+def test_research_query_service_removes_overlapping_dimensions():
+    """Verify substantially overlapping query dimensions are removed."""
+
+    strategy = ResearchStrategy(
+        concepts=(
+            "semantic video language alignment",
+            "video semantic language alignments",
+            "temporal representation evaluation",
+        ),
+        search_terms=(),
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms == (
+        "semantic video language alignment",
+        "temporal representation evaluation",
+    )

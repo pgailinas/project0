@@ -11,6 +11,8 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 import pytest
 
 from project0.agents.research.research_source_service import (
@@ -34,6 +36,28 @@ class FailingResearchSourceProvider:
     ) -> tuple[ResearchSourceReference, ...]:
         raise RuntimeError(
             "Provider unavailable."
+        )
+
+
+class PartiallyFailingResearchSourceProvider:
+    """Test provider that fails one query and succeeds on another."""
+
+    def __init__(self) -> None:
+        self.requests: list[ResearchStrategy] = []
+
+    def search(
+        self,
+        strategy: ResearchStrategy,
+    ) -> tuple[ResearchSourceReference, ...]:
+        self.requests.append(strategy)
+
+        if strategy.search_terms == ("first query",):
+            raise RuntimeError(
+                "Provider query unavailable."
+            )
+
+        return (
+            create_reference("paper-002"),
         )
 
 
@@ -96,6 +120,48 @@ def test_research_source_service_dispatches_to_provider() -> None:
     )
     assert provider.requests == [
         create_research_strategy()
+    ]
+
+
+def test_research_source_service_dispatches_each_query_independently() -> None:
+    """Verify each provider receives one strategy query per request."""
+
+    provider = StubResearchSourceProvider(
+        references=(
+            create_reference("paper-001"),
+        ),
+    )
+    service = ResearchSourceService(
+        providers={
+            "stub": provider,
+        },
+    )
+    strategy = ResearchStrategy(
+        concepts=(
+            "video representation learning",
+            "video language alignment",
+        ),
+        search_terms=(
+            "video representation learning",
+            "video language alignment",
+        ),
+        source_names=("stub",),
+    )
+
+    result = service.search(strategy)
+
+    assert result == (
+        create_reference("paper-001"),
+    )
+    assert provider.requests == [
+        replace(
+            strategy,
+            search_terms=("video representation learning",),
+        ),
+        replace(
+            strategy,
+            search_terms=("video language alignment",),
+        ),
     ]
 
 
@@ -261,6 +327,38 @@ def test_research_source_service_falls_back_after_provider_failure() -> None:
     assert result == (
         create_reference("fallback-paper"),
     )
+
+
+def test_research_source_service_continues_after_query_failure() -> None:
+    """Verify one failed query does not discard successful query results."""
+
+    provider = PartiallyFailingResearchSourceProvider()
+    service = ResearchSourceService(
+        providers={
+            "stub": provider,
+        },
+    )
+    strategy = ResearchStrategy(
+        concepts=("first", "second"),
+        search_terms=("first query", "second query"),
+        source_names=("stub",),
+    )
+
+    result = service.search(strategy)
+
+    assert result == (
+        create_reference("paper-002"),
+    )
+    assert provider.requests == [
+        replace(
+            strategy,
+            search_terms=("first query",),
+        ),
+        replace(
+            strategy,
+            search_terms=("second query",),
+        ),
+    ]
 
 
 def test_research_source_service_fails_when_all_providers_fail() -> None:

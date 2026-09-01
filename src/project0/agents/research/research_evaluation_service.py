@@ -182,10 +182,7 @@ class ResearchEvaluationService:
             "evaluations",
         )
 
-        paper_by_source_id = {
-            paper.source_reference.source_id: paper
-            for paper in papers
-        }
+        paper_by_source_id = self._index_papers(papers)
 
         evaluations: list[ResearchEvaluation] = []
         seen_source_ids: set[str] = set()
@@ -248,9 +245,8 @@ class ResearchEvaluationService:
 
         missing_papers = tuple(
             paper
-            for paper in papers
-            if paper.source_reference.source_id
-            not in seen_source_ids
+            for source_id, paper in paper_by_source_id.items()
+            if source_id not in seen_source_ids
         )
 
         return tuple(evaluations), missing_papers
@@ -276,14 +272,16 @@ class ResearchEvaluationService:
 
         paper_payload = [
             {
-                "source_id": paper.source_reference.source_id,
+                "source_id": source_id,
                 "title": paper.title,
                 "authors": list(paper.authors),
                 "publication_year": paper.publication_year,
                 "abstract": paper.abstract,
                 "venue": paper.venue,
             }
-            for paper in papers
+            for source_id, paper in self._index_papers(
+                papers
+            ).items()
         ]
 
         user_prompt = json.dumps(
@@ -403,6 +401,17 @@ class ResearchEvaluationService:
             },
         )
 
+    @staticmethod
+    def _index_papers(
+        papers: tuple[PaperMetadata, ...],
+    ) -> dict[str, PaperMetadata]:
+        """Index papers by deterministic evaluation identifiers."""
+
+        return {
+            f"paper-{index:03d}": paper
+            for index, paper in enumerate(papers, start=1)
+        }
+
     def _create_evaluations(
         self,
         papers: tuple[PaperMetadata, ...],
@@ -422,10 +431,7 @@ class ResearchEvaluationService:
             "evaluations",
         )
 
-        paper_by_source_id = {
-            paper.source_reference.source_id: paper
-            for paper in papers
-        }
+        paper_by_source_id = self._index_papers(papers)
 
         evaluations: list[ResearchEvaluation] = []
         seen_source_ids: set[str] = set()

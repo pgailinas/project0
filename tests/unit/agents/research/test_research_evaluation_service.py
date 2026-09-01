@@ -198,7 +198,7 @@ def create_provider_response_for_papers(
     return create_valid_provider_response(
         evaluations=[
             {
-                "source_id": paper.source_reference.source_id,
+                "source_id": f"paper-{index:03d}",
                 "relevance_score": 80,
                 "relevance_summary": (
                     f"{paper.title} is relevant."
@@ -208,7 +208,7 @@ def create_provider_response_for_papers(
                 "research_connections": [],
                 "warnings": [],
             }
-            for paper in papers
+            for index, paper in enumerate(papers, start=1)
         ]
     )
 
@@ -315,6 +315,34 @@ def test_research_evaluation_service_requires_exact_source_ids() -> None:
     )
 
 
+def test_research_evaluation_service_uses_opaque_source_ids() -> None:
+    """Verify provider-native identifiers are hidden from evaluation."""
+
+    provider = StubProvider(
+        create_valid_provider_response()
+    )
+
+    service = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    )
+
+    source_id = "https://openalex.org/W4318566686"
+    paper = create_paper_metadata(source_id=source_id)
+
+    result = service.evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        (paper,),
+    )
+
+    assert '"source_id": "paper-001"' in (
+        provider.requests[0].user_prompt
+    )
+    assert source_id not in provider.requests[0].user_prompt
+    assert result[0].paper == paper
+
+
 def test_research_evaluation_service_retries_unknown_source_id() -> None:
     """Verify unknown source identifiers trigger one bounded retry."""
 
@@ -373,7 +401,7 @@ def test_research_evaluation_service_retries_missing_evaluation() -> None:
     retry_response = create_valid_provider_response(
         evaluations=[
             {
-                "source_id": "paper-002",
+                "source_id": "paper-001",
                 "relevance_score": 70,
                 "relevance_summary": "Second paper is relevant.",
                 "strengths": [],
@@ -798,7 +826,7 @@ def test_research_evaluation_service_preserves_score_ordering() -> None:
             create_valid_provider_response(
                 evaluations=[
                     {
-                        "source_id": paper.source_reference.source_id,
+                        "source_id": "paper-001",
                         "relevance_score": raw_score,
                         "relevance_summary": f"{paper.title} relevance.",
                         "strengths": [],
@@ -1128,7 +1156,7 @@ def test_research_evaluation_service_rejects_missing_paper_evaluation() -> None:
         )
     except ValueError as error:
         assert "did not include evaluations" in str(error)
-        assert "paper-002" in str(error)
+        assert "paper-001" in str(error)
     else:
         raise AssertionError("Expected missing evaluation failure.")
 
