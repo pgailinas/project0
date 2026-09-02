@@ -60,6 +60,7 @@ class ResearchDirectionAnalysisService:
 
         self._provider = provider
         self._model_name = model_name
+        self._max_paper_analyses = 5
 
     def analyze(
         self,
@@ -69,7 +70,11 @@ class ResearchDirectionAnalysisService:
     ) -> ResearchDirectionAnalysis:
         """Synthesize analyzed literature and identify research directions."""
 
-        if len(paper_analyses) < 2:
+        selected_paper_analyses = paper_analyses[
+            :self._max_paper_analyses
+        ]
+
+        if len(selected_paper_analyses) < 2:
             return ResearchDirectionAnalysis(
                 synthesis=ResearchSynthesis(),
                 candidate_directions=(),
@@ -77,13 +82,13 @@ class ResearchDirectionAnalysisService:
 
         evidence_catalog = self._build_evidence_catalog(
             context=context,
-            paper_analyses=paper_analyses,
+            paper_analyses=selected_paper_analyses,
         )
 
         provider_request = self._build_provider_request(
             request=request,
             context=context,
-            paper_analyses=paper_analyses,
+            paper_analyses=selected_paper_analyses,
             evidence_catalog=evidence_catalog,
         )
 
@@ -108,7 +113,7 @@ class ResearchDirectionAnalysisService:
         provider_request = self._build_provider_request(
             request=request,
             context=context,
-            paper_analyses=paper_analyses,
+            paper_analyses=selected_paper_analyses,
             evidence_catalog=evidence_catalog,
             validation_error=validation_error,
         )

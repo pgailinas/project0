@@ -1,3 +1,14 @@
+# ============================================================
+# Project0 - Research Direction Analysis Service Tests
+#
+# File: test_research_direction_analysis_service.py
+#
+# Purpose:
+#     Verify research direction analysis orchestration, evidence
+#     provenance validation, and bounded analysis input behavior.
+#
+# ============================================================
+
 from __future__ import annotations
 
 import json
@@ -322,6 +333,36 @@ def test_analyze_allows_evidence_anchored_speculative_direction():
 
     assert result.candidate_directions[0].speculative is True
     assert result.candidate_directions[0].literature_evidence
+
+
+def test_provider_request_limits_direction_analysis_to_five_papers():
+    provider = StubProvider([_valid_output()])
+    service = ResearchDirectionAnalysisService(provider, "test-model")
+    papers = tuple(
+        _paper_analysis(
+            f"Paper-{index}",
+            f"Paper {index}",
+            index,
+        )
+        for index in range(1, 7)
+    )
+
+    service.analyze(_request(), _context(), papers)
+
+    request = provider.requests[0]
+    payload = json.loads(request.user_prompt)
+
+    assert request.metadata["paper_analysis_count"] == 5
+    assert [
+        paper["source_id"]
+        for paper in payload["paper_analyses"]
+    ] == [
+        "Paper-1",
+        "Paper-2",
+        "Paper-3",
+        "Paper-4",
+        "Paper-5",
+    ]
 
 
 def test_provider_request_uses_structured_findings_and_prohibits_novelty_claims():
