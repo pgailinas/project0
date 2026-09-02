@@ -16,16 +16,12 @@ import pytest
 from project0.agents.research.research_agent_view_models import (
     ResearchAgentPageStatus,
     ResearchAgentPageView,
-    ResearchArtifactView,
     ResearchEvaluationView,
     ResearchRequestForm,
     ResearchResultView,
     ResearchWorkflowSummaryView,
 )
-from project0.models.research_models import (
-    ResearchArtifactType,
-    ResearchStatus,
-)
+from project0.models.research_models import ResearchStatus
 
 
 def test_research_agent_page_status_values() -> None:
@@ -59,6 +55,8 @@ def test_research_result_view_defaults() -> None:
         title="Example Paper",
     )
 
+    assert not hasattr(result, "artifact_content")
+
     assert result.publication_year is None
     assert result.source_name is None
     assert result.relevance_score is None
@@ -86,20 +84,6 @@ def test_research_evaluation_has_warnings_property() -> None:
 
     assert no_warnings.has_warnings is False
     assert with_warnings.has_warnings is True
-
-
-def test_research_artifact_has_sources_property() -> None:
-    """Research artifacts should report whether source references exist."""
-
-    artifact = ResearchArtifactView(
-        artifact_id="artifact-001",
-        artifact_type=ResearchArtifactType.RESEARCH_GAP,
-        title="Research Gap",
-        content="Potential research gap.",
-        source_ids=("paper-001",),
-    )
-
-    assert artifact.has_sources is True
 
 
 def test_research_agent_page_has_results_property() -> None:
@@ -142,7 +126,6 @@ def test_research_agent_page_defaults() -> None:
     assert page.request_id is None
     assert page.workflow_status is None
     assert page.results == ()
-    assert page.artifacts == ()
     assert page.workflow_summary is None
     assert page.warnings == ()
     assert page.error_message is None
@@ -159,7 +142,6 @@ def test_research_workflow_summary_defaults() -> None:
     assert summary.source_count == 0
     assert summary.paper_count == 0
     assert summary.evaluation_count == 0
-    assert summary.artifact_count == 0
 
 
 def test_research_evaluation_view_defaults() -> None:
@@ -177,20 +159,6 @@ def test_research_evaluation_view_defaults() -> None:
     assert evaluation.research_connections == ()
     assert evaluation.warnings == ()
     assert evaluation.has_warnings is False
-
-
-def test_research_artifact_view_defaults() -> None:
-    """Optional research artifact values should have safe defaults."""
-
-    artifact = ResearchArtifactView(
-        artifact_id="artifact-001",
-        artifact_type=ResearchArtifactType.PAPER_SUMMARY,
-        title="Paper Summary",
-        content="Summary content.",
-    )
-
-    assert artifact.source_ids == ()
-    assert artifact.has_sources is False
 
 
 def test_research_agent_page_preserves_workflow_status() -> None:

@@ -21,7 +21,6 @@ from project0.agents.research.research_agent_view_models import (
     PaperAnalysisView,
     ResearchAgentPageStatus,
     ResearchAgentPageView,
-    ResearchArtifactView,
     ResearchDirectionAnalysisView,
     ResearchDirectionView,
     ResearchEvidenceReferenceView,
@@ -31,10 +30,7 @@ from project0.agents.research.research_agent_view_models import (
     ResearchSynthesisView,
     ResearchWorkflowSummaryView,
 )
-from project0.models.research_models import (
-    ResearchArtifactType,
-    ResearchStatus,
-)
+from project0.models.research_models import ResearchStatus
 
 
 logger = logging.getLogger(__name__)
@@ -180,24 +176,6 @@ class ResearchAgentUIService:
             default=(),
         )
 
-        workflow_artifacts = self._read_value(
-            workflow_result,
-            "artifacts",
-            default=(),
-        )
-
-        results = self._map_results(
-            source_references,
-            papers,
-            evaluations,
-            workflow_artifacts,
-        )
-
-        artifacts = self._map_artifacts(
-            workflow_artifacts,
-            include_paper_summaries=False,
-        )
-
         existing_research_context = self._map_existing_research_context(
             self._read_value(
                 workflow_result,
@@ -212,6 +190,13 @@ class ResearchAgentUIService:
                 "paper_analyses",
                 default=(),
             )
+        )
+
+        results = self._map_results(
+            source_references,
+            papers,
+            evaluations,
+            paper_analyses,
         )
 
         direction_analysis = self._map_direction_analysis(
@@ -252,15 +237,12 @@ class ResearchAgentUIService:
             request_id=request_id,
             workflow_status=workflow_status,
             results=results,
-            artifacts=artifacts,
             existing_research_context=existing_research_context,
-            paper_analyses=paper_analyses,
             direction_analysis=direction_analysis,
             workflow_summary=ResearchWorkflowSummaryView(
                 source_count=len(source_references),
                 paper_count=len(papers),
                 evaluation_count=len(evaluations),
-                artifact_count=len(workflow_artifacts),
             ),
             warnings=warnings,
             error_message=error_message,
@@ -486,15 +468,17 @@ class ResearchAgentUIService:
         sources: object,
         papers: object,
         evaluations: object,
-        artifacts: object,
+        paper_analyses: tuple[PaperAnalysisView, ...],
     ) -> tuple[ResearchResultView, ...]:
         """Combine source, metadata, and evaluation data."""
 
         source_items = tuple(sources or ())
         paper_items = tuple(papers or ())
         evaluation_items = tuple(evaluations or ())
-        artifact_items = tuple(artifacts or ())
-
+        analyses_by_source_id = {
+            analysis.source_id: analysis
+            for analysis in paper_analyses
+        }
         results = []
 
         for index, paper in enumerate(paper_items, start=1):
@@ -546,37 +530,6 @@ class ResearchAgentUIService:
                         )
                     )
                     == source_id
-                ),
-                {},
-            )
-
-            artifact = next(
-                (
-                    item
-                    for item in artifact_items
-                    if self._map_artifact_type(
-                        self._read_value(
-                            item,
-                            "artifact_type",
-                            default=ResearchArtifactType.PAPER_SUMMARY,
-                        )
-                    )
-                    is ResearchArtifactType.PAPER_SUMMARY
-                    and source_id
-                    in tuple(
-                        str(
-                            self._read_value(
-                                reference,
-                                "source_id",
-                                default="",
-                            )
-                        )
-                        for reference in self._read_value(
-                            item,
-                            "source_references",
-                            default=(),
-                        )
-                    )
                 ),
                 {},
             )
@@ -693,93 +646,11 @@ class ResearchAgentUIService:
                             default=(),
                         )
                     ),
-                    artifact_title=self._normalize_optional_text(
-                        self._read_value(
-                            artifact,
-                            "title",
-                            default=None,
-                        )
-                    ),
-                    artifact_content=self._normalize_optional_text(
-                        self._read_value(
-                            artifact,
-                            "content",
-                            default=None,
-                        )
-                    ),
+                    analysis=analyses_by_source_id.get(source_id),
                 )
             )
 
         return tuple(results)
-
-    def _map_artifacts(
-        self,
-        artifacts: object,
-        include_paper_summaries: bool = True,
-    ) -> tuple[ResearchArtifactView, ...]:
-        """Map research artifacts into browser presentation state."""
-
-        if not artifacts:
-            return ()
-
-        return tuple(
-            ResearchArtifactView(
-                artifact_id=str(
-                    self._read_value(
-                        artifact,
-                        "artifact_id",
-                        default="",
-                    )
-                ),
-                artifact_type=self._map_artifact_type(
-                    self._read_value(
-                        artifact,
-                        "artifact_type",
-                        default=ResearchArtifactType.PAPER_SUMMARY,
-                    )
-                ),
-                title=str(
-                    self._read_value(
-                        artifact,
-                        "title",
-                        default="",
-                    )
-                ),
-                content=str(
-                    self._read_value(
-                        artifact,
-                        "content",
-                        default="",
-                    )
-                ),
-                source_ids=tuple(
-                    str(
-                        self._read_value(
-                            source,
-                            "source_id",
-                            default="",
-                        )
-                    )
-                    for source in self._read_value(
-                        artifact,
-                        "source_references",
-                        default=(),
-                    )
-                ),
-            )
-            for artifact in artifacts
-            if (
-                include_paper_summaries
-                or str(
-                    self._read_value(
-                        artifact,
-                        "artifact_type",
-                        default="",
-                    )
-                )
-                != ResearchArtifactType.PAPER_SUMMARY.value
-            )
-        )
 
     def _map_existing_research_context(
         self,
@@ -1186,20 +1057,6 @@ class ResearchAgentUIService:
             return ResearchStatus(str(value))
         except ValueError:
             return None
-
-    @staticmethod
-    def _map_artifact_type(
-        value: object,
-    ) -> ResearchArtifactType:
-        """Convert a research artifact type value."""
-
-        if isinstance(value, ResearchArtifactType):
-            return value
-
-        try:
-            return ResearchArtifactType(str(value))
-        except ValueError:
-            return ResearchArtifactType.PAPER_SUMMARY
 
     @staticmethod
     def _status_message(

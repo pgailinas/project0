@@ -20,10 +20,7 @@ from project0.agents.research.research_agent_ui_service import (
 from project0.agents.research.research_agent_view_models import (
     ResearchAgentPageStatus,
 )
-from project0.models.research_models import (
-    ResearchArtifactType,
-    ResearchStatus,
-)
+from project0.models.research_models import ResearchStatus
 
 
 @dataclass
@@ -225,14 +222,9 @@ def test_submit_request_maps_completed_result() -> None:
             "artifacts": (
                 {
                     "artifact_id": "artifact-001",
-                    "artifact_type": "paper_summary",
-                    "title": "Example Paper Summary",
-                    "content": "Summary content.",
-                    "source_references": (
-                        {
-                            "source_id": "paper-001",
-                        },
-                    ),
+                    "artifact_type": "literature_comparison",
+                    "title": "Literature Comparison",
+                    "content": "Comparison content.",
                 },
             ),
         }
@@ -268,14 +260,12 @@ def test_submit_request_maps_completed_result() -> None:
         "Highly relevant."
     )
 
-    assert page.results[0].artifact_content == "Summary content."
-    assert page.artifacts == ()
+    assert not hasattr(page.results[0], "artifact_content")
 
     assert page.workflow_summary is not None
     assert page.workflow_summary.source_count == 1
     assert page.workflow_summary.paper_count == 1
     assert page.workflow_summary.evaluation_count == 1
-    assert page.workflow_summary.artifact_count == 1
     assert page.has_results is True
 
 
@@ -405,36 +395,6 @@ def test_submit_request_maps_unknown_status_to_processing() -> None:
 
     assert page.page_status is ResearchAgentPageStatus.PROCESSING
     assert page.workflow_status is None
-
-
-def test_submit_request_maps_unknown_artifact_type_to_summary() -> None:
-    """Unknown artifact types should use the safe summary default."""
-
-    workflow = FakeWorkflow(
-        result={
-            "request_id": "research-request-7",
-            "status": "completed",
-            "artifacts": (
-                {
-                    "artifact_id": "artifact-001",
-                    "artifact_type": "unknown-artifact",
-                    "title": "Unknown Artifact",
-                    "content": "Artifact content.",
-                },
-            ),
-        }
-    )
-    service = ResearchAgentUIService(workflow=workflow)
-
-    page = service.submit_request(
-        question="Find relevant research."
-    )
-
-    assert len(page.artifacts) == 1
-    assert (
-        page.artifacts[0].artifact_type
-        is ResearchArtifactType.PAPER_SUMMARY
-    )
 
 
 def test_submit_request_normalizes_optional_text_values() -> None:
@@ -615,4 +575,3 @@ def test_submit_request_maps_research_direction_analysis() -> None:
         page.direction_analysis.candidate_directions[0].speculative
         is False
     )
-

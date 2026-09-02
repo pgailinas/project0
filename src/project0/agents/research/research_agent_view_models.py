@@ -18,10 +18,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import StrEnum
 
-from project0.models.research_models import (
-    ResearchArtifactType,
-    ResearchStatus,
-)
+from project0.models.research_models import ResearchStatus
 
 
 class ResearchAgentPageStatus(StrEnum):
@@ -109,8 +106,7 @@ class ResearchResultView:
     limitations: tuple[str, ...] = ()
     research_connections: tuple[str, ...] = ()
     warnings: tuple[str, ...] = ()
-    artifact_title: str | None = None
-    artifact_content: str | None = None
+    analysis: PaperAnalysisView | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -193,30 +189,12 @@ class ResearchDirectionAnalysisView:
 
 
 @dataclass(frozen=True, slots=True)
-class ResearchArtifactView:
-    """One Research Agent artifact prepared for browser display."""
-
-    artifact_id: str
-    artifact_type: ResearchArtifactType
-    title: str
-    content: str
-    source_ids: tuple[str, ...] = ()
-
-    @property
-    def has_sources(self) -> bool:
-        """Return True when the artifact contains source references."""
-
-        return bool(self.source_ids)
-
-
-@dataclass(frozen=True, slots=True)
 class ResearchWorkflowSummaryView:
     """Research workflow counts prepared for browser display."""
 
     source_count: int = 0
     paper_count: int = 0
     evaluation_count: int = 0
-    artifact_count: int = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -229,9 +207,7 @@ class ResearchAgentPageView:
     request_id: str | None = None
     workflow_status: ResearchStatus | None = None
     results: tuple[ResearchResultView, ...] = ()
-    artifacts: tuple[ResearchArtifactView, ...] = ()
     existing_research_context: ExistingResearchContextView | None = None
-    paper_analyses: tuple[PaperAnalysisView, ...] = ()
     direction_analysis: ResearchDirectionAnalysisView | None = None
     workflow_summary: ResearchWorkflowSummaryView | None = None
     warnings: tuple[str, ...] = ()
@@ -243,9 +219,7 @@ class ResearchAgentPageView:
 
         return bool(
             self.results
-            or self.artifacts
             or self.existing_research_context
-            or self.paper_analyses
             or self.direction_analysis
         )
 

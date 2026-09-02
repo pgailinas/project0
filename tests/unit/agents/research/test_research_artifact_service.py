@@ -114,98 +114,16 @@ def test_research_artifact_service_generates_expected_artifacts() -> None:
         (create_research_evaluation(),),
     )
 
-    assert len(result) == 4
+    assert len(result) == 3
     assert result[0].artifact_type == (
-        ResearchArtifactType.PAPER_SUMMARY
-    )
-    assert result[1].artifact_type == (
         ResearchArtifactType.LITERATURE_COMPARISON
     )
-    assert result[2].artifact_type == (
+    assert result[1].artifact_type == (
         ResearchArtifactType.RESEARCH_GAP
     )
-    assert result[3].artifact_type == (
+    assert result[2].artifact_type == (
         ResearchArtifactType.EXPERIMENT_PROPOSAL
     )
-
-
-def test_research_artifact_service_generates_paper_summary() -> None:
-    """Verify paper summary artifact content."""
-
-    evaluation = create_research_evaluation()
-
-    result = ResearchArtifactService().generate_artifacts(
-        create_research_request(),
-        (evaluation,),
-    )
-
-    artifact = result[0]
-
-    assert artifact.title == (
-        "Example Video Representation Paper Summary"
-    )
-    assert "Paper: Example Video Representation Paper" in (
-        artifact.content
-    )
-    assert "Relevance:" in artifact.content
-    assert (
-        "The paper is highly relevant to the research question."
-        in artifact.content
-    )
-    assert "- Uses semantic representation learning." in (
-        artifact.content
-    )
-    assert "- Limited VideoQA evaluation." in (
-        artifact.content
-    )
-    assert (
-        "- Supports a vision-language alignment experiment."
-        in artifact.content
-    )
-    assert artifact.source_references == (
-        evaluation.paper.source_reference,
-    )
-    assert artifact.metadata == {
-        "relevance_score": 0.95,
-    }
-
-
-def test_research_artifact_service_includes_paper_warnings() -> None:
-    """Verify evaluation warnings are included in paper summaries."""
-
-    evaluation = create_research_evaluation(
-        warnings=(
-            "Full paper review is required.",
-        ),
-    )
-
-    artifact = ResearchArtifactService().generate_artifacts(
-        create_research_request(),
-        (evaluation,),
-    )[0]
-
-    assert "Warnings:" in artifact.content
-    assert "- Full paper review is required." in artifact.content
-
-
-def test_research_artifact_service_handles_empty_optional_lists() -> None:
-    """Verify empty artifact lists receive deterministic placeholders."""
-
-    evaluation = ResearchEvaluation(
-        paper=create_paper_metadata(),
-        relevance_score=None,
-        relevance_summary="Relevance is uncertain.",
-    )
-
-    artifact = ResearchArtifactService().generate_artifacts(
-        create_research_request(),
-        (evaluation,),
-    )[0]
-
-    assert artifact.content.count("- None identified.") == 3
-    assert artifact.metadata == {
-        "relevance_score": None,
-    }
 
 
 def test_research_artifact_service_generates_literature_comparison() -> None:
@@ -228,7 +146,7 @@ def test_research_artifact_service_generates_literature_comparison() -> None:
             first,
             second,
         ),
-    )[2]
+    )[0]
 
     assert artifact.title == "Literature Comparison"
     assert "Paper: First Paper" in artifact.content
@@ -246,7 +164,7 @@ def test_research_artifact_service_generates_research_gap() -> None:
     artifact = ResearchArtifactService().generate_artifacts(
         create_research_request(),
         (evaluation,),
-    )[2]
+    )[1]
 
     assert artifact.title == "Research Gap Analysis"
     assert (
@@ -271,7 +189,7 @@ def test_research_artifact_service_generates_experiment_proposal() -> None:
     artifact = ResearchArtifactService().generate_artifacts(
         create_research_request(),
         (evaluation,),
-    )[3]
+    )[2]
 
     assert artifact.title == "Experiment Proposal"
     assert "Experiment Directions:" in artifact.content
@@ -299,41 +217,13 @@ def test_research_artifact_service_omits_synthesis_source_references() -> None:
         ),
     )
 
-    comparison = result[2]
-    research_gap = result[3]
-    experiment = result[4]
+    comparison = result[0]
+    research_gap = result[1]
+    experiment = result[2]
 
     assert comparison.source_references == ()
     assert research_gap.source_references == ()
     assert experiment.source_references == ()
-
-
-def test_research_artifact_service_preserves_summary_source_references() -> None:
-    """Verify paper summaries preserve their individual source references."""
-
-    second = create_research_evaluation(
-        source_id="paper-002",
-        title="Second Paper",
-    )
-    first = create_research_evaluation(
-        source_id="paper-001",
-        title="First Paper",
-    )
-
-    result = ResearchArtifactService().generate_artifacts(
-        create_research_request(),
-        (
-            second,
-            first,
-        ),
-    )
-
-    assert result[0].source_references == (
-        second.paper.source_reference,
-    )
-    assert result[1].source_references == (
-        first.paper.source_reference,
-    )
 
 
 def test_research_artifact_service_deduplicates_limitations() -> None:
@@ -360,7 +250,7 @@ def test_research_artifact_service_deduplicates_limitations() -> None:
             first,
             second,
         ),
-    )[3]
+    )[1]
 
     assert artifact.content.count(
         "- Limited VideoQA evaluation."
@@ -393,10 +283,10 @@ def test_research_artifact_service_deduplicates_connections() -> None:
         ),
     )
 
-    assert artifacts[3].content.count(
+    assert artifacts[1].content.count(
         "- Evaluate vision-language alignment."
     ) == 1
-    assert artifacts[4].content.count(
+    assert artifacts[2].content.count(
         "- Evaluate vision-language alignment."
     ) == 1
 
@@ -427,7 +317,7 @@ def test_research_artifact_service_preserves_unique_item_order() -> None:
             first,
             second,
         ),
-    )[3]
+    )[1]
 
     assert artifact.content.index("- First limitation.") < (
         artifact.content.index("- Shared limitation.")
@@ -487,34 +377,3 @@ def test_research_artifact_service_returns_deterministic_content() -> None:
         for artifact in second_result
     )
 
-
-def test_research_artifact_service_generates_one_summary_per_evaluation() -> None:
-    """Verify each evaluation receives one paper summary artifact."""
-
-    first = create_research_evaluation(
-        source_id="paper-001",
-        title="First Paper",
-    )
-    second = create_research_evaluation(
-        source_id="paper-002",
-        title="Second Paper",
-    )
-
-    result = ResearchArtifactService().generate_artifacts(
-        create_research_request(),
-        (
-            first,
-            second,
-        ),
-    )
-
-    summary_artifacts = tuple(
-        artifact
-        for artifact in result
-        if artifact.artifact_type
-        is ResearchArtifactType.PAPER_SUMMARY
-    )
-
-    assert len(summary_artifacts) == 2
-    assert summary_artifacts[0].title == "First Paper Summary"
-    assert summary_artifacts[1].title == "Second Paper Summary"

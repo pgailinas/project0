@@ -440,7 +440,7 @@ def test_research_workflow_completes_real_service_pipeline(
     assert len(result.source_references) == 1
     assert len(result.papers) == 1
     assert len(result.evaluations) == 1
-    assert len(result.artifacts) == 4
+    assert len(result.artifacts) == 3
 
     reference = result.source_references[0]
     paper = result.papers[0]
@@ -461,7 +461,6 @@ def test_research_workflow_completes_real_service_pipeline(
         artifact.artifact_type
         for artifact in result.artifacts
     ) == (
-        ResearchArtifactType.PAPER_SUMMARY,
         ResearchArtifactType.LITERATURE_COMPARISON,
         ResearchArtifactType.RESEARCH_GAP,
         ResearchArtifactType.EXPERIMENT_PROPOSAL,
@@ -471,7 +470,7 @@ def test_research_workflow_completes_real_service_pipeline(
     assert provider.requests[0].model_name == "stub-model"
 
 
-def test_research_workflow_preserves_source_traceability(
+def test_research_workflow_omits_redundant_artifact_traceability(
     monkeypatch,
 ) -> None:
     """Generated research artifacts preserve source references."""
@@ -530,14 +529,9 @@ def test_research_workflow_preserves_source_traceability(
     assert result.status is ResearchStatus.COMPLETED
     assert len(result.source_references) == 1
 
-    source_reference = result.source_references[0]
-
-    assert result.artifacts[0].source_references == (
-        source_reference,
-    )
+    assert result.artifacts[0].source_references == ()
     assert result.artifacts[1].source_references == ()
     assert result.artifacts[2].source_references == ()
-    assert result.artifacts[3].source_references == ()
 
 
 def test_research_workflow_returns_warning_when_search_is_empty(

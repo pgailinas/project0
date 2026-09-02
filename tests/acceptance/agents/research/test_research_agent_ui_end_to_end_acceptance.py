@@ -48,7 +48,7 @@ def _submit_research_request(page: Page):
     expect(
         page.get_by_role(
             "heading",
-            name="Research Synthesis Artifacts",
+            name="Research Results",
         )
     ).to_be_visible(
         timeout=30000
@@ -95,9 +95,23 @@ def test_UI_RA_FUN_005_A_completed_research_matches_visible_results(
     expect(
         page.get_by_role(
             "heading",
-            name="Research Synthesis Artifacts",
-        )
+            name="Source Details",
+        ).first
     ).to_be_visible()
+
+    expect(
+        page.get_by_role(
+            "heading",
+            name="Relevance Assessment",
+        ).first
+    ).to_be_visible()
+
+    expect(
+        page.get_by_role(
+            "heading",
+            name="Structured Paper Analysis",
+        )
+    ).not_to_be_visible()
 
     expect(
         page.get_by_role(

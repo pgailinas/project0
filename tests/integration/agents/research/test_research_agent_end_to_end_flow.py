@@ -524,7 +524,6 @@ def test_INT_RA_FUN_005_research_artifact_generation(
         artifact.artifact_type
         for artifact in result.artifacts
     ) == (
-        ResearchArtifactType.PAPER_SUMMARY,
         ResearchArtifactType.LITERATURE_COMPARISON,
         ResearchArtifactType.RESEARCH_GAP,
         ResearchArtifactType.EXPERIMENT_PROPOSAL,

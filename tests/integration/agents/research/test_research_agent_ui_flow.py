@@ -131,18 +131,30 @@ class FakeResearchWorkflow:
                     "warnings": (),
                 },
             ),
+            "paper_analyses": (
+                {
+                    "paper": {
+                        "source_reference": {
+                            "source_id": "paper-001",
+                        },
+                        "title": "Example Video Representation Paper",
+                    },
+                    "analysis_basis": "abstract_metadata",
+                    "problem": {
+                        "content": "Improve video-text alignment.",
+                    },
+                    "approach": {
+                        "content": "Contrastive pre-training.",
+                    },
+                },
+            ),
             "artifacts": (
                 {
                     "artifact_id": "artifact-001",
-                    "artifact_type": "paper_summary",
-                    "title": "Example Video Representation Paper Summary",
+                    "artifact_type": "literature_comparison",
+                    "title": "Literature Comparison",
                     "content": (
-                        "Structured summary of the selected research paper."
-                    ),
-                    "source_references": (
-                        {
-                            "source_id": "paper-001",
-                        },
+                        "Comparison of selected research papers."
                     ),
                 },
                 {
@@ -233,7 +245,7 @@ def test_research_agent_home_page_renders_shared_dashboard() -> None:
     assert '<option' in response.text
 
 
-def test_research_request_presents_sources_evaluation_and_artifacts() -> None:
+def test_research_request_presents_consolidated_paper_results() -> None:
     """A submitted request should present the complete research result."""
 
     client, workflow = _build_client()
@@ -277,20 +289,13 @@ def test_research_request_presents_sources_evaluation_and_artifacts() -> None:
     )
     assert 'target="_blank"' in response.text
     assert 'rel="noopener noreferrer"' in response.text
-    assert (
-        ">\n                            "
-        "https://www.semanticscholar.org/paper/paper-001\n"
-        "                        </a>"
-        in response.text
-    )
-    assert "Research Results" in response.text
+    assert "Source Details" in response.text
+    assert "Relevance Assessment" in response.text
+    assert "Structured Analysis" in response.text
+    assert "Contrastive pre-training." in response.text
     assert "The paper is highly relevant to" in response.text
-    assert "The paper is highly relevant to" in response.text
-    assert "Research Results" in response.text
-    assert "Example Video Representation Paper Summary" in response.text
-    assert "Structured summary of the selected research paper." in response.text
-    assert "Research Synthesis Artifacts" in response.text
-    assert "Research Gap Analysis" in response.text
+    assert "Structured Paper Analysis" not in response.text
+    assert "Research Synthesis Artifacts" not in response.text
     assert "Workflow Summary" in response.text
     assert "Artifacts" in response.text
 

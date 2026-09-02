@@ -300,6 +300,8 @@
                     {% endif %}
                 </header>
 
+                <section class="research-result-card__section">
+                    <h4 class="research-result-card__section-title">Source Details</h4>
                 <dl class="workflow-summary-grid">
                     <div>
                         <dt>Year</dt>
@@ -324,20 +326,23 @@
                 </dl>
 
                 {% if result.abstract %}
-                <div>
-                    <h4>Abstract</h4>
+                <div class="research-result-card__detail">
+                    <h5>Abstract</h5>
                     <p>{{ result.abstract }}</p>
                 </div>
                 {% endif %}
+                </section>
 
-                <div>
-                    <h4>Summary</h4>
+                <section class="research-result-card__section">
+                    <h4 class="research-result-card__section-title">Relevance Assessment</h4>
+                <div class="research-result-card__detail">
+                    <h5>Summary</h5>
                     <p>{{ result.relevance_summary }}</p>
                 </div>
 
                 {% if result.research_connections %}
-                <div>
-                    <h4>Research Connections</h4>
+                <div class="research-result-card__detail">
+                    <h5>Research Connections</h5>
                     <ul>
                         {% for item in result.research_connections %}
                         <li>{{ item }}</li>
@@ -347,8 +352,8 @@
                 {% endif %}
 
                 {% if result.strengths %}
-                <div>
-                    <h4>Strengths</h4>
+                <div class="research-result-card__detail">
+                    <h5>Strengths</h5>
                     <ul>
                         {% for item in result.strengths %}
                         <li>{{ item }}</li>
@@ -358,8 +363,8 @@
                 {% endif %}
 
                 {% if result.limitations %}
-                <div>
-                    <h4>Limitations</h4>
+                <div class="research-result-card__detail">
+                    <h5>Relevance Limitations</h5>
                     <ul>
                         {% for item in result.limitations %}
                         <li>{{ item }}</li>
@@ -368,16 +373,9 @@
                 </div>
                 {% endif %}
 
-                {% if result.artifact_content %}
-                <div>
-                    <h4>{{ result.artifact_title or "Paper Summary Artifact" }}</h4>
-                    <p>{{ result.artifact_content }}</p>
-                </div>
-                {% endif %}
-
                 {% if result.warnings %}
-                <div>
-                    <h4>Warnings</h4>
+                <div class="research-result-card__detail">
+                    <h5>Warnings</h5>
                     <ul>
                         {% for warning in result.warnings %}
                         <li>{{ warning }}</li>
@@ -385,20 +383,78 @@
                     </ul>
                 </div>
                 {% endif %}
+                </section>
 
-                {% if result.source_url %}
-                <div>
-                    <h4>Source</h4>
-                    <p>
-                        <a
-                            href="{{ result.source_url }}"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            {{ result.source_url }}
-                        </a>
-                    </p>
-                </div>
+                {% if result.analysis %}
+                {% set analysis = result.analysis %}
+                <section class="research-result-card__section">
+                    <div class="proposal-card__header">
+                        <h4 class="research-result-card__section-title">Structured Analysis</h4>
+                        <span class="status-badge">
+                            {{ analysis.analysis_basis
+                                | replace("_", " ")
+                                | title }}
+                        </span>
+                    </div>
+
+                    {% for title, finding in [
+                        ("Problem", analysis.problem),
+                        ("Approach", analysis.approach)
+                    ] %}
+                    <div class="research-result-card__detail">
+                        <h5>{{ title }}</h5>
+                        <p>{{ finding.content }}</p>
+                    </div>
+                    {% endfor %}
+
+                    {% for title, findings in [
+                        ("Representations", analysis.representations),
+                        ("Modalities", analysis.modalities),
+                        ("Learning / Alignment Objectives", analysis.learning_objectives),
+                        ("Datasets / Tasks", analysis.datasets_tasks),
+                        ("Findings", analysis.findings),
+                        ("Study Limitations", analysis.limitations)
+                    ] %}
+                    {% if findings %}
+                    <div class="research-result-card__detail">
+                        <h5>{{ title }}</h5>
+                        <ul>
+                            {% for finding in findings %}
+                            <li>
+                                {{ finding.content }}
+                                {% if finding.evidence %}
+                                <ul class="research-evidence-list">
+                                    {% for evidence in finding.evidence %}
+                                    <li>
+                                        <code>{{ evidence.source_id }}</code>
+                                        {% if evidence.page_number is not none %}
+                                        — page {{ evidence.page_number }}
+                                        {% endif %}
+                                        {% if evidence.section %}
+                                        — {{ evidence.section }}
+                                        {% endif %}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if analysis.warnings %}
+                    <div class="research-result-card__detail">
+                        <h5>Analysis Warnings</h5>
+                        <ul>
+                            {% for warning in analysis.warnings %}
+                            <li>{{ warning }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </section>
                 {% endif %}
             </article>
             {% endfor %}
@@ -485,7 +541,7 @@
     </section>
     {% endif %}
 
-    {% if page.paper_analyses %}
+    {% if false %}
     <section
         class="content-panel"
         aria-labelledby="paper-analysis-title"
@@ -779,7 +835,7 @@
     </section>
     {% endif %}
 
-    {% if page.artifacts %}
+    {% if false %}
     <section
         class="content-panel"
         aria-labelledby="research-artifacts-title"
@@ -855,10 +911,6 @@
             <div>
                 <dt>Evaluations</dt>
                 <dd>{{ page.workflow_summary.evaluation_count }}</dd>
-            </div>
-            <div>
-                <dt>Artifacts</dt>
-                <dd>{{ page.workflow_summary.artifact_count }}</dd>
             </div>
         </dl>
     </section>
@@ -1064,17 +1116,6 @@ if (saveButton) {
         {% endfor %}
         {% endif %}
 
-        {% if result.artifact_content %}
-        lines.push("");
-        lines.push(
-            "### {{ (result.artifact_title or "Paper Summary Artifact") | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}"
-        );
-        lines.push("");
-        lines.push(
-            `{{ result.artifact_content | replace("\\", "\\\\") | replace("`", "\\`") }}`
-        );
-        {% endif %}
-
         {% if result.warnings %}
         lines.push("");
         lines.push("### Warnings");
@@ -1093,6 +1134,43 @@ if (saveButton) {
         lines.push(
             "{{ result.source_url | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", "") }}"
         );
+        {% endif %}
+
+        {% if result.analysis %}
+        {% set analysis = result.analysis %}
+        lines.push("");
+        lines.push("### Structured Analysis");
+        lines.push("");
+        lines.push(
+            "**Analysis Basis:** {{ analysis.analysis_basis | replace("_", " ") | title }}"
+        );
+        {% for title, finding in [("Problem", analysis.problem), ("Approach", analysis.approach)] %}
+        lines.push("");
+        lines.push("#### {{ title }}");
+        lines.push("");
+        lines.push(
+            `{{ finding.content | replace("\\", "\\\\") | replace("`", "\\`") }}`
+        );
+        {% endfor %}
+        {% for title, findings in [
+            ("Representations", analysis.representations),
+            ("Modalities", analysis.modalities),
+            ("Learning / Alignment Objectives", analysis.learning_objectives),
+            ("Datasets / Tasks", analysis.datasets_tasks),
+            ("Findings", analysis.findings),
+            ("Study Limitations", analysis.limitations)
+        ] %}
+        {% if findings %}
+        lines.push("");
+        lines.push("#### {{ title }}");
+        lines.push("");
+        {% for finding in findings %}
+        lines.push(
+            `- {{ finding.content | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
+        );
+        {% endfor %}
+        {% endif %}
+        {% endfor %}
         {% endif %}
         {% endfor %}
 
@@ -1134,7 +1212,7 @@ if (saveButton) {
         {% endfor %}
         {% endif %}
 
-        {% if page.paper_analyses %}
+        {% if false %}
         lines.push("");
         lines.push("---");
         lines.push("");
@@ -1290,7 +1368,7 @@ if (saveButton) {
         {% endif %}
         {% endif %}
 
-        {% if page.artifacts %}
+        {% if false %}
         lines.push("");
         lines.push("---");
         lines.push("");
@@ -1333,9 +1411,6 @@ if (saveButton) {
         );
         lines.push(
             "**Evaluations:** {{ page.workflow_summary.evaluation_count }}"
-        );
-        lines.push(
-            "**Artifacts:** {{ page.workflow_summary.artifact_count }}"
         );
         {% endif %}
 
