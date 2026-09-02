@@ -45,7 +45,7 @@ class ResearchEvaluationService:
 
         self._provider = provider
         self._model_name = model_name
-        self._batch_size = 1
+        self._batch_size = 3
 
     def evaluate(
         self,

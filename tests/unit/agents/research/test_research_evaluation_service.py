@@ -438,7 +438,7 @@ def test_research_evaluation_service_retries_missing_evaluation() -> None:
     assert [
         request.metadata["paper_count"]
         for request in provider.requests
-    ] == [1, 1]
+    ] == [2, 1]
     assert result[0].paper == first_paper
     assert result[1].paper == second_paper
 
@@ -454,10 +454,7 @@ def test_research_evaluation_service_merges_missing_retry_in_order() -> None:
     )
 
     provider = SequentialStubProvider(
-        tuple(
-            create_provider_response_for_papers((paper,))
-            for paper in papers
-        )
+        (create_provider_response_for_papers(papers),)
     )
 
     service = ResearchEvaluationService(
@@ -478,7 +475,7 @@ def test_research_evaluation_service_merges_missing_retry_in_order() -> None:
     assert [
         request.metadata["paper_count"]
         for request in provider.requests
-    ] == [1, 1, 1]
+    ] == [3]
 
 
 
@@ -522,7 +519,7 @@ def test_research_evaluation_service_stops_after_one_retry() -> None:
 
 
 def test_research_evaluation_service_batches_six_papers() -> None:
-    """Verify six papers are evaluated in six bounded provider calls."""
+    """Verify six papers are evaluated in two bounded provider calls."""
 
     papers = tuple(
         create_paper_metadata(
@@ -533,9 +530,9 @@ def test_research_evaluation_service_batches_six_papers() -> None:
     )
 
     provider = SequentialStubProvider(
-        tuple(
-            create_provider_response_for_papers((paper,))
-            for paper in papers
+        (
+            create_provider_response_for_papers(papers[:3]),
+            create_provider_response_for_papers(papers[3:]),
         )
     )
 
@@ -551,15 +548,15 @@ def test_research_evaluation_service_batches_six_papers() -> None:
     )
 
     assert len(result) == 6
-    assert len(provider.requests) == 6
+    assert len(provider.requests) == 2
     assert [
         request.metadata["paper_count"]
         for request in provider.requests
-    ] == [1, 1, 1, 1, 1, 1]
+    ] == [3, 3]
 
 
 def test_research_evaluation_service_batches_eleven_papers() -> None:
-    """Verify eleven papers are evaluated in eleven provider calls."""
+    """Verify eleven papers are evaluated in bounded provider calls."""
 
     papers = tuple(
         create_paper_metadata(
@@ -570,9 +567,11 @@ def test_research_evaluation_service_batches_eleven_papers() -> None:
     )
 
     provider = SequentialStubProvider(
-        tuple(
-            create_provider_response_for_papers((paper,))
-            for paper in papers
+        (
+            create_provider_response_for_papers(papers[:3]),
+            create_provider_response_for_papers(papers[3:6]),
+            create_provider_response_for_papers(papers[6:9]),
+            create_provider_response_for_papers(papers[9:]),
         )
     )
 
@@ -588,11 +587,11 @@ def test_research_evaluation_service_batches_eleven_papers() -> None:
     )
 
     assert len(result) == 11
-    assert len(provider.requests) == 11
+    assert len(provider.requests) == 4
     assert [
         request.metadata["paper_count"]
         for request in provider.requests
-    ] == [1] * 11
+    ] == [3, 3, 3, 2]
 
 
 def test_research_evaluation_service_preserves_order_across_batches() -> None:
@@ -607,9 +606,9 @@ def test_research_evaluation_service_preserves_order_across_batches() -> None:
     )
 
     provider = SequentialStubProvider(
-        tuple(
-            create_provider_response_for_papers((paper,))
-            for paper in papers
+        (
+            create_provider_response_for_papers(papers[:3]),
+            create_provider_response_for_papers(papers[3:]),
         )
     )
 
@@ -648,13 +647,9 @@ def test_research_evaluation_service_retries_only_failed_batch() -> None:
 
     provider = SequentialStubProvider(
         (
-            create_provider_response_for_papers((papers[0],)),
+            create_provider_response_for_papers(papers[:3]),
             invalid_response,
-            create_provider_response_for_papers((papers[1],)),
-            create_provider_response_for_papers((papers[2],)),
-            create_provider_response_for_papers((papers[3],)),
-            create_provider_response_for_papers((papers[4],)),
-            create_provider_response_for_papers((papers[5],)),
+            create_provider_response_for_papers(papers[3:]),
         )
     )
 
@@ -670,11 +665,11 @@ def test_research_evaluation_service_retries_only_failed_batch() -> None:
     )
 
     assert len(result) == 6
-    assert len(provider.requests) == 7
+    assert len(provider.requests) == 3
     assert [
         request.metadata["paper_count"]
         for request in provider.requests
-    ] == [1, 1, 1, 1, 1, 1, 1]
+    ] == [3, 3, 3]
 
 
 def test_research_evaluation_service_returns_empty_for_no_papers() -> None:
@@ -712,10 +707,9 @@ def test_research_evaluation_service_supports_multiple_papers() -> None:
     )
 
     provider = SequentialStubProvider(
-        (
-            create_provider_response_for_papers((first_paper,)),
-            create_provider_response_for_papers((second_paper,)),
-        )
+        (create_provider_response_for_papers(
+            (first_paper, second_paper),
+        ),)
     )
 
     service = ResearchEvaluationService(
@@ -826,7 +820,7 @@ def test_research_evaluation_service_preserves_score_ordering() -> None:
             create_valid_provider_response(
                 evaluations=[
                     {
-                        "source_id": "paper-001",
+                        "source_id": f"paper-{index:03d}",
                         "relevance_score": raw_score,
                         "relevance_summary": f"{paper.title} relevance.",
                         "strengths": [],
@@ -834,9 +828,16 @@ def test_research_evaluation_service_preserves_score_ordering() -> None:
                         "research_connections": [],
                         "warnings": [],
                     }
+                    for index, (paper, raw_score) in enumerate(
+                        zip(batch, batch_scores),
+                        start=1,
+                    )
                 ]
             )
-            for paper, raw_score in zip(papers, raw_scores)
+            for batch, batch_scores in (
+                (papers[:3], raw_scores[:3]),
+                (papers[3:], raw_scores[3:]),
+            )
         )
     )
 
