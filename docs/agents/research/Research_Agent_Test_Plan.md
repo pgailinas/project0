@@ -2,7 +2,7 @@
 
 **Version:** 0.3  
 **Owner:** Project0  
-**Last Updated:** 2026-08-28
+**Last Updated:** 2026-09-02
 
 ------------------------------------------------------------------------
 
@@ -360,24 +360,23 @@ without discarding discovered source references.
 
 #### Objective
 
-Verify that the Research Agent generates structured paper summary
-artifacts.
+Verify that the Research Agent presents a structured result for each
+retained paper.
 
 #### Expected Behavior
 
 The Research Agent shall:
 
--   summarize the research problem
--   summarize the methodology
--   identify available datasets and results
--   identify strengths and limitations
--   explain relevance to the research question
--   preserve source references
+-   present paper metadata and relevance assessment
+-   present structured analysis only when abstract-supported analysis is
+    available
+-   distinguish paper content from relevance strengths and limitations
+-   preserve source traceability without repeated visible source URLs
 
 #### Pass Criteria
 
-The generated summary is structured, traceable to the source paper, and
-contains no unsupported source claims.
+Each retained-paper result is consolidated, traceable to the source
+paper, and contains no unsupported source claims.
 
 ------------------------------------------------------------------------
 
@@ -601,9 +600,9 @@ The Research Agent shall:
 Research Direction Analysis remains traceable to valid context and paper
 evidence and satisfies the defined synthesis requirements.
 
-The detailed Research Direction Analysis output contract remains to be
-defined and shall receive additional verification criteria when
-finalized.
+Unknown context items or paper identifiers are rejected, and each
+non-speculative candidate direction preserves context motivation and
+literature evidence.
 
 ------------------------------------------------------------------------
 
@@ -1241,12 +1240,11 @@ source traceability.
 
 1.  Submit a valid research request.
 2.  Wait for research results.
-3.  Inspect displayed paper and artifact source information.
+3.  Inspect displayed paper source information.
 
 #### Expected Results
 
 -   Source information is visible for retrieved papers.
--   Generated research artifacts retain supporting source references.
 -   Source information remains associated with the appropriate research
     result.
 

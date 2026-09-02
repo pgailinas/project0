@@ -2,7 +2,7 @@
 
 **Version:** 0.3  
 **Owner:** Project0  
-**Last Updated:** 2026-08-28
+**Last Updated:** 2026-09-02
 
 ---
 
@@ -472,6 +472,7 @@ Produce structured technical analysis for each retained paper.
 -   Identify findings and limitations.
 -   Explain relevance to the current research.
 -   Preserve evidence references.
+-   Identify analysis derived from metadata and abstract information.
 
 #### Interfaces
 
@@ -547,8 +548,8 @@ Context to identify evidence-grounded research directions.
     Analysis rather than a separate service.
 -   Research directions are Research Agent inference grounded in
     source-derived context and per-paper interpretation.
--   The detailed Research Direction Analysis output contract remains to
-    be defined.
+-   Referenced context items and paper identifiers are validated before
+    analysis results are returned.
 
 #### Inputs
 
@@ -636,6 +637,8 @@ provider-ready research search terms.
 #### Responsibilities
 
 -   Convert research concepts into focused search terms.
+-   Generate a complementary, bounded set of queries from the Research
+    Strategy, optional Existing Research Context, and user guidance.
 -   Preserve deterministic query ordering.
 -   Remove duplicate query terms.
 -   Return an enriched Research Strategy containing provider-ready
@@ -670,6 +673,7 @@ Provide controlled access to supported external research sources.
 -   Execute research searches using a Research Strategy.
 -   Query configured external research source providers.
 -   Combine results from multiple configured research source providers.
+-   Deduplicate source references returned across provider queries.
 -   Normalize returned research source references.
 -   Preserve source identifiers and locations.
 -   Return structured source results and errors.
@@ -1086,8 +1090,8 @@ The initial Research Workflow follows this sequence:
     required.
 14. Candidate papers are ranked by relevance and the configured maximum
     number of results is retained.
-15. Per-Paper Analysis produces structured technical analysis for each
-    retained paper.
+15. Per-Paper Analysis produces structured technical analysis from
+    available metadata and abstract information for each retained paper.
 16. Research Direction Analysis performs cross-paper comparison and
     identifies candidate research directions.
 17. The Research Artifact Service generates structured research

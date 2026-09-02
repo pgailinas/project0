@@ -2,7 +2,7 @@
 
 **Version:** 0.5  
 **Owner:** Project0  
-**Last Updated:** 2026-08-17  
+**Last Updated:** 2026-09-02  
 
 ---
 
@@ -241,7 +241,7 @@ The implemented sequence is:
 
 ## Research Workflow
 
-* Coordinate Research Strategy, Research Query, Research Source, Paper Metadata, Research Evaluation, and Research Artifact services.
+* Coordinate Research Strategy, Research Query, Research Source, Paper Metadata, Research Evaluation, Per-Paper Analysis, Research Direction Analysis, Validation, and Research Artifact services.
 * Preserve Research Agent workflow state.
 * Return Research Workflow Results.
 
@@ -461,5 +461,4 @@ The implemented Validation Service coordinates:
 * Documentation Consistency Validator
 
 The next implementation phase will extend this communication foundation with semantic retrieval, embedding generation, vector search, and additional AI agent capabilities.
-
 

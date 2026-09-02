@@ -2,7 +2,7 @@
 
 **Version:** 0.4  
 **Owner:** Project0  
-**Last Updated:** 2026-08-28
+**Last Updated:** 2026-09-02
 
 ------------------------------------------------------------------------
 
@@ -91,8 +91,6 @@ flowchart TD
     G["Knowledge Service"]
     H["Research Evaluation Service"]
     I["Reasoning Service"]
-    O["Full-Paper Acquisition"]
-    R["Paper Content Extraction"]
     M["Per-Paper Analysis"]
     N["Research Direction Analysis"]
     J["Research Artifact Service"]
@@ -114,9 +112,7 @@ flowchart TD
     F --> G
     G --> H
     H --> I
-    I --> O
-    O --> R
-    R --> M
+    I --> M
     M --> N
     N --> J
     J --> K
@@ -147,13 +143,8 @@ flowchart TD
     the configured maximum number of results.
 13. The Reasoning Service performs AI-assisted research analysis where
     required.
-14. Full-paper acquisition attempts to retrieve available PDF content for
-    each retained paper.
-15. Paper content extraction preserves physical PDF page boundaries and
-    page numbers for available full-text evidence.
-16. Structured Per-Paper Analysis interprets each retained paper using
-    full-text evidence when available and explicitly falls back to
-    metadata and abstract analysis when full text is unavailable.
+14. Structured Per-Paper Analysis interprets each retained paper from
+    available metadata and abstract information.
 17. Research Direction Analysis performs cross-paper comparison and
     identifies candidate research directions grounded in existing
     research context and literature evidence.
@@ -324,41 +315,6 @@ Responsibilities:
 
 ------------------------------------------------------------------------
 
-### Full-Paper Acquisition
-
-Retrieves available full-text PDF content for retained papers after
-relevance ranking and result selection.
-
-Responsibilities:
-
--   Attempt full-paper acquisition only for retained papers.
--   Prefer normalized document locations while preserving bibliographic
-    source locations separately.
--   Support PDF full-text acquisition.
--   Validate returned PDF media type and content signature.
--   Retry transient acquisition failures using bounded retry behavior.
--   Report unavailable full text without failing otherwise valid research
-    processing.
-
-------------------------------------------------------------------------
-
-### Paper Content Extraction
-
-Extracts normalized page-preserving text from acquired research-paper
-PDF content.
-
-Responsibilities:
-
--   Extract PDF text using `pypdf`.
--   Preserve physical page boundaries and page numbers.
--   Preserve empty individual pages when required for page-number
-    traceability.
--   Clearly report malformed or extraction-poor PDF content.
--   Reject PDFs containing no meaningful extractable text.
--   Exclude OCR from the current implementation scope.
-
-------------------------------------------------------------------------
-
 ### Per-Paper Analysis
 
 Produces structured technical analysis for each retained paper.
@@ -372,9 +328,7 @@ Responsibilities:
 -   Identify findings and limitations.
 -   Explain relevance to the current research.
 -   Preserve evidence references.
--   Use full-text evidence with page-level provenance when available.
--   Explicitly identify metadata and abstract fallback analysis when full
-    text is unavailable.
+-   Identify analysis derived from metadata and abstract information.
 -   Distinguish source-derived interpretation from source information.
 
 ------------------------------------------------------------------------
@@ -395,6 +349,8 @@ Responsibilities:
 -   Preserve provenance for supporting context and paper evidence.
 -   Distinguish Research Agent inference from source-derived findings and
     per-paper interpretation.
+-   Validate referenced context items and paper identifiers before
+    returning analysis results.
 
 ------------------------------------------------------------------------
 
@@ -423,6 +379,8 @@ provider-ready research search queries.
 Responsibilities:
 
 -   Convert research concepts into focused search terms.
+-   Generate a complementary, bounded set of queries from the Research
+    Strategy, optional Existing Research Context, and user guidance.
 -   Preserve deterministic query ordering.
 -   Remove duplicate query terms.
 -   Remain independent from external research source providers.
@@ -447,6 +405,7 @@ Responsibilities:
 -   Execute research searches using a Research Strategy.
 -   Query configured external research source providers.
 -   Combine results from multiple configured research source providers.
+-   Deduplicate source references returned across provider queries.
 -   Normalize returned research source references.
 -   Preserve source identifiers and locations.
 -   Return structured source results and errors.
@@ -488,7 +447,7 @@ Responsibilities:
 -   Identify potential research gaps.
 -   Support experiment planning analysis.
 -   Preserve references to supporting research sources.
--   Evaluate papers in bounded batches of five.
+-   Evaluate papers in bounded batches.
 -   Require one validated evaluation for each supplied paper.
 -   Preserve valid partial evaluations and retry only missing papers when
     an otherwise valid provider response omits expected source
@@ -536,10 +495,8 @@ Responsibilities:
 -   Preserve all discovered source references for traceability.
 -   Rank evaluated papers by relevance and retain the configured maximum
     number of results.
--   Acquire and extract available full-text PDF content only for retained
-    papers.
--   Generate per-paper analyses from retained evaluations using full-text
-    evidence when available and metadata or abstract fallback otherwise.
+-   Generate per-paper analyses from retained evaluations using available
+    metadata and abstract information.
 -   Coordinate Research Direction Analysis across retained paper
     analyses and optional Existing Research Context.
 -   Generate research artifacts from retained evaluations and analyses.
@@ -635,7 +592,6 @@ The Research Agent interacts with:
     -   OpenAlex research source provider
     -   OpenReview research source provider
 -   Technical paper metadata
--   Available full-text research-paper PDF content
 -   Project0 repository knowledge
 -   Existing research artifacts
 -   Optional text-based PDF, Markdown, and plain-text Existing Research
@@ -665,11 +621,6 @@ The Research Agent interacts with:
     distinguishable.
 -   Image-only or scanned PDF context documents requiring OCR are outside
     the current implementation scope.
--   Full-paper analysis shall use page-preserving PDF extraction when
-    available and shall explicitly identify metadata or abstract fallback
-    analysis when full text is unavailable.
--   OCR processing of research-paper PDFs is outside the current
-    implementation scope.
 -   Platform components shall communicate through typed interfaces.
 -   Shared data models shall define information exchanged between
     components.

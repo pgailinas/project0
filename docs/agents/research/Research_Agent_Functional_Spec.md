@@ -2,7 +2,7 @@
 
 **Version:** 0.4  
 **Owner:** Project0  
-**Last Updated:** 2026-08-28
+**Last Updated:** 2026-09-02
 
 ---
 
@@ -56,9 +56,11 @@ The Research Agent shall:
 -   Identify relevant research concepts and terminology.
 -   Identify the research objective and explicit research sub-questions.
 -   Generate a research strategy.
--   Generate deterministic research search terms from the research strategy.
+-   Generate deterministic, complementary research search terms from the
+    research strategy, optional Existing Research Context, and guidance.
 -   Search supported external research sources.
 -   Combine results from multiple configured research source providers.
+-   Deduplicate source references returned across provider queries.
 -   Support pluggable research source providers through defined service
     boundaries.
 -   Support deterministic research source provider behavior for testing,
@@ -93,13 +95,6 @@ The Research Agent shall:
 -   Clearly report context extraction or analysis failures without
     silently reverting to a no-context workflow.
 -   Summarize relevant technical papers.
--   Attempt full-text PDF acquisition only for retained papers.
--   Preserve bibliographic source locations separately from full-text
-    document locations.
--   Extract acquired research-paper PDF content with physical page
-    boundaries and page numbers preserved.
--   Explicitly fall back to metadata and abstract analysis when full text
-    is unavailable or cannot be meaningfully extracted.
 -   Produce structured per-paper analysis including the problem, approach,
     representations, modalities, learning or alignment objective,
     datasets or tasks, findings, limitations, relevance to the current
@@ -185,11 +180,7 @@ Relevance Ranking and Result Selection
       ↓
 Research Knowledge Retrieval
       ↓
-Full-Paper Acquisition
-      ↓
-Paper Content Extraction
-      ↓
-Per-Paper Analysis
+Per-Paper Analysis from Available Metadata and Abstract Information
       ↓
 Research Direction Analysis
       ↓
@@ -231,9 +222,7 @@ The Research Agent is successful when it:
 -   Produces useful, evidence-grounded paper summaries.
 -   Produces structured per-paper technical analysis with evidence
     references.
--   Uses full-text paper evidence with page-level provenance when
-    available and explicitly identifies metadata or abstract fallback
-    analysis when full text is unavailable.
+-   Identifies metadata and abstract information as the analysis basis.
 -   Generates useful research comparison artifacts.
 -   Produces structured synthesis findings across retained paper analyses.
 -   Generates candidate research directions grounded in both existing

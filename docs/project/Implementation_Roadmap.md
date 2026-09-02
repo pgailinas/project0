@@ -2,7 +2,7 @@
 
 **Version:** 0.6  
 **Owner:** Project0  
-**Last Updated:** 2026-08-25
+**Last Updated:** 2026-09-02
 
 ---
 
@@ -361,14 +361,15 @@ Current progress:
 -   Context-aware Research Strategy integration completed and validated.
 -   Existing Research Context Dashboard integration completed and
     validated.
--   Full-paper acquisition and page-preserving PDF extraction completed
-    and validated.
 -   Structured per-paper analysis completed and validated.
 -   Research Workflow per-paper analysis integration completed and
     validated.
 -   Research evaluation missing-paper retry behavior completed and
     validated.
--   Research Direction Analysis remains the next planned activity.
+-   Research Direction Analysis and evidence validation completed and
+    validated.
+-   Context-aware multi-query retrieval, bounded batch evaluation, and
+    consolidated retained-paper results completed and validated.
 
 ## 4. Implementation Dependencies
 

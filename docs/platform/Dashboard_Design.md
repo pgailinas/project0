@@ -2,7 +2,7 @@
 
 **Version:** 0.6  
 **Owner:** Project0  
-**Last Updated:** 2026-08-09
+**Last Updated:** 2026-09-02
 
 ---
 
@@ -290,6 +290,10 @@ Dashboard integration model:
 - User approval before repository modification.
 - Final validation, Git diff generation, and completion reporting.
 
+The Research Agent provides a second implemented agent integration,
+including context-document selection, research request controls, and
+consolidated retained-paper results within the Dashboard Work Area.
+
 The Dashboard Framework continues to own the shared application shell,
 navigation, context toolbar region, and Work Area hosting.
 Agent-specific features such as documentation review, validation
@@ -426,4 +430,3 @@ Future implementation includes:
 This document defines the Project0 platform user experience.
 
 Each AI agent shall provide its own Interface Design document describing agent-specific pages and interactions while conforming to the Dashboard Design.
-

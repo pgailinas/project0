@@ -2,7 +2,7 @@
 
 **Version:** 0.3  
 **Owner:** Project0  
-**Last Updated:** 2026-08-28
+**Last Updated:** 2026-09-02
 
 ---
 
@@ -101,6 +101,7 @@ Responsibilities:
 -   Identify findings and limitations.
 -   Explain relevance to the current research.
 -   Preserve evidence references.
+-   Identify analysis derived from metadata and abstract information.
 
 Per-paper analysis is source-derived interpretation and remains
 distinguishable from source information and Research Agent inference.
@@ -128,8 +129,10 @@ Analysis rather than a separate interface. Research directions are
 Research Agent inference grounded in source-derived context and
 per-paper interpretation.
 
-The detailed Research Direction Analysis output contract remains to be
-defined.
+The output contract includes synthesis findings and candidate research
+directions. Validation rejects unknown context items or paper identifiers,
+and requires both context motivation and literature evidence for each
+non-speculative candidate direction.
 
 ---
 
@@ -207,6 +210,8 @@ Responsibilities:
 
 -   Accept structured research strategies.
 -   Generate focused research queries from research concepts.
+-   Generate a complementary, bounded query set from the Research
+    Strategy, optional Existing Research Context, and user guidance.
 -   Preserve deterministic query ordering.
 -   Remove duplicate query terms.
 -   Remain independent from external research source implementations.

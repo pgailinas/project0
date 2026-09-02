@@ -2,15 +2,15 @@
 
 **Version:** 0.7  
 **Owner:** Project0  
-**Last Updated:** 2026-08-26
+**Last Updated:** 2026-09-02
 
 ------------------------------------------------------------------------
 
 ## Executive Summary
 
 This document records the updated validation status for the Project0
-Research Agent following completion of the Research Query Service
-integration.
+Research Agent following validated workflow, research-analysis, and
+result-presentation changes.
 
 The Research Agent now includes:
 
@@ -22,6 +22,10 @@ The Research Agent now includes:
 -   Deterministic stub provider support
 -   Research workflow orchestration
 -   Bounded research evaluation batching
+-   Existing Research Context analysis
+-   Structured per-paper analysis
+-   Research Direction Analysis and evidence validation
+-   Consolidated retained-paper result presentation
 -   Platform dispatcher integration
 -   End-to-end Dashboard workflow validation
 
@@ -111,22 +115,10 @@ Validated:
 tests/unit/workflow/test_research_workflow.py
 ```
 
-Result:
-
-``` text
-15 passed
-```
-
 Validated:
 
 ``` text
 tests/integration/agents/research/test_research_workflow_flow.py
-```
-
-Result:
-
-``` text
-3 passed
 ```
 
 ------------------------------------------------------------------------
@@ -286,18 +278,18 @@ Validated components:
 -   Existing Research Context analysis
 -   Context-aware Research Strategy generation
 -   Existing Research Context Dashboard upload workflow
--   Full-paper acquisition for retained papers
--   Page-preserving research-paper PDF extraction
 -   Structured per-paper analysis
--   Full-text analysis with page-level evidence references
--   Metadata and abstract fallback when full text is unavailable
+-   Metadata and abstract-based analysis for retained papers
 -   Research Workflow integration after relevance ranking and selection
 -   Research evaluation missing-paper retry behavior
 
+Structured analysis is displayed only for papers with available abstract
+content. Each retained paper presents its source details, relevance
+assessment, and applicable structured analysis in one consolidated result
+card without repeated visible source URLs.
+
 Browser acceptance validation completed successfully with configured
-Maximum Results values of 5, 10, and 20. The Maximum Results 20 scenario
-completed with 19 discovered sources, 19 retained papers, 19 validated
-evaluations, and 22 generated artifacts.
+Maximum Results values of 5, 10, and 20.
 
 Research evaluation robustness was additionally validated after
 introducing missing-paper retry behavior. Valid partial evaluations are
@@ -307,22 +299,23 @@ duplicate source identifiers continue to require complete-batch retry.
 
 ------------------------------------------------------------------------
 
-## 10. Planned Research Analysis Validation
+## 10. Research Direction Analysis Validation
 
-The following Research Agent capabilities are documented for future
-implementation but have not yet been validated:
+Status:
 
--   Bounded context document chunking
--   Cross-paper synthesis
--   Research Direction Analysis
+**COMPLETE**
+
+Validated components:
+
+-   Cross-paper synthesis within Research Direction Analysis
 -   Candidate research direction evidence validation
--   Saved research package validation
-These capabilities shall not be considered part of the validated
-Research Agent baseline until implementation and applicable unit,
-integration, browser acceptance, and regression testing are complete.
+-   Rejection of unknown context items and paper identifiers
+-   Required context motivation and literature evidence for
+    non-speculative candidate directions
+-   Bounded Research Direction Analysis input
+-   Saved research package direction-analysis content
 
-The detailed Research Direction Analysis output contract and bounded
-context document chunking limits remain to be defined.
+Bounded context document chunking limits remain future work.
 
 OCR processing for image-only or scanned PDF context documents is not
 included in the planned implementation increment.

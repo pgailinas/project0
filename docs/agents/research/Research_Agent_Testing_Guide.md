@@ -2,7 +2,7 @@
 
 **Version:** 0.7\
 **Owner:** Project0\
-**Last Updated:** 2026-08-28
+**Last Updated:** 2026-09-02
 
 ------------------------------------------------------------------------
 
@@ -553,9 +553,10 @@ Increment 3 testing should verify:
 -   `context_document=None` preserves existing workflow semantics and
     result behavior with new optional fields empty.
 
-The detailed Research Direction Analysis output contract and bounded
-chunking limits remain to be defined and should receive focused tests
-when those design decisions are finalized.
+Research Direction Analysis tests shall verify that unknown context items
+or paper identifiers are rejected and that each non-speculative candidate
+direction preserves context motivation and literature evidence. Bounded
+chunking limits remain future work.
 
 ### 6.10 Complete Project0 Regression Test
 
@@ -807,12 +808,11 @@ baseline includes:
 -   Preliminary and final validation behavior verified.
 -   Local reasoning-provider behavior exercised through Research Agent
     workflows.
--   Seven implemented high-level workflow scenarios passing as
-    integration tests; seven additional scenarios remain explicitly
-    skipped/deferred.
 -   Playwright-based Chromium browser acceptance automation established;
     initial page-render scenario passing.
--   Complete Project0 regression baseline: 648 passed, 7 skipped.
+-   Structured per-paper analysis, Research Direction Analysis, and
+    consolidated research-result presentation validated through focused
+    unit, integration, and acceptance coverage.
 
 The complete Project0 regression suite must also pass before Research
 Agent changes are committed.
