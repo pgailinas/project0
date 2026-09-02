@@ -190,16 +190,28 @@ class ResearchDirectionAnalysisService:
                         ),
                     )
 
-        return {
-            finding_id: _EvidenceCatalogEntry(
+        context_index = 0
+        literature_index = 0
+        provider_catalog: dict[str, _EvidenceCatalogEntry] = {}
+
+        for finding_id, entry in catalog.items():
+            if (
+                entry.source_type
+                == ResearchEvidenceSourceType.CONTEXT_DOCUMENT
+            ):
+                context_index += 1
+                provider_id = f"context-{context_index:03d}"
+            else:
+                literature_index += 1
+                provider_id = f"literature-{literature_index:03d}"
+
+            provider_catalog[finding_id] = _EvidenceCatalogEntry(
                 finding=entry.finding,
                 source_type=entry.source_type,
-                provider_id=f"E{index}",
+                provider_id=provider_id,
             )
-            for index, (finding_id, entry) in enumerate(
-                catalog.items()
-            )
-        }
+
+        return provider_catalog
 
     @staticmethod
     def _add_optional_context_finding(
@@ -282,7 +294,13 @@ class ResearchDirectionAnalysisService:
             "type": "object",
             "properties": {
                 "content": {"type": "string"},
-                "evidence_ids": {"type": "array"},
+                "evidence_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": literature_evidence_ids,
+                    },
+                },
             },
             "required": ["content", "evidence_ids"],
         }
@@ -292,8 +310,20 @@ class ResearchDirectionAnalysisService:
             "properties": {
                 "direction": {"type": "string"},
                 "rationale": {"type": "string"},
-                "context_evidence_ids": {"type": "array"},
-                "literature_evidence_ids": {"type": "array"},
+                "context_evidence_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": context_evidence_ids,
+                    },
+                },
+                "literature_evidence_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": literature_evidence_ids,
+                    },
+                },
                 "speculative": {"type": "boolean"},
             },
             "required": [

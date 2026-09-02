@@ -96,8 +96,8 @@ def _valid_output(*, with_context: bool = True):
                 {
                     "content": "The analyzed papers use related alignment approaches.",
                     "evidence_ids": [
-                        "E2",
-                        "E7",
+                        "literature-002",
+                        "literature-007",
                     ],
                 }
             ],
@@ -110,10 +110,10 @@ def _valid_output(*, with_context: bool = True):
                 "direction": "Investigate improved semantic alignment.",
                 "rationale": "Prior limitations and literature support this investigation.",
                 "context_evidence_ids": (
-                    ["E0"] if with_context else []
+                    ["context-001"] if with_context else []
                 ),
                 "literature_evidence_ids": [
-                    "E3"
+                    "literature-003"
                 ],
                 "speculative": False,
             }
@@ -214,7 +214,7 @@ def test_analyze_retries_once_after_invalid_output_then_succeeds():
 def test_analyze_skips_invalid_synthesis_finding_without_retry():
     invalid = _valid_output()
     invalid["synthesis"]["themes"][0]["evidence_ids"] = [
-        "E2"
+        "literature-002"
     ]
     provider = StubProvider([invalid])
     service = ResearchDirectionAnalysisService(provider, "test-model")
@@ -233,8 +233,8 @@ def test_analyze_skips_invalid_synthesis_finding_without_retry():
 def test_analyze_deduplicates_candidate_evidence_ids_without_retry():
     output = _valid_output()
     output["candidate_directions"][0]["literature_evidence_ids"] = [
-        "E3",
-        "E3",
+        "literature-003",
+        "literature-003",
     ]
     provider = StubProvider([output])
     service = ResearchDirectionAnalysisService(provider, "test-model")
@@ -251,6 +251,29 @@ def test_analyze_deduplicates_candidate_evidence_ids_without_retry():
         == papers[0].findings[0].evidence
     )
     assert len(provider.requests) == 1
+
+
+def test_analyze_retries_when_candidate_evidence_uses_wrong_source_type():
+    invalid = _valid_output()
+    invalid["candidate_directions"][0]["context_evidence_ids"] = [
+        "literature-003"
+    ]
+    provider = StubProvider([invalid, _valid_output()])
+    service = ResearchDirectionAnalysisService(provider, "test-model")
+    papers = (
+        _paper_analysis("Paper-A", "Paper A", 3),
+        _paper_analysis("Paper-B", "Paper B", 7),
+    )
+
+    result = service.analyze(_request(), _context(), papers)
+
+    assert result.candidate_directions
+    assert len(provider.requests) == 2
+    retry_payload = json.loads(provider.requests[1].user_prompt)
+    assert retry_payload["validation_feedback"] == (
+        "Provider field 'candidate_directions.context_evidence_ids' "
+        "referenced evidence from the wrong source type."
+    )
 
 
 def test_analyze_accepts_valid_empty_provider_result_without_retry():
@@ -284,7 +307,7 @@ def test_analyze_allows_evidence_anchored_speculative_direction():
             "direction": "Explore a broader alignment target.",
             "rationale": "This extrapolates from the supplied alignment evidence.",
             "context_evidence_ids": [],
-            "literature_evidence_ids": ["E2"],
+            "literature_evidence_ids": ["literature-002"],
             "speculative": True,
         }
     ]
@@ -317,21 +340,24 @@ def test_provider_request_uses_structured_findings_and_prohibits_novelty_claims(
     assert payload["research_request"]["question"] == _request().question
     assert payload["existing_research_context"]["limitations"][0][
         "finding_id"
-    ] == "E0"
-    assert payload["paper_analyses"][0]["problem"]["finding_id"] == "E1"
+    ] == "context-001"
+    assert (
+        payload["paper_analyses"][0]["problem"]["finding_id"]
+        == "literature-001"
+    )
     assert "page_number" not in request.user_prompt
     assert payload["allowed_evidence_ids"]["context_evidence_ids"] == [
-        "E0"
+        "context-001"
     ]
     assert payload["allowed_evidence_ids"]["literature_evidence_ids"] == [
-        "E1",
-        "E2",
-        "E3",
-        "E4",
-        "E5",
-        "E6",
-        "E7",
-        "E8",
+        "literature-001",
+        "literature-002",
+        "literature-003",
+        "literature-004",
+        "literature-005",
+        "literature-006",
+        "literature-007",
+        "literature-008",
     ]
     assert payload["validation_feedback"] is None
 
@@ -339,10 +365,27 @@ def test_provider_request_uses_structured_findings_and_prohibits_novelty_claims(
         "candidate_directions"
     ]["items"]["properties"]
     assert direction_schema["context_evidence_ids"] == {
-        "type": "array"
+        "type": "array",
+        "items": {
+            "type": "string",
+            "enum": ["context-001"],
+        },
     }
     assert direction_schema["literature_evidence_ids"] == {
-        "type": "array"
+        "type": "array",
+        "items": {
+            "type": "string",
+            "enum": [
+                "literature-001",
+                "literature-002",
+                "literature-003",
+                "literature-004",
+                "literature-005",
+                "literature-006",
+                "literature-007",
+                "literature-008",
+            ],
+        },
     }
 
     instructions = request.system_instructions.lower()
