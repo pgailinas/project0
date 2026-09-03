@@ -153,6 +153,11 @@
                     type="file"
                     accept=".pdf,.md,.markdown,.txt"
                 >
+                {% if page.request_form.context_source_name %}
+                <p class="form-field__selected-file">
+                    {{ page.request_form.context_source_name }}
+                </p>
+                {% endif %}
                 <p class="form-help">
                     Optional. Provide prior research as PDF, Markdown, or plain text.
                 </p>
@@ -269,7 +274,7 @@
 
         <div class="proposal-list">
             {% for result in page.results %}
-            <article class="proposal-card">
+            <article class="proposal-card research-result-card">
                 <header class="proposal-card__header">
                     <div>
                         <p class="proposal-card__number">
@@ -311,12 +316,6 @@
                         <dt>Source</dt>
                         <dd>{{ result.source_name or "" }}</dd>
                     </div>
-                    {% if result.venue %}
-                    <div>
-                        <dt>Venue</dt>
-                        <dd>{{ result.venue }}</dd>
-                    </div>
-                    {% endif %}
                     {% if result.doi %}
                     <div>
                         <dt>DOI</dt>
@@ -324,21 +323,21 @@
                     </div>
                     {% endif %}
                 </dl>
-
-                {% if result.abstract %}
-                <div class="research-result-card__detail">
-                    <h5>Abstract</h5>
-                    <p>{{ result.abstract }}</p>
-                </div>
-                {% endif %}
                 </section>
 
                 <section class="research-result-card__section">
-                    <h4 class="research-result-card__section-title">Relevance Assessment</h4>
                 <div class="research-result-card__detail">
-                    <h5>Summary</h5>
-                    <p>{{ result.relevance_summary }}</p>
+                    <h4 class="research-result-card__section-title">Paper Summary</h4>
+                    {% if result.abstract %}
+                    <p>{{ result.abstract }}</p>
+                    {% else %}
+                    <p>No abstract was available from the selected source.</p>
+                    {% endif %}
                 </div>
+                </section>
+
+                <section class="research-result-card__section research-result-card__section--assessment">
+                    <h4 class="research-result-card__section-title">Relevance Assessment</h4>
 
                 {% if result.research_connections %}
                 <div class="research-result-card__detail">
@@ -373,16 +372,6 @@
                 </div>
                 {% endif %}
 
-                {% if result.warnings %}
-                <div class="research-result-card__detail">
-                    <h5>Warnings</h5>
-                    <ul>
-                        {% for warning in result.warnings %}
-                        <li>{{ warning }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                {% endif %}
                 </section>
 
                 {% if result.analysis %}
@@ -397,17 +386,9 @@
                         </span>
                     </div>
 
-                    {% for title, finding in [
-                        ("Problem", analysis.problem),
-                        ("Approach", analysis.approach)
-                    ] %}
-                    <div class="research-result-card__detail">
-                        <h5>{{ title }}</h5>
-                        <p>{{ finding.content }}</p>
-                    </div>
-                    {% endfor %}
-
                     {% for title, findings in [
+                        ("Problem", (analysis.problem,)),
+                        ("Approach", (analysis.approach,)),
                         ("Representations", analysis.representations),
                         ("Modalities", analysis.modalities),
                         ("Learning / Alignment Objectives", analysis.learning_objectives),
@@ -415,43 +396,17 @@
                         ("Findings", analysis.findings),
                         ("Study Limitations", analysis.limitations)
                     ] %}
-                    {% if findings %}
+                    {% set contents = findings | map(attribute="content") | reject("equalto", "Not available from metadata/abstract.") | list %}
+                    {% if contents %}
                     <div class="research-result-card__detail">
-                        <h5>{{ title }}</h5>
-                        <ul>
-                            {% for finding in findings %}
-                            <li>
-                                {{ finding.content }}
-                                {% if finding.evidence %}
-                                <ul class="research-evidence-list">
-                                    {% for evidence in finding.evidence %}
-                                    <li>
-                                        <code>{{ evidence.source_id }}</code>
-                                        {% if evidence.page_number is not none %}
-                                        — page {{ evidence.page_number }}
-                                        {% endif %}
-                                        {% if evidence.section %}
-                                        — {{ evidence.section }}
-                                        {% endif %}
-                                    </li>
-                                    {% endfor %}
-                                </ul>
-                                {% endif %}
-                            </li>
-                            {% endfor %}
-                        </ul>
+                        <p><strong>{{ title }}:</strong> {{ contents | join("; ") }}</p>
                     </div>
                     {% endif %}
                     {% endfor %}
 
                     {% if analysis.warnings %}
                     <div class="research-result-card__detail">
-                        <h5>Analysis Warnings</h5>
-                        <ul>
-                            {% for warning in analysis.warnings %}
-                            <li>{{ warning }}</li>
-                            {% endfor %}
-                        </ul>
+                        <p><strong>Analysis Notes:</strong> {{ analysis.warnings | join(" ") }}</p>
                     </div>
                     {% endif %}
                 </section>
@@ -473,32 +428,21 @@
                 <h2 id="existing-research-context-title">
                     Existing Research Context Analysis
                 </h2>
+                {% if page.request_form.context_source_name %}
+                <p class="context-source-document">
+                    Source document: {{ page.request_form.context_source_name }}
+                </p>
+                {% endif %}
             </div>
         </div>
 
         {% set context = page.existing_research_context %}
 
+        <dl class="research-context-list">
         {% if context.research_problem %}
-        <div class="research-analysis-section">
-            <h3>Research Problem</h3>
-            <article class="proposal-card">
-                <p>{{ context.research_problem.content }}</p>
-                {% if context.research_problem.evidence %}
-                <ul class="research-evidence-list">
-                    {% for evidence in context.research_problem.evidence %}
-                    <li>
-                        <code>{{ evidence.source_id }}</code>
-                        {% if evidence.page_number is not none %}
-                        — page {{ evidence.page_number }}
-                        {% endif %}
-                        {% if evidence.section %}
-                        — {{ evidence.section }}
-                        {% endif %}
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
-            </article>
+        <div class="research-context-item">
+            <dt>Research Problem</dt>
+            <dd>{{ context.research_problem.content }}</dd>
         </div>
         {% endif %}
 
@@ -511,33 +455,15 @@
             ("Stated Future Work", context.stated_future_work)
         ] %}
         {% if findings %}
-        <div class="research-analysis-section">
-            <h3>{{ title }}</h3>
-            <div class="proposal-list">
-                {% for finding in findings %}
-                <article class="proposal-card">
-                    <p>{{ finding.content }}</p>
-                    {% if finding.evidence %}
-                    <ul class="research-evidence-list">
-                        {% for evidence in finding.evidence %}
-                        <li>
-                            <code>{{ evidence.source_id }}</code>
-                            {% if evidence.page_number is not none %}
-                            — page {{ evidence.page_number }}
-                            {% endif %}
-                            {% if evidence.section %}
-                            — {{ evidence.section }}
-                            {% endif %}
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
-                </article>
-                {% endfor %}
-            </div>
+        <div class="research-context-item">
+            <dt>{{ title }}</dt>
+            {% for finding in findings %}
+            <dd>{{ finding.content }}</dd>
+            {% endfor %}
         </div>
         {% endif %}
         {% endfor %}
+        </dl>
     </section>
     {% endif %}
 
@@ -659,21 +585,6 @@
                 {% for finding in synthesis.themes %}
                 <article class="proposal-card">
                     <p>{{ finding.content }}</p>
-                    {% if finding.evidence %}
-                    <ul class="research-evidence-list">
-                        {% for evidence in finding.evidence %}
-                        <li>
-                            <code>{{ evidence.source_id }}</code>
-                            {% if evidence.page_number is not none %}
-                            — page {{ evidence.page_number }}
-                            {% endif %}
-                            {% if evidence.section %}
-                            — {{ evidence.section }}
-                            {% endif %}
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
                 </article>
                 {% endfor %}
             </div>
@@ -687,21 +598,6 @@
                 {% for finding in synthesis.comparisons %}
                 <article class="proposal-card">
                     <p>{{ finding.content }}</p>
-                    {% if finding.evidence %}
-                    <ul class="research-evidence-list">
-                        {% for evidence in finding.evidence %}
-                        <li>
-                            <code>{{ evidence.source_id }}</code>
-                            {% if evidence.page_number is not none %}
-                            — page {{ evidence.page_number }}
-                            {% endif %}
-                            {% if evidence.section %}
-                            — {{ evidence.section }}
-                            {% endif %}
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
                 </article>
                 {% endfor %}
             </div>
@@ -715,21 +611,6 @@
                 {% for finding in synthesis.shared_limitations %}
                 <article class="proposal-card">
                     <p>{{ finding.content }}</p>
-                    {% if finding.evidence %}
-                    <ul class="research-evidence-list">
-                        {% for evidence in finding.evidence %}
-                        <li>
-                            <code>{{ evidence.source_id }}</code>
-                            {% if evidence.page_number is not none %}
-                            — page {{ evidence.page_number }}
-                            {% endif %}
-                            {% if evidence.section %}
-                            — {{ evidence.section }}
-                            {% endif %}
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
                 </article>
                 {% endfor %}
             </div>
@@ -743,21 +624,6 @@
                 {% for finding in synthesis.unresolved_questions %}
                 <article class="proposal-card">
                     <p>{{ finding.content }}</p>
-                    {% if finding.evidence %}
-                    <ul class="research-evidence-list">
-                        {% for evidence in finding.evidence %}
-                        <li>
-                            <code>{{ evidence.source_id }}</code>
-                            {% if evidence.page_number is not none %}
-                            — page {{ evidence.page_number }}
-                            {% endif %}
-                            {% if evidence.section %}
-                            — {{ evidence.section }}
-                            {% endif %}
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
                 </article>
                 {% endfor %}
             </div>
@@ -790,43 +656,6 @@
                         <p>{{ direction.rationale }}</p>
                     </div>
 
-                    {% if direction.context_evidence %}
-                    <div>
-                        <h4>Context Evidence</h4>
-                        <ul class="research-evidence-list">
-                            {% for evidence in direction.context_evidence %}
-                            <li>
-                                <code>{{ evidence.source_id }}</code>
-                                {% if evidence.page_number is not none %}
-                                — page {{ evidence.page_number }}
-                                {% endif %}
-                                {% if evidence.section %}
-                                — {{ evidence.section }}
-                                {% endif %}
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% endif %}
-
-                    {% if direction.literature_evidence %}
-                    <div>
-                        <h4>Literature Evidence</h4>
-                        <ul class="research-evidence-list">
-                            {% for evidence in direction.literature_evidence %}
-                            <li>
-                                <code>{{ evidence.source_id }}</code>
-                                {% if evidence.page_number is not none %}
-                                — page {{ evidence.page_number }}
-                                {% endif %}
-                                {% if evidence.section %}
-                                — {{ evidence.section }}
-                                {% endif %}
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% endif %}
                 </article>
                 {% endfor %}
             </div>
@@ -1056,11 +885,6 @@ if (saveButton) {
             "**Relevance:** {{ result.relevance_score }}"
         );
         {% endif %}
-        {% if result.venue %}
-        lines.push(
-            "**Venue:** {{ result.venue | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}"
-        );
-        {% endif %}
         {% if result.doi %}
         lines.push(
             "**DOI:** {{ result.doi | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}"
@@ -1069,19 +893,17 @@ if (saveButton) {
 
         {% if result.abstract %}
         lines.push("");
-        lines.push("### Abstract");
+        lines.push("### Paper Summary");
         lines.push("");
         lines.push(
             `{{ result.abstract | replace("\\", "\\\\") | replace("`", "\\`") }}`
         );
+        {% else %}
+        lines.push("");
+        lines.push("### Paper Summary");
+        lines.push("");
+        lines.push("No abstract was available from the selected source.");
         {% endif %}
-
-        lines.push("");
-        lines.push("### Summary");
-        lines.push("");
-        lines.push(
-            `{{ result.relevance_summary | replace("\\", "\\\\") | replace("`", "\\`") }}`
-        );
 
         {% if result.research_connections %}
         lines.push("");
@@ -1116,25 +938,6 @@ if (saveButton) {
         {% endfor %}
         {% endif %}
 
-        {% if result.warnings %}
-        lines.push("");
-        lines.push("### Warnings");
-        lines.push("");
-        {% for warning in result.warnings %}
-        lines.push(
-            `- {{ warning | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
-        );
-        {% endfor %}
-        {% endif %}
-
-        {% if result.source_url %}
-        lines.push("");
-        lines.push("### Source");
-        lines.push("");
-        lines.push(
-            "{{ result.source_url | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", "") }}"
-        );
-        {% endif %}
 
         {% if result.analysis %}
         {% set analysis = result.analysis %}
@@ -1144,15 +947,9 @@ if (saveButton) {
         lines.push(
             "**Analysis Basis:** {{ analysis.analysis_basis | replace("_", " ") | title }}"
         );
-        {% for title, finding in [("Problem", analysis.problem), ("Approach", analysis.approach)] %}
-        lines.push("");
-        lines.push("#### {{ title }}");
-        lines.push("");
-        lines.push(
-            `{{ finding.content | replace("\\", "\\\\") | replace("`", "\\`") }}`
-        );
-        {% endfor %}
         {% for title, findings in [
+            ("Problem", (analysis.problem,)),
+            ("Approach", (analysis.approach,)),
             ("Representations", analysis.representations),
             ("Modalities", analysis.modalities),
             ("Learning / Alignment Objectives", analysis.learning_objectives),
@@ -1160,15 +957,12 @@ if (saveButton) {
             ("Findings", analysis.findings),
             ("Study Limitations", analysis.limitations)
         ] %}
-        {% if findings %}
+        {% set contents = findings | map(attribute="content") | reject("equalto", "Not available from metadata/abstract.") | list %}
+        {% if contents %}
         lines.push("");
-        lines.push("#### {{ title }}");
-        lines.push("");
-        {% for finding in findings %}
         lines.push(
-            `- {{ finding.content | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
+            "**{{ title }}:** {{ contents | join("; ") | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}"
         );
-        {% endfor %}
         {% endif %}
         {% endfor %}
         {% endif %}
@@ -1343,27 +1137,6 @@ if (saveButton) {
         lines.push("**Speculative:** Yes");
         {% endif %}
 
-        {% if direction.context_evidence %}
-        lines.push("");
-        lines.push("#### Context Evidence");
-        lines.push("");
-        {% for evidence in direction.context_evidence %}
-        lines.push(
-            "- `{{ evidence.source_id | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", "") }}`{% if evidence.page_number is not none %} — page {{ evidence.page_number }}{% endif %}{% if evidence.section %} — {{ evidence.section | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}{% endif %}"
-        );
-        {% endfor %}
-        {% endif %}
-
-        {% if direction.literature_evidence %}
-        lines.push("");
-        lines.push("#### Literature Evidence");
-        lines.push("");
-        {% for evidence in direction.literature_evidence %}
-        lines.push(
-            "- `{{ evidence.source_id | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", "") }}`{% if evidence.page_number is not none %} — page {{ evidence.page_number }}{% endif %}{% if evidence.section %} — {{ evidence.section | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}{% endif %}"
-        );
-        {% endfor %}
-        {% endif %}
         {% endfor %}
         {% endif %}
         {% endif %}

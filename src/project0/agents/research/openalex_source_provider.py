@@ -273,7 +273,59 @@ class OpenAlexSourceProvider(
         if isinstance(doi, str):
             metadata["doi"] = doi
 
+        abstract = self._get_abstract(
+            item.get("abstract_inverted_index")
+        )
+
+        if abstract is not None:
+            metadata["abstract"] = abstract
+
         return metadata
+
+    @staticmethod
+    def _get_abstract(
+        value: Any,
+    ) -> str | None:
+        """Reconstruct an OpenAlex abstract from its inverted index."""
+
+        if value is None:
+            return None
+
+        if not isinstance(value, dict):
+            raise TypeError(
+                "OpenAlex abstract_inverted_index must be a JSON object "
+                "or null."
+            )
+
+        words_by_position: dict[int, str] = {}
+
+        for word, positions in value.items():
+            if not isinstance(word, str):
+                raise TypeError(
+                    "OpenAlex abstract_inverted_index words must be strings."
+                )
+
+            if not isinstance(positions, list):
+                raise TypeError(
+                    "OpenAlex abstract_inverted_index positions must be lists."
+                )
+
+            for position in positions:
+                if isinstance(position, bool) or not isinstance(position, int):
+                    raise TypeError(
+                        "OpenAlex abstract_inverted_index positions must be "
+                        "integers."
+                    )
+
+                words_by_position[position] = word
+
+        if not words_by_position:
+            return None
+
+        return " ".join(
+            words_by_position[position]
+            for position in sorted(words_by_position)
+        )
 
     def _get_source_url(
         self,

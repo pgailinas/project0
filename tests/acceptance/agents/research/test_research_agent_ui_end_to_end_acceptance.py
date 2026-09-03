@@ -109,6 +109,27 @@ def test_UI_RA_FUN_005_A_completed_research_matches_visible_results(
     expect(
         page.get_by_role(
             "heading",
+            name="Paper Summary",
+        ).first
+    ).to_be_visible()
+
+    expect(
+        page.get_by_role(
+            "heading",
+            name="Warnings",
+        )
+    ).not_to_be_visible()
+
+    expect(
+        page.get_by_role(
+            "heading",
+            name="Structured Analysis",
+        ).first
+    ).to_be_visible()
+
+    expect(
+        page.get_by_role(
+            "heading",
             name="Structured Paper Analysis",
         )
     ).not_to_be_visible()

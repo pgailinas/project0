@@ -864,6 +864,9 @@ def test_paper_metadata_service_creates_openalex_metadata() -> None:
             "Author Two",
         ),
         publication_year=2024,
+        metadata={
+            "abstract": "Example OpenAlex abstract.",
+        },
     )
 
     result = PaperMetadataService().retrieve_metadata(
@@ -881,7 +884,7 @@ def test_paper_metadata_service_creates_openalex_metadata() -> None:
         "Author Two",
     )
     assert paper.publication_year == 2024
-    assert paper.abstract is None
+    assert paper.abstract == "Example OpenAlex abstract."
     assert paper.venue == "OpenAlex"
     assert paper.source_url == (
         "https://doi.org/10.1234/example"
@@ -975,4 +978,3 @@ def test_paper_metadata_service_creates_openreview_metadata() -> None:
         "paper_id": "openreview-note-001",
         "source": "openreview",
     }
-

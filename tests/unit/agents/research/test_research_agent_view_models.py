@@ -44,6 +44,7 @@ def test_research_request_form_defaults() -> None:
 
     assert request_form.question == ""
     assert request_form.guidance == ""
+    assert request_form.context_source_name is None
 
 
 def test_research_result_view_defaults() -> None:
@@ -63,6 +64,7 @@ def test_research_result_view_defaults() -> None:
     assert result.relevance_summary == ""
     assert result.authors == ()
     assert result.source_url is None
+    assert result.analysis is None
 
 
 def test_research_evaluation_has_warnings_property() -> None:

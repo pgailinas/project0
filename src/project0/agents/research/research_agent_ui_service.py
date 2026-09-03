@@ -79,6 +79,7 @@ class ResearchAgentUIService:
             question=question,
             guidance=guidance,
             max_results=max_results,
+            context_source_name=context_source_name,
         )
 
         if not request_form.question:
@@ -126,6 +127,7 @@ class ResearchAgentUIService:
         question: str,
         guidance: str | None,
         max_results: int,
+        context_source_name: str | None,
     ) -> ResearchRequestForm:
         """Normalize browser form values."""
 
@@ -133,6 +135,9 @@ class ResearchAgentUIService:
             question=question.strip(),
             guidance=(guidance or "").strip(),
             max_results=max_results,
+            context_source_name=self._normalize_optional_text(
+                context_source_name
+            ),
         )
 
     def _map_workflow_result(
@@ -533,6 +538,38 @@ class ResearchAgentUIService:
                 ),
                 {},
             )
+            abstract = self._normalize_optional_text(
+                self._read_value(
+                    paper,
+                    "abstract",
+                    default=None,
+                )
+            )
+            analysis = analyses_by_source_id.get(source_id)
+
+            if (
+                analysis is not None
+                and analysis.analysis_basis == "abstract_metadata"
+                and abstract is None
+            ):
+                analysis = None
+
+            limitations = tuple(
+                str(item)
+                for item in self._read_value(
+                    evaluation,
+                    "limitations",
+                    default=(),
+                )
+            )
+            warnings = tuple(
+                str(item)
+                for item in self._read_value(
+                    evaluation,
+                    "warnings",
+                    default=(),
+                )
+            )
 
             results.append(
                 ResearchResultView(
@@ -577,13 +614,7 @@ class ResearchAgentUIService:
                             default=(),
                         )
                     ),
-                    abstract=self._normalize_optional_text(
-                        self._read_value(
-                            paper,
-                            "abstract",
-                            default=None,
-                        )
-                    ),
+                    abstract=abstract,
                     venue=self._normalize_optional_text(
                         self._read_value(
                             paper,
@@ -622,13 +653,9 @@ class ResearchAgentUIService:
                             default=(),
                         )
                     ),
-                    limitations=tuple(
-                        str(item)
-                        for item in self._read_value(
-                            evaluation,
-                            "limitations",
-                            default=(),
-                        )
+                    limitations=self._combine_limitations_and_warnings(
+                        limitations,
+                        warnings,
                     ),
                     research_connections=tuple(
                         str(item)
@@ -638,19 +665,31 @@ class ResearchAgentUIService:
                             default=(),
                         )
                     ),
-                    warnings=tuple(
-                        str(item)
-                        for item in self._read_value(
-                            evaluation,
-                            "warnings",
-                            default=(),
-                        )
-                    ),
-                    analysis=analyses_by_source_id.get(source_id),
+                    warnings=(),
+                    analysis=analysis,
                 )
             )
 
         return tuple(results)
+
+    @staticmethod
+    def _combine_limitations_and_warnings(
+        limitations: tuple[str, ...],
+        warnings: tuple[str, ...],
+    ) -> tuple[str, ...]:
+        """Merge unique evaluation warnings into displayed limitations."""
+
+        combined = []
+        seen = set()
+
+        for item in (*limitations, *warnings):
+            normalized = item.strip().casefold()
+
+            if normalized and normalized not in seen:
+                combined.append(item)
+                seen.add(normalized)
+
+        return tuple(combined)
 
     def _map_existing_research_context(
         self,

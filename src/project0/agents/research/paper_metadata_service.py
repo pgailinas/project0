@@ -246,12 +246,19 @@ class PaperMetadataService:
     ) -> PaperMetadata:
         """Create metadata from normalized OpenAlex source data."""
 
+        abstract = reference.metadata.get("abstract")
+
+        if abstract is not None and not isinstance(abstract, str):
+            raise TypeError(
+                "OpenAlex reference abstract metadata must be a string or null."
+            )
+
         return PaperMetadata(
             source_reference=reference,
             title=reference.title,
             authors=reference.authors,
             publication_year=reference.publication_year,
-            abstract=None,
+            abstract=abstract,
             venue="OpenAlex",
             source_url=reference.source_url,
             metadata={

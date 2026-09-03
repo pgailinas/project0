@@ -61,6 +61,10 @@ def create_openalex_response_data() -> dict[str, Any]:
                 "title": "Example Video Representation Paper",
                 "display_name": "Example Video Representation Paper",
                 "publication_year": 2024,
+                "abstract_inverted_index": {
+                    "Example": [0],
+                    "abstract.": [1],
+                },
                 "primary_location": {
                     "landing_page_url": (
                         "https://doi.org/10.1234/example"
@@ -297,6 +301,7 @@ def test_openalex_provider_normalizes_references(
         "Author One",
         "Author Two",
     )
+    assert result[0].metadata["abstract"] == "Example abstract."
 
 
 def test_openalex_provider_empty_strategy_returns_no_results() -> None:

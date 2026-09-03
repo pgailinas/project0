@@ -145,7 +145,7 @@ def test_submit_request_forwards_context_document() -> None:
     )
     service = ResearchAgentUIService(workflow=workflow)
 
-    service.submit_request(
+    page = service.submit_request(
         question="What should I investigate next?",
         context_source_name="prior-research.md",
         context_content=b"# Prior Research\n",
@@ -158,6 +158,7 @@ def test_submit_request_forwards_context_document() -> None:
         "context_source_name": "prior-research.md",
         "context_content": b"# Prior Research\n",
     }
+    assert page.request_form.context_source_name == "prior-research.md"
 
 
 def test_submit_request_maps_completed_result() -> None:
@@ -216,7 +217,9 @@ def test_submit_request_maps_completed_result() -> None:
                     "research_connections": (
                         "Evaluate aligned video representations.",
                     ),
-                    "warnings": (),
+                    "warnings": (
+                        "Abstract-only evaluation.",
+                    ),
                 },
             ),
             "artifacts": (
@@ -259,6 +262,12 @@ def test_submit_request_maps_completed_result() -> None:
     assert page.results[0].relevance_summary == (
         "Highly relevant."
     )
+    assert page.results[0].analysis is None
+    assert page.results[0].limitations == (
+        "Limited VideoQA evaluation.",
+        "Abstract-only evaluation.",
+    )
+    assert page.results[0].warnings == ()
 
     assert not hasattr(page.results[0], "artifact_content")
 
@@ -344,7 +353,7 @@ def test_submit_request_handles_workflow_exception() -> None:
 
 
 def test_submit_request_maps_evaluation_warnings() -> None:
-    """Research evaluation warnings should be preserved for display."""
+    """Research evaluation warnings should be preserved in limitations."""
 
     workflow = FakeWorkflow(
         result={
@@ -436,8 +445,71 @@ def test_submit_request_normalizes_optional_text_values() -> None:
     assert page.results[0].source_url == (
         "https://example.com/paper-001"
     )
-    assert page.results[0].source_url == (
-        "https://example.com/paper-001"
+
+
+def test_submit_request_hides_title_only_abstract_analysis() -> None:
+    """Abstract-based analysis should require an available abstract."""
+
+    workflow = FakeWorkflow(
+        result={
+            "request_id": "research-request-no-abstract",
+            "status": "completed",
+            "source_references": (
+                {
+                    "source_name": "openalex",
+                    "source_id": "paper-001",
+                    "title": "Example Paper",
+                },
+            ),
+            "papers": (
+                {
+                    "source_reference": {
+                        "source_id": "paper-001",
+                    },
+                    "title": "Example Paper",
+                    "abstract": None,
+                },
+            ),
+            "evaluations": (
+                {
+                    "paper": {
+                        "source_reference": {
+                            "source_id": "paper-001",
+                        },
+                        "title": "Example Paper",
+                    },
+                    "relevance_score": 0.8,
+                    "relevance_summary": "Relevant from the available metadata.",
+                },
+            ),
+            "paper_analyses": (
+                {
+                    "paper": {
+                        "source_reference": {
+                            "source_id": "paper-001",
+                        },
+                        "title": "Example Paper",
+                    },
+                    "analysis_basis": "abstract_metadata",
+                    "problem": {
+                        "content": "Inferred only from the title.",
+                    },
+                    "approach": {
+                        "content": "Inferred only from the title.",
+                    },
+                },
+            ),
+        }
+    )
+    service = ResearchAgentUIService(workflow=workflow)
+
+    page = service.submit_request(
+        question="Find relevant research."
+    )
+
+    assert page.results[0].analysis is None
+    assert page.results[0].relevance_summary == (
+        "Relevant from the available metadata."
     )
 
 

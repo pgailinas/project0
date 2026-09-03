@@ -38,6 +38,7 @@ class ResearchRequestForm:
     question: str = ""
     guidance: str = ""
     max_results: int = 10
+    context_source_name: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

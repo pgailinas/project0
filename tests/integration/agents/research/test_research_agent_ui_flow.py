@@ -95,7 +95,7 @@ class FakeResearchWorkflow:
                         "A paper about semantic video representation "
                         "learning."
                     ),
-                    "venue": "Relevance 0.95",
+                    "venue": "Example Conference",
                     "doi": "https://www.semanticscholar.org/",
                     "source_url": (
                         "https://www.semanticscholar.org/"
@@ -131,6 +131,37 @@ class FakeResearchWorkflow:
                     "warnings": (),
                 },
             ),
+            "existing_research_context": {
+                "research_problem": {
+                    "content": "Improve video-text alignment for VideoQA.",
+                },
+                "findings": (
+                    {
+                        "content": "Self-supervised video representations "
+                        "did not improve VideoQA performance.",
+                    },
+                    {
+                        "content": "CLIP-based representations achieved "
+                        "higher VideoQA accuracy.",
+                    },
+                ),
+            },
+            "direction_analysis": {
+                "synthesis": {
+                    "themes": (
+                        {
+                            "content": "Video-text alignment is a shared theme.",
+                            "evidence": (
+                                {
+                                    "source_type": "research_paper",
+                                    "source_id": "internal-evidence-001",
+                                },
+                            ),
+                        },
+                    ),
+                },
+                "candidate_directions": (),
+            },
             "paper_analyses": (
                 {
                     "paper": {
@@ -291,13 +322,30 @@ def test_research_request_presents_consolidated_paper_results() -> None:
     assert 'rel="noopener noreferrer"' in response.text
     assert "Source Details" in response.text
     assert "Relevance Assessment" in response.text
+    assert "Paper Summary" in response.text
     assert "Structured Analysis" in response.text
     assert "Contrastive pre-training." in response.text
-    assert "The paper is highly relevant to" in response.text
+    assert "A paper about semantic video representation learning." in response.text
+    assert "Example Conference" not in response.text
+    assert response.text.count(
+        "https://www.semanticscholar.org/paper/paper-001"
+    ) == 1
     assert "Structured Paper Analysis" not in response.text
     assert "Research Synthesis Artifacts" not in response.text
     assert "Workflow Summary" in response.text
-    assert "Artifacts" in response.text
+    assert "Existing Research Context Analysis" in response.text
+    assert "<dt>Research Problem</dt>" in response.text
+    assert response.text.count("<dt>Findings</dt>") == 1
+    assert (
+        "Self-supervised video representations did not improve "
+        "VideoQA performance."
+    ) in response.text
+    assert (
+        "CLIP-based representations achieved higher VideoQA accuracy."
+    ) in response.text
+    assert "Research Direction Analysis" in response.text
+    assert "Video-text alignment is a shared theme." in response.text
+    assert "internal-evidence-001" not in response.text
 
 
 def test_research_request_forwards_uploaded_context_document() -> None:
@@ -328,6 +376,7 @@ def test_research_request_forwards_uploaded_context_document() -> None:
         "context_source_name": "prior-research.md",
         "context_content": b"# Prior Research\nExisting findings.\n",
     }
+    assert "prior-research.md" in response.text
 
 
 def test_research_request_preserves_multiline_form_values() -> None:

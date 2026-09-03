@@ -665,6 +665,54 @@ Table of Contents:
 
 }
 
+.proposal-card.research-result-card {
+
+/*    background: #fff3cd; */
+    background: #dbeafe;
+
+}
+
+.form-field__selected-file,
+.context-source-document {
+
+    margin: 0.35rem 0 0;
+    color: var(--text-muted);
+
+}
+
+.research-context-list {
+
+    display: grid;
+    gap: var(--spacing-sm);
+
+}
+
+.research-context-item {
+
+    padding: var(--spacing-sm);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-small);
+
+}
+
+.research-context-item p {
+
+    margin: 0;
+
+}
+
+.research-context-list dt {
+
+    font-weight: 700;
+
+}
+
+.research-context-list dd {
+
+    margin: 0.2rem 0 0;
+
+}
+
 .validation-result header,
 .proposal-card__header {
 
@@ -726,6 +774,12 @@ Table of Contents:
     border-top:
         1px solid
         var(--border-light);
+
+}
+
+.research-result-card__section--assessment {
+
+    margin-top: var(--spacing-lg);
 
 }
 
