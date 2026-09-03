@@ -49,12 +49,16 @@ from project0.models.reasoning_models import (
 from project0.models.research_models import (
     ResearchArtifactType,
     ResearchRequest,
+    ResearchSourceReference,
     ResearchStatus,
 )
 from project0.workflow.research_workflow import ResearchWorkflow
 
 from project0.agents.research.semantic_scholar_source_provider import (
     SemanticScholarSourceProvider,
+)
+from project0.agents.research.stub_research_source_provider import (
+    StubResearchSourceProvider,
 )
 from project0.agents.research.arxiv_source_provider import (
     ArxivSourceProvider,
@@ -322,6 +326,7 @@ def _create_workflow(
     provider: StubReasoningProvider,
     context_provider: StubReasoningProvider | None = None,
     paper_analysis_provider: StubReasoningProvider | None = None,
+    source_service: ResearchSourceService | None = None,
 ) -> ResearchWorkflow:
     """Create the real Research Agent integration pipeline."""
 
@@ -333,13 +338,17 @@ def _create_workflow(
             ),
         ),
         query_service=ResearchQueryService(),
-        source_service=ResearchSourceService(
-            providers={
-                "semantic_scholar": SemanticScholarSourceProvider(
-                    maximum_results=5,
-                ),
-                "arxiv": ArxivSourceProvider(),
-            },
+        source_service=(
+            source_service
+            if source_service is not None
+            else ResearchSourceService(
+                providers={
+                    "semantic_scholar": SemanticScholarSourceProvider(
+                        maximum_results=5,
+                    ),
+                    "arxiv": ArxivSourceProvider(),
+                },
+            )
         ),
         metadata_service=PaperMetadataService(),
         evaluation_service=ResearchEvaluationService(
@@ -468,6 +477,69 @@ def test_research_workflow_completes_real_service_pipeline(
 
     assert len(provider.requests) == 1
     assert provider.requests[0].model_name == "stub-model"
+
+
+def test_research_workflow_uses_richest_publication_version() -> None:
+    """Duplicate publication locations produce one metadata-rich paper."""
+
+    title = "Example Video Representation Paper"
+    authors = ("Author One", "Author Two")
+    sparse = ResearchSourceReference(
+        source_name="openalex",
+        source_id="paper-sparse",
+        title=title,
+        source_url="https://aclanthology.org/example",
+        authors=authors,
+        publication_year=2024,
+        metadata={
+            "abstract": "Author One and Author Two. Example Conference.",
+        },
+    )
+    rich = ResearchSourceReference(
+        source_name="openalex",
+        source_id="paper-001",
+        title=title,
+        source_url="https://arxiv.org/abs/2401.12345",
+        authors=authors,
+        publication_year=2024,
+        metadata={
+            "abstract": (
+                "A paper about semantic video representation learning "
+                "with a complete description of its method and findings."
+            ),
+            "venue": "Example Conference",
+        },
+    )
+    source_service = ResearchSourceService(
+        providers={
+            "semantic_scholar": StubResearchSourceProvider(
+                references=(sparse,),
+            ),
+            "arxiv": StubResearchSourceProvider(
+                references=(rich,),
+            ),
+        },
+    )
+    workflow = _create_workflow(
+        StubReasoningProvider(_provider_response()),
+        source_service=source_service,
+    )
+
+    result = workflow.execute(
+        ResearchRequest(
+            question=(
+                "How can self-supervised video representations "
+                "be improved for VideoQA?"
+            ),
+            guidance="Focus on vision-language alignment.",
+        )
+    )
+
+    assert result.status is ResearchStatus.COMPLETED
+    assert result.source_references == (rich,)
+    assert len(result.papers) == 1
+    assert result.papers[0].abstract == rich.metadata["abstract"]
+    assert len(result.evaluations) == 1
 
 
 def test_research_workflow_omits_redundant_artifact_traceability(

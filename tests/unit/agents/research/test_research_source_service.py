@@ -269,6 +269,84 @@ def test_research_source_service_deduplicates_references() -> None:
     )
 
 
+def test_research_source_service_retains_richest_publication_version() -> None:
+    """Verify a richer duplicate replaces an earlier sparse version."""
+
+    title = (
+        "VideoCLIP: Contrastive Pre-training for Zero-shot "
+        "Video-Text Understanding"
+    )
+    authors = (
+        "Hu Xu",
+        "Gargi Ghosh",
+        "Po-Yao Huang",
+    )
+    sparse = ResearchSourceReference(
+        source_name="openalex",
+        source_id="https://aclanthology.org/2021.emnlp-main.544",
+        title=title,
+        source_url="https://aclanthology.org/2021.emnlp-main.544",
+        authors=authors,
+        publication_year=2021,
+        metadata={
+            "abstract": "Hu Xu, Gargi Ghosh, Po-Yao Huang. EMNLP 2021.",
+        },
+    )
+    rich = ResearchSourceReference(
+        source_name="openalex",
+        source_id="https://arxiv.org/abs/2109.14084",
+        title=title,
+        source_url="https://arxiv.org/abs/2109.14084",
+        authors=authors,
+        publication_year=2021,
+        metadata={
+            "abstract": (
+                "VideoCLIP pre-trains a unified video and text model "
+                "using contrastive learning on temporally overlapping "
+                "video-text pairs for zero-shot downstream tasks."
+            ),
+            "venue": "EMNLP",
+        },
+    )
+    service = ResearchSourceService(
+        providers={
+            "stub": StubResearchSourceProvider(
+                references=(sparse, rich),
+            ),
+        },
+    )
+
+    result = service.search(create_research_strategy())
+
+    assert result == (rich,)
+
+
+def test_research_source_service_keeps_distinct_same_year_papers() -> None:
+    """Verify different titles are not merged despite shared authors."""
+
+    first = replace(
+        create_reference("first"),
+        title="First Representation Paper",
+        authors=("Author One",),
+    )
+    second = replace(
+        create_reference("second"),
+        title="Second Representation Paper",
+        authors=("Author One",),
+    )
+    service = ResearchSourceService(
+        providers={
+            "stub": StubResearchSourceProvider(
+                references=(first, second),
+            ),
+        },
+    )
+
+    result = service.search(create_research_strategy())
+
+    assert result == (first, second)
+
+
 def test_research_source_service_preserves_provider_order() -> None:
     """Verify reference ordering follows provider ordering."""
 
