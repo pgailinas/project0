@@ -87,12 +87,13 @@ class OllamaReasoningProvider:
             len(request.user_prompt),
         )
         start_time = time.time()
+        timeout_seconds = self._get_timeout_seconds(request)
 
         try:
             response = httpx.post(
                 endpoint,
                 json=payload,
-                timeout=self.timeout_seconds,
+                timeout=timeout_seconds,
             )
             response.raise_for_status()
 
@@ -172,6 +173,28 @@ class OllamaReasoningProvider:
             provider_request_id=None,
             metadata=self._create_metadata(response_data),
         )
+
+    def _get_timeout_seconds(
+        self,
+        request: ProviderRequest,
+    ) -> float:
+        """Return a valid request-specific or provider timeout."""
+
+        value = request.metadata.get(
+            "timeout_seconds",
+            self.timeout_seconds,
+        )
+
+        if (
+            not isinstance(value, (int, float))
+            or isinstance(value, bool)
+            or value <= 0
+        ):
+            raise ValueError(
+                "Ollama timeout_seconds must be a positive number."
+            )
+
+        return float(value)
 
     def _duration_seconds(
         self,

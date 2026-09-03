@@ -353,6 +353,7 @@ def test_provider_request_limits_direction_analysis_to_five_papers():
     payload = json.loads(request.user_prompt)
 
     assert request.metadata["paper_analysis_count"] == 5
+    assert request.metadata["timeout_seconds"] == 120.0
     assert [
         paper["source_id"]
         for paper in payload["paper_analyses"]

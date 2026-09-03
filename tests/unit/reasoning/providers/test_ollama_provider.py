@@ -196,6 +196,37 @@ def test_ollama_provider_normalizes_trailing_base_url_slash(
     assert captured_url == "http://localhost:11434/api/chat"
 
 
+def test_ollama_provider_uses_request_timeout_override(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify a request can use a shorter bounded timeout."""
+
+    captured_timeout = 0.0
+
+    def fake_post(
+        url: str,
+        *,
+        json: dict[str, Any],
+        timeout: float,
+    ) -> httpx.Response:
+        del url, json
+        nonlocal captured_timeout
+        captured_timeout = timeout
+        return create_http_response()
+
+    monkeypatch.setattr(httpx, "post", fake_post)
+
+    request = create_provider_request()
+    request.metadata["timeout_seconds"] = 120.0
+    provider = OllamaReasoningProvider(
+        timeout_seconds=600.0,
+    )
+
+    provider.generate(request)
+
+    assert captured_timeout == 120.0
+
+
 def test_ollama_provider_returns_provider_response(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
