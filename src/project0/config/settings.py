@@ -34,6 +34,7 @@ class ProjectSettings:
     research_source_providers: tuple[str, ...] = DEFAULT_RESEARCH_SOURCE_PROVIDERS
     research_direction_analysis_enabled: bool = DEFAULT_RESEARCH_DIRECTION_ANALYSIS_ENABLED
     semantic_scholar_api_key: str | None = None
+    crossref_contact_email: str | None = None
     ollama_model: str = "qwen2.5:7b"
     ollama_base_url: str = "http://127.0.0.1:11434"
     ollama_timeout_seconds: float = DEFAULT_OLLAMA_TIMEOUT_SECONDS
@@ -92,6 +93,10 @@ def load_settings() -> ProjectSettings:
         semantic_scholar_api_key=os.getenv(
             "PROJECT0_SEMANTIC_SCHOLAR_API_KEY",
         ),
+        crossref_contact_email=(
+            os.getenv("PROJECT0_CROSSREF_CONTACT_EMAIL")
+            or None
+        ),
         ollama_model=os.getenv(
             "PROJECT0_OLLAMA_MODEL",
             "qwen2.5:7b",
@@ -109,5 +114,4 @@ def load_settings() -> ProjectSettings:
     )
 
 SETTINGS = load_settings()
-
 

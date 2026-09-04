@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+import time
 from typing import Any
 
 import httpx
@@ -764,6 +765,84 @@ def test_crossref_provider_uses_online_publication_year_fallback(
     )
 
     assert result[0].publication_year == 2023
+
+
+def test_crossref_provider_retains_result_without_publication_year(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A missing publication year does not invalidate a paper."""
+
+    response_data = create_crossref_response_data()
+    item = response_data["message"]["items"][0]
+    item.pop("published-print")
+
+    monkeypatch.setattr(
+        httpx,
+        "get",
+        lambda *args, **kwargs: create_http_response(
+            data=response_data,
+        ),
+    )
+
+    result = CrossrefSourceProvider().search(create_strategy())
+
+    assert len(result) == 1
+    assert result[0].publication_year is None
+
+
+def test_crossref_provider_ignores_malformed_publication_year(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Malformed optional dates do not invalidate a paper."""
+
+    response_data = create_crossref_response_data()
+    item = response_data["message"]["items"][0]
+    item["published-print"] = {"date-parts": [["unknown"]]}
+
+    monkeypatch.setattr(
+        httpx,
+        "get",
+        lambda *args, **kwargs: create_http_response(
+            data=response_data,
+        ),
+    )
+
+    result = CrossrefSourceProvider().search(create_strategy())
+
+    assert len(result) == 1
+    assert result[0].publication_year is None
+
+
+def test_crossref_provider_bounds_retry_after_delay(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Crossref Retry-After cannot exceed the configured bound."""
+
+    attempts = 0
+    sleep_calls: list[float] = []
+
+    def mock_get(*args, **kwargs):
+        nonlocal attempts
+        attempts += 1
+
+        if attempts == 1:
+            return create_http_response(
+                status_code=429,
+                headers={"Retry-After": "600"},
+            )
+
+        return create_http_response()
+
+    monkeypatch.setattr(httpx, "get", mock_get)
+    monkeypatch.setattr(time, "sleep", sleep_calls.append)
+
+    result = CrossrefSourceProvider(
+        maximum_attempts=2,
+        maximum_retry_delay_seconds=10.0,
+    ).search(create_strategy())
+
+    assert len(result) == 1
+    assert sleep_calls == [10.0]
 
 def test_crossref_provider_skips_invalid_search_results(
     monkeypatch: pytest.MonkeyPatch,

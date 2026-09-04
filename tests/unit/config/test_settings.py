@@ -110,6 +110,7 @@ def test_project_settings_uses_default_semantic_scholar_api_key(
     )
 
     assert settings.semantic_scholar_api_key is None
+    assert settings.crossref_contact_email is None
 
 
 def test_load_settings_uses_research_direction_analysis_environment_override(
@@ -138,6 +139,19 @@ def test_load_settings_uses_semantic_scholar_api_key_environment_override(
     assert settings.semantic_scholar_api_key == (
         "test-semantic-scholar-key"
     )
+
+
+def test_load_settings_uses_crossref_contact_email_environment_override(
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv(
+        "PROJECT0_CROSSREF_CONTACT_EMAIL",
+        "research@example.com",
+    )
+
+    settings = load_settings()
+
+    assert settings.crossref_contact_email == "research@example.com"
 
 
 def test_project_settings_is_immutable(

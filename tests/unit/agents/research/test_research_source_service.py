@@ -228,6 +228,39 @@ def test_research_source_service_dispatches_seed_queries_first() -> None:
     ]
 
 
+def test_research_source_service_omits_arxiv_identifier_from_crossref() -> None:
+    """Crossref receives titles and discovery terms, not arXiv IDs."""
+
+    crossref_provider = StubResearchSourceProvider(references=())
+    service = ResearchSourceService(
+        providers={
+            "crossref": crossref_provider,
+        },
+    )
+    strategy = ResearchStrategy(
+        concepts=("CLIP teacher alignment",),
+        search_terms=(
+            "Enhancing Vision-Language Model with Unmasked Token Alignment",
+            "arXiv:2405.19009",
+            "CLIP teacher alignment",
+        ),
+        seed_terms=("arXiv:2405.19009",),
+        source_names=("crossref",),
+    )
+
+    service.search(strategy)
+
+    assert [
+        request.search_terms
+        for request in crossref_provider.requests
+    ] == [
+        (
+            "Enhancing Vision-Language Model with Unmasked Token Alignment",
+        ),
+        ("CLIP teacher alignment",),
+    ]
+
+
 def test_research_source_service_bounds_balanced_evaluation_pool() -> None:
     """Seeds survive a bounded pool balanced across result groups."""
 

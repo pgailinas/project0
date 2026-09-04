@@ -21,6 +21,7 @@ import httpx
 from project0.agents.research.research_source_provider import (
     ResearchSourceProviderProtocol,
 )
+from project0.config.settings import SETTINGS
 from project0.models.research_models import (
     ResearchSourceReference,
     ResearchStrategy,
@@ -41,8 +42,9 @@ class CrossrefSourceProvider(
     maximum_results: int = 10
     maximum_attempts: int = 3
     retry_delay_seconds: float = 1.0
+    maximum_retry_delay_seconds: float = 30.0
     user_agent: str = "Project0 Research Agent"
-    mailto: str | None = None
+    mailto: str | None = SETTINGS.crossref_contact_email
 
     def search(
         self,
@@ -185,6 +187,11 @@ class CrossrefSourceProvider(
     ) -> float:
         """Return the delay before retrying a Crossref request."""
 
+        maximum_delay = max(
+            self.maximum_retry_delay_seconds,
+            0.0,
+        )
+
         if isinstance(
             error,
             httpx.HTTPStatusError,
@@ -195,13 +202,22 @@ class CrossrefSourceProvider(
 
             if retry_after is not None:
                 try:
-                    return float(retry_after)
+                    delay = float(retry_after)
                 except ValueError:
                     pass
+                else:
+                    return min(
+                        max(delay, 0.0),
+                        maximum_delay,
+                    )
 
-        return (
-            self.retry_delay_seconds
-            * (2 ** (attempt - 1))
+        return min(
+            max(
+                self.retry_delay_seconds
+                * (2 ** (attempt - 1)),
+                0.0,
+            ),
+            maximum_delay,
         )
 
     @staticmethod
@@ -425,16 +441,12 @@ class CrossrefSourceProvider(
             return None
 
         if not isinstance(value, dict):
-            raise TypeError(
-                "Crossref date value must be a JSON object or null."
-            )
+            return None
 
         date_parts = value.get("date-parts")
 
         if not isinstance(date_parts, list):
-            raise TypeError(
-                "Crossref date-parts must be a list."
-            )
+            return None
 
         if not date_parts:
             return None
@@ -442,9 +454,7 @@ class CrossrefSourceProvider(
         first_part = date_parts[0]
 
         if not isinstance(first_part, list):
-            raise TypeError(
-                "Crossref date-parts entry must be a list."
-            )
+            return None
 
         if not first_part:
             return None
@@ -452,9 +462,7 @@ class CrossrefSourceProvider(
         year = first_part[0]
 
         if not isinstance(year, int):
-            raise TypeError(
-                "Crossref publication year must be an integer."
-            )
+            return None
 
         return year
 

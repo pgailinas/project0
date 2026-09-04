@@ -80,6 +80,12 @@ class ResearchSourceService:
                 )
 
             for query_strategy in query_strategies:
+                if not self._provider_supports_query(
+                    source_name,
+                    query_strategy,
+                ):
+                    continue
+
                 try:
                     group = tuple(
                         provider.search(query_strategy)
@@ -133,6 +139,28 @@ class ResearchSourceService:
         )
 
         return selected_references
+
+    @staticmethod
+    def _provider_supports_query(
+        source_name: str,
+        strategy: ResearchStrategy,
+    ) -> bool:
+        """Return whether a provider supports the query form."""
+
+        if source_name.casefold() != "crossref":
+            return True
+
+        if len(strategy.search_terms) != 1:
+            return True
+
+        query = strategy.search_terms[0].strip()
+
+        return re.fullmatch(
+            r"(?:arxiv:\s*|https?://(?:www\.)?arxiv\.org/"
+            r"(?:abs|pdf)/)?\d{4}\.\d{4,5}(?:v\d+)?(?:\.pdf)?",
+            query,
+            flags=re.IGNORECASE,
+        ) is None
 
     @classmethod
     def _select_balanced_candidates(
