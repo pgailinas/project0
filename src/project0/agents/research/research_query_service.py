@@ -34,6 +34,13 @@ class ResearchQueryService:
     ) -> ResearchStrategy:
         """Generate deterministic research queries from a strategy."""
 
+        seed_queries = self._deduplicate_queries(
+            [
+                self._normalize_query(seed)
+                for seed in strategy.seed_terms
+                if self._normalize_query(seed)
+            ]
+        )
         queries: list[str] = []
         constraint_queries = tuple(
             self._focus_constraint_query(constraint)
@@ -88,10 +95,25 @@ class ResearchQueryService:
                     )
                 )
 
+        discovery_queries = self._select_bounded_queries(
+            self._deduplicate_complementary_queries(queries)
+        )
+        discovery_queries = tuple(
+            query
+            for query in discovery_queries
+            if not any(
+                self._query_overlap(
+                    self._query_term_stems(query),
+                    self._query_term_stems(seed_query),
+                ) >= 0.60
+                for seed_query in seed_queries
+            )
+        )
+
         return replace(
             strategy,
-            search_terms=self._select_bounded_queries(
-                self._deduplicate_complementary_queries(queries)
+            search_terms=self._deduplicate_queries(
+                [*seed_queries, *discovery_queries]
             ),
         )
 
@@ -325,7 +347,7 @@ class ResearchQueryService:
                 break
 
         words = [
-            token.strip(",.;:?()")
+            token.strip(",.;:?()\"'\u201c\u201d")
             for token in normalized.split()
         ]
         words = [
@@ -481,7 +503,7 @@ class ResearchQueryService:
         return {
             cls._word_stem(word)
             for word in (
-                token.strip(",.;:?()").casefold()
+                token.strip(",.;:?()\"'\u201c\u201d").casefold()
                 for token in query.split()
             )
             if word and word not in ignored_words

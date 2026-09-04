@@ -85,6 +85,7 @@ class ResearchStrategy:
 
     concepts: tuple[str, ...]
     search_terms: tuple[str, ...]
+    seed_terms: tuple[str, ...] = ()
     objective: str | None = None
     sub_questions: tuple[str, ...] = ()
     constraints: tuple[str, ...] = ()

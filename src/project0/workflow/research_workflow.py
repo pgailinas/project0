@@ -140,6 +140,21 @@ class ResearchWorkflow:
             source_references = self._source_service.search(
                 strategy
             )
+            source_search_statistics = getattr(
+                self._source_service,
+                "last_search_statistics",
+                {},
+            )
+
+            if not isinstance(source_search_statistics, dict):
+                source_search_statistics = {}
+
+            if source_search_statistics:
+                logger.info(
+                    "Research workflow source selection for request %s: %s",
+                    request.request_id,
+                    source_search_statistics,
+                )
 
             if not source_references:
                 warnings.append(
@@ -257,6 +272,15 @@ class ResearchWorkflow:
                 paper_analyses=paper_analyses,
                 direction_analysis=direction_analysis,
                 warnings=tuple(warnings),
+                metadata=(
+                    {
+                        "source_search": dict(
+                            source_search_statistics
+                        ),
+                    }
+                    if source_search_statistics
+                    else {}
+                ),
             )
 
         except (OSError, RuntimeError, TypeError, ValueError) as error:

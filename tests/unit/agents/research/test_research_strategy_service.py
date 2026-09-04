@@ -122,6 +122,33 @@ def test_build_strategy_preserves_guidance_concept_order() -> None:
     )
 
 
+def test_build_strategy_preserves_explicit_publication_seeds() -> None:
+    """Verify titles and identifiers become intact ordered seeds."""
+
+    request = ResearchRequest(
+        question="How can visual representations align with CLIP?",
+        guidance=(
+            "Treat \u201cEnhancing Vision-Language Model with Unmasked "
+            "Token Alignment\u201d (UTA, arXiv:2405.19009v2) as a seed. "
+            "Compare DOI:10.1000/example.1 as related work."
+        ),
+    )
+
+    result = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    ).build_strategy(request)
+
+    assert result.seed_terms == (
+        "Enhancing Vision-Language Model with Unmasked Token Alignment",
+        "arXiv:2405.19009",
+        "doi:10.1000/example.1",
+    )
+    assert any(
+        "arXiv:2405.19009v2" in concept
+        for concept in result.concepts
+    )
+
+
 def test_build_strategy_removes_duplicate_guidance_concepts() -> None:
     """Verify duplicate guidance concepts are removed."""
 
@@ -379,7 +406,7 @@ def test_strategy_defaults_to_multiple_research_sources():
         "semantic_scholar",
         "arxiv",
     )
-    
+
 
 
 def test_build_strategy_separates_directive_guidance_from_concepts() -> None:

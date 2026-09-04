@@ -11,7 +11,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
+import logging
 import re
 import unicodedata
 
@@ -24,6 +25,9 @@ from project0.models.research_models import (
 )
 
 
+LOGGER = logging.getLogger(__name__)
+
+
 @dataclass(slots=True)
 class ResearchSourceService:
     """Execute research searches against supported providers."""
@@ -32,6 +36,11 @@ class ResearchSourceService:
         str,
         ResearchSourceProviderProtocol,
     ]
+    evaluation_candidate_limit: int = 24
+    last_search_statistics: dict[str, int] = field(
+        default_factory=dict,
+        init=False,
+    )
 
     def search(
         self,
@@ -43,7 +52,16 @@ class ResearchSourceService:
             "semantic_scholar",
         )
 
+        if self.evaluation_candidate_limit < 1:
+            raise ValueError(
+                "Research evaluation candidate limit must be positive."
+            )
+
+        self.last_search_statistics = {}
         references: list[ResearchSourceReference] = []
+        reference_groups: list[
+            tuple[ResearchSourceReference, ...]
+        ] = []
         failures: list[str] = []
         query_strategies = tuple(
             replace(
@@ -63,9 +81,11 @@ class ResearchSourceService:
 
             for query_strategy in query_strategies:
                 try:
-                    references.extend(
+                    group = tuple(
                         provider.search(query_strategy)
                     )
+                    reference_groups.append(group)
+                    references.extend(group)
 
                 except RuntimeError as error:
                     failures.append(
@@ -79,7 +99,146 @@ class ResearchSourceService:
                 + "; ".join(failures)
             )
 
-        return self._deduplicate_references(references)
+        deduplicated_references = self._deduplicate_references(
+            references
+        )
+        seed_references = tuple(
+            reference
+            for reference in deduplicated_references
+            if self._matches_any_seed(
+                reference,
+                strategy.seed_terms,
+            )
+        )
+        selected_references = self._select_balanced_candidates(
+            deduplicated_references=deduplicated_references,
+            reference_groups=reference_groups,
+            seed_references=seed_references,
+            limit=self.evaluation_candidate_limit,
+        )
+
+        self.last_search_statistics = {
+            "retrieved_count": len(references),
+            "deduplicated_count": len(deduplicated_references),
+            "seed_preserved_count": len(seed_references),
+            "evaluation_candidate_count": len(selected_references),
+        }
+        LOGGER.info(
+            "Research source selection: retrieved=%d deduplicated=%d "
+            "seed_preserved=%d evaluation_candidates=%d",
+            self.last_search_statistics["retrieved_count"],
+            self.last_search_statistics["deduplicated_count"],
+            self.last_search_statistics["seed_preserved_count"],
+            self.last_search_statistics["evaluation_candidate_count"],
+        )
+
+        return selected_references
+
+    @classmethod
+    def _select_balanced_candidates(
+        cls,
+        *,
+        deduplicated_references: tuple[ResearchSourceReference, ...],
+        reference_groups: list[tuple[ResearchSourceReference, ...]],
+        seed_references: tuple[ResearchSourceReference, ...],
+        limit: int,
+    ) -> tuple[ResearchSourceReference, ...]:
+        """Preserve seeds, then select fairly across result groups."""
+
+        selected = list(seed_references)
+        grouped_candidates: list[list[ResearchSourceReference]] = []
+
+        for group in reference_groups:
+            candidates: list[ResearchSourceReference] = []
+
+            for reference in group:
+                canonical = next(
+                    (
+                        candidate
+                        for candidate in deduplicated_references
+                        if cls._references_match(candidate, reference)
+                    ),
+                    None,
+                )
+
+                if (
+                    canonical is None
+                    or cls._contains_reference(selected, canonical)
+                    or cls._contains_reference(candidates, canonical)
+                ):
+                    continue
+
+                candidates.append(canonical)
+
+            grouped_candidates.append(candidates)
+
+        while (
+            len(selected) < limit
+            and any(grouped_candidates)
+        ):
+            for candidates in grouped_candidates:
+                while (
+                    candidates
+                    and cls._contains_reference(
+                        selected,
+                        candidates[0],
+                    )
+                ):
+                    candidates.pop(0)
+
+                if not candidates:
+                    continue
+
+                selected.append(candidates.pop(0))
+
+                if len(selected) >= limit:
+                    break
+
+        return tuple(selected)
+
+    @classmethod
+    def _matches_any_seed(
+        cls,
+        reference: ResearchSourceReference,
+        seed_terms: tuple[str, ...],
+    ) -> bool:
+        """Return whether a reference exactly matches a supplied seed."""
+
+        reference_title = cls._normalize_text(reference.title)
+        reference_identifiers = cls._stable_identifiers(reference)
+
+        for seed in seed_terms:
+            normalized_seed = cls._normalize_text(seed)
+
+            if normalized_seed and normalized_seed == reference_title:
+                return True
+
+            seed_identifiers = cls._stable_identifiers(
+                ResearchSourceReference(
+                    source_name="seed",
+                    source_id=seed,
+                    title=seed,
+                    source_url=seed,
+                )
+            )
+
+            if seed_identifiers & reference_identifiers:
+                return True
+
+        return False
+
+    @classmethod
+    def _contains_reference(
+        cls,
+        references: list[ResearchSourceReference],
+        candidate: ResearchSourceReference,
+    ) -> bool:
+        """Return whether a publication is already in a reference list."""
+
+        return any(
+            cls._references_match(reference, candidate)
+            for reference in references
+        )
 
     @staticmethod
     def _deduplicate_references(
@@ -182,6 +341,16 @@ class ResearchSourceService:
                 text,
             )
         }
+        source_id_match = re.fullmatch(
+            r"(?:arxiv:)?(\d{4}\.\d{4,5})(?:v\d+)?",
+            reference.source_id.lower(),
+        )
+
+        if source_id_match is not None:
+            identifiers.add(
+                f"arxiv:{source_id_match.group(1)}"
+            )
+
         identifiers.update(
             f"doi:{match.rstrip('.,;)}]')}"
             for match in re.findall(

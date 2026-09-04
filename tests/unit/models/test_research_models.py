@@ -207,6 +207,7 @@ def test_research_strategy_creation() -> None:
             "self-supervised video representation VideoQA",
             "vision-language alignment video",
         ),
+        seed_terms=("arXiv:2405.19009",),
         constraints=(
             "Prefer recent research.",
         ),
@@ -228,6 +229,7 @@ def test_research_strategy_creation() -> None:
         "self-supervised video representation VideoQA",
         "vision-language alignment video",
     )
+    assert strategy.seed_terms == ("arXiv:2405.19009",)
     assert strategy.constraints == (
         "Prefer recent research.",
     )
@@ -249,6 +251,7 @@ def test_research_strategy_defaults() -> None:
     )
 
     assert strategy.constraints == ()
+    assert strategy.seed_terms == ()
     assert strategy.source_names == ()
     assert strategy.rationale is None
 

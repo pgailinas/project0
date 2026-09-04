@@ -61,6 +61,28 @@ class PartiallyFailingResearchSourceProvider:
         )
 
 
+class QueryMappedResearchSourceProvider:
+    """Return references configured for each individual query."""
+
+    def __init__(
+        self,
+        references_by_query: dict[
+            str,
+            tuple[ResearchSourceReference, ...],
+        ],
+    ) -> None:
+        self._references_by_query = references_by_query
+        self.requests: list[ResearchStrategy] = []
+
+    def search(
+        self,
+        strategy: ResearchStrategy,
+    ) -> tuple[ResearchSourceReference, ...]:
+        self.requests.append(strategy)
+        query = strategy.search_terms[0]
+        return self._references_by_query.get(query, ())
+
+
 def create_research_strategy(
     source_names: tuple[str, ...] = (
         "stub",
@@ -163,6 +185,139 @@ def test_research_source_service_dispatches_each_query_independently() -> None:
             search_terms=("video language alignment",),
         ),
     ]
+
+
+def test_research_source_service_dispatches_seed_queries_first() -> None:
+    """Verify ordered seed queries reach each provider before discovery."""
+
+    provider = StubResearchSourceProvider(
+        references=(
+            create_reference("paper-001"),
+        ),
+    )
+    service = ResearchSourceService(
+        providers={
+            "stub": provider,
+        },
+    )
+    strategy = ResearchStrategy(
+        concepts=("CLIP teacher alignment",),
+        search_terms=(
+            "Enhancing Vision-Language Model with Unmasked Token Alignment",
+            "arXiv:2405.19009",
+            "CLIP teacher alignment",
+        ),
+        seed_terms=(
+            "Enhancing Vision-Language Model with Unmasked Token Alignment",
+            "arXiv:2405.19009",
+        ),
+        source_names=("stub",),
+    )
+
+    service.search(strategy)
+
+    assert [
+        request.search_terms
+        for request in provider.requests
+    ] == [
+        (
+            "Enhancing Vision-Language Model with Unmasked Token Alignment",
+        ),
+        ("arXiv:2405.19009",),
+        ("CLIP teacher alignment",),
+    ]
+
+
+def test_research_source_service_bounds_balanced_evaluation_pool() -> None:
+    """Seeds survive a bounded pool balanced across result groups."""
+
+    seed = ResearchSourceReference(
+        source_name="arxiv",
+        source_id="2405.19009",
+        title=(
+            "Enhancing Vision-Language Model with Unmasked Token Alignment"
+        ),
+        source_url="https://arxiv.org/abs/2405.19009",
+    )
+    first_provider = QueryMappedResearchSourceProvider(
+        {
+            "arXiv:2405.19009": (
+                create_reference("seed-noise"),
+                seed,
+            ),
+            "first discovery": (
+                create_reference("first-001"),
+                create_reference("first-002"),
+            ),
+            "second discovery": (
+                create_reference("second-001"),
+                create_reference("second-002"),
+            ),
+        }
+    )
+    second_provider = QueryMappedResearchSourceProvider(
+        {
+            "arXiv:2405.19009": (seed,),
+            "first discovery": (
+                create_reference("third-001"),
+            ),
+            "second discovery": (
+                create_reference("fourth-001"),
+            ),
+        }
+    )
+    service = ResearchSourceService(
+        providers={
+            "first": first_provider,
+            "second": second_provider,
+        },
+        evaluation_candidate_limit=5,
+    )
+    strategy = ResearchStrategy(
+        concepts=("CLIP alignment",),
+        search_terms=(
+            "arXiv:2405.19009",
+            "first discovery",
+            "second discovery",
+        ),
+        seed_terms=("arXiv:2405.19009",),
+        source_names=("first", "second"),
+    )
+
+    result = service.search(strategy)
+
+    assert result[0] == seed
+    assert len(result) == 5
+    assert {reference.source_id for reference in result} == {
+        "2405.19009",
+        "seed-noise",
+        "first-001",
+        "second-001",
+        "third-001",
+    }
+    assert service.last_search_statistics == {
+        "retrieved_count": 9,
+        "deduplicated_count": 8,
+        "seed_preserved_count": 1,
+        "evaluation_candidate_count": 5,
+    }
+
+
+def test_research_source_service_rejects_invalid_candidate_limit() -> None:
+    """Verify the pre-evaluation candidate limit must be positive."""
+
+    service = ResearchSourceService(
+        providers={
+            "stub": StubResearchSourceProvider(references=()),
+        },
+        evaluation_candidate_limit=0,
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="candidate limit must be positive",
+    ):
+        service.search(create_research_strategy())
 
 
 def test_research_source_service_defaults_to_semantic_scholar_name() -> None:

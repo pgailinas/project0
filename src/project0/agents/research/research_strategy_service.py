@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 import logging
+import re
 
 from project0.models.research_models import (
     ExistingResearchContext,
@@ -44,6 +45,7 @@ class ResearchStrategyService:
         objective = self._build_objective(request)
         request_concepts = self._build_concepts(request)
         concepts = self._build_concepts(request, context)
+        seed_terms = self._build_seed_terms(request)
         sub_questions = self._build_sub_questions(request)
 
         LOGGER.debug(
@@ -65,6 +67,7 @@ class ResearchStrategyService:
             return ResearchStrategy(
                 concepts=(),
                 search_terms=(),
+                seed_terms=(),
                 objective=None,
                 sub_questions=(),
                 constraints=(),
@@ -81,6 +84,7 @@ class ResearchStrategyService:
         return ResearchStrategy(
             concepts=concepts,
             search_terms=(),
+            seed_terms=seed_terms,
             objective=objective,
             sub_questions=sub_questions,
             constraints=constraints,
@@ -128,7 +132,7 @@ class ResearchStrategyService:
         guidance = request.guidance.strip()
 
         if guidance:
-            for concept in guidance.split("."):
+            for concept in cls._guidance_items(guidance):
                 normalized = concept.strip()
 
                 if (
@@ -184,7 +188,7 @@ class ResearchStrategyService:
         guidance = request.guidance.strip()
 
         if guidance:
-            for item in guidance.split("."):
+            for item in cls._guidance_items(guidance):
                 normalized = item.strip()
 
                 if not normalized:
@@ -208,13 +212,85 @@ class ResearchStrategyService:
         guidance = request.guidance.strip()
 
         if guidance:
-            for item in guidance.split("."):
+            for item in ResearchStrategyService._guidance_items(guidance):
                 normalized = item.strip()
 
                 if normalized.endswith("?") and normalized not in sub_questions:
                     sub_questions.append(normalized)
 
         return tuple(sub_questions)
+
+    @classmethod
+    def _build_seed_terms(
+        cls,
+        request: ResearchRequest,
+    ) -> tuple[str, ...]:
+        """Extract explicit publication seeds from research guidance."""
+
+        guidance = " ".join(request.guidance.split()).strip()
+        seed_terms: list[str] = []
+
+        for match in re.finditer(
+            r'["\u201c]([^"\u201d]+)["\u201d]',
+            guidance,
+        ):
+            cls._append_unique(seed_terms, match.group(1))
+
+        for match in re.finditer(
+            r"(?:arxiv\s*:\s*)?(\d{4}\.\d{4,5})(?:v\d+)?",
+            guidance,
+            flags=re.IGNORECASE,
+        ):
+            cls._append_unique(
+                seed_terms,
+                f"arXiv:{match.group(1)}",
+            )
+
+        for match in re.finditer(
+            r"(?:https?://(?:dx\.)?doi\.org/|doi\s*:\s*)"
+            r"(10\.\d{4,9}/[^\s\"<>]+)",
+            guidance,
+            flags=re.IGNORECASE,
+        ):
+            cls._append_unique(
+                seed_terms,
+                f"doi:{match.group(1).rstrip('.,;:)}]')}",
+            )
+
+        return tuple(seed_terms[:3])
+
+    @staticmethod
+    def _append_unique(
+        values: list[str],
+        value: str,
+    ) -> None:
+        """Append one normalized value unless already present."""
+
+        normalized = " ".join(value.split()).strip()
+
+        if normalized and normalized.casefold() not in {
+            item.casefold()
+            for item in values
+        }:
+            values.append(normalized)
+
+    @staticmethod
+    def _guidance_items(
+        guidance: str,
+    ) -> tuple[str, ...]:
+        """Split guidance without breaking decimal identifiers."""
+
+        return tuple(
+            item
+            for item in (
+                value.strip()
+                for value in re.split(
+                    r"(?<!\d)\.|\.(?!\d)|[\r\n]+",
+                    guidance,
+                )
+            )
+            if item
+        )
 
     @staticmethod
     def _build_question_concept(

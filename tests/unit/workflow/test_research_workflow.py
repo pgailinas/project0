@@ -624,6 +624,31 @@ def test_completed_research_workflow_returns_result() -> None:
     assert result.error_message is None
 
 
+def test_workflow_records_source_search_statistics() -> None:
+    """Source-selection counts are preserved in result metadata."""
+
+    components = _create_workflow()
+    workflow = components[0]
+    source_service = components[3]
+    source_service.last_search_statistics = {
+        "retrieved_count": 78,
+        "deduplicated_count": 61,
+        "seed_preserved_count": 1,
+        "evaluation_candidate_count": 24,
+    }
+
+    result = workflow.execute(_research_request())
+
+    assert result.metadata == {
+        "source_search": {
+            "retrieved_count": 78,
+            "deduplicated_count": 61,
+            "seed_preserved_count": 1,
+            "evaluation_candidate_count": 24,
+        },
+    }
+
+
 def test_workflow_forwards_request_and_results_between_services() -> None:
     """Workflow outputs are forwarded to dependent services."""
 
@@ -1660,4 +1685,3 @@ def test_direction_analysis_failure_returns_completed_result_with_warning() -> N
         "Research direction analysis failed.",
     )
     assert result.error_message is None
-

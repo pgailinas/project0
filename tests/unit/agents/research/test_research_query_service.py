@@ -131,8 +131,39 @@ def test_research_query_service_preserves_strategy_planning_fields():
     assert result.constraints == strategy.constraints
     assert result.source_names == strategy.source_names
     assert result.rationale == strategy.rationale
+    assert result.seed_terms == strategy.seed_terms
     assert result.search_terms == (
         "video representation alignment",
+    )
+
+
+def test_research_query_service_prioritizes_exact_seed_queries():
+    """Verify exact seeds precede bounded discovery queries."""
+
+    strategy = ResearchStrategy(
+        concepts=(
+            (
+                "Treat Enhancing Vision-Language Model with Unmasked "
+                "Token Alignment as a highly relevant seed example"
+            ),
+            "CLIP teacher student visual encoder feature alignment",
+            "autoencoder latent projection frozen CLIP image embedding",
+            "masked autoencoder CLIP feature distillation",
+        ),
+        search_terms=(),
+        seed_terms=(
+            "Enhancing Vision-Language Model with Unmasked Token Alignment",
+            "arXiv:2405.19009",
+        ),
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms == (
+        "Enhancing Vision-Language Model with Unmasked Token Alignment",
+        "arXiv:2405.19009",
+        "CLIP teacher student visual encoder feature alignment",
+        "masked autoencoder CLIP feature distillation",
     )
 
 

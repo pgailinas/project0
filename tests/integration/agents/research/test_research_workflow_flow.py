@@ -850,3 +850,80 @@ def test_research_workflow_runs_metadata_paper_analysis_pipeline(
         "A paper about semantic video representation learning."
     )
     assert "pages" not in analysis_payload["paper"]
+
+
+def test_research_workflow_evaluates_explicit_publication_seed() -> None:
+    """An explicit guidance seed reaches retrieval and evaluation."""
+
+    seed_provider = StubResearchSourceProvider(
+        references=(
+            ResearchSourceReference(
+                source_name="stub",
+                source_id="paper-001",
+                title=(
+                    "Enhancing Vision-Language Model with "
+                    "Unmasked Token Alignment"
+                ),
+                source_url="https://arxiv.org/abs/2405.19009",
+                authors=("Author One",),
+                publication_year=2024,
+                metadata={
+                    "abstract": (
+                        "A CLIP teacher aligns a visual encoder."
+                    ),
+                    "arxiv_id": "2405.19009",
+                },
+            ),
+        ),
+    )
+    arxiv_provider = StubResearchSourceProvider(references=())
+    evaluation_provider = StubReasoningProvider(
+        _provider_response()
+    )
+    workflow = _create_workflow(
+        evaluation_provider,
+        source_service=ResearchSourceService(
+            providers={
+                "semantic_scholar": seed_provider,
+                "arxiv": arxiv_provider,
+            },
+        ),
+    )
+
+    result = workflow.execute(
+        ResearchRequest(
+            question=(
+                "How can autoencoder video representations "
+                "align with CLIP?"
+            ),
+            guidance=(
+                "Treat \u201cEnhancing Vision-Language Model with "
+                "Unmasked Token Alignment\u201d (UTA, "
+                "arXiv:2405.19009v2) as a seed."
+            ),
+        )
+    )
+
+    assert result.status is ResearchStatus.COMPLETED
+    assert result.strategy is not None
+    assert result.strategy.seed_terms == (
+        "Enhancing Vision-Language Model with Unmasked Token Alignment",
+        "arXiv:2405.19009",
+    )
+    assert [
+        request.search_terms
+        for request in seed_provider.requests[:2]
+    ] == [
+        (
+            "Enhancing Vision-Language Model with Unmasked Token Alignment",
+        ),
+        ("arXiv:2405.19009",),
+    ]
+    assert len(result.evaluations) == 1
+    assert len(evaluation_provider.requests) == 1
+    assert result.metadata["source_search"] == {
+        "retrieved_count": len(seed_provider.requests),
+        "deduplicated_count": 1,
+        "seed_preserved_count": 1,
+        "evaluation_candidate_count": 1,
+    }
