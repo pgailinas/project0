@@ -12,11 +12,13 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+import time
+from dataclasses import dataclass, field
 from typing import Any
 
 import httpx
 
+from project0.config.settings import SETTINGS
 from project0.models.research_models import (
     PaperMetadata,
     ResearchSourceReference,
@@ -33,8 +35,14 @@ class PaperMetadataService:
     semantic_scholar_base_url: str = (
         "https://api.semanticscholar.org/graph/v1"
     )
-    semantic_scholar_api_key: str | None = None
+    semantic_scholar_api_key: str | None = field(
+        default_factory=lambda: SETTINGS.semantic_scholar_api_key,
+    )
     timeout_seconds: float = 30.0
+    maximum_attempts: int = 3
+    retry_delay_seconds: float = 1.0
+    maximum_retry_delay_seconds: float = 30.0
+    user_agent: str = "Project0 Research Agent"
 
     def retrieve_metadata(
         self,
@@ -125,30 +133,59 @@ class PaperMetadataService:
             reference.source_id,
         )
 
-        headers: dict[str, str] = {}
+        headers = {
+            "User-Agent": self.user_agent,
+        }
 
         if self.semantic_scholar_api_key is not None:
             headers["x-api-key"] = self.semantic_scholar_api_key
 
-        try:
-            response = httpx.get(
-                endpoint,
-                params=params,
-                headers=headers,
-                timeout=self.timeout_seconds,
-            )
-            response.raise_for_status()
+        last_error: httpx.HTTPError | None = None
+        response: httpx.Response | None = None
 
-        except httpx.HTTPStatusError as error:
-            raise RuntimeError(
-                "Semantic Scholar metadata request failed with HTTP "
-                f"status {error.response.status_code}."
-            ) from error
-        except httpx.RequestError as error:
-            raise RuntimeError(
-                "Semantic Scholar metadata service could not be reached: "
-                f"{type(error).__name__}: {error}"
-            ) from error
+        for attempt in range(1, self.maximum_attempts + 1):
+            try:
+                response = httpx.get(
+                    endpoint,
+                    params=params,
+                    headers=headers,
+                    timeout=self.timeout_seconds,
+                )
+                response.raise_for_status()
+                break
+
+            except httpx.HTTPStatusError as error:
+                last_error = error
+                status_code = error.response.status_code
+
+                if status_code != 429 and status_code < 500:
+                    break
+
+            except httpx.RequestError as error:
+                last_error = error
+
+            if attempt < self.maximum_attempts:
+                LOGGER.warning(
+                    "Semantic Scholar metadata request attempt %d of %d "
+                    "failed: %s",
+                    attempt,
+                    self.maximum_attempts,
+                    last_error,
+                )
+                time.sleep(
+                    self._retry_delay_seconds(
+                        attempt=attempt,
+                        error=last_error,
+                    )
+                )
+
+        if response is None or response.is_error:
+            LOGGER.warning(
+                "Semantic Scholar metadata request failed for paper %s; "
+                "using source-search metadata.",
+                reference.source_id,
+            )
+            return self._create_semantic_scholar_metadata(reference)
 
         try:
             response_data = response.json()
@@ -217,6 +254,74 @@ class PaperMetadataService:
             source_url=source_url,
             metadata={
                 "paper_id": paper_id,
+            },
+        )
+
+    def _retry_delay_seconds(
+        self,
+        attempt: int,
+        error: httpx.HTTPError | None,
+    ) -> float:
+        """Return the bounded delay before a metadata retry."""
+
+        maximum_delay = max(
+            self.maximum_retry_delay_seconds,
+            0.0,
+        )
+
+        if isinstance(error, httpx.HTTPStatusError):
+            retry_after = error.response.headers.get("Retry-After")
+
+            if retry_after is not None:
+                try:
+                    delay = float(retry_after)
+                except ValueError:
+                    pass
+                else:
+                    return min(max(delay, 0.0), maximum_delay)
+
+        return min(
+            max(
+                self.retry_delay_seconds * (2 ** (attempt - 1)),
+                0.0,
+            ),
+            maximum_delay,
+        )
+
+    def _create_semantic_scholar_metadata(
+        self,
+        reference: ResearchSourceReference,
+    ) -> PaperMetadata:
+        """Create metadata from a Semantic Scholar search result."""
+
+        abstract = reference.metadata.get("abstract")
+        venue = reference.metadata.get("venue")
+        doi = reference.metadata.get("doi")
+
+        for field_name, value in (
+            ("abstract", abstract),
+            ("venue", venue),
+            ("doi", doi),
+        ):
+            if value is not None and not isinstance(value, str):
+                raise TypeError(
+                    "Semantic Scholar reference "
+                    f"{field_name} metadata must be a string or null."
+                )
+
+        return PaperMetadata(
+            source_reference=reference,
+            title=reference.title,
+            authors=reference.authors,
+            publication_year=reference.publication_year,
+            abstract=abstract,
+            venue=venue or "Semantic Scholar",
+            doi=doi,
+            source_url=reference.source_url,
+            metadata={
+                "paper_id": reference.source_id,
+                "source": "semantic_scholar",
+                "metadata_fallback": True,
             },
         )
 

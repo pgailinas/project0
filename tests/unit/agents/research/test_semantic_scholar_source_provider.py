@@ -57,6 +57,8 @@ def create_semantic_scholar_response_data() -> dict[str, Any]:
                     {"name": "Author Two"},
                 ],
                 "year": 2024,
+                "abstract": "Example abstract.",
+                "venue": "Example Conference",
                 "url": (
                     "https://www.semanticscholar.org/"
                     "paper/paper-001"
@@ -128,6 +130,10 @@ def test_semantic_scholar_provider_builds_expected_request(
 
     assert captured["timeout"] == 45.0
     assert captured["params"]["limit"] == 8
+    assert captured["params"]["fields"] == (
+        "paperId,title,authors,year,abstract,venue,url,"
+        "openAccessPdf,externalIds"
+    )
 
 
 def test_semantic_scholar_provider_normalizes_references(
@@ -148,6 +154,8 @@ def test_semantic_scholar_provider_normalizes_references(
     assert len(result) == 1
     assert result[0].source_name == "semantic_scholar"
     assert result[0].source_id == "paper-001"
+    assert result[0].metadata["abstract"] == "Example abstract."
+    assert result[0].metadata["venue"] == "Example Conference"
 
 
 def test_semantic_scholar_provider_returns_empty_for_no_terms(
@@ -466,4 +474,3 @@ def test_semantic_scholar_provider_omits_api_key_when_not_configured(
     )
 
     assert "x-api-key" not in captured_headers
-

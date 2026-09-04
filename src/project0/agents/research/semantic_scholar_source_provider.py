@@ -66,7 +66,7 @@ class SemanticScholarSourceProvider(
             "query": query,
             "limit": self.maximum_results,
             "fields": (
-                "paperId,title,authors,year,url,"
+                "paperId,title,authors,year,abstract,venue,url,"
                 "openAccessPdf,externalIds"
             ),
         }
@@ -273,6 +273,16 @@ class SemanticScholarSourceProvider(
         """Return acquisition metadata from a Semantic Scholar result."""
 
         metadata: dict[str, Any] = {}
+
+        abstract = item.get("abstract")
+
+        if isinstance(abstract, str):
+            metadata["abstract"] = abstract
+
+        venue = item.get("venue")
+
+        if isinstance(venue, str):
+            metadata["venue"] = venue
 
         open_access_pdf = item.get(
             "openAccessPdf"

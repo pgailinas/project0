@@ -11,6 +11,8 @@
 
 from __future__ import annotations
 
+import time
+from types import SimpleNamespace
 from typing import Any
 
 import httpx
@@ -38,6 +40,11 @@ def create_source_reference() -> ResearchSourceReference:
             "Author Two",
         ),
         publication_year=2024,
+        metadata={
+            "abstract": "Search-result abstract.",
+            "venue": "Search Conference",
+            "doi": "10.1000/search-example",
+        },
     )
 
 
@@ -74,6 +81,7 @@ def create_http_response(
     status_code: int = 200,
     data: Any | None = None,
     content: bytes | None = None,
+    headers: dict[str, str] | None = None,
 ) -> httpx.Response:
     """Create an HTTP response with request metadata attached."""
 
@@ -89,6 +97,7 @@ def create_http_response(
         return httpx.Response(
             status_code,
             content=content,
+            headers=headers,
             request=request,
         )
 
@@ -99,6 +108,7 @@ def create_http_response(
             if data is None
             else data
         ),
+        headers=headers,
         request=request,
     )
 
@@ -194,11 +204,45 @@ def test_paper_metadata_service_omits_semantic_scholar_api_key(
 
     monkeypatch.setattr(httpx, "get", fake_get)
 
-    PaperMetadataService().retrieve_metadata(
+    PaperMetadataService(
+        semantic_scholar_api_key=None,
+    ).retrieve_metadata(
         (create_source_reference(),)
     )
 
     assert "x-api-key" not in captured_headers
+
+
+def test_paper_metadata_service_uses_configured_default_api_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The metadata service shares the application API key by default."""
+
+    captured_headers: dict[str, str] = {}
+
+    def fake_get(
+        url: str,
+        *,
+        params: dict[str, Any],
+        headers: dict[str, str],
+        timeout: float,
+    ) -> httpx.Response:
+        captured_headers.update(headers)
+        return create_http_response()
+
+    monkeypatch.setattr(httpx, "get", fake_get)
+    monkeypatch.setattr(
+        "project0.agents.research.paper_metadata_service.SETTINGS",
+        SimpleNamespace(
+            semantic_scholar_api_key="configured-api-key",
+        ),
+    )
+
+    PaperMetadataService().retrieve_metadata(
+        (create_source_reference(),)
+    )
+
+    assert captured_headers["x-api-key"] == "configured-api-key"
 
 
 def test_paper_metadata_service_normalizes_trailing_base_url_slash(
@@ -433,36 +477,70 @@ def test_paper_metadata_service_rejects_mismatched_paper_id(
         )
 
 
-def test_paper_metadata_service_raises_runtime_error_for_http_failure(
+def test_paper_metadata_service_falls_back_after_http_failure(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Verify non-success HTTP responses become metadata failures."""
+    """Verify exhausted HTTP retries use source-search metadata."""
 
-    monkeypatch.setattr(
-        httpx,
-        "get",
-        lambda *args, **kwargs: create_http_response(
+    attempts = 0
+
+    def fake_get(*args: Any, **kwargs: Any) -> httpx.Response:
+        nonlocal attempts
+        attempts += 1
+        return create_http_response(
             status_code=500,
             data={"error": "metadata failure"},
-        ),
-    )
-
-    with pytest.raises(
-        RuntimeError,
-        match=(
-            "Semantic Scholar metadata request failed "
-            "with HTTP status 500"
-        ),
-    ):
-        PaperMetadataService().retrieve_metadata(
-            (create_source_reference(),)
         )
 
+    monkeypatch.setattr(httpx, "get", fake_get)
+    monkeypatch.setattr(time, "sleep", lambda seconds: None)
 
-def test_paper_metadata_service_raises_runtime_error_when_unavailable(
+    result = PaperMetadataService().retrieve_metadata(
+        (create_source_reference(),)
+    )
+
+    assert attempts == 3
+    assert result[0].abstract == "Search-result abstract."
+    assert result[0].metadata["metadata_fallback"] is True
+
+
+def test_paper_metadata_service_honors_bounded_retry_after(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Verify connection failures become metadata failures."""
+    """A metadata retry honors Retry-After without an unbounded wait."""
+
+    attempts = 0
+    sleep_calls: list[float] = []
+
+    def fake_get(*args: Any, **kwargs: Any) -> httpx.Response:
+        nonlocal attempts
+        attempts += 1
+
+        if attempts == 1:
+            return create_http_response(
+                status_code=429,
+                headers={"Retry-After": "600"},
+            )
+
+        return create_http_response()
+
+    monkeypatch.setattr(httpx, "get", fake_get)
+    monkeypatch.setattr(time, "sleep", sleep_calls.append)
+
+    result = PaperMetadataService(
+        maximum_attempts=2,
+        maximum_retry_delay_seconds=10.0,
+    ).retrieve_metadata((create_source_reference(),))
+
+    assert attempts == 2
+    assert sleep_calls == [10.0]
+    assert result[0].abstract == "Example abstract."
+
+
+def test_paper_metadata_service_falls_back_when_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify exhausted connection retries use source metadata."""
 
     def fake_get(*args: Any, **kwargs: Any) -> httpx.Response:
         request = httpx.Request(
@@ -478,17 +556,14 @@ def test_paper_metadata_service_raises_runtime_error_when_unavailable(
         )
 
     monkeypatch.setattr(httpx, "get", fake_get)
+    monkeypatch.setattr(time, "sleep", lambda seconds: None)
 
-    with pytest.raises(
-        RuntimeError,
-        match=(
-            "Semantic Scholar metadata service could "
-            "not be reached"
-        ),
-    ):
-        PaperMetadataService().retrieve_metadata(
-            (create_source_reference(),)
-        )
+    result = PaperMetadataService().retrieve_metadata(
+        (create_source_reference(),)
+    )
+
+    assert result[0].abstract == "Search-result abstract."
+    assert result[0].metadata["metadata_fallback"] is True
 
 
 def test_paper_metadata_service_rejects_non_json_response(
