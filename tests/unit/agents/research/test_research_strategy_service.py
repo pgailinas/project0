@@ -435,6 +435,46 @@ def test_build_strategy_separates_directive_guidance_from_concepts() -> None:
     )
 
 
+def test_build_strategy_preserves_seed_free_technical_guidance() -> None:
+    """Verify technical guidance remains available for query generation."""
+
+    guidance = (
+        "Find methods that align newly trained, self-supervised, "
+        "masked-model, or autoencoder visual representations with frozen "
+        "CLIP vision features or the shared CLIP vision-text embedding "
+        "space. Include transferable image-domain methods even when they "
+        "do not mention video or VideoQA. Assess their applicability to "
+        "aligning autoencoder-generated video representations."
+    )
+
+    result = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    ).build_strategy(
+        ResearchRequest(
+            question="How should video representations align with CLIP?",
+            guidance=guidance,
+        )
+    )
+
+    assert result.seed_terms == ()
+    assert result.concepts[:3] == (
+        (
+            "Find methods that align newly trained, self-supervised, "
+            "masked-model, or autoencoder visual representations with "
+            "frozen CLIP vision features or the shared CLIP vision-text "
+            "embedding space"
+        ),
+        (
+            "Include transferable image-domain methods even when they do "
+            "not mention video or VideoQA"
+        ),
+        (
+            "Assess their applicability to aligning autoencoder-generated "
+            "video representations"
+        ),
+    )
+
+
 def test_build_strategy_extracts_benchmark_question_concept() -> None:
     """Verify benchmark research wording produces a concise concept."""
 

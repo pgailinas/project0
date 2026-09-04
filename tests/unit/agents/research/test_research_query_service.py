@@ -304,6 +304,49 @@ def test_research_query_service_strips_future_research_framing():
         ),
     )
 
+
+def test_research_query_service_converts_guidance_directives_to_queries():
+    """Verify guidance remains prioritized over later context concepts."""
+
+    strategy = ResearchStrategy(
+        concepts=(
+            (
+                "Find methods that align newly trained, self-supervised, "
+                "masked-model, or autoencoder visual representations with "
+                "frozen CLIP vision features or the shared CLIP "
+                "vision-text embedding space"
+            ),
+            (
+                "Include transferable image-domain methods even when they "
+                "do not mention video or VideoQA"
+            ),
+            (
+                "Assess their applicability to aligning autoencoder-generated "
+                "video representations"
+            ),
+            (
+                "Future work should explore contrastive objectives and "
+                "latent-space regularization"
+            ),
+            (
+                "The research problem is to investigate self-supervised "
+                "video representations for VideoQA"
+            ),
+        ),
+        search_terms=(),
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms == (
+        (
+            "align self-supervised masked-model autoencoder frozen "
+            "CLIP vision features"
+        ),
+        "transferable image-domain methods CLIP alignment",
+        "aligning autoencoder-generated video representations CLIP",
+    )
+
 def test_research_query_service_generates_complementary_context_queries():
     """Verify context concepts produce complementary bounded queries."""
 

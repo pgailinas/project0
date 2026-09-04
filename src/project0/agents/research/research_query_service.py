@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass, replace
+from typing import ClassVar
 
 from project0.models.research_models import ResearchStrategy
 
@@ -28,6 +29,22 @@ class ResearchQueryService:
     - no provider-specific logic
     """
 
+    _DIRECTIVE_PREFIXES: ClassVar[tuple[str, ...]] = (
+        "assess their applicability to ",
+        "evaluate their applicability to ",
+        "assess applicability to ",
+        "find related or alternative methods that ",
+        "find related or alternative methods ",
+        "find alternative methods that ",
+        "find alternative methods ",
+        "find related methods that ",
+        "find related methods ",
+        "find methods that ",
+        "find methods ",
+        "include ",
+        "prioritize ",
+    )
+
     def generate_queries(
         self,
         strategy: ResearchStrategy,
@@ -42,6 +59,7 @@ class ResearchQueryService:
             ]
         )
         queries: list[str] = []
+        prioritized_queries: list[str] = []
         constraint_queries = tuple(
             self._focus_constraint_query(constraint)
             for constraint in strategy.constraints
@@ -51,6 +69,9 @@ class ResearchQueryService:
             *strategy.search_terms,
             *strategy.concepts,
             *constraint_queries,
+        )
+        directive_anchors = self._directive_anchor_terms(
+            candidates
         )
         objective = self._normalize_query(
             strategy.objective or ""
@@ -69,9 +90,16 @@ class ResearchQueryService:
             ):
                 continue
 
-            queries.append(
-                self._build_dimension_query(normalized)
-            )
+            query = self._build_dimension_query(normalized)
+
+            if self._is_directive_candidate(normalized):
+                query = self._anchor_directive_query(
+                    query,
+                    directive_anchors,
+                )
+                prioritized_queries.append(query)
+
+            queries.append(query)
 
         if not queries:
             fallback_queries = [
@@ -96,7 +124,8 @@ class ResearchQueryService:
                 )
 
         discovery_queries = self._select_bounded_queries(
-            self._deduplicate_complementary_queries(queries)
+            self._deduplicate_complementary_queries(queries),
+            prioritized_queries=tuple(prioritized_queries),
         )
         discovery_queries = tuple(
             query
@@ -126,7 +155,13 @@ class ResearchQueryService:
 
         normalized = cls._normalize_query(candidate)
 
-        if len(normalized.split()) <= 8:
+        if (
+            len(normalized.split()) <= 8
+            and not any(
+                normalized.casefold().startswith(prefix)
+                for prefix in cls._DIRECTIVE_PREFIXES
+            )
+        ):
             return normalized
 
         return cls._query_fragment(
@@ -134,20 +169,115 @@ class ResearchQueryService:
             maximum_words=8,
         )
 
-    @staticmethod
+    @classmethod
     def _select_bounded_queries(
+        cls,
         queries: tuple[str, ...],
+        prioritized_queries: tuple[str, ...] = (),
     ) -> tuple[str, ...]:
         """Select at most three ordered query dimensions."""
 
         if len(queries) <= 3:
             return queries
 
+        prioritized = tuple(
+            query
+            for query in cls._deduplicate_queries(
+                list(prioritized_queries)
+            )
+            if query in queries
+        )[:3]
+
+        if prioritized:
+            remaining = tuple(
+                query
+                for query in queries
+                if query not in prioritized
+            )
+
+            return (
+                *prioritized,
+                *remaining[:3 - len(prioritized)],
+            )
+
         return (
             queries[0],
             queries[1],
             queries[-1],
         )
+
+    @classmethod
+    def _is_directive_candidate(
+        cls,
+        candidate: str,
+    ) -> bool:
+        """Return whether guidance explicitly requests a search dimension."""
+
+        lowered = candidate.casefold()
+
+        return any(
+            lowered.startswith(prefix)
+            for prefix in cls._DIRECTIVE_PREFIXES
+        )
+
+    @classmethod
+    def _directive_anchor_terms(
+        cls,
+        candidates: tuple[str, ...],
+    ) -> tuple[str, ...]:
+        """Extract the principal target and relation from guidance."""
+
+        for candidate in candidates:
+            if not cls._is_directive_candidate(candidate):
+                continue
+
+            words = cls._query_words(candidate)
+            salient_terms = cls._deduplicate_words(
+                tuple(
+                    word
+                    for word in words
+                    if cls._is_salient_term(word)
+                )
+            ).split()
+            anchors = salient_terms[:1]
+
+            if any(
+                cls._word_stem(word) == "align"
+                for word in words
+            ):
+                anchors.append("alignment")
+
+            return tuple(anchors)
+
+        return ()
+
+    @classmethod
+    def _anchor_directive_query(
+        cls,
+        query: str,
+        anchors: tuple[str, ...],
+    ) -> str:
+        """Add missing primary guidance anchors to one query."""
+
+        words = query.split()
+        query_stems = {
+            cls._word_stem(word)
+            for word in words
+        }
+
+        for anchor in anchors:
+            anchor_stem = cls._word_stem(anchor)
+
+            if anchor_stem in query_stems:
+                continue
+
+            if len(words) >= 8:
+                words.pop()
+
+            words.append(anchor)
+            query_stems.add(anchor_stem)
+
+        return " ".join(words)
 
     @classmethod
     def _build_fallback_query(
@@ -323,6 +453,57 @@ class ResearchQueryService:
         normalized = " ".join(query.split()).strip()
         lowered = normalized.casefold()
 
+        compact_directive = False
+
+        for prefix in cls._DIRECTIVE_PREFIXES:
+            if lowered.startswith(prefix):
+                normalized = normalized[len(prefix):]
+                compact_directive = True
+                break
+
+        if compact_directive:
+            lowered = normalized.casefold()
+
+            for qualifier in (
+                " even when ",
+                " whether or not ",
+            ):
+                qualifier_index = lowered.find(qualifier)
+
+                if qualifier_index >= 0:
+                    normalized = normalized[:qualifier_index]
+                    break
+
+            lowered = normalized.casefold()
+
+            target_separator = " with "
+            target_index = lowered.find(target_separator)
+
+            if target_index >= 0:
+                method_words = cls._query_words(
+                    normalized[:target_index]
+                )
+                target_words = cls._query_words(
+                    normalized[
+                        target_index + len(target_separator):
+                    ]
+                )
+                method_words = cls._compact_directive_words(
+                    method_words
+                )
+                target_words = cls._compact_directive_words(
+                    target_words
+                )
+
+                return " ".join(
+                    cls._deduplicate_words(
+                        (
+                            *method_words[:4],
+                            *target_words[:4],
+                        )
+                    ).split()[:maximum_words]
+                )
+
         prefixes = (
             "the research problem is to investigate the ",
             "the research problem is to investigate ",
@@ -346,15 +527,10 @@ class ResearchQueryService:
                 normalized = normalized[len(prefix):]
                 break
 
-        words = [
-            token.strip(",.;:?()\"'\u201c\u201d")
-            for token in normalized.split()
-        ]
-        words = [
-            word
-            for word in words
-            if word
-        ]
+        words = cls._query_words(normalized)
+
+        if compact_directive:
+            words = cls._compact_directive_words(words)
         salient_words = cls._deduplicate_words(
             tuple(
                 word
@@ -386,6 +562,43 @@ class ResearchQueryService:
             selected_words.pop()
 
         return " ".join(selected_words)
+
+    @staticmethod
+    def _query_words(
+        value: str,
+    ) -> list[str]:
+        """Return normalized query words without boundary punctuation."""
+
+        return [
+            word
+            for word in (
+                token.strip(",.;:?()\"'\u201c\u201d")
+                for token in value.split()
+            )
+            if word
+        ]
+
+    @staticmethod
+    def _compact_directive_words(
+        words: list[str],
+    ) -> list[str]:
+        """Remove instruction filler without removing technical terms."""
+
+        return [
+            word
+            for word in words
+            if word.casefold()
+            not in {
+                "and",
+                "newly",
+                "or",
+                "shared",
+                "that",
+                "the",
+                "trained",
+                "with",
+            }
+        ]
 
     @staticmethod
     def _is_salient_term(

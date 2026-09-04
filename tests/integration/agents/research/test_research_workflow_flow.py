@@ -880,14 +880,15 @@ def test_research_workflow_evaluates_explicit_publication_seed() -> None:
     evaluation_provider = StubReasoningProvider(
         _provider_response()
     )
+    source_service = ResearchSourceService(
+        providers={
+            "semantic_scholar": seed_provider,
+            "arxiv": arxiv_provider,
+        },
+    )
     workflow = _create_workflow(
         evaluation_provider,
-        source_service=ResearchSourceService(
-            providers={
-                "semantic_scholar": seed_provider,
-                "arxiv": arxiv_provider,
-            },
-        ),
+        source_service=source_service,
     )
 
     result = workflow.execute(
@@ -927,3 +928,89 @@ def test_research_workflow_evaluates_explicit_publication_seed() -> None:
         "seed_preserved_count": 1,
         "evaluation_candidate_count": 1,
     }
+    assert source_service.last_candidate_trace == (
+        {
+            "deduplicated_rank": 1,
+            "evaluation_rank": 1,
+            "selection_status": "preserved_seed",
+            "title": (
+                "Enhancing Vision-Language Model with Unmasked Token Alignment"
+            ),
+            "canonical_source_name": "stub",
+            "source_id": "paper-001",
+            "retrieval_providers": ("semantic_scholar",),
+            "retrieval_queries": (
+                (
+                    "Enhancing Vision-Language Model with "
+                    "Unmasked Token Alignment"
+                ),
+                "arXiv:2405.19009",
+            ),
+            "stable_identifiers": ("arxiv:2405.19009",),
+        },
+    )
+
+
+def test_research_workflow_uses_technical_seed_free_guidance_queries() -> None:
+    """Seed-free guidance reaches retrieval as technical query phrases."""
+
+    source_provider = StubResearchSourceProvider(references=())
+    evaluation_provider = StubReasoningProvider(
+        _provider_response()
+    )
+    context_provider = StubReasoningProvider(
+        _context_provider_response()
+    )
+    workflow = _create_workflow(
+        evaluation_provider,
+        context_provider=context_provider,
+        source_service=ResearchSourceService(
+            providers={
+                "semantic_scholar": source_provider,
+                "arxiv": StubResearchSourceProvider(references=()),
+            },
+        ),
+    )
+
+    result = workflow.execute(
+        ResearchRequest(
+            question=(
+                "How should autoencoder-generated video representations "
+                "align with CLIP?"
+            ),
+            guidance=(
+                "Find methods that align newly trained, self-supervised, "
+                "masked-model, or autoencoder visual representations with "
+                "frozen CLIP vision features or the shared CLIP vision-text "
+                "embedding space. Include transferable image-domain methods "
+                "even when they do not mention video or VideoQA. Assess "
+                "their applicability to aligning autoencoder-generated "
+                "video representations."
+            ),
+        ),
+        context_source_name="prior_research.txt",
+        context_content=(
+            b"Prior research found limited semantic alignment between "
+            b"video and language representations."
+        ),
+    )
+
+    assert result.status is ResearchStatus.COMPLETED_WITH_WARNINGS
+    assert result.warnings == (
+        "No candidate research sources were found.",
+    )
+    assert result.strategy is not None
+    assert result.strategy.seed_terms == ()
+    assert len(context_provider.requests) == 1
+    assert [
+        request.search_terms
+        for request in source_provider.requests
+    ] == [
+        (
+            "align self-supervised masked-model autoencoder frozen "
+            "CLIP vision features",
+        ),
+        ("transferable image-domain methods CLIP alignment",),
+        ("aligning autoencoder-generated video representations CLIP",),
+    ]
+    assert evaluation_provider.requests == []

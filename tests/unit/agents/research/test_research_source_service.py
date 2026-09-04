@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+import logging
 
 import pytest
 
@@ -334,6 +335,62 @@ def test_research_source_service_bounds_balanced_evaluation_pool() -> None:
         "seed_preserved_count": 1,
         "evaluation_candidate_count": 5,
     }
+
+
+def test_research_source_service_traces_excluded_candidate_provenance(
+    caplog,
+) -> None:
+    """An excluded publication retains its query and provider provenance."""
+
+    selected = create_reference("selected")
+    uta = ResearchSourceReference(
+        source_name="openalex",
+        source_id="https://arxiv.org/abs/2405.19009",
+        title=(
+            "Enhancing Vision-Language Model with Unmasked Token Alignment"
+        ),
+        source_url="https://arxiv.org/abs/2405.19009",
+        publication_year=2024,
+        metadata={"arxiv_id": "2405.19009"},
+    )
+    service = ResearchSourceService(
+        providers={
+            "openalex": QueryMappedResearchSourceProvider(
+                {
+                    "CLIP feature alignment": (
+                        selected,
+                        uta,
+                    ),
+                }
+            ),
+        },
+        evaluation_candidate_limit=1,
+    )
+    strategy = ResearchStrategy(
+        concepts=("CLIP feature alignment",),
+        search_terms=("CLIP feature alignment",),
+        source_names=("openalex",),
+    )
+
+    with caplog.at_level(logging.DEBUG):
+        result = service.search(strategy)
+
+    assert result == (selected,)
+    assert service.last_candidate_trace[1] == {
+        "deduplicated_rank": 2,
+        "evaluation_rank": None,
+        "selection_status": "outside_balanced_candidate_limit",
+        "title": (
+            "Enhancing Vision-Language Model with Unmasked Token Alignment"
+        ),
+        "canonical_source_name": "openalex",
+        "source_id": "https://arxiv.org/abs/2405.19009",
+        "retrieval_providers": ("openalex",),
+        "retrieval_queries": ("CLIP feature alignment",),
+        "stable_identifiers": ("arxiv:2405.19009",),
+    }
+    assert "Unmasked Token Alignment" in caplog.text
+    assert "outside_balanced_candidate_limit" in caplog.text
 
 
 def test_research_source_service_rejects_invalid_candidate_limit() -> None:

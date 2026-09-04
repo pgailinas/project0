@@ -41,6 +41,10 @@ class ResearchSourceService:
         default_factory=dict,
         init=False,
     )
+    last_candidate_trace: tuple[dict[str, object], ...] = field(
+        default_factory=tuple,
+        init=False,
+    )
 
     def search(
         self,
@@ -58,10 +62,12 @@ class ResearchSourceService:
             )
 
         self.last_search_statistics = {}
+        self.last_candidate_trace = ()
         references: list[ResearchSourceReference] = []
         reference_groups: list[
             tuple[ResearchSourceReference, ...]
         ] = []
+        reference_group_origins: list[tuple[str, str]] = []
         failures: list[str] = []
         query_strategies = tuple(
             replace(
@@ -91,6 +97,14 @@ class ResearchSourceService:
                         provider.search(query_strategy)
                     )
                     reference_groups.append(group)
+                    reference_group_origins.append(
+                        (
+                            source_name,
+                            query_strategy.search_terms[0]
+                            if len(query_strategy.search_terms) == 1
+                            else "",
+                        )
+                    )
                     references.extend(group)
 
                 except RuntimeError as error:
@@ -122,6 +136,13 @@ class ResearchSourceService:
             seed_references=seed_references,
             limit=self.evaluation_candidate_limit,
         )
+        self.last_candidate_trace = self._build_candidate_trace(
+            deduplicated_references=deduplicated_references,
+            reference_groups=reference_groups,
+            reference_group_origins=reference_group_origins,
+            seed_references=seed_references,
+            selected_references=selected_references,
+        )
 
         self.last_search_statistics = {
             "retrieved_count": len(references),
@@ -138,7 +159,102 @@ class ResearchSourceService:
             self.last_search_statistics["evaluation_candidate_count"],
         )
 
+        for candidate in self.last_candidate_trace:
+            LOGGER.debug(
+                "Research candidate trace: deduplicated_rank=%d "
+                "evaluation_rank=%s selection=%s title=%r "
+                "canonical_source=%s source_id=%s providers=%s "
+                "queries=%s identifiers=%s",
+                candidate["deduplicated_rank"],
+                candidate["evaluation_rank"],
+                candidate["selection_status"],
+                candidate["title"],
+                candidate["canonical_source_name"],
+                candidate["source_id"],
+                candidate["retrieval_providers"],
+                candidate["retrieval_queries"],
+                candidate["stable_identifiers"],
+            )
+
         return selected_references
+
+    @classmethod
+    def _build_candidate_trace(
+        cls,
+        *,
+        deduplicated_references: tuple[ResearchSourceReference, ...],
+        reference_groups: list[tuple[ResearchSourceReference, ...]],
+        reference_group_origins: list[tuple[str, str]],
+        seed_references: tuple[ResearchSourceReference, ...],
+        selected_references: tuple[ResearchSourceReference, ...],
+    ) -> tuple[dict[str, object], ...]:
+        """Describe retrieval provenance and balanced selection outcomes."""
+
+        trace: list[dict[str, object]] = []
+
+        for deduplicated_index, reference in enumerate(
+            deduplicated_references,
+            start=1,
+        ):
+            providers: list[str] = []
+            queries: list[str] = []
+
+            for group, (provider_name, query) in zip(
+                reference_groups,
+                reference_group_origins,
+                strict=True,
+            ):
+                if not any(
+                    cls._references_match(reference, candidate)
+                    for candidate in group
+                ):
+                    continue
+
+                if provider_name not in providers:
+                    providers.append(provider_name)
+
+                if query and query not in queries:
+                    queries.append(query)
+
+            evaluation_index = next(
+                (
+                    index
+                    for index, selected in enumerate(
+                        selected_references,
+                        start=1,
+                    )
+                    if cls._references_match(reference, selected)
+                ),
+                None,
+            )
+
+            if cls._contains_reference(
+                list(seed_references),
+                reference,
+            ):
+                selection_status = "preserved_seed"
+            elif evaluation_index is not None:
+                selection_status = "balanced_selection"
+            else:
+                selection_status = "outside_balanced_candidate_limit"
+
+            trace.append(
+                {
+                    "deduplicated_rank": deduplicated_index,
+                    "evaluation_rank": evaluation_index,
+                    "selection_status": selection_status,
+                    "title": reference.title,
+                    "canonical_source_name": reference.source_name,
+                    "source_id": reference.source_id,
+                    "retrieval_providers": tuple(providers),
+                    "retrieval_queries": tuple(queries),
+                    "stable_identifiers": tuple(
+                        sorted(cls._stable_identifiers(reference))
+                    ),
+                }
+            )
+
+        return tuple(trace)
 
     @staticmethod
     def _provider_supports_query(
@@ -369,6 +485,32 @@ class ResearchSourceService:
                 text,
             )
         }
+        identifiers.update(
+            f"arxiv:{match}"
+            for match in re.findall(
+                r"arxiv\.org/(?:abs|pdf)/(\d{4}\.\d{4,5})"
+                r"(?:v\d+)?",
+                text,
+            )
+        )
+
+        for key, value in reference.metadata.items():
+            if key.lower() not in {
+                "arxiv",
+                "arxiv_id",
+            }:
+                continue
+
+            metadata_match = re.fullmatch(
+                r"(?:arxiv:)?(\d{4}\.\d{4,5})(?:v\d+)?",
+                str(value).strip(),
+                flags=re.IGNORECASE,
+            )
+
+            if metadata_match is not None:
+                identifiers.add(
+                    f"arxiv:{metadata_match.group(1)}"
+                )
         source_id_match = re.fullmatch(
             r"(?:arxiv:)?(\d{4}\.\d{4,5})(?:v\d+)?",
             reference.source_id.lower(),
