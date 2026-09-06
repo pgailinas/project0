@@ -247,6 +247,54 @@
         </form>
     </section>
 
+    {% if page.existing_research_context %}
+    <section
+        class="content-panel research-context-panel"
+        aria-labelledby="existing-research-context-title"
+    >
+        <div class="panel-heading">
+            <div>
+                <p class="panel-eyebrow">Context</p>
+                <h2 id="existing-research-context-title">
+                    Existing Research Context Analysis
+                </h2>
+                {% if page.request_form.context_source_name %}
+                <p class="context-source-document">
+                    Source document: {{ page.request_form.context_source_name }}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% set context = page.existing_research_context %}
+
+        <div class="research-context-list">
+        {% if context.research_problem %}
+        <p class="research-context-item">
+            <strong>Research Problem:</strong>
+            {{ context.research_problem.content }}
+        </p>
+        {% endif %}
+
+        {% for title, findings in [
+            ("Prior Work", context.prior_work),
+            ("Implemented Approaches", context.implemented_approaches),
+            ("Findings", context.findings),
+            ("Limitations", context.limitations),
+            ("Unresolved Questions", context.unresolved_questions),
+            ("Stated Future Work", context.stated_future_work)
+        ] %}
+        {% if findings %}
+        <p class="research-context-item">
+            <strong>{{ title }}:</strong>
+            {{ findings | map(attribute="content") | join(" ") }}
+        </p>
+        {% endif %}
+        {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
     {% if page.results %}
     <section
         id="research-results"
@@ -414,56 +462,6 @@
             </article>
             {% endfor %}
         </div>
-    </section>
-    {% endif %}
-
-    {% if page.existing_research_context %}
-    <section
-        class="content-panel"
-        aria-labelledby="existing-research-context-title"
-    >
-        <div class="panel-heading">
-            <div>
-                <p class="panel-eyebrow">Context</p>
-                <h2 id="existing-research-context-title">
-                    Existing Research Context Analysis
-                </h2>
-                {% if page.request_form.context_source_name %}
-                <p class="context-source-document">
-                    Source document: {{ page.request_form.context_source_name }}
-                </p>
-                {% endif %}
-            </div>
-        </div>
-
-        {% set context = page.existing_research_context %}
-
-        <dl class="research-context-list">
-        {% if context.research_problem %}
-        <div class="research-context-item">
-            <dt>Research Problem</dt>
-            <dd>{{ context.research_problem.content }}</dd>
-        </div>
-        {% endif %}
-
-        {% for title, findings in [
-            ("Prior Work", context.prior_work),
-            ("Implemented Approaches", context.implemented_approaches),
-            ("Findings", context.findings),
-            ("Limitations", context.limitations),
-            ("Unresolved Questions", context.unresolved_questions),
-            ("Stated Future Work", context.stated_future_work)
-        ] %}
-        {% if findings %}
-        <div class="research-context-item">
-            <dt>{{ title }}</dt>
-            {% for finding in findings %}
-            <dd>{{ finding.content }}</dd>
-            {% endfor %}
-        </div>
-        {% endif %}
-        {% endfor %}
-        </dl>
     </section>
     {% endif %}
 

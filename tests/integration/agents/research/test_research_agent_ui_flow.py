@@ -334,8 +334,12 @@ def test_research_request_presents_consolidated_paper_results() -> None:
     assert "Research Synthesis Artifacts" not in response.text
     assert "Workflow Summary" in response.text
     assert "Existing Research Context Analysis" in response.text
-    assert "<dt>Research Problem</dt>" in response.text
-    assert response.text.count("<dt>Findings</dt>") == 1
+    assert response.text.index(
+        "Existing Research Context Analysis"
+    ) < response.text.index("Research Results")
+    assert 'class="content-panel research-context-panel"' in response.text
+    assert "<strong>Research Problem:</strong>" in response.text
+    assert response.text.count("<strong>Findings:</strong>") == 1
     assert (
         "Self-supervised video representations did not improve "
         "VideoQA performance."
@@ -343,6 +347,15 @@ def test_research_request_presents_consolidated_paper_results() -> None:
     assert (
         "CLIP-based representations achieved higher VideoQA accuracy."
     ) in response.text
+    findings_paragraph = (
+        '<p class="research-context-item">\n'
+        '            <strong>Findings:</strong>\n'
+        '            Self-supervised video representations did not improve '
+        'VideoQA performance. CLIP-based representations achieved higher '
+        'VideoQA accuracy.\n'
+        "        </p>"
+    )
+    assert findings_paragraph in response.text
     assert "Research Direction Analysis" in response.text
     assert "Video-text alignment is a shared theme." in response.text
     assert "internal-evidence-001" not in response.text

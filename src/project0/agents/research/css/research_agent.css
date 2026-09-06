@@ -667,7 +667,6 @@ Table of Contents:
 
 .proposal-card.research-result-card {
 
-/*    background: #fff3cd; */
     background: #dbeafe;
 
 }
@@ -682,34 +681,31 @@ Table of Contents:
 
 .research-context-list {
 
-    display: grid;
-    gap: var(--spacing-sm);
+    margin: 0;
+
+}
+
+.content-panel.research-context-panel {
+
+    background: #f9e2f5;
 
 }
 
 .research-context-item {
 
-    padding: var(--spacing-sm);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-small);
-
-}
-
-.research-context-item p {
-
     margin: 0;
 
 }
 
-.research-context-list dt {
+.research-context-item + .research-context-item {
 
-    font-weight: 700;
+    margin-top: var(--spacing-sm);
 
 }
 
-.research-context-list dd {
+.research-context-item strong {
 
-    margin: 0.2rem 0 0;
+    font-weight: 700;
 
 }
 
