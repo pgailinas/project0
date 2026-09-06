@@ -120,7 +120,8 @@ class ResearchWorkflow:
                     )
                 )
                 context = self._context_analysis_service.analyze(
-                    context_document
+                    context_document,
+                    research_question=request.question,
                 )
 
             if context is None:

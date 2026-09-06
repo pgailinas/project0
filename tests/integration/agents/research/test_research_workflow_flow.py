@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 import httpx
@@ -210,6 +211,23 @@ def _context_provider_response() -> ProviderResponse:
             ],
             "unresolved_questions": [],
             "stated_future_work": [],
+            "inferred_solution_search_concepts": [
+                {
+                    "source_representation": "video features",
+                    "target_model_or_space": "embedding space",
+                    "solution_mechanism": "feature distillation",
+                },
+                {
+                    "source_representation": "autoencoder video tokens",
+                    "target_model_or_space": "frozen CLIP",
+                    "solution_mechanism": "token alignment",
+                },
+                {
+                    "source_representation": "autoencoder representations",
+                    "target_model_or_space": "CLIP space",
+                    "solution_mechanism": "contrastive projection",
+                },
+            ],
         },
     )
 
@@ -679,6 +697,8 @@ def test_research_workflow_uses_existing_research_context(
 ) -> None:
     """Existing research context informs the real strategy pipeline."""
 
+    requested_search_terms: list[str] = []
+
     def fake_get(
         url: str,
         *,
@@ -686,11 +706,11 @@ def test_research_workflow_uses_existing_research_context(
         headers: dict[str, str] | None = None,
         timeout: float,
     ) -> httpx.Response:
-        del params
         del headers
         del timeout
 
         if url.endswith("/paper/search"):
+            requested_search_terms.append(params["query"])
             return _http_response(
                 url,
                 _search_response(),
@@ -731,7 +751,10 @@ def test_research_workflow_uses_existing_research_context(
 
     result = workflow.execute(
         ResearchRequest(
-            question="What should I investigate next?",
+            question=(
+                "How can autoencoder video representations align with "
+                "frozen CLIP embeddings?"
+            ),
         ),
         context_source_name="prior_research.txt",
         context_content=(
@@ -744,7 +767,8 @@ def test_research_workflow_uses_existing_research_context(
     assert result.error_message is None
     assert result.strategy is not None
     assert (
-        "What should I investigate next"
+        "How can autoencoder video representations align with frozen "
+        "CLIP embeddings"
         not in result.strategy.search_terms
     )
     assert (
@@ -757,7 +781,24 @@ def test_research_workflow_uses_existing_research_context(
         "with language representations."
         in result.strategy.concepts
     )
+    assert result.strategy.search_terms == (
+        "autoencoder CLIP video features embedding space feature distillation",
+        "autoencoder video tokens frozen CLIP token alignment",
+        "autoencoder representations CLIP space contrastive projection",
+    )
     assert len(context_provider.requests) == 1
+    assert len(result.strategy.inferred_solution_search_concepts) == 3
+    assert requested_search_terms[:3] == [
+        "autoencoder CLIP video features embedding space feature distillation",
+        "autoencoder video tokens frozen CLIP token alignment",
+        "autoencoder representations CLIP space contrastive projection",
+    ]
+    assert json.loads(
+        context_provider.requests[0].user_prompt
+    )["research_question"] == (
+        "How can autoencoder video representations align with frozen "
+        "CLIP embeddings?"
+    )
     assert len(evaluation_provider.requests) == 1
 
 

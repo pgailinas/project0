@@ -101,13 +101,18 @@ class StubExistingResearchContextAnalysisService:
     ) -> None:
         self._context = context
         self._error = error
-        self.requests: list[ResearchContextDocument] = []
+        self.requests: list[
+            tuple[ResearchContextDocument, str]
+        ] = []
 
     def analyze(
         self,
         document: ResearchContextDocument,
+        research_question: str = "",
     ) -> ExistingResearchContext:
-        self.requests.append(document)
+        self.requests.append(
+            (document, research_question)
+        )
 
         if self._error is not None:
             raise self._error
@@ -1223,7 +1228,7 @@ def test_workflow_ingests_analyzes_and_forwards_context() -> None:
         )
     ]
     assert context_analysis_service.requests == [
-        document
+        (document, _research_request().question)
     ]
     assert strategy_service.contexts == [
         context

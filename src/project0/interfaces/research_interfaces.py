@@ -47,6 +47,7 @@ class ExistingResearchContextAnalysisServiceProtocol(Protocol):
     def analyze(
         self,
         document: ResearchContextDocument,
+        research_question: str = "",
     ) -> ExistingResearchContext:
         """Analyze a normalized existing research document."""
 

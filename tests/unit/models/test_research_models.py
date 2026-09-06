@@ -218,6 +218,9 @@ def test_research_strategy_creation() -> None:
             "The strategy targets representation learning "
             "and semantic alignment."
         ),
+        inferred_solution_search_concepts=(
+            "feature distillation frozen teacher representations",
+        ),
     )
 
     assert strategy.concepts == (
@@ -240,6 +243,9 @@ def test_research_strategy_creation() -> None:
         "The strategy targets representation learning "
         "and semantic alignment."
     )
+    assert strategy.inferred_solution_search_concepts == (
+        "feature distillation frozen teacher representations",
+    )
 
 
 def test_research_strategy_defaults() -> None:
@@ -249,6 +255,8 @@ def test_research_strategy_defaults() -> None:
         concepts=("video representation learning",),
         search_terms=("video representation learning",),
     )
+
+    assert strategy.inferred_solution_search_concepts == ()
 
     assert strategy.constraints == ()
     assert strategy.seed_terms == ()
@@ -543,6 +551,9 @@ def test_existing_research_context_creation() -> None:
 
     context = ExistingResearchContext(
         limitations=(limitation,),
+        inferred_solution_search_concepts=(
+            "feature distillation frozen teacher representations",
+        ),
     )
 
     assert context.research_problem is None
@@ -552,6 +563,9 @@ def test_existing_research_context_creation() -> None:
     assert context.limitations == (limitation,)
     assert context.unresolved_questions == ()
     assert context.stated_future_work == ()
+    assert context.inferred_solution_search_concepts == (
+        "feature distillation frozen teacher representations",
+    )
 
 
 def test_paper_analysis_creation() -> None:

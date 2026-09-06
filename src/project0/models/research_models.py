@@ -91,6 +91,7 @@ class ResearchStrategy:
     constraints: tuple[str, ...] = ()
     source_names: tuple[str, ...] = ()
     rationale: str | None = None
+    inferred_solution_search_concepts: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -164,6 +165,7 @@ class ExistingResearchContext:
     limitations: tuple[ResearchFinding, ...] = ()
     unresolved_questions: tuple[ResearchFinding, ...] = ()
     stated_future_work: tuple[ResearchFinding, ...] = ()
+    inferred_solution_search_concepts: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

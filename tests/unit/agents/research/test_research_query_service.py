@@ -408,6 +408,81 @@ def test_research_query_service_generates_complementary_context_queries():
     )
 
 
+def test_research_query_service_preserves_inferred_solution_queries():
+    """Verify inferred solution concepts reach providers unchanged."""
+
+    strategy = ResearchStrategy(
+        concepts=(
+            "What should I investigate next",
+            "autoencoder video features frozen CLIP feature distillation",
+            "video encoder tokens frozen CLIP token alignment",
+            "autoencoder representations CLIP space contrastive projection",
+            "A broad documented research limitation.",
+        ),
+        search_terms=(),
+        objective="What should I investigate next?",
+        inferred_solution_search_concepts=(
+            "autoencoder video features frozen CLIP feature distillation",
+            "video encoder tokens frozen CLIP token alignment",
+            "autoencoder representations CLIP space contrastive projection",
+        ),
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms == (
+        "autoencoder video features frozen CLIP feature distillation",
+        "video encoder tokens frozen CLIP token alignment",
+        "autoencoder representations CLIP space contrastive projection",
+    )
+
+
+def test_research_query_service_compacts_long_inferred_solution_query():
+    """Verify compaction retains source, target, and solution mechanism."""
+
+    inferred_concept = (
+        "autoencoder video representations into frozen CLIP shared "
+        "space using feature distillation"
+    )
+    strategy = ResearchStrategy(
+        concepts=(inferred_concept,),
+        search_terms=(),
+        inferred_solution_search_concepts=(inferred_concept,),
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms == (
+        (
+            "autoencoder video representations CLIP space feature "
+            "distillation"
+        ),
+    )
+
+
+def test_research_query_service_preserves_verbose_target_and_mechanism():
+    """Verify verbose structured output retains endpoints and mechanism."""
+
+    inferred_concept = (
+        "autoencoder-generated video representations shared embedding "
+        "space of frozen CLIP vision and text model feature distillation"
+    )
+    strategy = ResearchStrategy(
+        concepts=(inferred_concept,),
+        search_terms=(),
+        inferred_solution_search_concepts=(inferred_concept,),
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms == (
+        (
+            "autoencoder-generated video representations CLIP model "
+            "feature distillation"
+        ),
+    )
+
+
 def test_research_query_service_limits_query_dimensions():
     """Verify provider query count is bounded to three dimensions."""
 

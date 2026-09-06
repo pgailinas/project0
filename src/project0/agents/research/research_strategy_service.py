@@ -73,6 +73,7 @@ class ResearchStrategyService:
                 constraints=(),
                 source_names=(),
                 rationale=None,
+                inferred_solution_search_concepts=(),
             )
 
         source_names = self.source_names
@@ -100,6 +101,11 @@ class ResearchStrategyService:
                     "Research strategy derived from the submitted "
                     "research question and guidance."
                 )
+            ),
+            inferred_solution_search_concepts=(
+                context.inferred_solution_search_concepts
+                if context is not None
+                else ()
             ),
         )
 
@@ -152,15 +158,22 @@ class ResearchStrategyService:
 
         if context is not None:
             context_findings = (
-                context.stated_future_work
-                + context.unresolved_questions
+                context.unresolved_questions
+                + context.stated_future_work
                 + context.limitations
+                + context.findings
                 + (
                     (context.research_problem,)
                     if context.research_problem is not None
                     else ()
                 )
             )
+
+            for concept in context.inferred_solution_search_concepts:
+                normalized = concept.strip()
+
+                if normalized and normalized not in concepts:
+                    concepts.append(normalized)
 
             for finding in context_findings:
                 normalized = finding.content.strip()

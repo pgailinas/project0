@@ -58,8 +58,17 @@ class ResearchQueryService:
                 if self._normalize_query(seed)
             ]
         )
-        queries: list[str] = []
-        prioritized_queries: list[str] = []
+        inferred_queries = tuple(
+            self._build_inferred_solution_query(concept)
+            for concept in strategy.inferred_solution_search_concepts
+            if self._build_inferred_solution_query(concept)
+        )
+        inferred_concepts = {
+            self._normalize_query(concept).casefold()
+            for concept in strategy.inferred_solution_search_concepts
+        }
+        queries: list[str] = list(inferred_queries)
+        directive_queries: list[str] = []
         constraint_queries = tuple(
             self._focus_constraint_query(constraint)
             for constraint in strategy.constraints
@@ -83,6 +92,9 @@ class ResearchQueryService:
             if not normalized:
                 continue
 
+            if normalized.casefold() in inferred_concepts:
+                continue
+
             if (
                 objective
                 and normalized.rstrip(".?").casefold()
@@ -97,7 +109,7 @@ class ResearchQueryService:
                     query,
                     directive_anchors,
                 )
-                prioritized_queries.append(query)
+                directive_queries.append(query)
 
             queries.append(query)
 
@@ -125,7 +137,10 @@ class ResearchQueryService:
 
         discovery_queries = self._select_bounded_queries(
             self._deduplicate_complementary_queries(queries),
-            prioritized_queries=tuple(prioritized_queries),
+            prioritized_queries=(
+                *directive_queries,
+                *inferred_queries,
+            ),
         )
         discovery_queries = tuple(
             query
@@ -167,6 +182,51 @@ class ResearchQueryService:
         return cls._query_fragment(
             normalized,
             maximum_words=8,
+        )
+
+    @classmethod
+    def _build_inferred_solution_query(
+        cls,
+        concept: str,
+    ) -> str:
+        """Compact an inferred solution while retaining its endpoints."""
+
+        normalized = cls._normalize_query(concept)
+        words = cls._query_words(normalized)
+
+        if len(words) <= 8:
+            return " ".join(words)
+
+        compact_words = [
+            word
+            for word in words
+            if word.casefold()
+            not in {
+                "for",
+                "into",
+                "of",
+                "shared",
+                "the",
+                "to",
+                "using",
+                "with",
+            }
+        ]
+
+        salient_words = [
+            word
+            for word in compact_words
+            if cls._is_salient_term(word)
+        ][:2]
+
+        return " ".join(
+            cls._deduplicate_words(
+                (
+                    *compact_words[:3],
+                    *salient_words,
+                    *compact_words[-3:],
+                )
+            ).split()[:8]
         )
 
     @classmethod

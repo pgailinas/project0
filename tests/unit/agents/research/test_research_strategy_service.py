@@ -526,6 +526,10 @@ def test_build_strategy_includes_existing_research_context() -> None:
                 ),
             ),
         ),
+        inferred_solution_search_concepts=(
+            "feature distillation frozen teacher representations",
+            "token-level alignment learned visual representations",
+        ),
     )
 
     result = ResearchStrategyService(
@@ -539,11 +543,13 @@ def test_build_strategy_includes_existing_research_context() -> None:
 
     assert result.concepts == (
         "What should I investigate next",
-        "Investigate semantic alignment objectives.",
+        "feature distillation frozen teacher representations",
+        "token-level alignment learned visual representations",
         (
             "How should video and text representations "
             "be aligned?"
         ),
+        "Investigate semantic alignment objectives.",
         (
             "Reconstruction quality does not ensure "
             "semantic usefulness."
@@ -555,10 +561,14 @@ def test_build_strategy_includes_existing_research_context() -> None:
         "research question, guidance, and existing "
         "research context."
     )
+    assert result.inferred_solution_search_concepts == (
+        "feature distillation frozen teacher representations",
+        "token-level alignment learned visual representations",
+    )
 
 
-def test_build_strategy_ignores_context_prior_work_and_findings() -> None:
-    """Verify completed prior work does not become search concepts."""
+def test_build_strategy_uses_findings_but_ignores_completed_approaches() -> None:
+    """Verify findings inform search without repeating prior approaches."""
 
     context = ExistingResearchContext(
         prior_work=(
@@ -595,6 +605,7 @@ def test_build_strategy_ignores_context_prior_work_and_findings() -> None:
     assert result.concepts == (
         "Find relevant follow-on research",
         "Semantic alignment remains unresolved.",
+        "Reconstruction performance improved.",
     )
 
 
@@ -672,6 +683,7 @@ def test_build_strategy_context_only_does_not_execute() -> None:
     assert result.sub_questions == ()
     assert result.constraints == ()
     assert result.source_names == ()
+    assert result.inferred_solution_search_concepts == ()
 
 
 def test_build_strategy_prioritizes_follow_on_context_concepts() -> None:
@@ -708,6 +720,10 @@ def test_build_strategy_prioritizes_follow_on_context_concepts() -> None:
                 ),
             ),
         ),
+        inferred_solution_search_concepts=(
+            "feature distillation frozen teacher representations",
+            "token-level alignment learned visual representations",
+        ),
     )
 
     result = ResearchStrategyService(
@@ -721,13 +737,15 @@ def test_build_strategy_prioritizes_follow_on_context_concepts() -> None:
 
     assert result.concepts == (
         "What should I investigate next",
-        (
-            "Investigate semantic alignment objectives for "
-            "video representations."
-        ),
+        "feature distillation frozen teacher representations",
+        "token-level alignment learned visual representations",
         (
             "How should video representations be aligned "
             "with language representations?"
+        ),
+        (
+            "Investigate semantic alignment objectives for "
+            "video representations."
         ),
         (
             "Current reconstruction metrics do not measure "
