@@ -263,6 +263,41 @@ def _search_response() -> dict[str, Any]:
     }
 
 
+def _candidate_selection_search_response() -> dict[str, Any]:
+    """Return a generic result before a stronger technical match."""
+
+    return {
+        "total": 2,
+        "offset": 0,
+        "next": 2,
+        "data": [
+            {
+                "paperId": "generic-001",
+                "title": "Self-Supervised Latent Representations for ECG",
+                "authors": [],
+                "year": 2025,
+                "url": (
+                    "https://www.semanticscholar.org/"
+                    "paper/generic-001"
+                ),
+            },
+            {
+                "paperId": "paper-001",
+                "title": (
+                    "CLIP Autoencoder Latent Alignment for Video "
+                    "Representations"
+                ),
+                "authors": [],
+                "year": 2024,
+                "url": (
+                    "https://www.semanticscholar.org/"
+                    "paper/paper-001"
+                ),
+            },
+        ],
+    }
+
+
 def _metadata_response() -> dict[str, Any]:
     """Create deterministic Semantic Scholar paper metadata."""
 
@@ -800,6 +835,87 @@ def test_research_workflow_uses_existing_research_context(
         "CLIP embeddings?"
     )
     assert len(evaluation_provider.requests) == 1
+
+
+def test_research_workflow_prioritizes_context_query_anchor_matches(
+    monkeypatch,
+) -> None:
+    """Context anchors preserve a strong result within a bounded pool."""
+
+    def fake_get(
+        url: str,
+        *,
+        params: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+        timeout: float,
+    ) -> httpx.Response:
+        del params
+        del headers
+        del timeout
+
+        if url.endswith("/paper/search"):
+            return _http_response(
+                url,
+                _candidate_selection_search_response(),
+            )
+
+        if url.endswith("/paper/paper-001"):
+            return _http_response(
+                url,
+                _metadata_response(),
+            )
+
+        if url.endswith("/api/query"):
+            return _xml_http_response(
+                url,
+                _arxiv_response(),
+            )
+
+        raise AssertionError(
+            f"Unexpected request: {url}"
+        )
+
+    monkeypatch.setattr(httpx, "get", fake_get)
+    evaluation_provider = StubReasoningProvider(
+        _provider_response()
+    )
+    context_provider = StubReasoningProvider(
+        _context_provider_response()
+    )
+    workflow = _create_workflow(
+        evaluation_provider,
+        context_provider,
+        source_service=ResearchSourceService(
+            providers={
+                "semantic_scholar": SemanticScholarSourceProvider(
+                    maximum_results=5,
+                ),
+                "arxiv": ArxivSourceProvider(),
+            },
+            evaluation_candidate_limit=1,
+        ),
+    )
+
+    result = workflow.execute(
+        ResearchRequest(
+            question=(
+                "How can autoencoder video representations align with "
+                "frozen CLIP embeddings?"
+            ),
+        ),
+        context_source_name="prior_research.txt",
+        context_content=(
+            b"Prior research found limited semantic alignment between "
+            b"video and language representations."
+        ),
+    )
+
+    assert result.status is ResearchStatus.COMPLETED
+    assert tuple(
+        reference.source_id
+        for reference in result.source_references
+    ) == ("paper-001",)
+    assert len(result.evaluations) == 1
 
 
 def test_research_workflow_runs_metadata_paper_analysis_pipeline(

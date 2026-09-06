@@ -337,10 +337,54 @@ def test_research_source_service_bounds_balanced_evaluation_pool() -> None:
     }
 
 
+def test_research_source_service_prioritizes_query_anchor_matches() -> None:
+    """Repeated technical anchors outrank generic provider matches."""
+
+    generic = replace(
+        create_reference("generic"),
+        title="Self-Supervised Latent Representations for ECG",
+    )
+    aligned = replace(
+        create_reference("aligned"),
+        title=(
+            "CLIP Autoencoder Latent Alignment for Video Representations"
+        ),
+    )
+    provider = QueryMappedResearchSourceProvider(
+        {
+            "self-supervised autoencoder CLIP latent representations": (
+                generic,
+                aligned,
+            ),
+            "autoencoder CLIP video embedding alignment": (),
+        }
+    )
+    service = ResearchSourceService(
+        providers={"stub": provider},
+        evaluation_candidate_limit=1,
+    )
+    strategy = ResearchStrategy(
+        concepts=("video representation alignment",),
+        search_terms=(
+            "self-supervised autoencoder CLIP latent representations",
+            "autoencoder CLIP video embedding alignment",
+        ),
+        source_names=("stub",),
+    )
+
+    result = service.search(strategy)
+
+    assert result == (aligned,)
+    assert service.last_candidate_trace[0]["selection_status"] == (
+        "outside_balanced_candidate_limit"
+    )
+    assert service.last_candidate_trace[1]["evaluation_rank"] == 1
+
+
 def test_research_source_service_traces_excluded_candidate_provenance(
     caplog,
 ) -> None:
-    """An excluded publication retains its query and provider provenance."""
+    """Selection changes retain query and provider provenance."""
 
     selected = create_reference("selected")
     uta = ResearchSourceReference(
@@ -375,11 +419,22 @@ def test_research_source_service_traces_excluded_candidate_provenance(
     with caplog.at_level(logging.DEBUG):
         result = service.search(strategy)
 
-    assert result == (selected,)
-    assert service.last_candidate_trace[1] == {
-        "deduplicated_rank": 2,
+    assert result == (uta,)
+    assert service.last_candidate_trace[0] == {
+        "deduplicated_rank": 1,
         "evaluation_rank": None,
         "selection_status": "outside_balanced_candidate_limit",
+        "title": "Paper selected",
+        "canonical_source_name": "stub",
+        "source_id": "selected",
+        "retrieval_providers": ("openalex",),
+        "retrieval_queries": ("CLIP feature alignment",),
+        "stable_identifiers": (),
+    }
+    assert service.last_candidate_trace[1] == {
+        "deduplicated_rank": 2,
+        "evaluation_rank": 1,
+        "selection_status": "balanced_selection",
         "title": (
             "Enhancing Vision-Language Model with Unmasked Token Alignment"
         ),
@@ -390,6 +445,7 @@ def test_research_source_service_traces_excluded_candidate_provenance(
         "stable_identifiers": ("arxiv:2405.19009",),
     }
     assert "Unmasked Token Alignment" in caplog.text
+    assert "Paper selected" in caplog.text
     assert "outside_balanced_candidate_limit" in caplog.text
 
 

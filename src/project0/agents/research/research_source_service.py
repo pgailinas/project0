@@ -131,8 +131,10 @@ class ResearchSourceService:
             )
         )
         selected_references = self._select_balanced_candidates(
+            strategy=strategy,
             deduplicated_references=deduplicated_references,
             reference_groups=reference_groups,
+            reference_group_origins=reference_group_origins,
             seed_references=seed_references,
             limit=self.evaluation_candidate_limit,
         )
@@ -282,17 +284,24 @@ class ResearchSourceService:
     def _select_balanced_candidates(
         cls,
         *,
+        strategy: ResearchStrategy,
         deduplicated_references: tuple[ResearchSourceReference, ...],
         reference_groups: list[tuple[ResearchSourceReference, ...]],
+        reference_group_origins: list[tuple[str, str]],
         seed_references: tuple[ResearchSourceReference, ...],
         limit: int,
     ) -> tuple[ResearchSourceReference, ...]:
-        """Preserve seeds, then select fairly across result groups."""
+        """Preserve seeds, then select relevant results fairly by group."""
 
         selected = list(seed_references)
         grouped_candidates: list[list[ResearchSourceReference]] = []
+        anchor_terms = cls._strategy_anchor_terms(strategy)
 
-        for group in reference_groups:
+        for group, (_, query) in zip(
+            reference_groups,
+            reference_group_origins,
+            strict=True,
+        ):
             candidates: list[ResearchSourceReference] = []
 
             for reference in group:
@@ -314,6 +323,14 @@ class ResearchSourceService:
 
                 candidates.append(canonical)
 
+            candidates.sort(
+                key=lambda candidate: cls._candidate_relevance_score(
+                    candidate,
+                    query=query,
+                    anchor_terms=anchor_terms,
+                ),
+                reverse=True,
+            )
             grouped_candidates.append(candidates)
 
         while (
@@ -339,6 +356,79 @@ class ResearchSourceService:
                     break
 
         return tuple(selected)
+
+    @classmethod
+    def _strategy_anchor_terms(
+        cls,
+        strategy: ResearchStrategy,
+    ) -> set[str]:
+        """Return distinctive terms repeated across strategy queries."""
+
+        term_counts: dict[str, int] = {}
+
+        for query in strategy.search_terms:
+            for term in cls._meaningful_terms(query):
+                term_counts[term] = term_counts.get(term, 0) + 1
+
+        return {
+            term
+            for term, count in term_counts.items()
+            if count > 1
+        }
+
+    @classmethod
+    def _candidate_relevance_score(
+        cls,
+        reference: ResearchSourceReference,
+        *,
+        query: str,
+        anchor_terms: set[str],
+    ) -> tuple[int, int, int, int]:
+        """Score query-derived evidence without replacing LLM evaluation."""
+
+        title_terms = cls._meaningful_terms(reference.title)
+        abstract = reference.metadata.get("abstract")
+        abstract_text = abstract if isinstance(abstract, str) else ""
+        content_terms = title_terms | cls._meaningful_terms(abstract_text)
+        query_terms = cls._meaningful_terms(query)
+
+        return (
+            len(title_terms & anchor_terms),
+            len(content_terms & anchor_terms),
+            len(title_terms & query_terms),
+            len(content_terms & query_terms),
+        )
+
+    @classmethod
+    def _meaningful_terms(
+        cls,
+        value: str,
+    ) -> set[str]:
+        """Normalize technical terms while excluding retrieval filler."""
+
+        stopwords = {
+            "a",
+            "an",
+            "and",
+            "for",
+            "from",
+            "in",
+            "into",
+            "its",
+            "of",
+            "on",
+            "or",
+            "the",
+            "to",
+            "using",
+            "with",
+        }
+
+        return {
+            term
+            for term in cls._normalize_text(value).split()
+            if len(term) > 1 and term not in stopwords
+        }
 
     @classmethod
     def _matches_any_seed(
