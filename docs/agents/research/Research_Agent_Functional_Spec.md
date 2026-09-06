@@ -111,7 +111,7 @@ The Research Agent shall:
 
 ---
 
-## 5. Inputs
+## 4. Inputs
 
 -   User research request
 -   Research question
@@ -151,7 +151,7 @@ this increment.
 
 ---
 
-## 7. Functional Workflow
+## 5. Functional Workflow
 
 ``` text
 Research Request
@@ -197,7 +197,7 @@ Research Result
 
 ---
 
-## 10. Success Criteria
+## 6. Success Criteria
 
 The Research Agent is successful when it:
 
@@ -249,7 +249,7 @@ The Research Agent is successful when it:
 
 ---
 
-## 10.1 Revision Workflow
+## 6.1 Revision Workflow
 
 The Research Agent shall support revision of generated research requests
 and research outputs.
@@ -268,7 +268,7 @@ restarting the research process.
 
 ---
 
-## 11. Future Enhancements
+## 7. Future Enhancements
 
 Not included in Version 1:
 

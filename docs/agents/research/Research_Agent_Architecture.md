@@ -508,7 +508,7 @@ Responsibilities:
 
 ------------------------------------------------------------------------
 
-## Research Source Provider Architecture
+## 5. Research Source Provider Architecture
 
 The Research Agent uses a provider-based architecture to isolate
 external research source implementations from Research Agent workflow
@@ -581,7 +581,7 @@ implementations.
 
 ------------------------------------------------------------------------
 
-## 5. External Dependencies
+## 6. External Dependencies
 
 The Research Agent interacts with:
 
@@ -605,7 +605,7 @@ The Research Agent interacts with:
 
 ------------------------------------------------------------------------
 
-## 6. Design Constraints
+## 7. Design Constraints
 
 -   Research outputs shall preserve identifiable source and citation
     information.
@@ -643,7 +643,7 @@ The Research Agent interacts with:
 
 ------------------------------------------------------------------------
 
-## 7. Future Architectural Expansion
+## 8. Future Architectural Expansion
 
 Future versions may introduce:
 
