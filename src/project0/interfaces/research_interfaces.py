@@ -130,6 +130,14 @@ class PaperMetadataServiceProtocol(Protocol):
 
         ...
 
+    def acquire_evidence(
+        self,
+        papers: tuple[PaperMetadata, ...],
+    ) -> tuple[PaperMetadata, ...]:
+        """Acquire bounded paper evidence for a ranked shortlist."""
+
+        ...
+
 
 class ResearchEvaluationServiceProtocol(Protocol):
     """Interface for Research Agent evaluation services."""

@@ -21,7 +21,11 @@ import pytest
 from project0.agents.research.paper_metadata_service import (
     PaperMetadataService,
 )
-from project0.models.research_models import ResearchSourceReference
+from project0.models.research_models import (
+    PaperMetadata,
+    ResearchPaperEvidenceStatus,
+    ResearchSourceReference,
+)
 
 
 def create_source_reference() -> ResearchSourceReference:
@@ -150,7 +154,7 @@ def test_paper_metadata_service_builds_expected_request(
     assert captured["params"] == {
         "fields": (
             "paperId,title,authors,year,abstract,"
-            "venue,externalIds,url"
+            "venue,externalIds,url,openAccessPdf"
         ),
     }
 
@@ -1053,3 +1057,98 @@ def test_paper_metadata_service_creates_openreview_metadata() -> None:
         "paper_id": "openreview-note-001",
         "source": "openreview",
     }
+
+
+def test_paper_metadata_service_acquires_bounded_abstract_evidence() -> None:
+    """Only the bounded shortlist receives normalized evidence."""
+
+    papers = tuple(
+        PaperMetadata(
+            source_reference=ResearchSourceReference(
+                source_name="openalex",
+                source_id=f"paper-{index}",
+                title=f"Paper {index}",
+            ),
+            title=f"Paper {index}",
+            abstract=f"Abstract evidence {index}.",
+        )
+        for index in range(10)
+    )
+
+    result = PaperMetadataService(
+        evidence_candidate_limit=8,
+    ).acquire_evidence(papers)
+
+    assert len(result) == 8
+    assert all(
+        paper.evidence_status == ResearchPaperEvidenceStatus.AVAILABLE
+        for paper in result
+    )
+    assert result[0].evidence_sections[0].section == "Abstract"
+    assert result[0].evidence_sections[0].content == "Abstract evidence 0."
+
+
+def test_paper_metadata_service_marks_missing_content_discovery_only() -> None:
+    """Metadata without an abstract or paper URL remains discovery-only."""
+
+    paper = PaperMetadata(
+        source_reference=ResearchSourceReference(
+            source_name="crossref",
+            source_id="10.1000/discovery",
+            title="Discovery Paper",
+        ),
+        title="Discovery Paper",
+    )
+
+    result = PaperMetadataService().acquire_evidence((paper,))
+
+    assert result[0].evidence_status == (
+        ResearchPaperEvidenceStatus.DISCOVERY_ONLY
+    )
+    assert result[0].evidence_sections == ()
+
+
+def test_paper_metadata_service_extracts_page_preserving_sections() -> None:
+    """Relevant PDF sections retain their source page numbers."""
+
+    result = PaperMetadataService()._extract_evidence_sections(
+        (
+            (1, "Abstract\nAn abstract about alignment."),
+            (4, "3 Method\nWe align video and text tokens."),
+            (7, "5 Experiments\nThe method improves retrieval."),
+        )
+    )
+
+    assert tuple(section.section for section in result) == (
+        "Abstract",
+        "Method",
+        "Results",
+    )
+    assert tuple(section.page_number for section in result) == (1, 4, 7)
+
+
+@pytest.mark.parametrize("source_name", ("arxiv", "openreview", "crossref"))
+def test_paper_metadata_service_preserves_source_evidence_metadata(
+    source_name: str,
+) -> None:
+    """Source abstracts and PDF locations survive normalization."""
+
+    reference = ResearchSourceReference(
+        source_name=source_name,
+        source_id=(
+            "10.1000/example"
+            if source_name == "crossref"
+            else "paper-001"
+        ),
+        title="Evidence Paper",
+        source_url="https://example.test/paper",
+        metadata={
+            "abstract": "Source-provided abstract.",
+            "pdf_url": "https://example.test/paper.pdf",
+        },
+    )
+
+    paper = PaperMetadataService().retrieve_metadata((reference,))[0]
+
+    assert paper.abstract == "Source-provided abstract."
+    assert paper.metadata["pdf_url"] == "https://example.test/paper.pdf"

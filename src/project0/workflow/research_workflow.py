@@ -39,6 +39,9 @@ from project0.models.research_models import (
 logger = logging.getLogger(__name__)
 
 
+EVIDENCE_CANDIDATE_LIMIT = 8
+
+
 class ResearchWorkflow:
     """Coordinate the complete Research Agent workflow."""
 
@@ -88,6 +91,10 @@ class ResearchWorkflow:
 
         created_at = datetime.now(UTC)
         warnings: list[str] = []
+        evidence_review_enabled = False
+        evidence_shortlist_count = 0
+        discovery_only_count = 0
+        recommended_evaluations = ()
 
         try:
             if (
@@ -172,6 +179,58 @@ class ResearchWorkflow:
                     "research source references."
                 )
 
+            acquire_evidence = getattr(
+                self._metadata_service,
+                "acquire_evidence",
+                None,
+            )
+
+            if callable(acquire_evidence):
+                evidence_review_enabled = True
+                evidence_candidates = papers
+
+                if len(papers) > EVIDENCE_CANDIDATE_LIMIT:
+                    rank_candidates = getattr(
+                        self._evaluation_service,
+                        "rank_candidates",
+                        self._evaluation_service.evaluate,
+                    )
+                    preliminary_evaluations = (
+                        rank_candidates(
+                            request,
+                            strategy,
+                            papers,
+                        )
+                    )
+                    evidence_candidates = (
+                        self._select_evidence_candidates(
+                            preliminary_evaluations,
+                            EVIDENCE_CANDIDATE_LIMIT,
+                        )
+                    )
+                    logger.info(
+                        "Research workflow evidence shortlist for request "
+                        "%s: candidates=%d selected=%d",
+                        request.request_id,
+                        len(papers),
+                        len(evidence_candidates),
+                    )
+
+                papers = acquire_evidence(
+                    evidence_candidates[:EVIDENCE_CANDIDATE_LIMIT]
+                )
+                evidence_shortlist_count = len(papers)
+                discovery_only_count = sum(
+                    not paper.evidence_sections
+                    for paper in papers
+                )
+                if discovery_only_count:
+                    warnings.append(
+                        f"{discovery_only_count} shortlisted paper(s) "
+                        "were retained as discovery-only because usable "
+                        "paper evidence was unavailable."
+                    )
+
             evaluations = self._evaluation_service.evaluate(
                 request,
                 strategy,
@@ -182,16 +241,40 @@ class ResearchWorkflow:
                 source_references,
                 papers,
                 evaluations,
-            ) = self._select_results(
-                source_references=source_references,
-                papers=papers,
-                evaluations=evaluations,
-                max_results=request.max_results,
+            ) = (
+                self._select_evidence_results(
+                    source_references=source_references,
+                    evaluations=evaluations,
+                    max_results=request.max_results,
+                )
+                if evidence_review_enabled
+                else self._select_results(
+                    source_references=source_references,
+                    papers=papers,
+                    evaluations=evaluations,
+                    max_results=request.max_results,
+                )
+            )
+
+            recommended_evaluations = tuple(
+                evaluation
+                for evaluation in evaluations
+                if evaluation.is_recommended
             )
 
             if source_references and not evaluations:
                 warnings.append(
                     "No research papers met the minimum relevance threshold."
+                )
+            elif (
+                evidence_review_enabled
+                and evaluations
+                and not recommended_evaluations
+            ):
+                warnings.append(
+                    "No evidence-reviewed papers met the minimum relevance "
+                    f"threshold; displaying {len(evaluations)} reviewed "
+                    "paper(s)."
                 )
 
             paper_analyses = ()
@@ -218,13 +301,26 @@ class ResearchWorkflow:
                         "analysis service."
                     )
 
-                if paper_analyses:
+                recommended_paper_ids = {
+                    evaluation.paper.source_reference.source_id
+                    for evaluation in recommended_evaluations
+                }
+                direction_paper_analyses = tuple(
+                    analysis
+                    for analysis in paper_analyses
+                    if (
+                        analysis.paper.source_reference.source_id
+                        in recommended_paper_ids
+                    )
+                )
+
+                if direction_paper_analyses:
                     try:
                         direction_analysis = (
                             self._direction_analysis_service.analyze(
                                 request,
                                 context,
-                                paper_analyses,
+                                direction_paper_analyses,
                             )
                         )
                     except (
@@ -273,15 +369,35 @@ class ResearchWorkflow:
                 paper_analyses=paper_analyses,
                 direction_analysis=direction_analysis,
                 warnings=tuple(warnings),
-                metadata=(
-                    {
-                        "source_search": dict(
-                            source_search_statistics
-                        ),
-                    }
-                    if source_search_statistics
-                    else {}
-                ),
+                metadata={
+                    **(
+                        {
+                            "source_search": dict(
+                                source_search_statistics
+                            ),
+                        }
+                        if source_search_statistics
+                        else {}
+                    ),
+                    **(
+                        {
+                            "evidence_review": {
+                                "shortlisted_count": (
+                                    evidence_shortlist_count
+                                ),
+                                "reviewed_count": len(evaluations),
+                                "recommended_count": len(
+                                    recommended_evaluations
+                                ),
+                                "discovery_only_count": (
+                                    discovery_only_count
+                                ),
+                            },
+                        }
+                        if evidence_review_enabled
+                        else {}
+                    ),
+                },
             )
 
         except (OSError, RuntimeError, TypeError, ValueError) as error:
@@ -296,6 +412,26 @@ class ResearchWorkflow:
                 error_message=self._format_error_message(error),
                 warnings=tuple(warnings),
             )
+
+    @staticmethod
+    def _select_evidence_candidates(
+        evaluations: tuple,
+        limit: int,
+    ) -> tuple:
+        """Select a bounded evidence shortlist by preliminary relevance."""
+
+        return tuple(
+            evaluation.paper
+            for evaluation in sorted(
+                evaluations,
+                key=lambda evaluation: (
+                    evaluation.relevance_score
+                    if evaluation.relevance_score is not None
+                    else float("-inf")
+                ),
+                reverse=True,
+            )[:limit]
+        )
 
     @staticmethod
     def _select_results(
@@ -340,6 +476,39 @@ class ResearchWorkflow:
             source_references,
             selected_papers,
             selected_evaluations,
+        )
+
+    @staticmethod
+    def _select_evidence_results(
+        source_references: tuple,
+        evaluations: tuple,
+        max_results: int,
+    ) -> tuple[tuple, tuple, tuple]:
+        """Preserve a bounded set of evidence-reviewed papers."""
+
+        ranked_evaluations = tuple(
+            sorted(
+                (
+                    evaluation
+                    for evaluation in evaluations
+                    if evaluation.paper.evidence_sections
+                ),
+                key=lambda evaluation: (
+                    evaluation.relevance_score
+                    if evaluation.relevance_score is not None
+                    else float("-inf")
+                ),
+                reverse=True,
+            )
+        )[:max(1, max_results)]
+
+        return (
+            source_references,
+            tuple(
+                evaluation.paper
+                for evaluation in ranked_evaluations
+            ),
+            ranked_evaluations,
         )
 
     @staticmethod

@@ -86,7 +86,9 @@ class StubReasoningProvider:
         return self._response
 
 
-def _provider_response() -> ProviderResponse:
+def _provider_response(
+    relevance_score: int = 95,
+) -> ProviderResponse:
     """Create a deterministic research evaluation response."""
 
     return ProviderResponse(
@@ -97,7 +99,7 @@ def _provider_response() -> ProviderResponse:
             "evaluations": [
                 {
                     "source_id": "paper-001",
-                    "relevance_score": 95,
+                    "relevance_score": relevance_score,
                     "relevance_summary": (
                         "The paper is highly relevant to "
                         "vision-language alignment for VideoQA."
@@ -531,6 +533,38 @@ def test_research_workflow_completes_real_service_pipeline(
     assert len(provider.requests) == 1
     assert provider.requests[0].model_name == "stub-model"
 
+    low_score_provider = StubReasoningProvider(
+        _provider_response(relevance_score=50)
+    )
+    low_score_result = _create_workflow(
+        low_score_provider
+    ).execute(
+        ResearchRequest(
+            question=(
+                "How can self-supervised video representations "
+                "be improved for VideoQA?"
+            ),
+            guidance=(
+                "Focus on vision-language alignment. "
+                "video representation learning"
+            ),
+        )
+    )
+
+    assert len(low_score_result.papers) == 1
+    assert len(low_score_result.evaluations) == 1
+    assert low_score_result.evaluations[0].relevance_score == 0.50
+    assert low_score_result.warnings == (
+        "No evidence-reviewed papers met the minimum relevance threshold; "
+        "displaying 1 reviewed paper(s).",
+    )
+    assert low_score_result.metadata["evidence_review"] == {
+        "shortlisted_count": 1,
+        "reviewed_count": 1,
+        "recommended_count": 0,
+        "discovery_only_count": 0,
+    }
+
 
 def test_research_workflow_uses_richest_publication_version() -> None:
     """Duplicate publication locations produce one metadata-rich paper."""
@@ -835,6 +869,11 @@ def test_research_workflow_uses_existing_research_context(
         "CLIP embeddings?"
     )
     assert len(evaluation_provider.requests) == 1
+    assert (
+        "a different application, task, or modality must not by itself "
+        "cap relevance below 75"
+        in evaluation_provider.requests[0].system_instructions
+    )
 
 
 def test_research_workflow_prioritizes_context_query_anchor_matches(
@@ -1006,6 +1045,15 @@ def test_research_workflow_runs_metadata_paper_analysis_pipeline(
     assert analysis_payload["paper"]["abstract"] == (
         "A paper about semantic video representation learning."
     )
+    assert analysis_payload["paper"]["evidence_sections"] == [
+        {
+            "section": "Abstract",
+            "page_number": None,
+            "content": (
+                "A paper about semantic video representation learning."
+            ),
+        }
+    ]
     assert "pages" not in analysis_payload["paper"]
 
 

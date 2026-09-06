@@ -88,6 +88,26 @@ def test_research_evaluation_has_warnings_property() -> None:
     assert with_warnings.has_warnings is True
 
 
+def test_research_views_distinguish_recommended_results() -> None:
+    """Evaluation and result views expose the recommendation threshold."""
+
+    recommended = ResearchEvaluationView(
+        source_id="paper-001",
+        title="Recommended Paper",
+        relevance_score=0.75,
+        relevance_summary="Directly relevant.",
+    )
+    reviewed = ResearchResultView(
+        rank=2,
+        source_id="paper-002",
+        title="Reviewed Paper",
+        relevance_score=0.50,
+    )
+
+    assert recommended.is_recommended is True
+    assert reviewed.is_recommended is False
+
+
 def test_research_agent_page_has_results_property() -> None:
     """Page helpers should identify empty and populated research results."""
 
@@ -114,6 +134,33 @@ def test_research_agent_page_has_results_property() -> None:
 
     assert empty_page.has_results is False
     assert populated_page.has_results is True
+
+
+def test_research_agent_page_counts_reviewed_and_recommended_results() -> None:
+    """Page helpers count reviewed and threshold-qualified results."""
+
+    page = ResearchAgentPageView(
+        page_status=ResearchAgentPageStatus.COMPLETED,
+        status_message="Research completed.",
+        request_form=ResearchRequestForm(),
+        results=(
+            ResearchResultView(
+                rank=1,
+                source_id="paper-001",
+                title="Recommended Paper",
+                relevance_score=0.80,
+            ),
+            ResearchResultView(
+                rank=2,
+                source_id="paper-002",
+                title="Reviewed Paper",
+                relevance_score=0.50,
+            ),
+        ),
+    )
+
+    assert page.reviewed_count == 2
+    assert page.recommended_count == 1
 
 
 def test_research_agent_page_defaults() -> None:

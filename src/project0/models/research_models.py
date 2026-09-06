@@ -63,6 +63,24 @@ class ResearchPaperAnalysisBasis(StrEnum):
     """Supported retained research paper analysis evidence bases."""
 
     ABSTRACT_METADATA = "abstract_metadata"
+    PAPER_CONTENT = "paper_content"
+    DISCOVERY_ONLY = "discovery_only"
+
+
+class ResearchPaperEvidenceStatus(StrEnum):
+    """Supported research paper evidence acquisition states."""
+
+    AVAILABLE = "available"
+    DISCOVERY_ONLY = "discovery_only"
+
+
+@dataclass(frozen=True, slots=True)
+class ResearchPaperEvidenceSection:
+    """One bounded section of acquired research paper evidence."""
+
+    section: str
+    content: str
+    page_number: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -119,6 +137,10 @@ class PaperMetadata:
     venue: str | None = None
     doi: str | None = None
     source_url: str | None = None
+    evidence_status: ResearchPaperEvidenceStatus = (
+        ResearchPaperEvidenceStatus.DISCOVERY_ONLY
+    )
+    evidence_sections: tuple[ResearchPaperEvidenceSection, ...] = ()
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -227,6 +249,15 @@ class ResearchEvaluation:
     limitations: tuple[str, ...] = ()
     research_connections: tuple[str, ...] = ()
     warnings: tuple[str, ...] = ()
+
+    @property
+    def is_recommended(self) -> bool:
+        """Return whether the evidence score meets the recommendation bar."""
+
+        return (
+            self.relevance_score is not None
+            and self.relevance_score >= 0.75
+        )
 
 
 @dataclass(frozen=True, slots=True)

@@ -20,6 +20,7 @@ from project0.models.reasoning_models import (
 )
 from project0.models.research_models import (
     PaperMetadata,
+    ResearchPaperEvidenceStatus,
     ResearchRequest,
     ResearchSourceReference,
     ResearchStrategy,
@@ -174,8 +175,10 @@ def create_valid_provider_response(
                         ],
                         "research_connections": [
                             (
-                                "Supports a vision-language "
-                                "alignment experiment."
+                                "The paper's semantic representation "
+                                "learning mechanism maps to the research "
+                                "question's vision-language alignment "
+                                "dimension and can be adapted for video."
                             ),
                         ],
                         "warnings": [],
@@ -199,7 +202,7 @@ def create_provider_response_for_papers(
         evaluations=[
             {
                 "source_id": f"paper-{index:03d}",
-                "relevance_score": 80,
+                        "relevance_score": 70,
                 "relevance_summary": (
                     f"{paper.title} is relevant."
                 ),
@@ -249,7 +252,9 @@ def test_research_evaluation_service_creates_evaluation() -> None:
         "Limited VideoQA evaluation.",
     )
     assert evaluation.research_connections == (
-        "Supports a vision-language alignment experiment.",
+        "The paper's semantic representation learning mechanism maps to "
+        "the research question's vision-language alignment dimension and "
+        "can be adapted for video.",
     )
     assert evaluation.warnings == ()
 
@@ -389,11 +394,14 @@ def test_research_evaluation_service_retries_missing_evaluation() -> None:
         evaluations=[
             {
                 "source_id": "paper-001",
-                "relevance_score": 90,
+                "relevance_score": 70,
                 "relevance_summary": "First paper is relevant.",
                 "strengths": [],
                 "limitations": [],
-                "research_connections": [],
+                "research_connections": [
+                    "The paper's representation mechanism maps to the "
+                    "research question's alignment dimension."
+                ],
                 "warnings": [],
             },
         ]
@@ -406,7 +414,10 @@ def test_research_evaluation_service_retries_missing_evaluation() -> None:
                 "relevance_summary": "Second paper is relevant.",
                 "strengths": [],
                 "limitations": [],
-                "research_connections": [],
+                "research_connections": [
+                    "The paper's representation mechanism maps to the "
+                    "research question's alignment dimension."
+                ],
                 "warnings": [],
             },
         ]
@@ -480,7 +491,7 @@ def test_research_evaluation_service_merges_missing_retry_in_order() -> None:
 
 
 def test_research_evaluation_service_stops_after_one_retry() -> None:
-    """Verify a second traceability failure is returned without retry."""
+    """Verify persistent traceability failure becomes an unscored result."""
 
     first_response = create_valid_provider_response()
     first_response.structured_output[
@@ -504,18 +515,68 @@ def test_research_evaluation_service_stops_after_one_retry() -> None:
         model_name="qwen3:8b",
     )
 
-    try:
-        service.evaluate(
-            create_research_request(),
-            create_research_strategy(),
-            (create_paper_metadata(),),
+    result = service.evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        (create_paper_metadata(),),
+    )
+
+    assert len(provider.requests) == 2
+    assert result[0].relevance_score is None
+    assert result[0].warnings == (
+        "Excluded from scoring after an invalid evaluation response.",
+    )
+
+
+def test_research_evaluation_service_continues_after_invalid_batch() -> None:
+    """A persistently malformed batch does not prevent later evaluation."""
+
+    papers = tuple(
+        create_paper_metadata(
+            source_id=f"source-{index}",
+            title=f"Paper {index}",
         )
-    except ValueError as error:
-        assert "unknown source identifier" in str(error)
-        assert "paper-998" in str(error)
-        assert len(provider.requests) == 2
-    else:
-        raise AssertionError("Expected second evaluation failure.")
+        for index in range(1, 7)
+    )
+    invalid_first = create_provider_response_for_papers(papers[:3])
+    invalid_first.structured_output["evaluations"][0][
+        "source_id"
+    ] = "1234567890"
+    invalid_retry = create_valid_provider_response(
+        evaluations=[
+            {
+                "source_id": "1234567890",
+                "relevance_score": 90,
+                "relevance_summary": "Invalid identifier.",
+                "strengths": [],
+                "limitations": [],
+                "research_connections": [],
+                "warnings": [],
+            }
+        ]
+    )
+    valid_second = create_provider_response_for_papers(papers[3:])
+    provider = SequentialStubProvider(
+        (invalid_first, invalid_retry, valid_second)
+    )
+
+    result = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    ).evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        papers,
+    )
+
+    assert len(provider.requests) == 3
+    assert result[0].relevance_score is None
+    assert result[1].relevance_score == 0.7
+    assert result[2].relevance_score == 0.7
+    assert tuple(
+        evaluation.relevance_score
+        for evaluation in result[3:]
+    ) == (0.7, 0.7, 0.7)
 
 
 def test_research_evaluation_service_batches_six_papers() -> None:
@@ -825,7 +886,10 @@ def test_research_evaluation_service_preserves_score_ordering() -> None:
                         "relevance_summary": f"{paper.title} relevance.",
                         "strengths": [],
                         "limitations": [],
-                        "research_connections": [],
+                        "research_connections": [
+                            "The paper's representation mechanism maps to "
+                            "the research question's alignment dimension."
+                        ],
                         "warnings": [],
                     }
                     for index, (paper, raw_score) in enumerate(
@@ -974,14 +1038,147 @@ def test_research_evaluation_service_instructs_relevance_rubric() -> None:
         in system_instructions
     )
     assert (
-        "a major dimension of the research question is absent or only "
-        "indirect"
+        "neither a major dimension nor a concrete transfer path is present"
         in system_instructions
     )
     assert (
         "Use the same relevance standard for every paper in the batch"
         in system_instructions
     )
+
+
+def test_research_evaluation_service_instructs_transferability_rubric() -> None:
+    """Verify concrete cross-domain transfer can receive a strong score."""
+
+    provider = StubProvider(
+        create_valid_provider_response()
+    )
+    service = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    )
+
+    service.evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        (create_paper_metadata(),),
+    )
+
+    system_instructions = provider.requests[0].system_instructions
+
+    assert (
+        "provides a concrete, metadata-supported transfer path from a "
+        "different application, task, or modality"
+        in system_instructions
+    )
+    assert (
+        "a different application, task, or modality must not by itself "
+        "cap relevance below 75"
+        in system_instructions
+    )
+    assert (
+        "research_connections must identify the paper's source mechanism, "
+        "the corresponding dimension of the research question, and any "
+        "adaptation needed"
+        in system_instructions
+    )
+    assert (
+        "If the supplied metadata cannot support that mapping, assign a "
+        "score below 50."
+        in system_instructions
+    )
+    assert (
+        "For every score of 75 or higher, state that complete "
+        "mechanism-to-question mapping explicitly in "
+        "research_connections."
+        in system_instructions
+    )
+
+
+def test_research_evaluation_service_retries_contradictory_high_score() -> None:
+    """Verify a high score without a transfer path is retried once."""
+
+    contradictory_response = create_valid_provider_response()
+    contradictory_response.structured_output[
+        "evaluations"
+    ][0].update(
+        {
+            "relevance_score": 76,
+            "relevance_summary": (
+                "The paper is related, but no concrete transfer path is "
+                "provided by the supplied metadata."
+            ),
+            "research_connections": [
+                "The paper shares broad alignment terminology."
+            ],
+        }
+    )
+    corrected_response = create_valid_provider_response()
+    corrected_response.structured_output[
+        "evaluations"
+    ][0].update(
+        {
+            "relevance_score": 74,
+            "relevance_summary": (
+                "The paper uses a related alignment mechanism, but the "
+                "transfer path remains incomplete."
+            ),
+            "research_connections": [
+                "The alignment mechanism is related to the research "
+                "question's shared-representation dimension."
+            ],
+        }
+    )
+
+    provider = SequentialStubProvider(
+        (
+            contradictory_response,
+            corrected_response,
+        )
+    )
+    service = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    )
+
+    result = service.evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        (create_paper_metadata(),),
+    )
+
+    assert result[0].relevance_score == 0.74
+    assert len(provider.requests) == 2
+
+
+def test_research_evaluation_service_accepts_supported_high_score() -> None:
+    """Verify a concrete mechanism-to-question mapping supports 75+."""
+
+    response = create_valid_provider_response()
+    response.structured_output["evaluations"][0].update(
+        {
+            "relevance_score": 76,
+            "research_connections": [
+                "The paper's token-alignment mechanism maps to the "
+                "research question's shared-representation dimension and "
+                "can be adapted to temporal video features."
+            ],
+        }
+    )
+    provider = StubProvider(response)
+    service = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    )
+
+    result = service.evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        (create_paper_metadata(),),
+    )
+
+    assert result[0].relevance_score == 0.76
+    assert len(provider.requests) == 1
 
 
 def test_research_evaluation_service_rejects_missing_structured_output() -> None:
@@ -1059,33 +1256,35 @@ def test_research_evaluation_service_rejects_invalid_item() -> None:
         raise AssertionError("Expected invalid evaluation item failure.")
 
 
-def test_research_evaluation_service_rejects_unknown_source_id() -> None:
-    """Verify unknown evaluation source identifiers are rejected."""
+def test_research_evaluation_service_recovers_unknown_source_id() -> None:
+    """Verify a persistent unknown identifier becomes unscored."""
 
     response = create_valid_provider_response()
     response.structured_output[
         "evaluations"
     ][0]["source_id"] = "paper-999"
 
+    provider = StubProvider(response)
     service = ResearchEvaluationService(
-        provider=StubProvider(response),
+        provider=provider,
         model_name="qwen3:8b",
     )
 
-    try:
-        service.evaluate(
-            create_research_request(),
-            create_research_strategy(),
-            (create_paper_metadata(),),
-        )
-    except ValueError as error:
-        assert "unknown source identifier" in str(error)
-    else:
-        raise AssertionError("Expected unknown source identifier failure.")
+    result = service.evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        (create_paper_metadata(),),
+    )
+
+    assert len(provider.requests) == 2
+    assert result[0].relevance_score is None
+    assert result[0].warnings == (
+        "Excluded from scoring after an invalid evaluation response.",
+    )
 
 
-def test_research_evaluation_service_rejects_duplicate_source_id() -> None:
-    """Verify duplicate evaluation source identifiers are rejected."""
+def test_research_evaluation_service_recovers_duplicate_source_id() -> None:
+    """Verify duplicate identifiers preserve the first valid evaluation."""
 
     duplicate = create_valid_provider_response().structured_output[
         "evaluations"
@@ -1098,27 +1297,24 @@ def test_research_evaluation_service_rejects_duplicate_source_id() -> None:
         ]
     )
 
+    provider = StubProvider(response)
     service = ResearchEvaluationService(
-        provider=StubProvider(response),
+        provider=provider,
         model_name="qwen3:8b",
     )
 
-    try:
-        service.evaluate(
-            create_research_request(),
-            create_research_strategy(),
-            (create_paper_metadata(),),
-        )
-    except ValueError as error:
-        assert "Duplicate research evaluation source identifier" in str(
-            error
-        )
-    else:
-        raise AssertionError("Expected duplicate source identifier failure.")
+    result = service.evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        (create_paper_metadata(),),
+    )
+
+    assert len(provider.requests) == 1
+    assert result[0].relevance_score == 0.95
 
 
-def test_research_evaluation_service_rejects_missing_paper_evaluation() -> None:
-    """Verify every supplied paper requires an evaluation."""
+def test_research_evaluation_service_recovers_missing_paper_evaluation() -> None:
+    """Verify a persistently missing paper becomes unscored."""
 
     first_paper = create_paper_metadata(
         source_id="paper-001",
@@ -1146,20 +1342,25 @@ def test_research_evaluation_service_rejects_missing_paper_evaluation() -> None:
         model_name="qwen3:8b",
     )
 
-    try:
-        service.evaluate(
-            create_research_request(),
-            create_research_strategy(),
-            (
-                first_paper,
-                second_paper,
-            ),
-        )
-    except ValueError as error:
-        assert "did not include evaluations" in str(error)
-        assert "paper-001" in str(error)
-    else:
-        raise AssertionError("Expected missing evaluation failure.")
+    result = service.evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        (
+            first_paper,
+            second_paper,
+        ),
+    )
+
+    assert len(provider.requests) == 2
+    assert tuple(evaluation.paper for evaluation in result) == (
+        first_paper,
+        second_paper,
+    )
+    assert result[0].relevance_score == 0.95
+    assert result[1].relevance_score is None
+    assert result[1].warnings == (
+        "Excluded from scoring after an invalid evaluation response.",
+    )
 
 
 def test_research_evaluation_service_rejects_invalid_score() -> None:
@@ -1375,3 +1576,65 @@ def test_research_evaluation_service_preserves_paper_mapping() -> None:
     )
 
     assert result[0].paper is paper
+
+
+def test_research_evaluation_service_does_not_score_discovery_only_paper() -> None:
+    """Discovery-only metadata bypasses unsupported model scoring."""
+
+    paper = create_paper_metadata()
+    paper = PaperMetadata(
+        source_reference=paper.source_reference,
+        title=paper.title,
+        evidence_status=ResearchPaperEvidenceStatus.DISCOVERY_ONLY,
+    )
+    provider = StubProvider(create_valid_provider_response())
+    service = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    )
+
+    result = service.evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        (paper,),
+    )
+
+    assert result[0].relevance_score is None
+    assert "Discovery-only candidate" in result[0].relevance_summary
+    assert result[0].warnings == (
+        "Excluded from evidence-based scoring.",
+    )
+    assert provider.requests == []
+
+
+def test_research_evaluation_service_ranks_pre_acquisition_metadata() -> None:
+    """Preliminary ranking does not treat evidence status as final."""
+
+    paper = create_paper_metadata()
+    paper = PaperMetadata(
+        source_reference=paper.source_reference,
+        title=paper.title,
+        evidence_status=ResearchPaperEvidenceStatus.DISCOVERY_ONLY,
+    )
+    provider = StubProvider(create_valid_provider_response())
+    service = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    )
+
+    result = service.rank_candidates(
+        create_research_request(),
+        create_research_strategy(),
+        (paper,),
+    )
+
+    assert result[0].relevance_score == 0.95
+    assert len(provider.requests) == 1
+    payload = __import__("json").loads(provider.requests[0].user_prompt)
+    assert payload["evaluation_stage"] == "preliminary_metadata_ranking"
+    assert payload["papers"][0]["evidence_status"] == "pending_acquisition"
+    assert (
+        "Do not treat the current evidence_status as a final discovery-only "
+        "decision."
+        in provider.requests[0].system_instructions
+    )

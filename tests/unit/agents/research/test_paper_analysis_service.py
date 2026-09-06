@@ -26,6 +26,8 @@ from project0.models.research_models import (
     PaperMetadata,
     ResearchEvidenceSourceType,
     ResearchPaperAnalysisBasis,
+    ResearchPaperEvidenceSection,
+    ResearchPaperEvidenceStatus,
     ResearchRequest,
     ResearchSourceReference,
     ResearchStrategy,
@@ -257,7 +259,7 @@ def test_metadata_analysis_constructs_paper_provenance() -> None:
     )
     assert evidence.source_id == "paper-001"
     assert evidence.page_number is None
-    assert evidence.section is None
+    assert evidence.section == "Abstract"
 
 
 def test_metadata_request_supplies_abstract_without_full_text() -> None:
@@ -457,7 +459,7 @@ def test_no_papers_returns_empty_without_provider_call() -> None:
     assert provider.requests == []
 
 
-def test_provider_instructions_limit_analysis_to_metadata_and_abstract() -> None:
+def test_provider_instructions_limit_analysis_to_supplied_evidence() -> None:
     """Verify paper analysis remains grounded in supplied evidence."""
 
     paper = create_paper()
@@ -476,8 +478,146 @@ def test_provider_instructions_limit_analysis_to_metadata_and_abstract() -> None
 
     instructions = provider.requests[0].system_instructions
 
-    assert "metadata and abstract" in instructions
+    assert "bounded evidence sections" in instructions
     assert "Do not use outside knowledge." in instructions
     assert "Do not invent unsupported paper content." in instructions
     assert "Do not infer full-paper content" in instructions
     assert "Do not return or generate source identifiers" in instructions
+
+
+def test_paper_analysis_uses_page_preserving_evidence() -> None:
+    """Full-paper findings preserve supplied section and page provenance."""
+
+    paper = create_paper()
+    paper = PaperMetadata(
+        source_reference=paper.source_reference,
+        title=paper.title,
+        authors=paper.authors,
+        publication_year=paper.publication_year,
+        abstract=paper.abstract,
+        venue=paper.venue,
+        source_url=paper.source_url,
+        evidence_status=ResearchPaperEvidenceStatus.AVAILABLE,
+        evidence_sections=(
+            ResearchPaperEvidenceSection(
+                section="Method",
+                content="The model aligns video and text tokens.",
+                page_number=4,
+            ),
+        ),
+    )
+    response = create_valid_response()
+    for finding_name in ("problem", "approach"):
+        response.structured_output[finding_name]["section"] = "Method"
+        response.structured_output[finding_name]["page_number"] = 4
+    for finding_name in (
+        "representations",
+        "modalities",
+        "learning_objectives",
+        "findings",
+    ):
+        for finding in response.structured_output[finding_name]:
+            finding["section"] = "Method"
+            finding["page_number"] = 4
+
+    result = PaperAnalysisService(
+        provider=StubProvider(response),
+        model_name="qwen3:8b",
+    ).analyze(create_request(), create_strategy(), (paper,))
+
+    assert result[0].analysis_basis == ResearchPaperAnalysisBasis.PAPER_CONTENT
+    assert result[0].approach.evidence[0].page_number == 4
+    assert result[0].approach.evidence[0].section == "Method"
+
+
+def test_paper_analysis_retains_abstract_with_full_paper_evidence() -> None:
+    """Abstract-backed findings remain valid with full-paper evidence."""
+
+    paper = create_paper()
+    paper = PaperMetadata(
+        source_reference=paper.source_reference,
+        title=paper.title,
+        authors=paper.authors,
+        publication_year=paper.publication_year,
+        abstract=paper.abstract,
+        venue=paper.venue,
+        source_url=paper.source_url,
+        evidence_status=ResearchPaperEvidenceStatus.AVAILABLE,
+        evidence_sections=(
+            ResearchPaperEvidenceSection(
+                section="Method",
+                content="The model aligns video and text tokens.",
+                page_number=4,
+            ),
+        ),
+    )
+
+    provider = StubProvider(create_valid_response())
+
+    result = PaperAnalysisService(
+        provider=provider,
+        model_name="qwen3:8b",
+    ).analyze(create_request(), create_strategy(), (paper,))
+
+    payload = json.loads(provider.requests[0].user_prompt)
+
+    assert result[0].approach.evidence[0].section == "Abstract"
+    assert result[0].approach.evidence[0].page_number is None
+    assert payload["paper"]["evidence_sections"][0]["section"] == "Abstract"
+    assert payload["paper"]["evidence_sections"][1]["section"] == "Method"
+
+
+def test_paper_analysis_skips_persistent_structural_failure() -> None:
+    """A malformed paper response does not block a later paper."""
+
+    invalid_paper = PaperMetadata(
+        source_reference=create_paper().source_reference,
+        title="Invalid Paper",
+        evidence_status=ResearchPaperEvidenceStatus.AVAILABLE,
+        evidence_sections=(
+            ResearchPaperEvidenceSection(
+                section="Method",
+                content="The model aligns video and text tokens.",
+                page_number=4,
+            ),
+        ),
+    )
+    valid_paper = create_paper(source_id="paper-002")
+    provider = SequentialStubProvider(
+        (
+            create_valid_response(),
+            create_valid_response(),
+            create_valid_response(),
+        )
+    )
+
+    result = PaperAnalysisService(
+        provider=provider,
+        model_name="qwen3:8b",
+    ).analyze(
+        create_request(),
+        create_strategy(),
+        (invalid_paper, valid_paper),
+    )
+
+    assert tuple(analysis.paper for analysis in result) == (valid_paper,)
+    assert len(provider.requests) == 3
+
+
+def test_paper_analysis_skips_discovery_only_paper() -> None:
+    """A paper without usable evidence is not sent for analysis."""
+
+    paper = create_paper()
+    paper = PaperMetadata(
+        source_reference=paper.source_reference,
+        title=paper.title,
+    )
+    provider = StubProvider(create_valid_response())
+
+    result = PaperAnalysisService(
+        provider=provider,
+        model_name="qwen3:8b",
+    ).analyze(create_request(), create_strategy(), (paper,))
+
+    assert result == ()
+    assert provider.requests == []

@@ -86,6 +86,15 @@ class ResearchEvaluationView:
 
         return bool(self.warnings)
 
+    @property
+    def is_recommended(self) -> bool:
+        """Return whether the score meets the recommendation threshold."""
+
+        return (
+            self.relevance_score is not None
+            and self.relevance_score >= 0.75
+        )
+
 
 @dataclass(frozen=True, slots=True)
 class ResearchResultView:
@@ -108,6 +117,15 @@ class ResearchResultView:
     research_connections: tuple[str, ...] = ()
     warnings: tuple[str, ...] = ()
     analysis: PaperAnalysisView | None = None
+
+    @property
+    def is_recommended(self) -> bool:
+        """Return whether the score meets the recommendation threshold."""
+
+        return (
+            self.relevance_score is not None
+            and self.relevance_score >= 0.75
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -229,6 +247,18 @@ class ResearchAgentPageView:
         """Return True when the page contains workflow warnings."""
 
         return bool(self.warnings)
+
+    @property
+    def reviewed_count(self) -> int:
+        """Return the number of evidence-reviewed results displayed."""
+
+        return len(self.results)
+
+    @property
+    def recommended_count(self) -> int:
+        """Return the number of displayed results meeting the threshold."""
+
+        return sum(result.is_recommended for result in self.results)
 
     @property
     def has_error(self) -> bool:

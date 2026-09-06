@@ -29,6 +29,8 @@ from project0.models.research_models import (
     ResearchEvidenceSourceType,
     ResearchFinding,
     ResearchPaperAnalysisBasis,
+    ResearchPaperEvidenceSection,
+    ResearchPaperEvidenceStatus,
     ResearchRequest,
     ResearchStrategy,
 )
@@ -64,6 +66,17 @@ class PaperAnalysisService:
         analyses = []
 
         for paper in papers:
+            if (
+                paper.evidence_status
+                == ResearchPaperEvidenceStatus.DISCOVERY_ONLY
+                and not paper.abstract
+            ):
+                LOGGER.info(
+                    "Skipping discovery-only paper analysis for source %s.",
+                    paper.source_reference.source_id,
+                )
+                continue
+
             try:
                 analysis = self._analyze_paper(
                     request=request,
@@ -71,14 +84,9 @@ class PaperAnalysisService:
                     paper=paper,
                 )
             except ValueError as error:
-                if not self._is_insufficient_required_finding_error(
-                    error
-                ):
-                    raise
-
                 LOGGER.warning(
                     "Skipping retained-paper analysis for source %s "
-                    "because required paper evidence was unavailable: %s",
+                    "after structural validation failed: %s",
                     paper.source_reference.source_id,
                     error,
                 )
@@ -147,6 +155,15 @@ class PaperAnalysisService:
         """Build a provider-neutral retained-paper analysis request."""
 
         source_id = paper.source_reference.source_id
+        evidence_sections = self._evidence_sections(paper)
+        analysis_basis = (
+            ResearchPaperAnalysisBasis.PAPER_CONTENT
+            if any(
+                section.page_number is not None
+                for section in evidence_sections
+            )
+            else ResearchPaperAnalysisBasis.ABSTRACT_METADATA
+        )
 
         user_prompt = json.dumps(
             {
@@ -158,9 +175,17 @@ class PaperAnalysisService:
                     "venue": paper.venue,
                     "doi": paper.doi,
                     "analysis_basis": (
-                        ResearchPaperAnalysisBasis.ABSTRACT_METADATA
+                        analysis_basis
                     ),
                     "abstract": paper.abstract,
+                    "evidence_sections": [
+                        {
+                            "section": section.section,
+                            "page_number": section.page_number,
+                            "content": section.content,
+                        }
+                        for section in evidence_sections
+                    ],
                 },
             },
             indent=2,
@@ -178,10 +203,17 @@ class PaperAnalysisService:
                         "null",
                     ],
                 },
+                "page_number": {
+                    "type": [
+                        "integer",
+                        "null",
+                    ],
+                },
             },
             "required": [
                 "content",
                 "section",
+                "page_number",
             ],
         }
 
@@ -238,7 +270,8 @@ class PaperAnalysisService:
             system_instructions=(
                 "You are the Project0 Research Agent retained-paper "
                 "analysis service. Analyze one supplied retained paper "
-                "using only the supplied paper metadata and abstract. "
+                "using only the supplied bounded evidence sections and "
+                "paper metadata. "
                 "Return concise, atomic, evidence-supported findings "
                 "for the paper's problem, approach, representations, "
                 "modalities, learning or alignment objectives, datasets "
@@ -247,10 +280,10 @@ class PaperAnalysisService:
                 "use outside knowledge. Do not invent unsupported paper "
                 "content. Omit unsupported optional findings by "
                 "returning empty arrays. "
-                "Do not infer full-paper content, page-level provenance, "
-                "or unsupported section details. Section values should "
-                "be null unless the supplied metadata or abstract "
-                "explicitly supports a section name. The supplied "
+                "Every finding must cite a supplied section and its supplied "
+                "page number when present. Cite Abstract with a null page "
+                "number for abstract-backed findings. Do not infer full-paper content "
+                "or unsupported section details. The supplied "
                 "source_id identifies the paper being analyzed and is "
                 "context only. Do not return or generate source "
                 "identifiers in the analysis response."
@@ -263,7 +296,7 @@ class PaperAnalysisService:
                 "research_request_id": request.request_id,
                 "paper_source_id": source_id,
                 "analysis_basis": (
-                    ResearchPaperAnalysisBasis.ABSTRACT_METADATA
+                    analysis_basis
                 ),
             },
         )
@@ -300,7 +333,14 @@ class PaperAnalysisService:
                 value=structured_output.get("approach"),
                 field_name="approach",
             ),
-            analysis_basis=ResearchPaperAnalysisBasis.ABSTRACT_METADATA,
+            analysis_basis=(
+                ResearchPaperAnalysisBasis.PAPER_CONTENT
+                if any(
+                    section.page_number is not None
+                    for section in self._evidence_sections(paper)
+                )
+                else ResearchPaperAnalysisBasis.ABSTRACT_METADATA
+            ),
             representations=self._parse_findings(
                 paper=paper,
                 value=structured_output.get("representations"),
@@ -395,10 +435,41 @@ class PaperAnalysisService:
         if isinstance(section, str):
             section = section.strip() or None
 
+        page_number = value.get("page_number")
+        if page_number is not None and (
+            isinstance(page_number, bool)
+            or not isinstance(page_number, int)
+            or page_number < 1
+        ):
+            raise ValueError(
+                f"Provider field '{field_name}' finding page_number "
+                "must be a positive integer or null."
+            )
+
+        evidence_sections = {
+            (item.section.lower(), item.page_number)
+            for item in self._evidence_sections(paper)
+        }
+        if (
+            section is None
+            and page_number is None
+            and ("abstract", None) in evidence_sections
+        ):
+            section = "Abstract"
+        if (
+            section is None
+            or (section.lower(), page_number) not in evidence_sections
+        ):
+            raise ValueError(
+                f"Provider field '{field_name}' finding must cite a "
+                "supplied evidence section and page number when present."
+            )
+
         evidence = (
             ResearchEvidenceReference(
                 source_type=ResearchEvidenceSourceType.RESEARCH_PAPER,
                 source_id=paper.source_reference.source_id,
+                page_number=page_number,
                 section=section,
             ),
         )
@@ -407,6 +478,32 @@ class PaperAnalysisService:
             content=content.strip(),
             evidence=evidence,
         )
+
+    @staticmethod
+    def _evidence_sections(
+        paper: PaperMetadata,
+    ) -> tuple[ResearchPaperEvidenceSection, ...]:
+        """Return explicit evidence or a compatible abstract section."""
+
+        evidence_sections = paper.evidence_sections
+
+        if (
+            paper.abstract is not None
+            and paper.abstract.strip()
+            and not any(
+                item.section.lower() == "abstract"
+                for item in evidence_sections
+            )
+        ):
+            return (
+                ResearchPaperEvidenceSection(
+                    section="Abstract",
+                    content=paper.abstract.strip(),
+                ),
+                *evidence_sections,
+            )
+
+        return evidence_sections
 
     @staticmethod
     def _parse_string_tuple(
@@ -429,23 +526,6 @@ class PaperAnalysisService:
             )
 
         return tuple(value)
-
-    @staticmethod
-    def _is_insufficient_required_finding_error(
-        error: ValueError,
-    ) -> bool:
-        """Return whether required paper evidence was unavailable."""
-
-        message = str(
-            error
-        )
-
-        return (
-            "Provider field 'problem' finding content "
-            "must be a non-empty string." == message
-            or "Provider field 'approach' finding content "
-            "must be a non-empty string." == message
-        )
 
     @staticmethod
     def _is_retryable_analysis_error(

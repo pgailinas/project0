@@ -12,8 +12,10 @@
 from __future__ import annotations
 
 import logging
+import re
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
+from io import BytesIO
 from typing import Any
 
 import httpx
@@ -21,6 +23,8 @@ import httpx
 from project0.config.settings import SETTINGS
 from project0.models.research_models import (
     PaperMetadata,
+    ResearchPaperEvidenceSection,
+    ResearchPaperEvidenceStatus,
     ResearchSourceReference,
 )
 
@@ -43,6 +47,8 @@ class PaperMetadataService:
     retry_delay_seconds: float = 1.0
     maximum_retry_delay_seconds: float = 30.0
     user_agent: str = "Project0 Research Agent"
+    evidence_candidate_limit: int = 8
+    maximum_evidence_characters: int = 24000
 
     def retrieve_metadata(
         self,
@@ -108,6 +114,172 @@ class PaperMetadataService:
 
         return tuple(papers)
 
+    def acquire_evidence(
+        self,
+        papers: tuple[PaperMetadata, ...],
+    ) -> tuple[PaperMetadata, ...]:
+        """Acquire bounded evidence for a ranked paper shortlist."""
+
+        if self.evidence_candidate_limit < 1:
+            raise ValueError(
+                "Evidence candidate limit must be at least 1."
+            )
+
+        return tuple(
+            self._acquire_paper_evidence(paper)
+            for paper in papers[:self.evidence_candidate_limit]
+        )
+
+    def _acquire_paper_evidence(
+        self,
+        paper: PaperMetadata,
+    ) -> PaperMetadata:
+        """Acquire authoritative abstract or PDF evidence for one paper."""
+
+        sections: list[ResearchPaperEvidenceSection] = []
+
+        if paper.abstract is not None and paper.abstract.strip():
+            sections.append(
+                ResearchPaperEvidenceSection(
+                    section="Abstract",
+                    content=paper.abstract.strip(),
+                )
+            )
+
+        pdf_url = self._paper_pdf_url(paper)
+
+        if pdf_url is not None:
+            try:
+                sections.extend(
+                    self._retrieve_pdf_evidence(pdf_url)
+                )
+            except (OSError, RuntimeError, TypeError, ValueError) as error:
+                LOGGER.warning(
+                    "Paper evidence request failed for paper %s; "
+                    "using available abstract evidence: %s",
+                    paper.source_reference.source_id,
+                    error,
+                )
+
+        sections = list(
+            dict.fromkeys(sections)
+        )
+        status = (
+            ResearchPaperEvidenceStatus.AVAILABLE
+            if sections
+            else ResearchPaperEvidenceStatus.DISCOVERY_ONLY
+        )
+
+        return replace(
+            paper,
+            evidence_status=status,
+            evidence_sections=tuple(sections),
+        )
+
+    def _retrieve_pdf_evidence(
+        self,
+        pdf_url: str,
+    ) -> tuple[ResearchPaperEvidenceSection, ...]:
+        """Retrieve and extract bounded Abstract, Method, and Results text."""
+
+        response = httpx.get(
+            pdf_url,
+            headers={"User-Agent": self.user_agent},
+            timeout=self.timeout_seconds,
+            follow_redirects=True,
+        )
+        response.raise_for_status()
+
+        content_type = response.headers.get("content-type", "").lower()
+        if "pdf" not in content_type and not response.content.startswith(b"%PDF"):
+            raise ValueError("Paper evidence response was not a PDF.")
+
+        try:
+            from pypdf import PdfReader
+        except ImportError as error:
+            raise RuntimeError(
+                "PDF evidence extraction requires pypdf."
+            ) from error
+
+        pages = tuple(
+            (page_number, (page.extract_text() or "").strip())
+            for page_number, page in enumerate(
+                PdfReader(BytesIO(response.content)).pages,
+                start=1,
+            )
+        )
+        return self._extract_evidence_sections(pages)
+
+    def _extract_evidence_sections(
+        self,
+        pages: tuple[tuple[int, str], ...],
+    ) -> tuple[ResearchPaperEvidenceSection, ...]:
+        """Extract bounded evidence from relevant paper sections."""
+
+        headings = {
+            "Abstract": re.compile(r"(?im)^\s*abstract\s*$"),
+            "Method": re.compile(
+                r"(?im)^\s*(?:\d+(?:\.\d+)*\s+)?"
+                r"(?:method|methodology|approach|model)\s*$"
+            ),
+            "Results": re.compile(
+                r"(?im)^\s*(?:\d+(?:\.\d+)*\s+)?"
+                r"(?:experiments?|results?|evaluation)\s*$"
+            ),
+        }
+        sections: list[ResearchPaperEvidenceSection] = []
+        remaining = max(self.maximum_evidence_characters, 0)
+
+        for section_name, heading_pattern in headings.items():
+            for page_number, text in pages:
+                match = heading_pattern.search(text)
+                if match is None:
+                    continue
+
+                content = text[match.end():].strip()
+                if not content:
+                    continue
+
+                content = content[:min(remaining, 8000)].strip()
+                if content:
+                    sections.append(
+                        ResearchPaperEvidenceSection(
+                            section=section_name,
+                            content=content,
+                            page_number=page_number,
+                        )
+                    )
+                    remaining -= len(content)
+                break
+
+            if remaining <= 0:
+                break
+
+        return tuple(sections)
+
+    @staticmethod
+    def _paper_pdf_url(paper: PaperMetadata) -> str | None:
+        """Return an authoritative PDF URL when source metadata provides one."""
+
+        for key in ("open_access_pdf_url", "pdf_url"):
+            for metadata in (
+                paper.metadata,
+                paper.source_reference.metadata,
+            ):
+                value = metadata.get(key)
+                if isinstance(value, str) and value.strip():
+                    return value.strip()
+
+        source_url = paper.source_url or paper.source_reference.source_url
+        if (
+            paper.source_reference.source_name == "arxiv"
+            and isinstance(source_url, str)
+            and "/abs/" in source_url
+        ):
+            return source_url.replace("/abs/", "/pdf/", 1)
+
+        return None
+
     def _retrieve_semantic_scholar_metadata(
         self,
         reference: ResearchSourceReference,
@@ -122,7 +294,7 @@ class PaperMetadataService:
         params = {
             "fields": (
                 "paperId,title,authors,year,abstract,"
-                "venue,externalIds,url"
+                "venue,externalIds,url,openAccessPdf"
             ),
         }
 
@@ -242,6 +414,9 @@ class PaperMetadataService:
         doi = self._get_doi(
             response_data.get("externalIds")
         )
+        open_access_pdf_url = self._get_open_access_pdf_url(
+            response_data.get("openAccessPdf")
+        )
 
         return PaperMetadata(
             source_reference=reference,
@@ -254,6 +429,11 @@ class PaperMetadataService:
             source_url=source_url,
             metadata={
                 "paper_id": paper_id,
+                **(
+                    {"open_access_pdf_url": open_access_pdf_url}
+                    if open_access_pdf_url is not None
+                    else {}
+                ),
             },
         )
 
@@ -319,8 +499,10 @@ class PaperMetadataService:
             doi=doi,
             source_url=reference.source_url,
             metadata={
-                "paper_id": reference.source_id,
-                "source": "semantic_scholar",
+                **self._create_source_metadata(
+                    reference,
+                    "semantic_scholar",
+                ),
                 "metadata_fallback": True,
             },
         )
@@ -331,18 +513,20 @@ class PaperMetadataService:
     ) -> PaperMetadata:
         """Create metadata from normalized arXiv source data."""
 
+        abstract = self._get_reference_optional_string(
+            reference,
+            "abstract",
+        )
+
         return PaperMetadata(
             source_reference=reference,
             title=reference.title,
             authors=reference.authors,
             publication_year=reference.publication_year,
-            abstract=None,
+            abstract=abstract,
             venue="arXiv",
             source_url=reference.source_url,
-            metadata={
-                "paper_id": reference.source_id,
-                "source": "arxiv",
-            },
+            metadata=self._create_source_metadata(reference, "arxiv"),
         )
 
     def _create_openalex_metadata(
@@ -366,10 +550,7 @@ class PaperMetadataService:
             abstract=abstract,
             venue="OpenAlex",
             source_url=reference.source_url,
-            metadata={
-                "paper_id": reference.source_id,
-                "source": "openalex",
-            },
+            metadata=self._create_source_metadata(reference, "openalex"),
         )
 
     def _create_openreview_metadata(
@@ -378,18 +559,20 @@ class PaperMetadataService:
     ) -> PaperMetadata:
         """Create metadata from normalized OpenReview source data."""
 
+        abstract = self._get_reference_optional_string(
+            reference,
+            "abstract",
+        )
+
         return PaperMetadata(
             source_reference=reference,
             title=reference.title,
             authors=reference.authors,
             publication_year=reference.publication_year,
-            abstract=None,
+            abstract=abstract,
             venue="OpenReview",
             source_url=reference.source_url,
-            metadata={
-                "paper_id": reference.source_id,
-                "source": "openreview",
-            },
+            metadata=self._create_source_metadata(reference, "openreview"),
         )
 
     def _create_crossref_metadata(
@@ -398,20 +581,54 @@ class PaperMetadataService:
     ) -> PaperMetadata:
         """Create metadata from normalized Crossref source data."""
 
+        abstract = self._get_reference_optional_string(
+            reference,
+            "abstract",
+        )
+
         return PaperMetadata(
             source_reference=reference,
             title=reference.title,
             authors=reference.authors,
             publication_year=reference.publication_year,
-            abstract=None,
+            abstract=abstract,
             venue="Crossref",
             doi=reference.source_id,
             source_url=reference.source_url,
-            metadata={
-                "paper_id": reference.source_id,
-                "source": "crossref",
-            },
+            metadata=self._create_source_metadata(reference, "crossref"),
         )
+
+    @staticmethod
+    def _get_reference_optional_string(
+        reference: ResearchSourceReference,
+        field_name: str,
+    ) -> str | None:
+        """Return validated optional string metadata from a source result."""
+
+        value = reference.metadata.get(field_name)
+        if value is not None and not isinstance(value, str):
+            raise TypeError(
+                f"{reference.source_name} reference {field_name} metadata "
+                "must be a string or null."
+            )
+        return value
+
+    @staticmethod
+    def _create_source_metadata(
+        reference: ResearchSourceReference,
+        source_name: str,
+    ) -> dict[str, Any]:
+        """Preserve authoritative evidence locations from source metadata."""
+
+        metadata: dict[str, Any] = {
+            "paper_id": reference.source_id,
+            "source": source_name,
+        }
+        for key in ("open_access_pdf_url", "pdf_url"):
+            value = reference.metadata.get(key)
+            if isinstance(value, str) and value.strip():
+                metadata[key] = value.strip()
+        return metadata
 
     def _create_stub_metadata(
         self,
@@ -494,6 +711,30 @@ class PaperMetadataService:
             )
 
         return doi
+
+    @staticmethod
+    def _get_open_access_pdf_url(
+        value: Any,
+    ) -> str | None:
+        """Return a Semantic Scholar open-access PDF URL."""
+
+        if value is None:
+            return None
+
+        if not isinstance(value, dict):
+            raise TypeError(
+                "Semantic Scholar openAccessPdf must be an object or null."
+            )
+
+        url = value.get("url")
+        if url is None:
+            return None
+        if not isinstance(url, str):
+            raise TypeError(
+                "Semantic Scholar openAccessPdf URL must be a string or null."
+            )
+
+        return url
 
     @staticmethod
     def _get_required_string(

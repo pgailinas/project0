@@ -9,7 +9,9 @@
 #
 # ============================================================
 
+from dataclasses import replace
 from datetime import UTC, datetime
+import logging
 
 from project0.models.research_models import (
     ExistingResearchContext,
@@ -24,6 +26,8 @@ from project0.models.research_models import (
     ResearchEvaluation,
     ResearchFinding,
     ResearchPaperAnalysisBasis,
+    ResearchPaperEvidenceSection,
+    ResearchPaperEvidenceStatus,
     ResearchRequest,
     ResearchResult,
     ResearchSourceReference,
@@ -450,6 +454,23 @@ def _paper_metadata(
     )
 
 
+def _paper_metadata_with_evidence(
+    reference: ResearchSourceReference,
+) -> PaperMetadata:
+    """Create paper metadata with bounded analysis evidence."""
+
+    return replace(
+        _paper_metadata(reference),
+        evidence_status=ResearchPaperEvidenceStatus.AVAILABLE,
+        evidence_sections=(
+            ResearchPaperEvidenceSection(
+                section="Abstract",
+                content="Evidence-backed paper abstract.",
+            ),
+        ),
+    )
+
+
 def _evaluation(
     paper: PaperMetadata,
     relevance_score: float | None = 0.9,
@@ -642,7 +663,8 @@ def test_workflow_records_source_search_statistics() -> None:
         "evaluation_candidate_count": 24,
     }
 
-    result = workflow.execute(_research_request())
+    request = _research_request()
+    result = workflow.execute(request)
 
     assert result.metadata == {
         "source_search": {
@@ -1690,3 +1712,222 @@ def test_direction_analysis_failure_returns_completed_result_with_warning() -> N
         "Research direction analysis failed.",
     )
     assert result.error_message is None
+
+
+def test_workflow_bounds_preliminary_evidence_shortlist() -> None:
+    """Preliminary relevance selects no more than eight evidence candidates."""
+
+    papers = tuple(
+        _paper_metadata(
+            _source_reference(
+                source_id=f"paper-{index}",
+                title=f"Paper {index}",
+            )
+        )
+        for index in range(10)
+    )
+    evaluations = tuple(
+        _evaluation(paper, relevance_score=index / 10)
+        for index, paper in enumerate(papers)
+    )
+
+    selected = ResearchWorkflow._select_evidence_candidates(
+        evaluations,
+        8,
+    )
+
+    assert len(selected) == 8
+    assert selected[0] is papers[9]
+    assert selected[-1] is papers[2]
+
+
+def test_workflow_separates_preliminary_ranking_from_final_evaluation(
+    caplog,
+) -> None:
+    """The bounded shortlist is ranked before evidence-based evaluation."""
+
+    references = tuple(
+        _source_reference(
+            source_id=f"paper-{index}",
+            title=f"Paper {index}",
+        )
+        for index in range(10)
+    )
+    papers = tuple(_paper_metadata(reference) for reference in references)
+    preliminary = tuple(
+        _evaluation(paper, relevance_score=index / 10)
+        for index, paper in enumerate(papers)
+    )
+    components = _create_workflow(
+        references=references,
+        papers=papers,
+        evaluations=preliminary,
+    )
+    workflow = components[0]
+    metadata_service = components[4]
+    evaluation_service = components[5]
+    evidence_requests: list[tuple[PaperMetadata, ...]] = []
+    ranking_requests: list[tuple[PaperMetadata, ...]] = []
+    final_requests: list[tuple[PaperMetadata, ...]] = []
+
+    def acquire_evidence(
+        candidates: tuple[PaperMetadata, ...],
+    ) -> tuple[PaperMetadata, ...]:
+        evidence_requests.append(candidates)
+        return candidates
+
+    def rank_candidates(
+        request: ResearchRequest,
+        strategy: ResearchStrategy,
+        candidates: tuple[PaperMetadata, ...],
+    ) -> tuple[ResearchEvaluation, ...]:
+        del request
+        del strategy
+        ranking_requests.append(candidates)
+        return preliminary
+
+    def evaluate(
+        request: ResearchRequest,
+        strategy: ResearchStrategy,
+        candidates: tuple[PaperMetadata, ...],
+    ) -> tuple[ResearchEvaluation, ...]:
+        del request
+        del strategy
+        final_requests.append(candidates)
+        return tuple(_evaluation(paper) for paper in candidates)
+
+    metadata_service.acquire_evidence = acquire_evidence
+    evaluation_service.rank_candidates = rank_candidates
+    evaluation_service.evaluate = evaluate
+
+    with caplog.at_level(logging.INFO):
+        workflow.execute(_research_request())
+
+    assert ranking_requests == [papers]
+    assert evidence_requests == [tuple(reversed(papers[2:]))]
+    assert final_requests == evidence_requests
+    assert "candidates=10 selected=8" in caplog.text
+
+
+def test_workflow_preserves_evidence_review_when_threshold_is_unmet() -> None:
+    """Evidence-reviewed papers remain visible below the threshold."""
+
+    references = (
+        _source_reference(
+            source_id="paper-001",
+            title="First Reviewed Paper",
+        ),
+        _source_reference(
+            source_id="paper-002",
+            title="Second Reviewed Paper",
+        ),
+    )
+    papers = tuple(
+        _paper_metadata_with_evidence(reference)
+        for reference in references
+    )
+    evaluations = (
+        _evaluation(papers[0], relevance_score=0.25),
+        _evaluation(papers[1], relevance_score=0.50),
+    )
+    analyses = tuple(_paper_analysis(paper) for paper in papers)
+    analysis_service = StubPaperAnalysisService(analyses=analyses)
+    direction_service = StubResearchDirectionAnalysisService()
+    components = _create_workflow(
+        references=references,
+        papers=papers,
+        evaluations=evaluations,
+        artifacts=(),
+        paper_analysis_service=analysis_service,
+        direction_analysis_service=direction_service,
+    )
+    workflow = components[0]
+    metadata_service = components[4]
+
+    metadata_service.acquire_evidence = lambda candidates: candidates
+
+    request = _research_request()
+    result = workflow.execute(request)
+
+    assert result.status is ResearchStatus.COMPLETED_WITH_WARNINGS
+    assert tuple(
+        evaluation.relevance_score
+        for evaluation in result.evaluations
+    ) == (0.50, 0.25)
+    assert result.papers == (papers[1], papers[0])
+    assert analysis_service.requests == [
+        (
+            request,
+            result.strategy,
+            result.papers,
+        )
+    ]
+    assert direction_service.requests == []
+    assert result.warnings == (
+        "No evidence-reviewed papers met the minimum relevance threshold; "
+        "displaying 2 reviewed paper(s).",
+    )
+    assert result.metadata["evidence_review"] == {
+        "shortlisted_count": 2,
+        "reviewed_count": 2,
+        "recommended_count": 0,
+        "discovery_only_count": 0,
+    }
+
+
+def test_workflow_synthesizes_only_recommended_evidence() -> None:
+    """Direction analysis receives only threshold-qualified evidence."""
+
+    references = (
+        _source_reference(
+            source_id="paper-001",
+            title="Recommended Paper",
+        ),
+        _source_reference(
+            source_id="paper-002",
+            title="Reviewed Paper",
+        ),
+    )
+    papers = tuple(
+        _paper_metadata_with_evidence(reference)
+        for reference in references
+    )
+    evaluations = (
+        _evaluation(papers[0], relevance_score=0.80),
+        _evaluation(papers[1], relevance_score=0.50),
+    )
+    analyses = tuple(_paper_analysis(paper) for paper in papers)
+    analysis_service = StubPaperAnalysisService(analyses=analyses)
+    direction_service = StubResearchDirectionAnalysisService()
+    components = _create_workflow(
+        references=references,
+        papers=papers,
+        evaluations=evaluations,
+        artifacts=(),
+        paper_analysis_service=analysis_service,
+        direction_analysis_service=direction_service,
+    )
+    workflow = components[0]
+    metadata_service = components[4]
+
+    metadata_service.acquire_evidence = lambda candidates: candidates
+
+    request = _research_request()
+    result = workflow.execute(request)
+
+    assert result.papers == papers
+    assert result.evaluations == evaluations
+    assert result.paper_analyses == analyses
+    assert direction_service.requests == [
+        (
+            request,
+            result.existing_research_context,
+            (analyses[0],),
+        )
+    ]
+    assert result.metadata["evidence_review"] == {
+        "shortlisted_count": 2,
+        "reviewed_count": 2,
+        "recommended_count": 1,
+        "discovery_only_count": 0,
+    }
