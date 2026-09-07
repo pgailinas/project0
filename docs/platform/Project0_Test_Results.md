@@ -2,13 +2,13 @@
 
 **Version:** 0.1  
 **Owner:** Project0  
-**Last Updated:** 2026-08-27  
+**Last Updated:** 2026-09-07  
 
 ---
 
 ## Current Regression Status
 
-**Tests:** 1130 passed, 11 skipped  
+**Tests:** 1192 passed, 11 skipped  
 **Validation:** Regression suite passed  
-**Last Run:** 2026-08-28
+**Last Run:** 2026-09-07
 
