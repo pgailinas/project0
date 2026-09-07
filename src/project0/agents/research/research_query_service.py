@@ -45,6 +45,64 @@ class ResearchQueryService:
         "prioritize ",
     )
 
+    _QUERY_ROLE_ORDER: ClassVar[tuple[str, ...]] = (
+        "direct",
+        "mechanism",
+        "transfer",
+        "application",
+    )
+
+    _RELATION_PREFIXES: ClassVar[tuple[str, ...]] = (
+        "align",
+        "bridge",
+        "connect",
+        "map",
+        "match",
+        "translate",
+    )
+
+    _MECHANISM_PREFIXES: ClassVar[tuple[str, ...]] = (
+        "adapter",
+        "contrast",
+        "distill",
+        "loss",
+        "objective",
+        "optimiz",
+        "project",
+        "regulariz",
+        "supervis",
+    )
+
+    _TRANSFER_COMPONENT_PREFIXES: ClassVar[tuple[str, ...]] = (
+        "align",
+        "bridge",
+        "connect",
+        "embed",
+        "feature",
+        "frozen",
+        "latent",
+        "map",
+        "match",
+        "model",
+        "pretrain",
+        "project",
+        "represent",
+        "space",
+        "target",
+        "translate",
+    )
+
+    _GENERIC_DERIVED_ROLE_PREFIXES: ClassVar[tuple[str, ...]] = (
+        "align",
+        "embed",
+        "map",
+        "model",
+        "represent",
+        "source",
+        "space",
+        "target",
+    )
+
     def generate_queries(
         self,
         strategy: ResearchStrategy,
@@ -63,6 +121,13 @@ class ResearchQueryService:
             for concept in strategy.inferred_solution_search_concepts
             if self._build_inferred_solution_query(concept)
         )
+        role_queries: list[tuple[str, str]] = [
+            (
+                query,
+                "direct" if index == 0 else "mechanism",
+            )
+            for index, query in enumerate(inferred_queries)
+        ]
         inferred_concepts = {
             self._normalize_query(concept).casefold()
             for concept in strategy.inferred_solution_search_concepts
@@ -85,6 +150,39 @@ class ResearchQueryService:
         objective = self._normalize_query(
             strategy.objective or ""
         )
+        has_directive_candidates = any(
+            self._is_directive_candidate(
+                self._normalize_query(candidate)
+            )
+            for candidate in candidates
+            if self._normalize_query(candidate)
+        )
+        derived_role_queries: tuple[tuple[str, str], ...] = ()
+
+        if (
+            not seed_queries
+            and not has_directive_candidates
+        ):
+            derived_role_queries = self._build_strategy_role_queries(
+                candidates,
+                objective,
+            )
+
+            if len(derived_role_queries) < 3:
+                derived_role_queries = ()
+
+            if derived_role_queries:
+                role_queries = [
+                    *derived_role_queries,
+                    *role_queries,
+                ]
+                queries = [
+                    *(
+                        query
+                        for query, _role in derived_role_queries
+                    ),
+                    *queries,
+                ]
 
         for candidate in candidates:
             normalized = self._normalize_query(candidate)
@@ -110,6 +208,12 @@ class ResearchQueryService:
                     directive_anchors,
                 )
                 directive_queries.append(query)
+                role_queries.append(
+                    (
+                        query,
+                        self._directive_query_role(normalized),
+                    )
+                )
 
             queries.append(query)
 
@@ -139,8 +243,14 @@ class ResearchQueryService:
             self._deduplicate_complementary_queries(queries),
             prioritized_queries=(
                 *directive_queries,
+                *(
+                    query
+                    for query, _role in derived_role_queries
+                ),
                 *inferred_queries,
             ),
+            directive_queries=tuple(directive_queries),
+            role_queries=tuple(role_queries),
         )
         discovery_queries = tuple(
             query
@@ -230,12 +340,302 @@ class ResearchQueryService:
         )
 
     @classmethod
+    def _build_strategy_role_queries(
+        cls,
+        candidates: tuple[str, ...],
+        objective: str,
+    ) -> tuple[tuple[str, str], ...]:
+        """Derive distinct research-role queries from a rich strategy."""
+
+        eligible_candidates = cls._deduplicate_queries(
+            [
+                normalized
+                for candidate in candidates
+                if (normalized := cls._normalize_query(candidate))
+                and not cls._is_directive_candidate(normalized)
+                and not (
+                    objective
+                    and normalized.rstrip(".?").casefold()
+                    == objective.rstrip(".?").casefold()
+                )
+            ]
+        )
+
+        if len(eligible_candidates) < 4:
+            return ()
+
+        relation_candidates = tuple(
+            candidate
+            for candidate in eligible_candidates
+            if cls._contains_prefix_term(
+                candidate,
+                cls._RELATION_PREFIXES,
+            )
+        )
+        mechanism_candidates = tuple(
+            candidate
+            for candidate in eligible_candidates
+            if cls._mechanism_term_count(candidate)
+        )
+
+        if (
+            len(relation_candidates) < 2
+            or not mechanism_candidates
+        ):
+            return ()
+
+        mechanism_candidate = max(
+            mechanism_candidates,
+            key=cls._mechanism_term_count,
+        )
+        role_queries = (
+            (
+                cls._build_direct_role_query(
+                    relation_candidates[0]
+                ),
+                "direct",
+            ),
+            (
+                cls._build_mechanism_role_query(
+                    mechanism_candidate
+                ),
+                "mechanism",
+            ),
+            (
+                cls._build_transfer_role_query(
+                    relation_candidates[-1]
+                ),
+                "transfer",
+            ),
+        )
+
+        return tuple(
+            (query, role)
+            for query, role in role_queries
+            if (
+                query
+                and cls._is_useful_derived_role_query(query)
+            )
+        )
+
+    @classmethod
+    def _is_useful_derived_role_query(
+        cls,
+        query: str,
+    ) -> bool:
+        """Return whether a derived role query retains useful specificity."""
+
+        words = cls._query_words(query)
+
+        return (
+            len(cls._query_term_stems(query)) >= 3
+            and any(
+                not cls._term_matches_prefixes(
+                    word,
+                    cls._GENERIC_DERIVED_ROLE_PREFIXES,
+                )
+                for word in words
+            )
+        )
+
+    @classmethod
+    def _build_direct_role_query(
+        cls,
+        candidate: str,
+    ) -> str:
+        """Build a direct-precedent query from relation endpoints."""
+
+        ignored_words = {
+            "a",
+            "an",
+            "and",
+            "can",
+            "could",
+            "for",
+            "how",
+            "into",
+            "its",
+            "method",
+            "methods",
+            "of",
+            "or",
+            "shared",
+            "should",
+            "that",
+            "the",
+            "their",
+            "to",
+            "using",
+            "what",
+            "which",
+            "with",
+        }
+        words = [
+            word
+            for word in cls._query_words(candidate)
+            if word.casefold() not in ignored_words
+        ]
+        salient_words = [
+            word
+            for word in words
+            if cls._is_salient_term(word)
+        ][:2]
+
+        return " ".join(
+            cls._deduplicate_words(
+                (
+                    *words[:8],
+                    *salient_words,
+                )
+            ).split()[:8]
+        )
+
+    @classmethod
+    def _build_mechanism_role_query(
+        cls,
+        candidate: str,
+    ) -> str:
+        """Build a mechanism query without connective filler."""
+
+        return " ".join(
+            word
+            for word in cls._build_dimension_query(candidate).split()
+            if word.casefold()
+            not in {
+                "and",
+                "more",
+                "or",
+                "sophisticated",
+            }
+        )
+
+    @classmethod
+    def _build_transfer_role_query(
+        cls,
+        candidate: str,
+    ) -> str:
+        """Build a transferable relation query from strategy components."""
+
+        selected_words = [
+            word
+            for word in cls._query_words(candidate)
+            if (
+                cls._term_matches_prefixes(
+                    word,
+                    cls._TRANSFER_COMPONENT_PREFIXES,
+                )
+                or cls._is_salient_term(word)
+            )
+        ]
+
+        return " ".join(
+            cls._deduplicate_words(
+                tuple(selected_words)
+            ).split()[:8]
+        )
+
+    @classmethod
+    def _contains_prefix_term(
+        cls,
+        candidate: str,
+        prefixes: tuple[str, ...],
+    ) -> bool:
+        """Return whether a candidate contains a role-signaling term."""
+
+        return any(
+            cls._term_matches_prefixes(word, prefixes)
+            for word in cls._query_words(candidate)
+        )
+
+    @classmethod
+    def _mechanism_term_count(
+        cls,
+        candidate: str,
+    ) -> int:
+        """Return the number of mechanism-signaling strategy terms."""
+
+        return sum(
+            cls._term_matches_prefixes(
+                word,
+                cls._MECHANISM_PREFIXES,
+            )
+            for word in cls._query_words(candidate)
+        )
+
+    @staticmethod
+    def _term_matches_prefixes(
+        word: str,
+        prefixes: tuple[str, ...],
+    ) -> bool:
+        """Return whether a normalized word starts with a known prefix."""
+
+        lowered = word.casefold()
+
+        return any(
+            lowered.startswith(prefix)
+            for prefix in prefixes
+        )
+
+    @classmethod
     def _select_bounded_queries(
         cls,
         queries: tuple[str, ...],
         prioritized_queries: tuple[str, ...] = (),
+        directive_queries: tuple[str, ...] = (),
+        role_queries: tuple[tuple[str, str], ...] = (),
     ) -> tuple[str, ...]:
         """Select at most three ordered query dimensions."""
+
+        available_role_queries = tuple(
+            (query, role)
+            for query, role in role_queries
+            if query in queries
+        )
+
+        if available_role_queries:
+            selected: list[str] = []
+            directives = tuple(
+                query
+                for query in cls._deduplicate_queries(
+                    list(directive_queries)
+                )
+                if query in queries
+            )
+            prioritized = tuple(
+                query
+                for query in cls._deduplicate_queries(
+                    list(prioritized_queries)
+                )
+                if query in queries
+            )
+            role_candidates = available_role_queries
+
+            if directives:
+                role_candidates = tuple(
+                    (query, role)
+                    for query, role in available_role_queries
+                    if query in directives
+                )
+
+            for role in cls._QUERY_ROLE_ORDER:
+                for query, query_role in role_candidates:
+                    if query_role != role or query in selected:
+                        continue
+
+                    selected.append(query)
+                    break
+
+                if len(selected) == 3:
+                    break
+
+            for query in (*directives, *prioritized, *queries):
+                if len(selected) == 3:
+                    break
+
+                if query not in selected:
+                    selected.append(query)
+
+            return tuple(selected)
 
         if len(queries) <= 3:
             return queries
@@ -265,6 +665,47 @@ class ResearchQueryService:
             queries[1],
             queries[-1],
         )
+
+    @classmethod
+    def _directive_query_role(
+        cls,
+        candidate: str,
+    ) -> str:
+        """Return the research role explicitly requested by guidance."""
+
+        lowered = candidate.casefold()
+
+        if lowered.startswith(
+            (
+                "assess their applicability to ",
+                "evaluate their applicability to ",
+                "assess applicability to ",
+            )
+        ):
+            return "application"
+
+        if lowered.startswith(
+            (
+                "find related or alternative methods that ",
+                "find related or alternative methods ",
+                "find alternative methods that ",
+                "find alternative methods ",
+                "find related methods that ",
+                "find related methods ",
+                "include ",
+            )
+        ):
+            return "transfer"
+
+        if lowered.startswith(
+            (
+                "find methods that ",
+                "find methods ",
+            )
+        ):
+            return "mechanism"
+
+        return "direct"
 
     @classmethod
     def _is_directive_candidate(

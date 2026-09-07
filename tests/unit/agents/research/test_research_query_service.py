@@ -523,3 +523,230 @@ def test_research_query_service_removes_overlapping_dimensions():
         "semantic video language alignment",
         "temporal representation evaluation",
     )
+
+def test_research_query_service_selects_distinct_research_roles():
+    """Verify distinct guidance roles leave room for inferred context."""
+
+    inferred_concept = "source representations target space alignment"
+    strategy = ResearchStrategy(
+        concepts=(
+            inferred_concept,
+            (
+                "Find methods that preserve semantic structure using "
+                "contrastive objectives"
+            ),
+            (
+                "Find related or alternative methods for cross-modal "
+                "representation mapping"
+            ),
+        ),
+        search_terms=(),
+        inferred_solution_search_concepts=(inferred_concept,),
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms == (
+        "preserve semantic structure using contrastive objectives",
+        "for cross-modal representation mapping",
+        "source representations target space alignment",
+    )
+
+
+def test_research_query_service_does_not_fill_roles_with_inferred_variants():
+    """Verify inferred variants do not consume every query role."""
+
+    strategy = ResearchStrategy(
+        concepts=(
+            "source representation target space feature distillation",
+            "source representation target space token alignment",
+            "source representation target space contrastive projection",
+            "A broad documented limitation.",
+        ),
+        search_terms=(),
+        inferred_solution_search_concepts=(
+            "source representation target space feature distillation",
+            "source representation target space token alignment",
+            "source representation target space contrastive projection",
+        ),
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms == (
+        "source representation target space feature distillation",
+        "source representation target space token alignment",
+        "source representation target space contrastive projection",
+    )
+
+
+
+def test_research_query_service_prioritizes_directives_over_inferred_queries():
+    """Verify explicit guidance roles outrank inferred context queries."""
+
+    inferred_concepts = (
+        "source representation target space feature distillation",
+        "source representation target space token alignment",
+        "source representation target space contrastive projection",
+    )
+    strategy = ResearchStrategy(
+        concepts=(
+            *inferred_concepts,
+            "Find methods that preserve semantic structure",
+            "Include transferable cross-domain methods",
+            "Assess their applicability to downstream retrieval",
+        ),
+        search_terms=(),
+        inferred_solution_search_concepts=inferred_concepts,
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms == (
+        "preserve semantic structure",
+        "transferable cross-domain methods",
+        "downstream retrieval",
+    )
+
+
+def test_research_query_service_derives_queries_from_strategy_roles():
+    """Verify rich strategies are decomposed into distinct research roles."""
+
+    strategy = ResearchStrategy(
+        concepts=(
+            "learned representations align with pretrained embedding space",
+            (
+                "Future work should explore contrastive objectives, "
+                "projection losses, and latent-space regularization"
+            ),
+            "latent representations map into frozen foundation embedding space",
+            "downstream task performance remains limited",
+        ),
+        search_terms=(),
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms == (
+        "learned representations align pretrained embedding space",
+        "contrastive objectives projection losses latent-space regularization",
+        "latent representations map frozen embedding space",
+    )
+
+
+def test_research_query_service_avoids_mixed_quality_query_when_roles_exist():
+    """Verify mechanism roles displace broad mixed quality descriptions."""
+
+    strategy = ResearchStrategy(
+        concepts=(
+            (
+                "source representations align with pretrained target "
+                "embedding space"
+            ),
+            (
+                "source reconstruction quality semantic understanding "
+                "jointly optimizing fidelity and consistency"
+            ),
+            (
+                "Future work should explore contrastive objectives, "
+                "latent-space regularization, and projection losses"
+            ),
+            (
+                "latent representations map into frozen target "
+                "embedding space"
+            ),
+        ),
+        search_terms=(),
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms == (
+        "source representations align pretrained target embedding space",
+        "contrastive objectives latent-space regularization projection losses",
+        "latent representations map frozen target embedding space",
+    )
+    assert all(
+        "fidelity" not in query.casefold()
+        for query in result.search_terms
+    )
+
+def test_research_query_service_derives_roles_when_inferred_queries_exist():
+    """Verify rich strategy roles outrank broad inferred query phrases."""
+
+    inferred_concepts = (
+        (
+            "self-supervised encoder pretrained target model and its "
+            "embedding space aligning latent representations with embeddings"
+        ),
+        (
+            "source reconstruction quality semantic understanding jointly "
+            "optimizing fidelity and consistency"
+        ),
+        (
+            "hybrid representation model semantically aligned latent "
+            "representations mapping into pretrained target embedding spaces"
+        ),
+    )
+    strategy = ResearchStrategy(
+        concepts=(
+            "learned source representations align with pretrained target "
+            "embedding space",
+            *inferred_concepts,
+            (
+                "Future research should focus on improving semantic "
+                "organization of learned representations rather than just "
+                "reconstruction quality."
+            ),
+            (
+                "The primary challenge is learning compact representations "
+                "that preserve semantic structure, not just visual ones."
+            ),
+            (
+                "Future work should explore contrastive objectives, "
+                "latent-space regularization, transformer-based encoders, "
+                "and more sophisticated fusion methods."
+            ),
+        ),
+        search_terms=(),
+        inferred_solution_search_concepts=inferred_concepts,
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms == (
+        "learned source representations align pretrained target embedding space",
+        "contrastive objectives latent-space regularization transformer-based encoders",
+        "representation model aligned latent representations mapping pretrained target",
+    )
+    assert all(
+        "fidelity" not in query.casefold()
+        for query in result.search_terms
+    )
+
+
+def test_research_query_service_rejects_degenerate_derived_role_query():
+    """Verify weak derived roles do not displace stronger inferred queries."""
+
+    inferred_concepts = (
+        "source target features embedding space feature distillation",
+        "source tokens frozen target token alignment",
+        "source representations target space contrastive projection",
+    )
+    strategy = ResearchStrategy(
+        concepts=(
+            *inferred_concepts,
+            "Improve semantic alignment between representations.",
+            "Representations were not aligned with target representations.",
+            "A documented limitation remains unresolved.",
+            "A downstream evaluation found lower task performance.",
+        ),
+        search_terms=(),
+        inferred_solution_search_concepts=inferred_concepts,
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms == inferred_concepts
+    assert "alignment representations" not in result.search_terms
+

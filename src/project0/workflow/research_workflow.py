@@ -206,6 +206,7 @@ class ResearchWorkflow:
                         self._select_evidence_candidates(
                             preliminary_evaluations,
                             EVIDENCE_CANDIDATE_LIMIT,
+                            strategy,
                         )
                     )
                     logger.info(
@@ -414,17 +415,20 @@ class ResearchWorkflow:
             )
 
     @staticmethod
-    @staticmethod
     def _select_evidence_candidates(
         evaluations: tuple,
         limit: int,
+        strategy: object,
     ) -> tuple:
         """Select a bounded evidence shortlist by preliminary relevance."""
 
         ranked = sorted(
             evaluations,
             key=lambda evaluation: (
-                ResearchWorkflow._evidence_candidate_tier(evaluation.paper),
+                ResearchWorkflow._evidence_candidate_tier(
+                    evaluation.paper,
+                    strategy,
+                ),
                 -(
                     evaluation.relevance_score
                     if evaluation.relevance_score is not None
@@ -436,19 +440,22 @@ class ResearchWorkflow:
         eligible = tuple(
             evaluation.paper
             for evaluation in ranked
-            if ResearchWorkflow._evidence_candidate_tier(evaluation.paper) < 2
+            if (
+                ResearchWorkflow._evidence_candidate_tier(
+                    evaluation.paper,
+                    strategy,
+                )
+                < 2
+            )
         )
 
-        if eligible:
-            return eligible[:limit]
-
-        return tuple(
-            evaluation.paper
-            for evaluation in ranked[:limit]
-        )
+        return eligible[:limit]
 
     @staticmethod
-    def _evidence_candidate_tier(paper: object) -> int:
+    def _evidence_candidate_tier(
+        paper: object,
+        strategy: object,
+    ) -> int:
         """Classify direct and transferable alignment evidence candidates."""
 
         title = str(getattr(paper, "title", "")).casefold()
@@ -457,30 +464,110 @@ class ResearchWorkflow:
         direct_video = "video" in text or "videoqa" in text
         language = any(
             term in text
-            for term in ("clip", "language", "text", "semantic")
+            for term in ("caption", "clip", "language", "text")
         )
-        mechanism = any(
+        representation = any(
             term in text
             for term in (
-                "align",
                 "autoencoder",
-                "contrastive",
-                "distill",
                 "embedding",
                 "latent",
                 "representation",
             )
         )
-        visual = direct_video or any(
+        transfer_mechanism = any(
             term in text
-            for term in ("vision", "visual", "image", "multimodal")
+            for term in (
+                "align",
+                "contrastive",
+                "distill",
+                "mapping",
+                "projection",
+            )
+        )
+        visual = any(
+            term in text
+            for term in ("clip", "vision", "visual", "image")
+        )
+        excluded_transfer_task = any(
+            term in text
+            for term in (
+                "audio",
+                "debiasing",
+                "diffusion",
+                "forecasting",
+                "generation",
+                "generative",
+            )
+        )
+        synthesis_candidate = any(
+            term in text
+            for term in (
+                "diffusion",
+                "generation",
+                "generative",
+                "synthesis",
+            )
         )
 
-        if direct_video and language and mechanism:
+        if (
+            ResearchWorkflow._strategy_prioritizes_representation_learning(
+                strategy
+            )
+            and synthesis_candidate
+        ):
+            return 2
+
+        if (
+            direct_video
+            and language
+            and representation
+            and transfer_mechanism
+        ):
             return 0
-        if visual and mechanism:
+        if (
+            visual
+            and language
+            and representation
+            and transfer_mechanism
+            and not excluded_transfer_task
+        ):
             return 1
         return 2
+
+    @staticmethod
+    def _strategy_prioritizes_representation_learning(
+        strategy: object,
+    ) -> bool:
+        """Return whether the strategy targets representations, not synthesis."""
+
+        values = (
+            *getattr(strategy, "concepts", ()),
+            *getattr(strategy, "search_terms", ()),
+            *getattr(strategy, "constraints", ()),
+        )
+        text = " ".join(str(value).casefold() for value in values)
+        representation = any(
+            term in text
+            for term in (
+                "autoencoder",
+                "embedding",
+                "encoder",
+                "latent",
+                "representation",
+            )
+        )
+        synthesis = any(
+            term in text
+            for term in (
+                "diffusion",
+                "generation",
+                "generative",
+                "synthesis",
+            )
+        )
+
+        return representation and not synthesis
 
     @staticmethod
     def _select_results(

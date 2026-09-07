@@ -308,7 +308,7 @@ def test_research_source_service_bounds_balanced_evaluation_pool() -> None:
         evaluation_candidate_limit=5,
     )
     strategy = ResearchStrategy(
-        concepts=("CLIP alignment",),
+        concepts=("research evidence",),
         search_terms=(
             "arXiv:2405.19009",
             "first discovery",
@@ -382,7 +382,7 @@ def test_research_source_service_prioritizes_query_anchor_matches() -> None:
 
 
 def test_research_source_service_excludes_alignment_profile_mismatch() -> None:
-    """Alignment strategies exclude unrelated vision-language applications."""
+    """Alignment strategies require a concrete transfer path."""
 
     flood_forecasting = replace(
         create_reference("flood"),
@@ -392,10 +392,25 @@ def test_research_source_service_excludes_alignment_profile_mismatch() -> None:
         create_reference("alignment"),
         title="Video Autoencoder CLIP Latent Alignment",
     )
+    text_to_image = replace(
+        create_reference("text-to-image"),
+        title="CLIP Contrastive Representation Alignment for Text-to-Image Diffusion",
+    )
+    generic_vlm = replace(
+        create_reference("vlm"),
+        title="Vision-Language Model Embeddings for Construction Safety",
+    )
+    generative_alignment = replace(
+        create_reference("generative"),
+        title="Video CLIP Latent Alignment for Diffusion Generation",
+    )
     provider = QueryMappedResearchSourceProvider(
         {
             "video CLIP autoencoder alignment": (
                 flood_forecasting,
+                text_to_image,
+                generic_vlm,
+                generative_alignment,
                 direct_alignment,
             ),
         }
@@ -416,6 +431,71 @@ def test_research_source_service_excludes_alignment_profile_mismatch() -> None:
     assert service.last_candidate_trace[0]["selection_status"] == (
         "outside_alignment_profile"
     )
+    assert service.last_candidate_trace[1]["selection_status"] == (
+        "outside_alignment_profile"
+    )
+    assert service.last_candidate_trace[2]["selection_status"] == (
+        "outside_alignment_profile"
+    )
+    assert service.last_candidate_trace[3]["selection_status"] == (
+        "outside_alignment_profile"
+    )
+
+
+def test_research_source_service_allows_synthesis_for_synthesis_strategy() -> None:
+    """A synthesis-focused strategy does not apply representation exclusions."""
+
+    generative_alignment = replace(
+        create_reference("generative"),
+        title="Video CLIP Latent Alignment for Diffusion Generation",
+    )
+    provider = QueryMappedResearchSourceProvider(
+        {
+            "video CLIP latent alignment diffusion generation": (
+                generative_alignment,
+            ),
+        }
+    )
+    service = ResearchSourceService(
+        providers={"stub": provider},
+        evaluation_candidate_limit=1,
+    )
+    strategy = ResearchStrategy(
+        concepts=("video diffusion generation",),
+        search_terms=(
+            "video CLIP latent alignment diffusion generation",
+        ),
+        source_names=("stub",),
+    )
+
+    assert service.search(strategy) == (generative_alignment,)
+
+
+def test_research_source_service_retains_transferable_visual_alignment() -> None:
+    """Visual transfer requires explicit CLIP alignment and representation evidence."""
+
+    transferable_alignment = replace(
+        create_reference("transferable"),
+        title="Image Autoencoder CLIP Latent Representation Distillation",
+    )
+    provider = QueryMappedResearchSourceProvider(
+        {
+            "video CLIP autoencoder alignment": (
+                transferable_alignment,
+            ),
+        }
+    )
+    service = ResearchSourceService(
+        providers={"stub": provider},
+        evaluation_candidate_limit=1,
+    )
+    strategy = ResearchStrategy(
+        concepts=("video language representation alignment",),
+        search_terms=("video CLIP autoencoder alignment",),
+        source_names=("stub",),
+    )
+
+    assert service.search(strategy) == (transferable_alignment,)
 
 
 def test_research_source_service_traces_excluded_candidate_provenance(
@@ -428,7 +508,7 @@ def test_research_source_service_traces_excluded_candidate_provenance(
         source_name="openalex",
         source_id="https://arxiv.org/abs/2405.19009",
         title=(
-            "Enhancing Vision-Language Model with Unmasked Token Alignment"
+            "Video CLIP Autoencoder Latent Representation Alignment"
         ),
         source_url="https://arxiv.org/abs/2405.19009",
         publication_year=2024,
@@ -473,7 +553,7 @@ def test_research_source_service_traces_excluded_candidate_provenance(
         "evaluation_rank": 1,
         "selection_status": "balanced_selection",
         "title": (
-            "Enhancing Vision-Language Model with Unmasked Token Alignment"
+            "Video CLIP Autoencoder Latent Representation Alignment"
         ),
         "canonical_source_name": "openalex",
         "source_id": "https://arxiv.org/abs/2405.19009",
@@ -481,7 +561,7 @@ def test_research_source_service_traces_excluded_candidate_provenance(
         "retrieval_queries": ("CLIP feature alignment",),
         "stable_identifiers": ("arxiv:2405.19009",),
     }
-    assert "Unmasked Token Alignment" in caplog.text
+    assert "Video CLIP Autoencoder" in caplog.text
     assert "Paper selected" in caplog.text
     assert "outside_balanced_candidate_limit" in caplog.text
 
@@ -799,3 +879,31 @@ def test_research_source_service_fails_when_all_providers_fail() -> None:
                 )
             )
         )
+
+
+def test_research_source_service_retains_clip_latent_alignment_transfer():
+    """CLIP latent alignment can qualify as transferable visual evidence."""
+
+    transferable_alignment = replace(
+        create_reference("clip-latent-alignment"),
+        title="Context Autoencoder with CLIP Latent Alignment",
+    )
+    provider = QueryMappedResearchSourceProvider(
+        {
+            "CLIP autoencoder latent alignment": (
+                transferable_alignment,
+            ),
+        }
+    )
+    service = ResearchSourceService(
+        providers={"stub": provider},
+        evaluation_candidate_limit=1,
+    )
+    strategy = ResearchStrategy(
+        concepts=("video language representation alignment",),
+        search_terms=("CLIP autoencoder latent alignment",),
+        source_names=("stub",),
+    )
+
+    assert service.search(strategy) == (transferable_alignment,)
+

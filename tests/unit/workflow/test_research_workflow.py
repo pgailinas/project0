@@ -1721,7 +1721,10 @@ def test_workflow_bounds_preliminary_evidence_shortlist() -> None:
         _paper_metadata(
             _source_reference(
                 source_id=f"paper-{index}",
-                title=f"Paper {index}",
+                title=(
+                    "Video CLIP Text Representation Alignment "
+                    f"{index}"
+                ),
             )
         )
         for index in range(10)
@@ -1734,6 +1737,7 @@ def test_workflow_bounds_preliminary_evidence_shortlist() -> None:
     selected = ResearchWorkflow._select_evidence_candidates(
         evaluations,
         8,
+        _research_strategy(),
     )
 
     assert len(selected) == 8
@@ -1747,7 +1751,7 @@ def test_workflow_prioritizes_direct_evidence_candidates() -> None:
     transferable = _paper_metadata(
         _source_reference(
             source_id="transferable",
-            title="Image Autoencoder Latent Alignment",
+            title="Image Autoencoder CLIP Latent Alignment",
         )
     )
     direct = _paper_metadata(
@@ -1762,17 +1766,51 @@ def test_workflow_prioritizes_direct_evidence_candidates() -> None:
             title="Flood Forecasting with Vision-Language Models",
         )
     )
+    text_to_image = _paper_metadata(
+        _source_reference(
+            source_id="text-to-image",
+            title=(
+                "CLIP Contrastive Representation Alignment for "
+                "Text-to-Image Diffusion"
+            ),
+        )
+    )
+    generative_video = _paper_metadata(
+        _source_reference(
+            source_id="generative-video",
+            title=(
+                "Video CLIP Latent Representation Alignment for "
+                "Diffusion Generation"
+            ),
+        )
+    )
 
     selected = ResearchWorkflow._select_evidence_candidates(
         (
             _evaluation(transferable, relevance_score=0.90),
             _evaluation(direct, relevance_score=0.50),
             _evaluation(unrelated, relevance_score=0.95),
+            _evaluation(text_to_image, relevance_score=0.99),
+            _evaluation(generative_video, relevance_score=0.99),
         ),
         8,
+        _research_strategy(),
     )
 
     assert selected == (direct, transferable)
+
+    synthesis_strategy = replace(
+        _research_strategy(),
+        concepts=("video diffusion generation",),
+        search_terms=("video diffusion CLIP generation",),
+        constraints=(),
+    )
+
+    assert ResearchWorkflow._select_evidence_candidates(
+        (_evaluation(generative_video, relevance_score=0.99),),
+        8,
+        synthesis_strategy,
+    ) == (generative_video,)
 
 
 def test_workflow_separates_preliminary_ranking_from_final_evaluation(
@@ -1783,7 +1821,10 @@ def test_workflow_separates_preliminary_ranking_from_final_evaluation(
     references = tuple(
         _source_reference(
             source_id=f"paper-{index}",
-            title=f"Paper {index}",
+            title=(
+                "Video CLIP Text Representation Alignment "
+                f"{index}"
+            ),
         )
         for index in range(10)
     )
@@ -1965,3 +2006,25 @@ def test_workflow_synthesizes_only_recommended_evidence() -> None:
         "recommended_count": 1,
         "discovery_only_count": 0,
     }
+
+
+def test_workflow_retains_clip_latent_alignment_as_transferable_evidence() -> None:
+    """CLIP latent alignment can qualify as transferable visual evidence."""
+
+    transferable = _paper_metadata(
+        _source_reference(
+            source_id="clip-latent-alignment",
+            title="Context Autoencoder with CLIP Latent Alignment",
+        )
+    )
+
+    selected = ResearchWorkflow._select_evidence_candidates(
+        (
+            _evaluation(transferable, relevance_score=0.50),
+        ),
+        8,
+        _research_strategy(),
+    )
+
+    assert selected == (transferable,)
+

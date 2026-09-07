@@ -72,6 +72,62 @@ class ResearchSourceService:
             "representations",
         }
     )
+    _REPRESENTATION_TERMS: ClassVar[frozenset[str]] = frozenset(
+        {
+            "autoencoder",
+            "embedding",
+            "embeddings",
+            "encoder",
+            "latent",
+            "representation",
+            "representations",
+        }
+    )
+    _TRANSFER_MECHANISM_TERMS: ClassVar[frozenset[str]] = frozenset(
+        {
+            "align",
+            "alignment",
+            "contrastive",
+            "distillation",
+            "distill",
+            "mapping",
+            "projection",
+        }
+    )
+    _TRANSFERABLE_VISUAL_TERMS: ClassVar[frozenset[str]] = frozenset(
+        {
+            "clip",
+            "image",
+            "images",
+            "vision",
+            "visual",
+        }
+    )
+    _EXCLUDED_TRANSFER_TASK_TERMS: ClassVar[frozenset[str]] = frozenset(
+        {
+            "audio",
+            "debiasing",
+            "diffusion",
+            "forecasting",
+            "generation",
+            "generative",
+        }
+    )
+    _EXPLICITLY_UNRELATED_TERMS: ClassVar[frozenset[str]] = frozenset(
+        {
+            "audio",
+            "ecg",
+            "flood",
+        }
+    )
+    _SYNTHESIS_TERMS: ClassVar[frozenset[str]] = frozenset(
+        {
+            "diffusion",
+            "generation",
+            "generative",
+            "synthesis",
+        }
+    )
 
     providers: dict[
         str,
@@ -447,7 +503,7 @@ class ResearchSourceService:
             for reference in references
             if (
                 cls._contains_reference(list(seed_references), reference)
-                or cls._matches_alignment_profile(reference)
+                or cls._matches_alignment_profile(strategy, reference)
             )
         )
 
@@ -473,6 +529,7 @@ class ResearchSourceService:
     @classmethod
     def _matches_alignment_profile(
         cls,
+        strategy: ResearchStrategy,
         reference: ResearchSourceReference,
     ) -> bool:
         """Return whether a candidate supports visual-language alignment."""
@@ -483,6 +540,49 @@ class ResearchSourceService:
             f"{reference.title} {abstract_text}"
         )
 
+        has_language = bool(
+            candidate_terms
+            & (cls._LANGUAGE_ALIGNMENT_TERMS - {"semantic"})
+        )
+        has_representation = bool(
+            candidate_terms & cls._REPRESENTATION_TERMS
+        )
+        has_transfer_mechanism = bool(
+            candidate_terms & cls._TRANSFER_MECHANISM_TERMS
+        )
+        is_synthesis_candidate = bool(
+            candidate_terms & cls._SYNTHESIS_TERMS
+        )
+        prioritize_representation_learning = (
+            cls._strategy_prioritizes_representation_learning(strategy)
+        )
+        is_direct = (
+            "video" in candidate_terms
+            and has_language
+            and has_representation
+            and has_transfer_mechanism
+            and not (
+                prioritize_representation_learning
+                and is_synthesis_candidate
+            )
+        )
+        is_transferable = (
+            bool(candidate_terms & cls._TRANSFERABLE_VISUAL_TERMS)
+            and has_language
+            and has_representation
+            and has_transfer_mechanism
+            and not (
+                candidate_terms & cls._EXCLUDED_TRANSFER_TASK_TERMS
+            )
+            and not (
+                prioritize_representation_learning
+                and is_synthesis_candidate
+            )
+        )
+
+        if is_direct or is_transferable:
+            return True
+
         profile_terms = (
             cls._VISUAL_ALIGNMENT_TERMS
             | cls._LANGUAGE_ALIGNMENT_TERMS
@@ -492,9 +592,36 @@ class ResearchSourceService:
         if not candidate_terms & profile_terms:
             return True
 
+        return not (
+            candidate_terms
+            & (cls._LANGUAGE_ALIGNMENT_TERMS - {"semantic"})
+            or candidate_terms & cls._EXPLICITLY_UNRELATED_TERMS
+            or (
+                prioritize_representation_learning
+                and is_synthesis_candidate
+            )
+        )
+
+    @classmethod
+    def _strategy_prioritizes_representation_learning(
+        cls,
+        strategy: ResearchStrategy,
+    ) -> bool:
+        """Return whether a strategy targets representations, not synthesis."""
+
+        strategy_terms = cls._meaningful_terms(
+            " ".join(
+                (
+                    *strategy.concepts,
+                    *strategy.search_terms,
+                    *strategy.constraints,
+                )
+            )
+        )
+
         return (
-            bool(candidate_terms & cls._VISUAL_ALIGNMENT_TERMS)
-            and bool(candidate_terms & cls._MECHANISM_ALIGNMENT_TERMS)
+            bool(strategy_terms & cls._REPRESENTATION_TERMS)
+            and not bool(strategy_terms & cls._SYNTHESIS_TERMS)
         )
 
     @classmethod
