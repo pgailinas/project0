@@ -14,6 +14,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field, replace
 import logging
 import re
+from typing import ClassVar
 import unicodedata
 
 from project0.agents.research.research_source_provider import (
@@ -31,6 +32,46 @@ LOGGER = logging.getLogger(__name__)
 @dataclass(slots=True)
 class ResearchSourceService:
     """Execute research searches against supported providers."""
+
+    _VISUAL_ALIGNMENT_TERMS: ClassVar[frozenset[str]] = frozenset(
+        {
+            "clip",
+            "image",
+            "images",
+            "multimodal",
+            "video",
+            "videos",
+            "vision",
+            "visual",
+        }
+    )
+    _LANGUAGE_ALIGNMENT_TERMS: ClassVar[frozenset[str]] = frozenset(
+        {
+            "caption",
+            "captions",
+            "clip",
+            "language",
+            "semantic",
+            "text",
+            "textual",
+        }
+    )
+    _MECHANISM_ALIGNMENT_TERMS: ClassVar[frozenset[str]] = frozenset(
+        {
+            "adaptation",
+            "align",
+            "alignment",
+            "autoencoder",
+            "contrastive",
+            "distillation",
+            "embedding",
+            "embeddings",
+            "latent",
+            "prompting",
+            "representation",
+            "representations",
+        }
+    )
 
     providers: dict[
         str,
@@ -130,9 +171,14 @@ class ResearchSourceService:
                 strategy.seed_terms,
             )
         )
+        eligible_references = self._eligible_references(
+            strategy=strategy,
+            references=deduplicated_references,
+            seed_references=seed_references,
+        )
         selected_references = self._select_balanced_candidates(
             strategy=strategy,
-            deduplicated_references=deduplicated_references,
+            deduplicated_references=eligible_references,
             reference_groups=reference_groups,
             reference_group_origins=reference_group_origins,
             seed_references=seed_references,
@@ -143,6 +189,7 @@ class ResearchSourceService:
             reference_groups=reference_groups,
             reference_group_origins=reference_group_origins,
             seed_references=seed_references,
+            eligible_references=eligible_references,
             selected_references=selected_references,
         )
 
@@ -189,6 +236,7 @@ class ResearchSourceService:
         reference_group_origins: list[tuple[str, str]],
         seed_references: tuple[ResearchSourceReference, ...],
         selected_references: tuple[ResearchSourceReference, ...],
+        eligible_references: tuple[ResearchSourceReference, ...],
     ) -> tuple[dict[str, object], ...]:
         """Describe retrieval provenance and balanced selection outcomes."""
 
@@ -237,6 +285,11 @@ class ResearchSourceService:
                 selection_status = "preserved_seed"
             elif evaluation_index is not None:
                 selection_status = "balanced_selection"
+            elif not cls._contains_reference(
+                list(eligible_references),
+                reference,
+            ):
+                selection_status = "outside_alignment_profile"
             else:
                 selection_status = "outside_balanced_candidate_limit"
 
@@ -375,6 +428,74 @@ class ResearchSourceService:
             for term, count in term_counts.items()
             if count > 1
         }
+
+    @classmethod
+    def _eligible_references(
+        cls,
+        *,
+        strategy: ResearchStrategy,
+        references: tuple[ResearchSourceReference, ...],
+        seed_references: tuple[ResearchSourceReference, ...],
+    ) -> tuple[ResearchSourceReference, ...]:
+        """Retain candidates matching an alignment-focused strategy profile."""
+
+        if not cls._uses_alignment_profile(strategy):
+            return references
+
+        return tuple(
+            reference
+            for reference in references
+            if (
+                cls._contains_reference(list(seed_references), reference)
+                or cls._matches_alignment_profile(reference)
+            )
+        )
+
+    @classmethod
+    def _uses_alignment_profile(
+        cls,
+        strategy: ResearchStrategy,
+    ) -> bool:
+        """Return whether strategy anchors define shared-space alignment."""
+
+        strategy_terms = cls._meaningful_terms(
+            " ".join(
+                (*strategy.search_terms, *strategy.concepts)
+            )
+        )
+
+        return (
+            bool(strategy_terms & cls._VISUAL_ALIGNMENT_TERMS)
+            and bool(strategy_terms & cls._LANGUAGE_ALIGNMENT_TERMS)
+            and bool(strategy_terms & cls._MECHANISM_ALIGNMENT_TERMS)
+        )
+
+    @classmethod
+    def _matches_alignment_profile(
+        cls,
+        reference: ResearchSourceReference,
+    ) -> bool:
+        """Return whether a candidate supports visual-language alignment."""
+
+        abstract = reference.metadata.get("abstract")
+        abstract_text = abstract if isinstance(abstract, str) else ""
+        candidate_terms = cls._meaningful_terms(
+            f"{reference.title} {abstract_text}"
+        )
+
+        profile_terms = (
+            cls._VISUAL_ALIGNMENT_TERMS
+            | cls._LANGUAGE_ALIGNMENT_TERMS
+            | cls._MECHANISM_ALIGNMENT_TERMS
+        )
+
+        if not candidate_terms & profile_terms:
+            return True
+
+        return (
+            bool(candidate_terms & cls._VISUAL_ALIGNMENT_TERMS)
+            and bool(candidate_terms & cls._MECHANISM_ALIGNMENT_TERMS)
+        )
 
     @classmethod
     def _candidate_relevance_score(

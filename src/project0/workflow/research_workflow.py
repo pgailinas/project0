@@ -414,24 +414,73 @@ class ResearchWorkflow:
             )
 
     @staticmethod
+    @staticmethod
     def _select_evidence_candidates(
         evaluations: tuple,
         limit: int,
     ) -> tuple:
         """Select a bounded evidence shortlist by preliminary relevance."""
 
-        return tuple(
-            evaluation.paper
-            for evaluation in sorted(
-                evaluations,
-                key=lambda evaluation: (
+        ranked = sorted(
+            evaluations,
+            key=lambda evaluation: (
+                ResearchWorkflow._evidence_candidate_tier(evaluation.paper),
+                -(
                     evaluation.relevance_score
                     if evaluation.relevance_score is not None
-                    else float("-inf")
+                    else float("inf")
                 ),
-                reverse=True,
-            )[:limit]
+            ),
         )
+
+        eligible = tuple(
+            evaluation.paper
+            for evaluation in ranked
+            if ResearchWorkflow._evidence_candidate_tier(evaluation.paper) < 2
+        )
+
+        if eligible:
+            return eligible[:limit]
+
+        return tuple(
+            evaluation.paper
+            for evaluation in ranked[:limit]
+        )
+
+    @staticmethod
+    def _evidence_candidate_tier(paper: object) -> int:
+        """Classify direct and transferable alignment evidence candidates."""
+
+        title = str(getattr(paper, "title", "")).casefold()
+        abstract = str(getattr(paper, "abstract", "") or "").casefold()
+        text = f"{title} {abstract}"
+        direct_video = "video" in text or "videoqa" in text
+        language = any(
+            term in text
+            for term in ("clip", "language", "text", "semantic")
+        )
+        mechanism = any(
+            term in text
+            for term in (
+                "align",
+                "autoencoder",
+                "contrastive",
+                "distill",
+                "embedding",
+                "latent",
+                "representation",
+            )
+        )
+        visual = direct_video or any(
+            term in text
+            for term in ("vision", "visual", "image", "multimodal")
+        )
+
+        if direct_video and language and mechanism:
+            return 0
+        if visual and mechanism:
+            return 1
+        return 2
 
     @staticmethod
     def _select_results(

@@ -1741,6 +1741,40 @@ def test_workflow_bounds_preliminary_evidence_shortlist() -> None:
     assert selected[-1] is papers[2]
 
 
+def test_workflow_prioritizes_direct_evidence_candidates() -> None:
+    """Direct video-language alignment precedes transferable mechanisms."""
+
+    transferable = _paper_metadata(
+        _source_reference(
+            source_id="transferable",
+            title="Image Autoencoder Latent Alignment",
+        )
+    )
+    direct = _paper_metadata(
+        _source_reference(
+            source_id="direct",
+            title="Video CLIP Text Representation Alignment",
+        )
+    )
+    unrelated = _paper_metadata(
+        _source_reference(
+            source_id="unrelated",
+            title="Flood Forecasting with Vision-Language Models",
+        )
+    )
+
+    selected = ResearchWorkflow._select_evidence_candidates(
+        (
+            _evaluation(transferable, relevance_score=0.90),
+            _evaluation(direct, relevance_score=0.50),
+            _evaluation(unrelated, relevance_score=0.95),
+        ),
+        8,
+    )
+
+    assert selected == (direct, transferable)
+
+
 def test_workflow_separates_preliminary_ranking_from_final_evaluation(
     caplog,
 ) -> None:

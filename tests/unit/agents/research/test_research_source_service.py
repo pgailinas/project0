@@ -364,7 +364,7 @@ def test_research_source_service_prioritizes_query_anchor_matches() -> None:
         evaluation_candidate_limit=1,
     )
     strategy = ResearchStrategy(
-        concepts=("video representation alignment",),
+        concepts=("video language representation alignment",),
         search_terms=(
             "self-supervised autoencoder CLIP latent representations",
             "autoencoder CLIP video embedding alignment",
@@ -376,9 +376,46 @@ def test_research_source_service_prioritizes_query_anchor_matches() -> None:
 
     assert result == (aligned,)
     assert service.last_candidate_trace[0]["selection_status"] == (
-        "outside_balanced_candidate_limit"
+        "outside_alignment_profile"
     )
     assert service.last_candidate_trace[1]["evaluation_rank"] == 1
+
+
+def test_research_source_service_excludes_alignment_profile_mismatch() -> None:
+    """Alignment strategies exclude unrelated vision-language applications."""
+
+    flood_forecasting = replace(
+        create_reference("flood"),
+        title="Zero-Shot Flood Forecasting Using Vision-Language Models",
+    )
+    direct_alignment = replace(
+        create_reference("alignment"),
+        title="Video Autoencoder CLIP Latent Alignment",
+    )
+    provider = QueryMappedResearchSourceProvider(
+        {
+            "video CLIP autoencoder alignment": (
+                flood_forecasting,
+                direct_alignment,
+            ),
+        }
+    )
+    service = ResearchSourceService(
+        providers={"stub": provider},
+        evaluation_candidate_limit=2,
+    )
+    strategy = ResearchStrategy(
+        concepts=("video language representation alignment",),
+        search_terms=("video CLIP autoencoder alignment",),
+        source_names=("stub",),
+    )
+
+    result = service.search(strategy)
+
+    assert result == (direct_alignment,)
+    assert service.last_candidate_trace[0]["selection_status"] == (
+        "outside_alignment_profile"
+    )
 
 
 def test_research_source_service_traces_excluded_candidate_provenance(
