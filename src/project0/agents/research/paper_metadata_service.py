@@ -153,7 +153,13 @@ class PaperMetadataService:
                 sections.extend(
                     self._retrieve_pdf_evidence(pdf_url)
                 )
-            except (OSError, RuntimeError, TypeError, ValueError) as error:
+            except (
+                httpx.HTTPError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ) as error:
                 LOGGER.warning(
                     "Paper evidence request failed for paper %s; "
                     "using available abstract evidence: %s",

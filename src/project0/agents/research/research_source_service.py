@@ -752,9 +752,45 @@ class ResearchSourceService:
                 ResearchSourceService._reference_richness(reference)
                 > ResearchSourceService._reference_richness(existing)
             ):
-                unique_references[duplicate_index] = reference
+                canonical = reference
+                alternate = existing
+            else:
+                canonical = existing
+                alternate = reference
+
+            unique_references[duplicate_index] = replace(
+                canonical,
+                metadata=ResearchSourceService._merge_reference_metadata(
+                    canonical.metadata,
+                    alternate.metadata,
+                ),
+            )
 
         return tuple(unique_references)
+
+    @staticmethod
+    def _merge_reference_metadata(
+        canonical_metadata: dict[str, object],
+        alternate_metadata: dict[str, object],
+    ) -> dict[str, object]:
+        """Preserve complementary metadata from duplicate provider versions."""
+
+        merged = dict(canonical_metadata)
+
+        for key, value in alternate_metadata.items():
+            existing = merged.get(key)
+
+            if (
+                key not in merged
+                or existing is None
+                or (
+                    isinstance(existing, str)
+                    and not existing.strip()
+                )
+            ):
+                merged[key] = value
+
+        return merged
 
     @classmethod
     def _references_match(

@@ -80,6 +80,9 @@ def create_openreview_response_data() -> dict[str, Any]:
                     "venue": {
                         "value": "Example Conference",
                     },
+                    "pdf": {
+                        "value": "/pdf?id=openreview-note-001",
+                    },
                 },
             },
         ],
@@ -243,6 +246,12 @@ def test_openreview_provider_normalizes_references(
         "Author One",
         "Author Two",
     )
+    assert result[0].metadata == {
+        "abstract": "Example abstract.",
+        "pdf_url": (
+            "https://openreview.net/pdf?id=openreview-note-001"
+        ),
+    }
 
 
 def test_openreview_provider_uses_creation_year_fallback(

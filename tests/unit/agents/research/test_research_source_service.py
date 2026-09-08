@@ -739,6 +739,59 @@ def test_research_source_service_retains_richest_publication_version() -> None:
     assert result == (rich,)
 
 
+def test_research_source_service_preserves_complementary_duplicate_metadata() -> None:
+    """Non-canonical duplicate evidence metadata survives deduplication."""
+
+    title = "Context Autoencoder with CLIP Latent Alignment"
+    authors = ("Author One",)
+    canonical = ResearchSourceReference(
+        source_name="semantic_scholar",
+        source_id="semantic-paper",
+        title=title,
+        source_url="https://example.org/paper",
+        authors=authors,
+        publication_year=2026,
+        metadata={
+            "abstract": (
+                "A substantially richer abstract describing latent "
+                "representation alignment with a pretrained model."
+            ),
+            "venue": "Example Venue",
+        },
+    )
+    alternate = ResearchSourceReference(
+        source_name="openreview",
+        source_id="openreview-paper",
+        title=title,
+        source_url="https://openreview.net/forum?id=openreview-paper",
+        authors=authors,
+        publication_year=2026,
+        metadata={
+            "abstract": "Short abstract.",
+            "pdf_url": "https://openreview.net/pdf?id=openreview-paper",
+        },
+    )
+    service = ResearchSourceService(
+        providers={
+            "stub": StubResearchSourceProvider(
+                references=(canonical, alternate),
+            ),
+        },
+    )
+
+    result = service.search(create_research_strategy())
+
+    assert result == (
+        replace(
+            canonical,
+            metadata={
+                **canonical.metadata,
+                "pdf_url": "https://openreview.net/pdf?id=openreview-paper",
+            },
+        ),
+    )
+
+
 def test_research_source_service_keeps_distinct_same_year_papers() -> None:
     """Verify different titles are not merged despite shared authors."""
 

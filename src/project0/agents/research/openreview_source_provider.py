@@ -287,6 +287,18 @@ class OpenReviewSourceProvider(
 
         metadata: dict[str, Any] = {}
 
+        abstract = content.get(
+            "abstract"
+        )
+
+        if isinstance(abstract, dict):
+            value = abstract.get(
+                "value"
+            )
+
+            if isinstance(value, str):
+                metadata["abstract"] = value
+
         pdf = content.get(
             "pdf"
         )
@@ -298,9 +310,9 @@ class OpenReviewSourceProvider(
 
             if isinstance(value, str):
                 if value.startswith("http"):
-                    metadata["document_url"] = value
+                    metadata["pdf_url"] = value
                 elif value.startswith("/"):
-                    metadata["document_url"] = (
+                    metadata["pdf_url"] = (
                         f"https://openreview.net{value}"
                     )
 

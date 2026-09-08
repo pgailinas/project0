@@ -1108,6 +1108,57 @@ def test_paper_metadata_service_marks_missing_content_discovery_only() -> None:
     assert result[0].evidence_sections == ()
 
 
+
+def test_paper_metadata_service_retains_abstract_after_pdf_http_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Blocked PDF retrieval falls back to available abstract evidence."""
+
+    paper = PaperMetadata(
+        source_reference=ResearchSourceReference(
+            source_name="openreview",
+            source_id="openreview-note-001",
+            title="Evidence Paper",
+            metadata={
+                "pdf_url": "https://openreview.net/pdf?id=paper",
+            },
+        ),
+        title="Evidence Paper",
+        abstract="Available abstract evidence.",
+    )
+
+    request = httpx.Request(
+        "GET",
+        "https://openreview.net/pdf?id=paper",
+    )
+    response = httpx.Response(
+        403,
+        request=request,
+    )
+    error = httpx.HTTPStatusError(
+        "Forbidden",
+        request=request,
+        response=response,
+    )
+
+    monkeypatch.setattr(
+        PaperMetadataService,
+        "_retrieve_pdf_evidence",
+        lambda self, pdf_url: (_ for _ in ()).throw(error),
+    )
+
+    result = PaperMetadataService().acquire_evidence((paper,))
+
+    assert result[0].evidence_status == (
+        ResearchPaperEvidenceStatus.AVAILABLE
+    )
+    assert len(result[0].evidence_sections) == 1
+    assert result[0].evidence_sections[0].section == "Abstract"
+    assert result[0].evidence_sections[0].content == (
+        "Available abstract evidence."
+    )
+
+
 def test_paper_metadata_service_extracts_page_preserving_sections() -> None:
     """Relevant PDF sections retain their source page numbers."""
 
