@@ -5299,7 +5299,7 @@
 <h1 id="research-agent-design">Research Agent Design</h1>
 <p><strong>Version:</strong> 0.3<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-28</p>
+<strong>Last Updated:</strong> 2026-09-02</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="objective">Objective</h3>
@@ -5709,6 +5709,7 @@ Research Context.</p>
 <li>Identify findings and limitations.</li>
 <li>Explain relevance to the current research.</li>
 <li>Preserve evidence references.</li>
+<li>Identify analysis derived from metadata and abstract information.</li>
 </ul>
 <h4 id="interfaces_3">Interfaces</h4>
 <h5 id="provides_3">Provides</h5>
@@ -5778,8 +5779,8 @@ Context to identify evidence-grounded research directions.</p>
     Analysis rather than a separate service.</li>
 <li>Research directions are Research Agent inference grounded in
     source-derived context and per-paper interpretation.</li>
-<li>The detailed Research Direction Analysis output contract remains to
-    be defined.</li>
+<li>Referenced context items and paper identifiers are validated before
+    analysis results are returned.</li>
 </ul>
 <h4 id="inputs_4">Inputs</h4>
 <ul>
@@ -5858,6 +5859,8 @@ provider-ready research search terms.</p>
 <h4 id="responsibilities_11">Responsibilities</h4>
 <ul>
 <li>Convert research concepts into focused search terms.</li>
+<li>Generate a complementary, bounded set of queries from the Research
+    Strategy, optional Existing Research Context, and user guidance.</li>
 <li>Preserve deterministic query ordering.</li>
 <li>Remove duplicate query terms.</li>
 <li>Return an enriched Research Strategy containing provider-ready
@@ -5888,6 +5891,7 @@ provider-ready research search terms.</p>
 <li>Execute research searches using a Research Strategy.</li>
 <li>Query configured external research source providers.</li>
 <li>Combine results from multiple configured research source providers.</li>
+<li>Deduplicate source references returned across provider queries.</li>
 <li>Normalize returned research source references.</li>
 <li>Preserve source identifiers and locations.</li>
 <li>Return structured source results and errors.</li>
@@ -6277,8 +6281,8 @@ submits Research Agent workflow tasks to the Workflow Engine.</p>
     required.</li>
 <li>Candidate papers are ranked by relevance and the configured maximum
     number of results is retained.</li>
-<li>Per-Paper Analysis produces structured technical analysis for each
-    retained paper.</li>
+<li>Per-Paper Analysis produces structured technical analysis from
+    available metadata and abstract information for each retained paper.</li>
 <li>Research Direction Analysis performs cross-paper comparison and
     identifies candidate research directions.</li>
 <li>The Research Artifact Service generates structured research

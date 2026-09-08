@@ -2189,7 +2189,7 @@
 <h1 id="research-agent-testing-guide">Research Agent Testing Guide</h1>
 <p><strong>Version:</strong> 0.7\
 <strong>Owner:</strong> Project0\
-<strong>Last Updated:</strong> 2026-08-28</p>
+<strong>Last Updated:</strong> 2026-09-02</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <p>This document defines the testing strategy, test coverage, execution
@@ -2638,9 +2638,10 @@ passed acceptance requirements.</p>
 <li><code>context_document=None</code> preserves existing workflow semantics and
     result behavior with new optional fields empty.</li>
 </ul>
-<p>The detailed Research Direction Analysis output contract and bounded
-chunking limits remain to be defined and should receive focused tests
-when those design decisions are finalized.</p>
+<p>Research Direction Analysis tests shall verify that unknown context items
+or paper identifiers are rejected and that each non-speculative candidate
+direction preserves context motivation and literature evidence. Bounded
+chunking limits remain future work.</p>
 <h3 id="610-complete-project0-regression-test">6.10 Complete Project0 Regression Test</h3>
 <p>After Research Agent-specific tests pass, run the complete Project0
 suite:</p>
@@ -2870,12 +2871,11 @@ baseline includes:</p>
 <li>Preliminary and final validation behavior verified.</li>
 <li>Local reasoning-provider behavior exercised through Research Agent
     workflows.</li>
-<li>Seven implemented high-level workflow scenarios passing as
-    integration tests; seven additional scenarios remain explicitly
-    skipped/deferred.</li>
 <li>Playwright-based Chromium browser acceptance automation established;
     initial page-render scenario passing.</li>
-<li>Complete Project0 regression baseline: 648 passed, 7 skipped.</li>
+<li>Structured per-paper analysis, Research Direction Analysis, and
+    consolidated research-result presentation validated through focused
+    unit, integration, and acceptance coverage.</li>
 </ul>
 <p>The complete Project0 regression suite must also pass before Research
 Agent changes are committed.</p>

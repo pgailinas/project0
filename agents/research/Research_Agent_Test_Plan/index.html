@@ -7193,7 +7193,7 @@
 <h1 id="research-agent-test-plan">Research Agent Test Plan</h1>
 <p><strong>Version:</strong> 0.3<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-28</p>
+<strong>Last Updated:</strong> 2026-09-02</p>
 <hr />
 <h2 id="executive-summary">Executive Summary</h2>
 <p>This document defines the verification criteria and test strategy for
@@ -7474,21 +7474,20 @@ without discarding discovered source references.</p>
 <li>UI Acceptance where applicable</li>
 </ul>
 <h4 id="objective_4">Objective</h4>
-<p>Verify that the Research Agent generates structured paper summary
-artifacts.</p>
+<p>Verify that the Research Agent presents a structured result for each
+retained paper.</p>
 <h4 id="expected-behavior_4">Expected Behavior</h4>
 <p>The Research Agent shall:</p>
 <ul>
-<li>summarize the research problem</li>
-<li>summarize the methodology</li>
-<li>identify available datasets and results</li>
-<li>identify strengths and limitations</li>
-<li>explain relevance to the research question</li>
-<li>preserve source references</li>
+<li>present paper metadata and relevance assessment</li>
+<li>present structured analysis only when abstract-supported analysis is
+    available</li>
+<li>distinguish paper content from relevance strengths and limitations</li>
+<li>preserve source traceability without repeated visible source URLs</li>
 </ul>
 <h4 id="pass-criteria_4">Pass Criteria</h4>
-<p>The generated summary is structured, traceable to the source paper, and
-contains no unsupported source claims.</p>
+<p>Each retained-paper result is consolidated, traceable to the source
+paper, and contains no unsupported source claims.</p>
 <hr />
 <h3 id="56-ra-fun-006-literature-comparison">5.6 RA-FUN-006: Literature Comparison</h3>
 <h4 id="verification-layers_5">Verification Layers</h4>
@@ -7660,9 +7659,9 @@ direction generation.</p>
 <h4 id="pass-criteria_11">Pass Criteria</h4>
 <p>Research Direction Analysis remains traceable to valid context and paper
 evidence and satisfies the defined synthesis requirements.</p>
-<p>The detailed Research Direction Analysis output contract remains to be
-defined and shall receive additional verification criteria when
-finalized.</p>
+<p>Unknown context items or paper identifiers are rejected, and each
+non-speculative candidate direction preserves context motivation and
+literature evidence.</p>
 <hr />
 <h3 id="513-ra-fun-013-no-context-backward-compatibility">5.13 RA-FUN-013: No-Context Backward Compatibility</h3>
 <h4 id="verification-layers_12">Verification Layers</h4>
@@ -8124,12 +8123,11 @@ source traceability.</p>
 <ol>
 <li>Submit a valid research request.</li>
 <li>Wait for research results.</li>
-<li>Inspect displayed paper and artifact source information.</li>
+<li>Inspect displayed paper source information.</li>
 </ol>
 <h4 id="expected-results_4">Expected Results</h4>
 <ul>
 <li>Source information is visible for retrieved papers.</li>
-<li>Generated research artifacts retain supporting source references.</li>
 <li>Source information remains associated with the appropriate research
     result.</li>
 </ul>

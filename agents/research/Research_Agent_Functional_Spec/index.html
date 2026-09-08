@@ -1207,10 +1207,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-inputs" class="md-nav__link">
+  <a href="#4-inputs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. Inputs
+        4. Inputs
       
     </span>
   </a>
@@ -1218,10 +1218,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#7-functional-workflow" class="md-nav__link">
+  <a href="#5-functional-workflow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7. Functional Workflow
+        5. Functional Workflow
       
     </span>
   </a>
@@ -1229,10 +1229,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#10-success-criteria" class="md-nav__link">
+  <a href="#6-success-criteria" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10. Success Criteria
+        6. Success Criteria
       
     </span>
   </a>
@@ -1240,10 +1240,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#101-revision-workflow" class="md-nav__link">
+  <a href="#61-revision-workflow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.1 Revision Workflow
+        6.1 Revision Workflow
       
     </span>
   </a>
@@ -1251,10 +1251,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#11-future-enhancements" class="md-nav__link">
+  <a href="#7-future-enhancements" class="md-nav__link">
     <span class="md-ellipsis">
       
-        11. Future Enhancements
+        7. Future Enhancements
       
     </span>
   </a>
@@ -1533,10 +1533,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-inputs" class="md-nav__link">
+  <a href="#4-inputs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. Inputs
+        4. Inputs
       
     </span>
   </a>
@@ -1544,10 +1544,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#7-functional-workflow" class="md-nav__link">
+  <a href="#5-functional-workflow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7. Functional Workflow
+        5. Functional Workflow
       
     </span>
   </a>
@@ -1555,10 +1555,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#10-success-criteria" class="md-nav__link">
+  <a href="#6-success-criteria" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10. Success Criteria
+        6. Success Criteria
       
     </span>
   </a>
@@ -1566,10 +1566,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#101-revision-workflow" class="md-nav__link">
+  <a href="#61-revision-workflow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10.1 Revision Workflow
+        6.1 Revision Workflow
       
     </span>
   </a>
@@ -1577,10 +1577,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#11-future-enhancements" class="md-nav__link">
+  <a href="#7-future-enhancements" class="md-nav__link">
     <span class="md-ellipsis">
       
-        11. Future Enhancements
+        7. Future Enhancements
       
     </span>
   </a>
@@ -1615,7 +1615,7 @@
 <h1 id="research-agent-functional-specification">Research Agent Functional Specification</h1>
 <p><strong>Version:</strong> 0.4<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-28</p>
+<strong>Last Updated:</strong> 2026-09-02</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="mission">Mission</h3>
@@ -1659,9 +1659,11 @@ dashboard infrastructure.</p>
 <li>Identify relevant research concepts and terminology.</li>
 <li>Identify the research objective and explicit research sub-questions.</li>
 <li>Generate a research strategy.</li>
-<li>Generate deterministic research search terms from the research strategy.</li>
+<li>Generate deterministic, complementary research search terms from the
+    research strategy, optional Existing Research Context, and guidance.</li>
 <li>Search supported external research sources.</li>
 <li>Combine results from multiple configured research source providers.</li>
+<li>Deduplicate source references returned across provider queries.</li>
 <li>Support pluggable research source providers through defined service
     boundaries.</li>
 <li>Support deterministic research source provider behavior for testing,
@@ -1696,13 +1698,6 @@ dashboard infrastructure.</p>
 <li>Clearly report context extraction or analysis failures without
     silently reverting to a no-context workflow.</li>
 <li>Summarize relevant technical papers.</li>
-<li>Attempt full-text PDF acquisition only for retained papers.</li>
-<li>Preserve bibliographic source locations separately from full-text
-    document locations.</li>
-<li>Extract acquired research-paper PDF content with physical page
-    boundaries and page numbers preserved.</li>
-<li>Explicitly fall back to metadata and abstract analysis when full text
-    is unavailable or cannot be meaningfully extracted.</li>
 <li>Produce structured per-paper analysis including the problem, approach,
     representations, modalities, learning or alignment objective,
     datasets or tasks, findings, limitations, relevance to the current
@@ -1718,7 +1713,7 @@ dashboard infrastructure.</p>
 <li>Present research results for human review.</li>
 </ul>
 <hr />
-<h2 id="5-inputs">5. Inputs</h2>
+<h2 id="4-inputs">4. Inputs</h2>
 <ul>
 <li>User research request</li>
 <li>Research question</li>
@@ -1757,7 +1752,7 @@ when existing research context is available.</p>
 <p>Image-only or scanned PDF documents requiring OCR are not supported in
 this increment.</p>
 <hr />
-<h2 id="7-functional-workflow">7. Functional Workflow</h2>
+<h2 id="5-functional-workflow">5. Functional Workflow</h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Research Request
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>      ↓
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Dashboard Framework (User Interface)
@@ -1784,26 +1779,22 @@ this increment.</p>
 </span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>      ↓
 </span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>Research Knowledge Retrieval
 </span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>      ↓
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>Full-Paper Acquisition
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>Per-Paper Analysis from Available Metadata and Abstract Information
 </span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>      ↓
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>Paper Content Extraction
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>Research Direction Analysis
 </span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>      ↓
-</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>Per-Paper Analysis
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>Research Artifact Generation
 </span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>      ↓
-</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>Research Direction Analysis
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>Citation and Source Tracking
 </span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>      ↓
-</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>Research Artifact Generation
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>Validation Service
 </span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>      ↓
-</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>Citation and Source Tracking
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>User Review
 </span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>      ↓
-</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>Validation Service
-</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>      ↓
-</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>User Review
-</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>      ↓
-</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>Research Result
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>Research Result
 </span></code></pre></div>
 <hr />
-<h2 id="10-success-criteria">10. Success Criteria</h2>
+<h2 id="6-success-criteria">6. Success Criteria</h2>
 <p>The Research Agent is successful when it:</p>
 <ul>
 <li>Correctly interprets a research question.</li>
@@ -1827,9 +1818,7 @@ this increment.</p>
 <li>Produces useful, evidence-grounded paper summaries.</li>
 <li>Produces structured per-paper technical analysis with evidence
     references.</li>
-<li>Uses full-text paper evidence with page-level provenance when
-    available and explicitly identifies metadata or abstract fallback
-    analysis when full text is unavailable.</li>
+<li>Identifies metadata and abstract information as the analysis basis.</li>
 <li>Generates useful research comparison artifacts.</li>
 <li>Produces structured synthesis findings across retained paper analyses.</li>
 <li>Generates candidate research directions grounded in both existing
@@ -1855,7 +1844,7 @@ this increment.</p>
     Dashboard Framework services.</li>
 </ul>
 <hr />
-<h2 id="101-revision-workflow">10.1 Revision Workflow</h2>
+<h2 id="61-revision-workflow">6.1 Revision Workflow</h2>
 <p>The Research Agent shall support revision of generated research requests
 and research outputs.</p>
 <p>The agent shall:</p>
@@ -1870,7 +1859,7 @@ and research outputs.</p>
 users to refine research direction and generated artifacts without
 restarting the research process.</p>
 <hr />
-<h2 id="11-future-enhancements">11. Future Enhancements</h2>
+<h2 id="7-future-enhancements">7. Future Enhancements</h2>
 <p>Not included in Version 1:</p>
 <ul>
 <li>Semantic research retrieval</li>

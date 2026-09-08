@@ -1593,7 +1593,7 @@
 <h1 id="research-agent-interface-design">Research Agent Interface Design</h1>
 <p><strong>Version:</strong> 0.3<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-28</p>
+<strong>Last Updated:</strong> 2026-09-02</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="phase-11-alignment">Phase 11 Alignment</h3>
@@ -1674,6 +1674,7 @@ for each retained paper.</p>
 <li>Identify findings and limitations.</li>
 <li>Explain relevance to the current research.</li>
 <li>Preserve evidence references.</li>
+<li>Identify analysis derived from metadata and abstract information.</li>
 </ul>
 <p>Per-paper analysis is source-derived interpretation and remains
 distinguishable from source information and Research Agent inference.</p>
@@ -1696,8 +1697,10 @@ and evidence-grounded candidate research direction generation.</p>
 Analysis rather than a separate interface. Research directions are
 Research Agent inference grounded in source-derived context and
 per-paper interpretation.</p>
-<p>The detailed Research Direction Analysis output contract remains to be
-defined.</p>
+<p>The output contract includes synthesis findings and candidate research
+directions. Validation rejects unknown context items or paper identifiers,
+and requires both context motivation and literature evidence for each
+non-speculative candidate direction.</p>
 <hr />
 <h2 id="research-source-provider-interface-contract">Research Source Provider Interface Contract</h2>
 <p>The Research Agent isolates external research source implementations
@@ -1773,6 +1776,8 @@ into deterministic, provider-ready research queries.</p>
 <ul>
 <li>Accept structured research strategies.</li>
 <li>Generate focused research queries from research concepts.</li>
+<li>Generate a complementary, bounded query set from the Research
+    Strategy, optional Existing Research Context, and user guidance.</li>
 <li>Preserve deterministic query ordering.</li>
 <li>Remove duplicate query terms.</li>
 <li>Remain independent from external research source implementations.</li>

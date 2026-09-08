@@ -1363,28 +1363,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#full-paper-acquisition" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Full-Paper Acquisition
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#paper-content-extraction" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Paper Content Extraction
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#per-paper-analysis" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1489,10 +1467,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#research-source-provider-architecture" class="md-nav__link">
+  <a href="#5-research-source-provider-architecture" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Research Source Provider Architecture
+        5. Research Source Provider Architecture
       
     </span>
   </a>
@@ -1500,10 +1478,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-external-dependencies" class="md-nav__link">
+  <a href="#6-external-dependencies" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. External Dependencies
+        6. External Dependencies
       
     </span>
   </a>
@@ -1511,10 +1489,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#6-design-constraints" class="md-nav__link">
+  <a href="#7-design-constraints" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6. Design Constraints
+        7. Design Constraints
       
     </span>
   </a>
@@ -1522,10 +1500,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#7-future-architectural-expansion" class="md-nav__link">
+  <a href="#8-future-architectural-expansion" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7. Future Architectural Expansion
+        8. Future Architectural Expansion
       
     </span>
   </a>
@@ -1904,28 +1882,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#full-paper-acquisition" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Full-Paper Acquisition
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#paper-content-extraction" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Paper Content Extraction
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#per-paper-analysis" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2030,10 +1986,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#research-source-provider-architecture" class="md-nav__link">
+  <a href="#5-research-source-provider-architecture" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Research Source Provider Architecture
+        5. Research Source Provider Architecture
       
     </span>
   </a>
@@ -2041,10 +1997,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-external-dependencies" class="md-nav__link">
+  <a href="#6-external-dependencies" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. External Dependencies
+        6. External Dependencies
       
     </span>
   </a>
@@ -2052,10 +2008,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#6-design-constraints" class="md-nav__link">
+  <a href="#7-design-constraints" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6. Design Constraints
+        7. Design Constraints
       
     </span>
   </a>
@@ -2063,10 +2019,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#7-future-architectural-expansion" class="md-nav__link">
+  <a href="#8-future-architectural-expansion" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7. Future Architectural Expansion
+        8. Future Architectural Expansion
       
     </span>
   </a>
@@ -2101,7 +2057,7 @@
 <h1 id="research-agent-architecture">Research Agent Architecture</h1>
 <p><strong>Version:</strong> 0.4<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-28</p>
+<strong>Last Updated:</strong> 2026-09-02</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="objective">Objective</h3>
@@ -2175,8 +2131,6 @@ Documentation Agent functionality.</p>
     G["Knowledge Service"]
     H["Research Evaluation Service"]
     I["Reasoning Service"]
-    O["Full-Paper Acquisition"]
-    R["Paper Content Extraction"]
     M["Per-Paper Analysis"]
     N["Research Direction Analysis"]
     J["Research Artifact Service"]
@@ -2198,9 +2152,7 @@ Documentation Agent functionality.</p>
     F --&gt; G
     G --&gt; H
     H --&gt; I
-    I --&gt; O
-    O --&gt; R
-    R --&gt; M
+    I --&gt; M
     M --&gt; N
     N --&gt; J
     J --&gt; K
@@ -2229,13 +2181,8 @@ Documentation Agent functionality.</p>
     the configured maximum number of results.</li>
 <li>The Reasoning Service performs AI-assisted research analysis where
     required.</li>
-<li>Full-paper acquisition attempts to retrieve available PDF content for
-    each retained paper.</li>
-<li>Paper content extraction preserves physical PDF page boundaries and
-    page numbers for available full-text evidence.</li>
-<li>Structured Per-Paper Analysis interprets each retained paper using
-    full-text evidence when available and explicitly falls back to
-    metadata and abstract analysis when full text is unavailable.</li>
+<li>Structured Per-Paper Analysis interprets each retained paper from
+    available metadata and abstract information.</li>
 <li>Research Direction Analysis performs cross-paper comparison and
     identifies candidate research directions grounded in existing
     research context and literature evidence.</li>
@@ -2380,35 +2327,6 @@ Research Context.</p>
 <li>Clearly report context analysis failures.</li>
 </ul>
 <hr />
-<h3 id="full-paper-acquisition">Full-Paper Acquisition</h3>
-<p>Retrieves available full-text PDF content for retained papers after
-relevance ranking and result selection.</p>
-<p>Responsibilities:</p>
-<ul>
-<li>Attempt full-paper acquisition only for retained papers.</li>
-<li>Prefer normalized document locations while preserving bibliographic
-    source locations separately.</li>
-<li>Support PDF full-text acquisition.</li>
-<li>Validate returned PDF media type and content signature.</li>
-<li>Retry transient acquisition failures using bounded retry behavior.</li>
-<li>Report unavailable full text without failing otherwise valid research
-    processing.</li>
-</ul>
-<hr />
-<h3 id="paper-content-extraction">Paper Content Extraction</h3>
-<p>Extracts normalized page-preserving text from acquired research-paper
-PDF content.</p>
-<p>Responsibilities:</p>
-<ul>
-<li>Extract PDF text using <code>pypdf</code>.</li>
-<li>Preserve physical page boundaries and page numbers.</li>
-<li>Preserve empty individual pages when required for page-number
-    traceability.</li>
-<li>Clearly report malformed or extraction-poor PDF content.</li>
-<li>Reject PDFs containing no meaningful extractable text.</li>
-<li>Exclude OCR from the current implementation scope.</li>
-</ul>
-<hr />
 <h3 id="per-paper-analysis">Per-Paper Analysis</h3>
 <p>Produces structured technical analysis for each retained paper.</p>
 <p>Responsibilities:</p>
@@ -2420,9 +2338,7 @@ PDF content.</p>
 <li>Identify findings and limitations.</li>
 <li>Explain relevance to the current research.</li>
 <li>Preserve evidence references.</li>
-<li>Use full-text evidence with page-level provenance when available.</li>
-<li>Explicitly identify metadata and abstract fallback analysis when full
-    text is unavailable.</li>
+<li>Identify analysis derived from metadata and abstract information.</li>
 <li>Distinguish source-derived interpretation from source information.</li>
 </ul>
 <hr />
@@ -2440,6 +2356,8 @@ Context to identify evidence-grounded research directions.</p>
 <li>Preserve provenance for supporting context and paper evidence.</li>
 <li>Distinguish Research Agent inference from source-derived findings and
     per-paper interpretation.</li>
+<li>Validate referenced context items and paper identifiers before
+    returning analysis results.</li>
 </ul>
 <hr />
 <h3 id="research-strategy-service">Research Strategy Service</h3>
@@ -2462,6 +2380,8 @@ provider-ready research search queries.</p>
 <p>Responsibilities:</p>
 <ul>
 <li>Convert research concepts into focused search terms.</li>
+<li>Generate a complementary, bounded set of queries from the Research
+    Strategy, optional Existing Research Context, and user guidance.</li>
 <li>Preserve deterministic query ordering.</li>
 <li>Remove duplicate query terms.</li>
 <li>Remain independent from external research source providers.</li>
@@ -2481,6 +2401,7 @@ that research intent is expressed as searchable queries.</p>
 <li>Execute research searches using a Research Strategy.</li>
 <li>Query configured external research source providers.</li>
 <li>Combine results from multiple configured research source providers.</li>
+<li>Deduplicate source references returned across provider queries.</li>
 <li>Normalize returned research source references.</li>
 <li>Preserve source identifiers and locations.</li>
 <li>Return structured source results and errors.</li>
@@ -2515,7 +2436,7 @@ Research Strategy.</p>
 <li>Identify potential research gaps.</li>
 <li>Support experiment planning analysis.</li>
 <li>Preserve references to supporting research sources.</li>
-<li>Evaluate papers in bounded batches of five.</li>
+<li>Evaluate papers in bounded batches.</li>
 <li>Require one validated evaluation for each supplied paper.</li>
 <li>Preserve valid partial evaluations and retry only missing papers when
     an otherwise valid provider response omits expected source
@@ -2557,10 +2478,8 @@ Research Strategy.</p>
 <li>Preserve all discovered source references for traceability.</li>
 <li>Rank evaluated papers by relevance and retain the configured maximum
     number of results.</li>
-<li>Acquire and extract available full-text PDF content only for retained
-    papers.</li>
-<li>Generate per-paper analyses from retained evaluations using full-text
-    evidence when available and metadata or abstract fallback otherwise.</li>
+<li>Generate per-paper analyses from retained evaluations using available
+    metadata and abstract information.</li>
 <li>Coordinate Research Direction Analysis across retained paper
     analyses and optional Existing Research Context.</li>
 <li>Generate research artifacts from retained evaluations and analyses.</li>
@@ -2570,7 +2489,7 @@ Research Strategy.</p>
 </ul>
 <hr />
 <hr />
-<h2 id="research-source-provider-architecture">Research Source Provider Architecture</h2>
+<h2 id="5-research-source-provider-architecture">5. Research Source Provider Architecture</h2>
 <p>The Research Agent uses a provider-based architecture to isolate
 external research source implementations from Research Agent workflow
 execution.</p>
@@ -2646,7 +2565,7 @@ together without changing Research Agent workflow components.</p>
 that platform components depend on interfaces rather than concrete
 implementations.</p>
 <hr />
-<h2 id="5-external-dependencies">5. External Dependencies</h2>
+<h2 id="6-external-dependencies">6. External Dependencies</h2>
 <p>The Research Agent interacts with:</p>
 <ul>
 <li>Supported external research sources<ul>
@@ -2658,7 +2577,6 @@ implementations.</p>
 </ul>
 </li>
 <li>Technical paper metadata</li>
-<li>Available full-text research-paper PDF content</li>
 <li>Project0 repository knowledge</li>
 <li>Existing research artifacts</li>
 <li>Optional text-based PDF, Markdown, and plain-text Existing Research
@@ -2671,7 +2589,7 @@ implementations.</p>
     resources)</li>
 </ul>
 <hr />
-<h2 id="6-design-constraints">6. Design Constraints</h2>
+<h2 id="7-design-constraints">7. Design Constraints</h2>
 <ul>
 <li>Research outputs shall preserve identifiable source and citation
     information.</li>
@@ -2687,11 +2605,6 @@ implementations.</p>
     distinguishable.</li>
 <li>Image-only or scanned PDF context documents requiring OCR are outside
     the current implementation scope.</li>
-<li>Full-paper analysis shall use page-preserving PDF extraction when
-    available and shall explicitly identify metadata or abstract fallback
-    analysis when full text is unavailable.</li>
-<li>OCR processing of research-paper PDFs is outside the current
-    implementation scope.</li>
 <li>Platform components shall communicate through typed interfaces.</li>
 <li>Shared data models shall define information exchanged between
     components.</li>
@@ -2713,7 +2626,7 @@ implementations.</p>
     requirements demonstrate the need.</li>
 </ul>
 <hr />
-<h2 id="7-future-architectural-expansion">7. Future Architectural Expansion</h2>
+<h2 id="8-future-architectural-expansion">8. Future Architectural Expansion</h2>
 <p>Future versions may introduce:</p>
 <ul>
 <li>Semantic research retrieval</li>
