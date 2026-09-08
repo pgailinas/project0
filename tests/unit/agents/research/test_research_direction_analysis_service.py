@@ -335,7 +335,7 @@ def test_analyze_allows_evidence_anchored_speculative_direction():
     assert result.candidate_directions[0].literature_evidence
 
 
-def test_provider_request_limits_direction_analysis_to_five_papers():
+def test_provider_request_limits_direction_analysis_to_three_papers():
     provider = StubProvider([_valid_output()])
     service = ResearchDirectionAnalysisService(provider, "test-model")
     papers = tuple(
@@ -352,8 +352,8 @@ def test_provider_request_limits_direction_analysis_to_five_papers():
     request = provider.requests[0]
     payload = json.loads(request.user_prompt)
 
-    assert request.metadata["paper_analysis_count"] == 5
-    assert request.metadata["timeout_seconds"] == 120.0
+    assert request.metadata["paper_analysis_count"] == 3
+    assert request.metadata["timeout_seconds"] == 600.0
     assert [
         paper["source_id"]
         for paper in payload["paper_analyses"]
@@ -361,8 +361,6 @@ def test_provider_request_limits_direction_analysis_to_five_papers():
         "Paper-1",
         "Paper-2",
         "Paper-3",
-        "Paper-4",
-        "Paper-5",
     ]
 
 

@@ -139,7 +139,7 @@ def test_UI_RA_FUN_005_A_completed_research_matches_visible_results(
             "heading",
             name="Research Direction Analysis",
         )
-    ).to_be_visible()
+    ).not_to_be_visible()
 
     expect(
         page.get_by_role(

@@ -302,20 +302,9 @@ class ResearchWorkflow:
                         "analysis service."
                     )
 
-                recommended_paper_ids = {
-                    evaluation.paper.source_reference.source_id
-                    for evaluation in recommended_evaluations
-                }
-                direction_paper_analyses = tuple(
-                    analysis
-                    for analysis in paper_analyses
-                    if (
-                        analysis.paper.source_reference.source_id
-                        in recommended_paper_ids
-                    )
-                )
+                direction_paper_analyses = paper_analyses
 
-                if direction_paper_analyses:
+                if len(direction_paper_analyses) >= 2:
                     try:
                         direction_analysis = (
                             self._direction_analysis_service.analyze(

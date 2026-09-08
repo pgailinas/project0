@@ -1477,12 +1477,16 @@ def test_legacy_workflow_skips_unconfigured_paper_analysis() -> None:
     assert result.direction_analysis is None
     assert result.warnings == ()
 
+
 def test_workflow_preserves_direction_analysis_in_result() -> None:
     """Configured direction analysis is preserved in the result."""
 
-    reference = _source_reference()
-    paper = _paper_metadata(reference)
-    paper_analysis = _paper_analysis(paper)
+    references = (
+        _source_reference(source_id="2401.11111", title="First Paper"),
+        _source_reference(source_id="2401.22222", title="Second Paper"),
+    )
+    papers = tuple(_paper_metadata(reference) for reference in references)
+    analyses = tuple(_paper_analysis(paper) for paper in papers)
     direction_analysis = ResearchDirectionAnalysis(
         synthesis=ResearchSynthesis(
             themes=(
@@ -1497,7 +1501,7 @@ def test_workflow_preserves_direction_analysis_in_result() -> None:
     )
 
     paper_analysis_service = StubPaperAnalysisService(
-        analyses=(paper_analysis,)
+        analyses=analyses
     )
     direction_analysis_service = (
         StubResearchDirectionAnalysisService(
@@ -1506,24 +1510,58 @@ def test_workflow_preserves_direction_analysis_in_result() -> None:
     )
 
     workflow = _create_workflow(
-        references=(reference,),
-        papers=(paper,),
-        evaluations=(
-            _evaluation(paper),
-        ),
+        references=references,
+        papers=papers,
+        evaluations=tuple(_evaluation(paper) for paper in papers),
         paper_analysis_service=paper_analysis_service,
         direction_analysis_service=direction_analysis_service,
     )[0]
 
-    result = workflow.execute(
-        _research_request()
-    )
+    result = workflow.execute(_research_request())
 
     assert result.status is ResearchStatus.COMPLETED
     assert result.direction_analysis is direction_analysis
 
+
 def test_workflow_forwards_paper_analysis_to_direction_analysis() -> None:
     """Structured paper analyses are forwarded to direction analysis."""
+
+    references = (
+        _source_reference(source_id="2401.11111", title="First Paper"),
+        _source_reference(source_id="2401.22222", title="Second Paper"),
+    )
+    papers = tuple(_paper_metadata(reference) for reference in references)
+    analyses = tuple(_paper_analysis(paper) for paper in papers)
+
+    paper_analysis_service = StubPaperAnalysisService(
+        analyses=analyses
+    )
+    direction_analysis_service = (
+        StubResearchDirectionAnalysisService()
+    )
+
+    workflow = _create_workflow(
+        references=references,
+        papers=papers,
+        evaluations=tuple(_evaluation(paper) for paper in papers),
+        paper_analysis_service=paper_analysis_service,
+        direction_analysis_service=direction_analysis_service,
+    )[0]
+
+    request = _research_request()
+    result = workflow.execute(request)
+
+    assert result.status is ResearchStatus.COMPLETED
+    assert direction_analysis_service.requests == [
+        (
+            request,
+            None,
+            analyses,
+        )
+    ]
+
+def test_workflow_skips_direction_analysis_with_fewer_than_two_analyses() -> None:
+    """Cross-paper direction analysis requires at least two paper analyses."""
 
     reference = _source_reference()
     paper = _paper_metadata(reference)
@@ -1546,17 +1584,13 @@ def test_workflow_forwards_paper_analysis_to_direction_analysis() -> None:
         direction_analysis_service=direction_analysis_service,
     )[0]
 
-    request = _research_request()
-    result = workflow.execute(request)
+    result = workflow.execute(
+        _research_request()
+    )
 
     assert result.status is ResearchStatus.COMPLETED
-    assert direction_analysis_service.requests == [
-        (
-            request,
-            None,
-            (paper_analysis,),
-        )
-    ]
+    assert result.direction_analysis is None
+    assert direction_analysis_service.requests == []
 
 
 def test_workflow_skips_disabled_direction_analysis() -> None:
@@ -1593,12 +1627,16 @@ def test_workflow_skips_disabled_direction_analysis() -> None:
     assert direction_analysis_service.requests == []
 
 
+
 def test_workflow_forwards_context_to_direction_analysis() -> None:
     """Existing research context is forwarded to direction analysis."""
 
-    reference = _source_reference()
-    paper = _paper_metadata(reference)
-    paper_analysis = _paper_analysis(paper)
+    references = (
+        _source_reference(source_id="2401.11111", title="First Paper"),
+        _source_reference(source_id="2401.22222", title="Second Paper"),
+    )
+    papers = tuple(_paper_metadata(reference) for reference in references)
+    analyses = tuple(_paper_analysis(paper) for paper in papers)
     context = _existing_research_context()
 
     context_ingestion_service = StubResearchContextIngestionService(
@@ -1610,18 +1648,16 @@ def test_workflow_forwards_context_to_direction_analysis() -> None:
         )
     )
     paper_analysis_service = StubPaperAnalysisService(
-        analyses=(paper_analysis,)
+        analyses=analyses
     )
     direction_analysis_service = (
         StubResearchDirectionAnalysisService()
     )
 
     workflow = _create_workflow(
-        references=(reference,),
-        papers=(paper,),
-        evaluations=(
-            _evaluation(paper),
-        ),
+        references=references,
+        papers=papers,
+        evaluations=tuple(_evaluation(paper) for paper in papers),
         context_ingestion_service=context_ingestion_service,
         context_analysis_service=context_analysis_service,
         paper_analysis_service=paper_analysis_service,
@@ -1640,10 +1676,9 @@ def test_workflow_forwards_context_to_direction_analysis() -> None:
         (
             request,
             context,
-            (paper_analysis,),
+            analyses,
         )
     ]
-
 
 def test_direction_analysis_without_paper_analysis_fails_workflow() -> None:
     """Direction analysis requires retained-paper analysis support."""
@@ -1667,16 +1702,18 @@ def test_direction_analysis_without_paper_analysis_fails_workflow() -> None:
     assert direction_analysis_service.requests == []
 
 
+
 def test_direction_analysis_failure_returns_completed_result_with_warning() -> None:
     """Research direction analysis failures preserve completed prior work."""
 
-    reference = _source_reference()
-    paper = _paper_metadata(reference)
+    references = (
+        _source_reference(source_id="2401.11111", title="First Paper"),
+        _source_reference(source_id="2401.22222", title="Second Paper"),
+    )
+    papers = tuple(_paper_metadata(reference) for reference in references)
 
     paper_analysis_service = StubPaperAnalysisService(
-        analyses=(
-            _paper_analysis(paper),
-        )
+        analyses=tuple(_paper_analysis(paper) for paper in papers)
     )
     direction_analysis_service = (
         StubResearchDirectionAnalysisService(
@@ -1687,11 +1724,9 @@ def test_direction_analysis_failure_returns_completed_result_with_warning() -> N
     )
 
     workflow = _create_workflow(
-        references=(reference,),
-        papers=(paper,),
-        evaluations=(
-            _evaluation(paper),
-        ),
+        references=references,
+        papers=papers,
+        evaluations=tuple(_evaluation(paper) for paper in papers),
         paper_analysis_service=paper_analysis_service,
         direction_analysis_service=direction_analysis_service,
     )[0]
@@ -1702,9 +1737,9 @@ def test_direction_analysis_failure_returns_completed_result_with_warning() -> N
 
     assert result.status is ResearchStatus.COMPLETED_WITH_WARNINGS
     assert result.direction_analysis is None
-    assert result.papers == (paper,)
-    assert result.evaluations == (
-        _evaluation(paper),
+    assert result.papers == papers
+    assert result.evaluations == tuple(
+        _evaluation(paper) for paper in papers
     )
     assert result.artifacts
     assert result.warnings == (
@@ -1712,7 +1747,6 @@ def test_direction_analysis_failure_returns_completed_result_with_warning() -> N
         "Research direction analysis failed.",
     )
     assert result.error_message is None
-
 
 def test_workflow_bounds_preliminary_evidence_shortlist() -> None:
     """Preliminary relevance selects no more than eight evidence candidates."""
@@ -1937,7 +1971,13 @@ def test_workflow_preserves_evidence_review_when_threshold_is_unmet() -> None:
             result.papers,
         )
     ]
-    assert direction_service.requests == []
+    assert direction_service.requests == [
+        (
+            request,
+            result.existing_research_context,
+            analyses,
+        )
+    ]
     assert result.warnings == (
         "No evidence-reviewed papers met the minimum relevance threshold; "
         "displaying 2 reviewed paper(s).",
@@ -1950,8 +1990,8 @@ def test_workflow_preserves_evidence_review_when_threshold_is_unmet() -> None:
     }
 
 
-def test_workflow_synthesizes_only_recommended_evidence() -> None:
-    """Direction analysis receives only threshold-qualified evidence."""
+def test_workflow_synthesizes_reviewed_evidence_across_thresholds() -> None:
+    """Direction analysis receives all retained evidence-reviewed analyses."""
 
     references = (
         _source_reference(
@@ -1997,7 +2037,7 @@ def test_workflow_synthesizes_only_recommended_evidence() -> None:
         (
             request,
             result.existing_research_context,
-            (analyses[0],),
+            analyses,
         )
     ]
     assert result.metadata["evidence_review"] == {

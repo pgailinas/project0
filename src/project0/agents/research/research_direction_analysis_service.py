@@ -60,8 +60,8 @@ class ResearchDirectionAnalysisService:
 
         self._provider = provider
         self._model_name = model_name
-        self._max_paper_analyses = 5
-        self._timeout_seconds = 120.0
+        self._max_paper_analyses = 3
+        self._timeout_seconds = 600.0
 
     def analyze(
         self,
@@ -421,6 +421,9 @@ class ResearchDirectionAnalysisService:
                 "paper_analysis_count": len(paper_analyses),
                 "has_existing_research_context": context is not None,
                 "timeout_seconds": self._timeout_seconds,
+                "debug_capture_path": (
+                    "/tmp/project0_direction_analysis_request.json"
+                ),
             },
         )
 
