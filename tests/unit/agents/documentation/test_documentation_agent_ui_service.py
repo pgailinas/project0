@@ -40,12 +40,14 @@ class FakeWorkflow:
         self,
         user_request: str,
         target_paths: tuple[str, ...] = (),
+        source_paths: tuple[str, ...] = (),
         workflow_id: str | None = None,
     ) -> object:
         """Record request arguments and return or raise the configured result."""
 
         self.received_arguments = {
             "user_request": user_request,
+            "source_paths": source_paths,
             "target_paths": target_paths,
             "workflow_id": workflow_id,
         }
@@ -88,6 +90,7 @@ def test_create_ready_page() -> None:
     assert page.page_status is DocumentationAgentPageStatus.READY
     assert page.status_message == "Ready for a documentation request."
     assert page.request_form.user_request == ""
+    assert page.request_form.source_paths == ()
     assert page.request_form.target_paths == ()
     assert page.workflow_id is None
     assert page.proposals == ()
@@ -102,6 +105,7 @@ def test_submit_request_requires_nonempty_request() -> None:
 
     page = service.submit_request(
         user_request="   ",
+        source_paths=(" src/project0/example.py ",),
         target_paths=(" docs/Example.md ",),
     )
 
@@ -111,6 +115,7 @@ def test_submit_request_requires_nonempty_request() -> None:
         "Enter a documentation request before continuing."
     )
     assert page.request_form.user_request == ""
+    assert page.request_form.source_paths == ("src/project0/example.py",)
     assert page.request_form.target_paths == ("docs/Example.md",)
     assert workflow.received_arguments is None
 
@@ -128,6 +133,12 @@ def test_submit_request_normalizes_form_values() -> None:
 
     page = service.submit_request(
         user_request="  Update the implementation status.  ",
+        source_paths=(
+            " src/project0/interfaces/research_interfaces.py ",
+            "",
+            "   ",
+            "src/project0/models/research_models.py",
+        ),
         target_paths=(
             " docs/Implementation_Status.md ",
             "",
@@ -138,6 +149,10 @@ def test_submit_request_normalizes_form_values() -> None:
 
     assert workflow.received_arguments == {
         "user_request": "Update the implementation status.",
+        "source_paths": (
+            "src/project0/interfaces/research_interfaces.py",
+            "src/project0/models/research_models.py",
+        ),
         "target_paths": (
             "docs/Implementation_Status.md",
             "docs/Dashboard_Design.md",
@@ -146,6 +161,10 @@ def test_submit_request_normalizes_form_values() -> None:
     }
     assert page.request_form.user_request == (
         "Update the implementation status."
+    )
+    assert page.request_form.source_paths == (
+        "src/project0/interfaces/research_interfaces.py",
+        "src/project0/models/research_models.py",
     )
     assert page.request_form.target_paths == (
         "docs/Implementation_Status.md",
@@ -697,6 +716,9 @@ def test_submit_review_decision_revise_restores_request_context() -> None:
             "workflow_id": "workflow-revise",
             "status": "review_required",
             "user_request": "Update the documentation.",
+            "source_paths": (
+                "src/project0/models/research_models.py",
+            ),
             "target_paths": (
                 "docs/Example.md",
             ),
@@ -719,6 +741,9 @@ def test_submit_review_decision_revise_restores_request_context() -> None:
     assert page.workflow_id == "workflow-revise"
     assert page.request_form.user_request == (
         "Update the documentation."
+    )
+    assert page.request_form.source_paths == (
+        "src/project0/models/research_models.py",
     )
     assert page.request_form.target_paths == (
         "docs/Example.md",

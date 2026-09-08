@@ -22,6 +22,7 @@ from fastapi.testclient import TestClient
 from project0.agents.documentation.documentation_agent_routes import (
     DOCUMENTATION_AGENT_ROUTE_PREFIX,
     DOCUMENTATION_AGENT_TEMPLATE_NAME,
+    _parse_source_paths,
     _parse_target_paths,
     create_documentation_agent_router,
 )
@@ -52,11 +53,13 @@ class FakeDocumentationAgentUIService:
         self,
         user_request: str,
         target_paths: tuple[str, ...],
+        source_paths: tuple[str, ...],
     ) -> DocumentationAgentPageView:
         """Record request values and return the configured page."""
 
         self.received_request = {
             "user_request": user_request,
+            "source_paths": source_paths,
             "target_paths": target_paths,
         }
         return self.request_page
@@ -169,6 +172,23 @@ def test_route_constants() -> None:
     )
 
 
+def test_parse_source_paths() -> None:
+    """Source paths should be split, stripped, and filtered."""
+
+    result = _parse_source_paths(
+        """
+        src/project0/interfaces/research_interfaces.py
+
+          src/project0/models/research_models.py
+        """
+    )
+
+    assert result == (
+        "src/project0/interfaces/research_interfaces.py",
+        "src/project0/models/research_models.py",
+    )
+
+
 def test_parse_target_paths() -> None:
     """Target paths should be split, stripped, and filtered."""
 
@@ -219,6 +239,11 @@ def test_submit_request_route_delegates_form_values(
         "/agents/documentation/request",
         data={
             "user_request": "Update the implementation status.",
+            "source_paths": (
+                "src/project0/interfaces/research_interfaces.py\n"
+                "\n"
+                " src/project0/models/research_models.py "
+            ),
             "target_paths": (
                 "docs/Implementation_Status.md\n"
                 "\n"
@@ -230,6 +255,10 @@ def test_submit_request_route_delegates_form_values(
     assert response.status_code == 200
     assert service.received_request == {
         "user_request": "Update the implementation status.",
+        "source_paths": (
+            "src/project0/interfaces/research_interfaces.py",
+            "src/project0/models/research_models.py",
+        ),
         "target_paths": (
             "docs/Implementation_Status.md",
             "docs/Dashboard_Design.md",
@@ -251,6 +280,7 @@ def test_submit_request_route_uses_threadpool_without_changing_delegation(
         "/agents/documentation/request",
         data={
             "user_request": "Update the documentation.",
+            "source_paths": "src/project0/models/research_models.py",
             "target_paths": "docs/Implementation_Status.md",
         },
     )
@@ -258,6 +288,7 @@ def test_submit_request_route_uses_threadpool_without_changing_delegation(
     assert response.status_code == 200
     assert service.received_request == {
         "user_request": "Update the documentation.",
+        "source_paths": ("src/project0/models/research_models.py",),
         "target_paths": ("docs/Implementation_Status.md",),
     }
     assert '<p id="status">review_required</p>' in response.text
@@ -274,6 +305,7 @@ def test_submit_request_route_accepts_empty_optional_paths(
         "/agents/documentation/request",
         data={
             "user_request": "Update the documentation.",
+            "source_paths": "",
             "target_paths": "",
         },
     )
@@ -281,6 +313,7 @@ def test_submit_request_route_accepts_empty_optional_paths(
     assert response.status_code == 200
     assert service.received_request == {
         "user_request": "Update the documentation.",
+        "source_paths": (),
         "target_paths": (),
     }
 

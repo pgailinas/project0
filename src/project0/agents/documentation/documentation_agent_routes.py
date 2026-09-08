@@ -83,6 +83,7 @@ def create_documentation_agent_router(
     async def documentation_agent_submit_request(
         request: Request,
         user_request: str = Form(""),
+        source_paths: str = Form(""),
         target_paths: str = Form(""),
     ) -> HTMLResponse:
         """Submit a documentation request and render the resulting state."""
@@ -90,6 +91,7 @@ def create_documentation_agent_router(
         page = await run_in_threadpool(
             ui_service.submit_request,
             user_request=user_request,
+            source_paths=_parse_source_paths(source_paths),
             target_paths=_parse_target_paths(target_paths),
         )
 
@@ -172,6 +174,16 @@ def _render_page(
         context=context,
     )
 
+
+
+def _parse_source_paths(value: str) -> tuple[str, ...]:
+    """Convert newline-separated source paths into normalized values."""
+
+    return tuple(
+        line.strip()
+        for line in value.splitlines()
+        if line.strip()
+    )
 
 def _parse_target_paths(value: str) -> tuple[str, ...]:
     """Convert newline-separated target paths into normalized values."""

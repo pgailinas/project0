@@ -332,12 +332,14 @@ def test_approved_update_completes_workflow(tmp_path: Path) -> None:
         DocumentationWorkflowRequest(
             user_request="Update the documentation.",
             target_paths=("docs/index.md",),
+            source_paths=("src/project0/example.py",),
             workflow_id="workflow-001",
         )
     )
 
     assert state.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
     assert len(state.proposals) == 1
+    assert state.source_paths == ("src/project0/example.py",)
     assert state.reviews == ()
     assert state.applied_changes == ()
     assert review_coordinator.proposals == []
@@ -348,6 +350,7 @@ def test_approved_update_completes_workflow(tmp_path: Path) -> None:
     )
 
     assert result.status is DocumentationWorkflowStatus.COMPLETED
+    assert result.source_paths == ("src/project0/example.py",)
     assert len(result.proposals) == 1
     assert len(result.reviews) == 1
     assert len(result.applied_changes) == 1
@@ -382,6 +385,7 @@ def test_revise_review_preserves_request_context(
         DocumentationWorkflowRequest(
             user_request="Update the documentation.",
             target_paths=("docs/index.md",),
+            source_paths=("src/project0/example.py",),
             workflow_id="workflow-revise",
         )
     )
@@ -394,6 +398,7 @@ def test_revise_review_preserves_request_context(
     assert revised_state.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
     assert revised_state.user_request == "Update the documentation."
     assert revised_state.target_paths == ("docs/index.md",)
+    assert revised_state.source_paths == ("src/project0/example.py",)
     assert revised_state.reviews[0].decision is ReviewDecision.REVISE
     assert revised_state.applied_changes == ()
 
@@ -496,6 +501,7 @@ def test_context_and_reasoning_request_are_forwarded(
     request = DocumentationWorkflowRequest(
         user_request="Review the documentation.",
         target_paths=("docs/index.md",),
+        source_paths=("src/project0/example.py",),
         workflow_id="workflow-002",
     )
 
@@ -620,6 +626,48 @@ def test_preliminary_warning_is_preserved(tmp_path: Path) -> None:
     assert (
         "Preliminary validation completed with warnings."
         in result.warnings
+    )
+
+
+def test_proposal_outside_requested_target_scope_is_skipped(
+    tmp_path: Path,
+) -> None:
+    """Explicit target paths should bound the documentation write scope."""
+
+    allowed = tmp_path / "docs/allowed.md"
+    other = tmp_path / "docs/other.md"
+    allowed.parent.mkdir()
+    allowed.write_text("# Allowed\n", encoding="utf-8")
+    other.write_text("# Other\n", encoding="utf-8")
+
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(
+                _update_change(
+                    "docs/other.md",
+                    "# Other Updated\n",
+                ),
+            )
+        ),
+        validation_results=(
+            _validation_result(ValidationStatus.PASSED),
+        ),
+    )[0]
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Update only the allowed document.",
+            target_paths=("docs/allowed.md",),
+            workflow_id="workflow-target-scope",
+        )
+    )
+
+    assert result.proposals == ()
+    assert any(
+        "outside the requested target scope"
+        in warning
+        for warning in result.warnings
     )
 
 

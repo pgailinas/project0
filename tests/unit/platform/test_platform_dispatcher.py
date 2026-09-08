@@ -43,6 +43,7 @@ from project0.models.workflow_models import (
 )
 from project0.platform.platform_dispatcher import (
     PlatformDispatcher,
+    _build_source_grounded_documentation_context,
     _create_documentation_workflow,
     _create_research_workflow,
     create_platform_dispatcher,
@@ -81,6 +82,7 @@ def _documentation_workflow_result(
         completed_at=COMPLETED_AT,
         user_request="Update the documentation.",
         target_paths=("docs/index.md",),
+        source_paths=(),
         reasoning_result=None,
         proposals=(),
         reviews=(),
@@ -137,6 +139,7 @@ def _documentation_workflow_state(
         started_at=STARTED_AT,
         user_request="Update the documentation.",
         target_paths=("docs/index.md",),
+        source_paths=(),
         reasoning_result=None,
         proposals=(proposal,),
     )
@@ -500,6 +503,7 @@ def test_run_documentation_workflow_uses_supplied_workflow_id() -> None:
     result = dispatcher.run_documentation_workflow(
         user_request="Update the architecture documentation.",
         target_paths=("docs/Documentation_Agent_Architecture.md",),
+        source_paths=("src/project0/interfaces/research_interfaces.py",),
         workflow_id="documentation-custom",
     )
 
@@ -513,6 +517,9 @@ def test_run_documentation_workflow_uses_supplied_workflow_id() -> None:
     )
     assert request.target_paths == (
         "docs/Documentation_Agent_Architecture.md",
+    )
+    assert request.source_paths == (
+        "src/project0/interfaces/research_interfaces.py",
     )
 
 
@@ -565,6 +572,7 @@ def test_run_documentation_workflow_defaults_target_paths() -> None:
     request = documentation_workflow.execute.call_args.args[0]
 
     assert request.target_paths == ()
+    assert request.source_paths == ()
 
 
 def test_run_documentation_workflow_returns_workflow_state() -> None:
@@ -897,11 +905,72 @@ def test_create_documentation_workflow_disables_baseline_documents_by_default(
         Mock(
             user_request="Update documentation.",
             target_paths=(),
+            source_paths=(),
         )
     )
 
     assert len(captured_requests) == 1
     assert captured_requests[0].include_baseline_documents is False
+
+
+def test_source_grounded_documentation_context_reads_only_requested_files(
+    tmp_path,
+) -> None:
+    """Source-grounded context should contain targets and explicit sources."""
+
+    target = tmp_path / "docs/example.md"
+    source_a = tmp_path / "src/project0/a.py"
+    source_b = tmp_path / "tests/example_test.py"
+
+    target.parent.mkdir(parents=True)
+    source_a.parent.mkdir(parents=True)
+    source_b.parent.mkdir(parents=True)
+
+    target.write_text("# Existing documentation\n", encoding="utf-8")
+    source_a.write_text("VALUE = 1\n", encoding="utf-8")
+    source_b.write_text("def test_value(): pass\n", encoding="utf-8")
+
+    from project0.repository.repository_service import RepositoryService
+
+    context = _build_source_grounded_documentation_context(
+        repository_service=RepositoryService(tmp_path),
+        target_paths=("docs/example.md",),
+        source_paths=(
+            "src/project0/a.py",
+            "tests/example_test.py",
+        ),
+    )
+
+    assert "=== TARGET DOCUMENTATION ===" in context
+    assert "Path: docs/example.md" in context
+    assert "# Existing documentation" in context
+    assert context.count("=== AUTHORITATIVE SOURCE ===") == 2
+    assert "Path: src/project0/a.py" in context
+    assert "VALUE = 1" in context
+    assert "Path: tests/example_test.py" in context
+    assert "def test_value(): pass" in context
+
+
+def test_source_grounded_documentation_context_fails_on_missing_file(
+    tmp_path,
+) -> None:
+    """Missing explicit source files should fail closed."""
+
+    target = tmp_path / "docs/example.md"
+    target.parent.mkdir(parents=True)
+    target.write_text("# Existing documentation\n", encoding="utf-8")
+
+    from project0.repository.repository_service import RepositoryService
+
+    with pytest.raises(
+        ValueError,
+        match="Source-grounded documentation context could not be built",
+    ):
+        _build_source_grounded_documentation_context(
+            repository_service=RepositoryService(tmp_path),
+            target_paths=("docs/example.md",),
+            source_paths=("src/project0/missing.py",),
+        )
 
 
 def test_create_documentation_workflow_uses_reasoning_model_name(

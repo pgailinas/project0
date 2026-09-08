@@ -151,6 +151,17 @@
                 <p>{{ page.request_form.user_request }}</p>
             </div>
 
+            {% if page.request_form.source_paths %}
+            <div>
+                <h3>Ground Truth Sources</h3>
+                <ul class="review-target-paths">
+                    {% for path in page.request_form.source_paths %}
+                    <li><code>{{ path }}</code></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
             {% if page.request_form.target_paths %}
             <div>
                 <h3>Target Documentation</h3>
@@ -181,6 +192,21 @@
                 <p class="form-help">
                     Describe the change, the reason for it, and any constraints
                     the Documentation Agent should preserve.
+                </p>
+            </div>
+
+            <div class="form-field">
+                <label for="source-paths">Ground Truth Source Paths</label>
+                <textarea
+                    id="source-paths"
+                    name="source_paths"
+                    rows="4"
+                    placeholder="src/project0/interfaces/research_interfaces.py"
+                >{% for path in page.request_form.source_paths %}{{ path }}{% if not loop.last %}
+{% endif %}{% endfor %}</textarea>
+                <p class="form-help">
+                    Optional. Enter one repository-relative authoritative
+                    source path per line.
                 </p>
             </div>
 

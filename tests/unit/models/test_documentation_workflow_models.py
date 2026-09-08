@@ -193,14 +193,15 @@ def test_documentation_workflow_request_generates_unique_identifier() -> None:
     assert first.workflow_id != second.workflow_id
 
 
-def test_documentation_workflow_request_defaults_target_paths() -> None:
-    """DocumentationWorkflowRequest defaults to no target paths."""
+def test_documentation_workflow_request_defaults_paths() -> None:
+    """DocumentationWorkflowRequest defaults to no explicit paths."""
 
     request = DocumentationWorkflowRequest(
         user_request="Review documentation."
     )
 
     assert request.target_paths == ()
+    assert request.source_paths == ()
 
 
 def test_documentation_workflow_request_preserves_values() -> None:
@@ -212,6 +213,10 @@ def test_documentation_workflow_request_preserves_values() -> None:
             "docs/Documentation_Agent_Architecture.md",
             "docs/Documentation_Agent_Design.md",
         ),
+        source_paths=(
+            "src/project0/interfaces/research_interfaces.py",
+            "src/project0/models/research_models.py",
+        ),
         workflow_id="workflow-001",
     )
 
@@ -220,6 +225,10 @@ def test_documentation_workflow_request_preserves_values() -> None:
     assert request.target_paths == (
         "docs/Documentation_Agent_Architecture.md",
         "docs/Documentation_Agent_Design.md",
+    )
+    assert request.source_paths == (
+        "src/project0/interfaces/research_interfaces.py",
+        "src/project0/models/research_models.py",
     )
 
 
@@ -241,6 +250,7 @@ def test_documentation_workflow_state_defaults() -> None:
         started_at=started_at,
         user_request="Update the documentation.",
         target_paths=("docs/index.md",),
+        source_paths=("src/project0/example.py",),
         reasoning_result=None,
         proposals=(proposal,),
     )
@@ -288,6 +298,7 @@ def test_documentation_workflow_state_preserves_optional_values() -> None:
         started_at=started_at,
         user_request="Update the documentation.",
         target_paths=("docs/index.md",),
+        source_paths=("src/project0/example.py",),
         reasoning_result=None,
         proposals=(proposal,),
         reviews=(review,),
@@ -366,6 +377,7 @@ def test_documentation_workflow_result_preserves_values() -> None:
         completed_at=completed_at,
         user_request="Update the documentation.",
         target_paths=("docs/index.md",),
+        source_paths=("src/project0/example.py",),
         reasoning_result=None,
         proposals=(proposal,),
         reviews=(review,),
@@ -382,6 +394,7 @@ def test_documentation_workflow_result_preserves_values() -> None:
     assert result.completed_at == completed_at
     assert result.user_request == "Update the documentation."
     assert result.target_paths == ("docs/index.md",)
+    assert result.source_paths == ("src/project0/example.py",)
     assert result.reasoning_result is None
     assert result.proposals == (proposal,)
     assert result.reviews == (review,)
@@ -415,6 +428,7 @@ def test_documentation_workflow_result_preserves_warnings_and_error() -> None:
         completed_at=timestamp,
         user_request="Update documentation.",
         target_paths=(),
+        source_paths=(),
         reasoning_result=None,
         proposals=(),
         reviews=(),
@@ -475,6 +489,7 @@ def test_documentation_workflow_result_preserves_warnings_and_error() -> None:
                 started_at=datetime(2026, 8, 5, 11, 0, tzinfo=UTC),
                 user_request="Update the documentation.",
                 target_paths=("docs/index.md",),
+                source_paths=(),
                 reasoning_result=None,
                 proposals=(),
             ),

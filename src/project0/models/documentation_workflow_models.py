@@ -98,6 +98,7 @@ class DocumentationWorkflowRequest:
 
     user_request: str
     target_paths: tuple[str, ...] = ()
+    source_paths: tuple[str, ...] = ()
     workflow_id: str = field(default_factory=lambda: str(uuid4()))
 
 
@@ -110,6 +111,7 @@ class DocumentationWorkflowState:
     started_at: datetime
     user_request: str
     target_paths: tuple[str, ...]
+    source_paths: tuple[str, ...]
     reasoning_result: ReasoningResult | None
     proposals: tuple[DocumentationChangeProposal, ...]
     reviews: tuple[DocumentationReview, ...] = ()
@@ -142,6 +144,7 @@ class DocumentationWorkflowResult:
     completed_at: datetime
     user_request: str
     target_paths: tuple[str, ...]
+    source_paths: tuple[str, ...]
     reasoning_result: ReasoningResult | None
     proposals: tuple[DocumentationChangeProposal, ...]
     reviews: tuple[DocumentationReview, ...]

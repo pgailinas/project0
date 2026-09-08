@@ -155,6 +155,7 @@ class PlatformDispatcher:
         self,
         user_request: str,
         target_paths: tuple[str, ...] = (),
+        source_paths: tuple[str, ...] = (),
         workflow_id: str | None = None,
     ) -> DocumentationWorkflowState | DocumentationWorkflowResult:
         """Execute the configured documentation workflow until review."""
@@ -171,6 +172,7 @@ class PlatformDispatcher:
             DocumentationWorkflowRequest(
                 user_request=user_request,
                 target_paths=target_paths,
+                source_paths=source_paths,
                 workflow_id=workflow_id or str(uuid4()),
             )
         )
@@ -348,10 +350,20 @@ def _create_documentation_workflow(
         )
 
     knowledge_service = KnowledgeService(repository_root)
+    repository_service = RepositoryService(
+        repository_root=repository_root
+    )
 
     def context_provider(
         request: DocumentationWorkflowRequest,
     ) -> str:
+        if request.source_paths:
+            return _build_source_grounded_documentation_context(
+                repository_service=repository_service,
+                target_paths=request.target_paths,
+                source_paths=request.source_paths,
+            )
+
         knowledge_result = knowledge_service.build_knowledge(
             KnowledgeRequest(
                 query=request.user_request,
@@ -397,6 +409,58 @@ def _create_documentation_workflow(
         ),
         git_diff_service=GitDiffService(repository_root),
     )
+
+def _build_source_grounded_documentation_context(
+    repository_service: RepositoryInterface,
+    target_paths: tuple[str, ...],
+    source_paths: tuple[str, ...],
+) -> str:
+    """Build context from only the requested targets and source files."""
+
+    requested_paths = tuple(
+        Path(repository_path)
+        for repository_path in (*target_paths, *source_paths)
+    )
+    read_result = repository_service.read_files(requested_paths)
+
+    if read_result.errors:
+        details = "; ".join(
+            (
+                f"{error.path}: {error.message}"
+                if error.path
+                else error.message
+            )
+            for error in read_result.errors
+        )
+        raise ValueError(
+            "Source-grounded documentation context could not be built: "
+            f"{details}"
+        )
+
+    target_path_set = set(target_paths)
+    sections: list[str] = []
+
+    for file_content in read_result.files:
+        repository_path = Path(
+            file_content.file.relative_path
+        ).as_posix()
+        role = (
+            "TARGET DOCUMENTATION"
+            if repository_path in target_path_set
+            else "AUTHORITATIVE SOURCE"
+        )
+        sections.append(
+            "\n".join(
+                (
+                    f"=== {role} ===",
+                    f"Path: {repository_path}",
+                    file_content.content,
+                )
+            )
+        )
+
+    return "\n\n".join(sections)
+
 
 def _create_research_workflow(
     reasoning_provider: ReasoningProviderProtocol | None,

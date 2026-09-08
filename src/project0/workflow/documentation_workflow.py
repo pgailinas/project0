@@ -139,7 +139,8 @@ class DocumentationWorkflow:
             warnings.extend(reasoning_result.warnings)
 
             proposals, proposal_warnings = self._build_proposals(
-                reasoning_result
+                reasoning_result=reasoning_result,
+                target_paths=request.target_paths,
             )
             warnings.extend(proposal_warnings)
 
@@ -158,6 +159,7 @@ class DocumentationWorkflow:
                     started_at=started_at,
                     user_request=request.user_request,
                     target_paths=request.target_paths,
+                    source_paths=request.source_paths,
                     reasoning_result=reasoning_result,
                     proposals=proposals,
                     preliminary_validation=preliminary_validation,
@@ -191,6 +193,7 @@ class DocumentationWorkflow:
                     started_at=started_at,
                     user_request=request.user_request,
                     target_paths=request.target_paths,
+                    source_paths=request.source_paths,
                     reasoning_result=reasoning_result,
                     proposals=(),
                     preliminary_validation=preliminary_validation,
@@ -207,6 +210,7 @@ class DocumentationWorkflow:
                 started_at=started_at,
                 user_request=request.user_request,
                 target_paths=request.target_paths,
+                source_paths=request.source_paths,
                 reasoning_result=reasoning_result,
                 proposals=proposals,
                 preliminary_validation=preliminary_validation,
@@ -241,6 +245,7 @@ class DocumentationWorkflow:
             completed_at=datetime.now(UTC),
             user_request=state.user_request,
             target_paths=state.target_paths,
+            source_paths=state.source_paths,
             reasoning_result=state.reasoning_result,
             proposals=state.proposals,
             reviews=state.reviews,
@@ -336,6 +341,7 @@ class DocumentationWorkflow:
                 started_at=state.started_at,
                 user_request=state.user_request,
                 target_paths=state.target_paths,
+                source_paths=state.source_paths,
                 reasoning_result=state.reasoning_result,
                 proposals=state.proposals,
                 reviews=reviews,
@@ -360,6 +366,7 @@ class DocumentationWorkflow:
                 started_at=state.started_at,
                 user_request=state.user_request,
                 target_paths=state.target_paths,
+                source_paths=state.source_paths,
                 reasoning_result=state.reasoning_result,
                 proposals=state.proposals,
                 reviews=reviews,
@@ -453,6 +460,9 @@ class DocumentationWorkflow:
             target_paths=self._workflow_states.get(
                 workflow_id
             ).target_paths if self._workflow_states.get(workflow_id) else (),
+            source_paths=self._workflow_states.get(
+                workflow_id
+            ).source_paths if self._workflow_states.get(workflow_id) else (),
             reasoning_result=reasoning_result,
             proposals=proposals,
             reviews=reviews,
@@ -472,6 +482,7 @@ class DocumentationWorkflow:
     def _build_proposals(
         self,
         reasoning_result: ReasoningResult,
+        target_paths: tuple[str, ...] = (),
     ) -> tuple[
         tuple[DocumentationChangeProposal, ...],
         tuple[str, ...],
@@ -480,9 +491,21 @@ class DocumentationWorkflow:
 
         proposals: list[DocumentationChangeProposal] = []
         warnings: list[str] = []
+        allowed_target_paths = set(target_paths)
 
         for proposed_change in reasoning_result.proposed_changes:
             repository_path = proposed_change.document_path.as_posix()
+
+            if (
+                allowed_target_paths
+                and repository_path not in allowed_target_paths
+            ):
+                warnings.append(
+                    "Proposed documentation path was outside the "
+                    "requested target scope and was skipped: "
+                    f"{repository_path}."
+                )
+                continue
 
             if (
                 proposed_change.operation
@@ -694,6 +717,7 @@ class DocumentationWorkflow:
             completed_at=datetime.now(UTC),
             user_request=request.user_request,
             target_paths=request.target_paths,
+            source_paths=request.source_paths,
             reasoning_result=reasoning_result,
             proposals=proposals,
             reviews=reviews,

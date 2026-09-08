@@ -52,6 +52,7 @@ class DocumentationWorkflowPort(Protocol):
         self,
         user_request: str,
         target_paths: tuple[str, ...] = (),
+        source_paths: tuple[str, ...] = (),
         workflow_id: str | None = None,
     ) -> object:
         """Execute a documentation workflow until review or completion."""
@@ -89,12 +90,14 @@ class DocumentationAgentUIService:
         self,
         user_request: str,
         target_paths: Sequence[str] | None = None,
+        source_paths: Sequence[str] | None = None,
     ) -> DocumentationAgentPageView:
         """Submit a documentation request and return display-ready state."""
 
         request_form = self._build_request_form(
             user_request=user_request,
             target_paths=target_paths,
+            source_paths=source_paths,
         )
 
         if not request_form.user_request:
@@ -106,9 +109,17 @@ class DocumentationAgentUIService:
             )
 
         try:
+            workflow_arguments = {
+                "user_request": request_form.user_request,
+                "target_paths": request_form.target_paths,
+            }
+            if request_form.source_paths:
+                workflow_arguments["source_paths"] = (
+                    request_form.source_paths
+                )
+
             workflow_result = self.workflow.run_documentation_workflow(
-                user_request=request_form.user_request,
-                target_paths=request_form.target_paths,
+                **workflow_arguments
             )
         except Exception as exc:
             return self._create_failure_page(
@@ -169,6 +180,14 @@ class DocumentationAgentUIService:
                         default="",
                     )
                 ),
+                source_paths=tuple(
+                    str(path)
+                    for path in self._read_value(
+                        workflow_state,
+                        "source_paths",
+                        default=(),
+                    )
+                ),
                 target_paths=tuple(
                     str(path)
                     for path in self._read_value(
@@ -193,11 +212,17 @@ class DocumentationAgentUIService:
         self,
         user_request: str,
         target_paths: Sequence[str] | None,
+        source_paths: Sequence[str] | None,
     ) -> DocumentationRequestForm:
         """Normalize browser form values."""
 
         normalized_request = user_request.strip()
-        normalized_paths = tuple(
+        normalized_source_paths = tuple(
+            path.strip()
+            for path in (source_paths or ())
+            if path is not None and path.strip()
+        )
+        normalized_target_paths = tuple(
             path.strip()
             for path in (target_paths or ())
             if path is not None and path.strip()
@@ -205,7 +230,8 @@ class DocumentationAgentUIService:
 
         return DocumentationRequestForm(
             user_request=normalized_request,
-            target_paths=normalized_paths,
+            source_paths=normalized_source_paths,
+            target_paths=normalized_target_paths,
         )
 
     def _map_workflow_result(

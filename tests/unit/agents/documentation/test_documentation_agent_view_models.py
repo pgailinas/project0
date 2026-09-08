@@ -70,7 +70,28 @@ def test_documentation_request_form_defaults() -> None:
     request_form = DocumentationRequestForm()
 
     assert request_form.user_request == ""
+    assert request_form.source_paths == ()
     assert request_form.target_paths == ()
+
+
+def test_documentation_request_form_preserves_source_paths() -> None:
+    """Request forms should preserve ordered ground-truth source paths."""
+
+    request_form = DocumentationRequestForm(
+        user_request="Update the interface documentation.",
+        source_paths=(
+            "src/project0/interfaces/research_interfaces.py",
+            "src/project0/models/research_models.py",
+        ),
+        target_paths=(
+            "docs/agents/research/Research_Agent_Interface_Design.md",
+        ),
+    )
+
+    assert request_form.source_paths == (
+        "src/project0/interfaces/research_interfaces.py",
+        "src/project0/models/research_models.py",
+    )
 
 
 def test_validation_result_passed_property() -> None:

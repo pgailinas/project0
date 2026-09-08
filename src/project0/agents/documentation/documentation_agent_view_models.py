@@ -52,6 +52,7 @@ class DocumentationRequestForm:
     """User-entered documentation request values."""
 
     user_request: str = ""
+    source_paths: tuple[str, ...] = ()
     target_paths: tuple[str, ...] = ()
 
 
