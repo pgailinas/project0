@@ -576,89 +576,51 @@
 
         {% set synthesis = page.direction_analysis.synthesis %}
 
+        <div class="research-analysis-list">
         {% if synthesis.themes %}
-        <div class="research-analysis-section">
-            <h3>Themes</h3>
-            <div class="proposal-list">
-                {% for finding in synthesis.themes %}
-                <article class="proposal-card">
-                    <p>{{ finding.content }}</p>
-                </article>
-                {% endfor %}
-            </div>
-        </div>
+        <p class="research-analysis-item">
+            <strong>Themes:</strong>
+            {{ synthesis.themes | map(attribute="content") | join(" ") }}
+        </p>
         {% endif %}
 
         {% if synthesis.comparisons %}
-        <div class="research-analysis-section">
-            <h3>Comparisons</h3>
-            <div class="proposal-list">
-                {% for finding in synthesis.comparisons %}
-                <article class="proposal-card">
-                    <p>{{ finding.content }}</p>
-                </article>
-                {% endfor %}
-            </div>
-        </div>
+        <p class="research-analysis-item">
+            <strong>Comparisons:</strong>
+            {{ synthesis.comparisons | map(attribute="content") | join(" ") }}
+        </p>
         {% endif %}
 
         {% if synthesis.shared_limitations %}
-        <div class="research-analysis-section">
-            <h3>Shared Limitations</h3>
-            <div class="proposal-list">
-                {% for finding in synthesis.shared_limitations %}
-                <article class="proposal-card">
-                    <p>{{ finding.content }}</p>
-                </article>
-                {% endfor %}
-            </div>
-        </div>
+        <p class="research-analysis-item">
+            <strong>Shared Limitations:</strong>
+            {{ synthesis.shared_limitations | map(attribute="content") | join(" ") }}
+        </p>
         {% endif %}
 
         {% if synthesis.unresolved_questions %}
-        <div class="research-analysis-section">
-            <h3>Unresolved Questions</h3>
-            <div class="proposal-list">
-                {% for finding in synthesis.unresolved_questions %}
-                <article class="proposal-card">
-                    <p>{{ finding.content }}</p>
-                </article>
-                {% endfor %}
-            </div>
-        </div>
+        <p class="research-analysis-item">
+            <strong>Unresolved Questions:</strong>
+            {{ synthesis.unresolved_questions | map(attribute="content") | join(" ") }}
+        </p>
         {% endif %}
 
         {% if page.direction_analysis.candidate_directions %}
-        <div class="research-analysis-section">
-            <h3>Candidate Research Directions</h3>
-            <div class="proposal-list">
-                {% for direction in page.direction_analysis.candidate_directions %}
-                <article class="proposal-card">
-                    <header class="proposal-card__header">
-                        <div>
-                            <p class="proposal-card__number">
-                                Direction {{ loop.index }} of {{ page.direction_analysis.candidate_directions | length }}
-                            </p>
-                            <h4>{{ direction.direction }}</h4>
-                        </div>
-
-                        {% if direction.speculative %}
-                        <span class="status-badge">
-                            Speculative
-                        </span>
-                        {% endif %}
-                    </header>
-
-                    <div class="proposal-rationale">
-                        <strong>Rationale</strong>
-                        <p>{{ direction.rationale }}</p>
-                    </div>
-
-                </article>
-                {% endfor %}
-            </div>
-        </div>
+        {% for direction in page.direction_analysis.candidate_directions %}
+        <p class="research-analysis-item">
+            <strong>Candidate Research Direction{% if page.direction_analysis.candidate_directions | length > 1 %} {{ loop.index }}{% endif %}:</strong>
+            {{ direction.direction }}
+            {% if direction.speculative %}
+            <span class="research-analysis-speculative">(Speculative)</span>
+            {% endif %}
+        </p>
+        <p class="research-analysis-item">
+            <strong>Rationale:</strong>
+            {{ direction.rationale }}
+        </p>
+        {% endfor %}
         {% endif %}
+        </div>
     </section>
     {% endif %}
 
@@ -846,67 +808,139 @@ if (saveButton) {
         const lines = [];
 
         lines.push("# Project0 Research Agent Results");
+
         lines.push("");
-        lines.push("## Research Request");
+        lines.push("---");
         lines.push("");
+        lines.push("# Research Request");
+        lines.push("");
+
+        {% if page.request_form.context_source_name %}
         lines.push(
-            `**Question:** {{ page.request_form.question | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
+            "**Existing research context:** {{ page.request_form.context_source_name | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}"
         );
+        lines.push("");
+        {% endif %}
+
+        lines.push(
+            `**Research Question:** {{ page.request_form.question | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
+        );
+
         {% if page.request_form.guidance %}
         lines.push("");
         lines.push(
-            `**Guidance:** {{ page.request_form.guidance | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
+            `**Research Guidance:** {{ page.request_form.guidance | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
         );
         {% endif %}
+
+        lines.push("");
+        lines.push(
+            "**Maximum Results:** {{ page.request_form.max_results }}"
+        );
+
+        {% if page.existing_research_context %}
+        lines.push("");
+        lines.push("---");
+        lines.push("");
+        lines.push("# Existing Research Context Analysis");
+
+        {% if page.request_form.context_source_name %}
+        lines.push("");
+        lines.push(
+            "**Source document:** {{ page.request_form.context_source_name | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}"
+        );
+        {% endif %}
+
+        {% set context = page.existing_research_context %}
+
+        {% if context.research_problem %}
+        lines.push("");
+        lines.push(
+            `**Research Problem:** {{ context.research_problem.content | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
+        );
+        {% endif %}
+
+        {% for title, findings in [
+            ("Prior Work", context.prior_work),
+            ("Implemented Approaches", context.implemented_approaches),
+            ("Findings", context.findings),
+            ("Limitations", context.limitations),
+            ("Unresolved Questions", context.unresolved_questions),
+            ("Stated Future Work", context.stated_future_work)
+        ] %}
+        {% if findings %}
+        {% set contents = findings | map(attribute="content") | list %}
+        lines.push("");
+        lines.push(
+            `**{{ title }}:** {{ contents | join(" ") | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
+        );
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+
+        {% if page.results %}
+        lines.push("");
+        lines.push("---");
+        lines.push("");
+        lines.push("# Research Results");
 
         {% for result in page.results %}
         lines.push("");
         lines.push("---");
         lines.push("");
         lines.push(
-            "## Paper {{ result.rank }} — {{ result.title | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}"
+            "## Rank {{ result.rank }} of {{ page.results | length }} — {{ result.title | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}"
         );
-        lines.push("");
+
         {% if result.authors %}
+        lines.push("");
         lines.push(
-            "**Authors:** {{ result.authors | join(", ") | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}"
+            "{{ result.authors | join(", ") | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}"
         );
         {% endif %}
+
+        {% if result.relevance_score is not none %}
+        lines.push("");
+        lines.push(
+            "**Relevance:** {{ result.relevance_score }}"
+        );
+        {% endif %}
+
+        lines.push("");
+        lines.push("### Source Details");
+        lines.push("");
         lines.push(
             "**Year:** {{ result.publication_year or "" }}"
         );
         lines.push(
             "**Source:** {{ result.source_name or "" }}"
         );
-        {% if result.relevance_score is not none %}
-        lines.push(
-            "**Relevance:** {{ result.relevance_score }}"
-        );
-        {% endif %}
         {% if result.doi %}
         lines.push(
             "**DOI:** {{ result.doi | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}"
         );
         {% endif %}
 
-        {% if result.abstract %}
         lines.push("");
         lines.push("### Paper Summary");
         lines.push("");
+
+        {% if result.abstract %}
         lines.push(
             `{{ result.abstract | replace("\\", "\\\\") | replace("`", "\\`") }}`
         );
         {% else %}
-        lines.push("");
-        lines.push("### Paper Summary");
-        lines.push("");
         lines.push("No abstract was available from the selected source.");
+        {% endif %}
+
+        {% if result.research_connections or result.strengths or result.limitations %}
+        lines.push("");
+        lines.push("### Relevance Assessment");
         {% endif %}
 
         {% if result.research_connections %}
         lines.push("");
-        lines.push("### Research Connections");
-        lines.push("");
+        lines.push("**Research Connections:**");
         {% for item in result.research_connections %}
         lines.push(
             `- {{ item | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
@@ -916,8 +950,7 @@ if (saveButton) {
 
         {% if result.strengths %}
         lines.push("");
-        lines.push("### Strengths");
-        lines.push("");
+        lines.push("**Strengths:**");
         {% for item in result.strengths %}
         lines.push(
             `- {{ item | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
@@ -927,15 +960,13 @@ if (saveButton) {
 
         {% if result.limitations %}
         lines.push("");
-        lines.push("### Limitations");
-        lines.push("");
+        lines.push("**Relevance Limitations:**");
         {% for item in result.limitations %}
         lines.push(
             `- {{ item | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
         );
         {% endfor %}
         {% endif %}
-
 
         {% if result.analysis %}
         {% set analysis = result.analysis %}
@@ -945,6 +976,7 @@ if (saveButton) {
         lines.push(
             "**Analysis Basis:** {{ analysis.analysis_basis | replace("_", " ") | title }}"
         );
+
         {% for title, findings in [
             ("Problem", (analysis.problem,)),
             ("Approach", (analysis.approach,)),
@@ -963,104 +995,13 @@ if (saveButton) {
         );
         {% endif %}
         {% endfor %}
-        {% endif %}
-        {% endfor %}
-
-        {% if page.existing_research_context %}
-        lines.push("");
-        lines.push("---");
-        lines.push("");
-        lines.push("# Existing Research Context Analysis");
-
-        {% set context = page.existing_research_context %}
-
-        {% if context.research_problem %}
-        lines.push("");
-        lines.push("## Research Problem");
-        lines.push("");
-        lines.push(
-            `{{ context.research_problem.content | replace("\\", "\\\\") | replace("`", "\\`") }}`
-        );
-        {% endif %}
-
-        {% for title, findings in [
-            ("Prior Work", context.prior_work),
-            ("Implemented Approaches", context.implemented_approaches),
-            ("Findings", context.findings),
-            ("Limitations", context.limitations),
-            ("Unresolved Questions", context.unresolved_questions),
-            ("Stated Future Work", context.stated_future_work)
-        ] %}
-        {% if findings %}
-        lines.push("");
-        lines.push("## {{ title }}");
-        lines.push("");
-        {% for finding in findings %}
-        lines.push(
-            `- {{ finding.content | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
-        );
-        {% endfor %}
-        {% endif %}
-        {% endfor %}
-        {% endif %}
-
-        {% if false %}
-        lines.push("");
-        lines.push("---");
-        lines.push("");
-        lines.push("# Structured Paper Analysis");
-
-        {% for analysis in page.paper_analyses %}
-        lines.push("");
-        lines.push(
-            "## Paper {{ loop.index }} — {{ analysis.title | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}"
-        );
-        lines.push("");
-        lines.push(
-            "**Analysis Basis:** {{ analysis.analysis_basis | replace("_", " ") | title }}"
-        );
-        lines.push("");
-        lines.push("### Problem");
-        lines.push("");
-        lines.push(
-            `{{ analysis.problem.content | replace("\\", "\\\\") | replace("`", "\\`") }}`
-        );
-        lines.push("");
-        lines.push("### Approach");
-        lines.push("");
-        lines.push(
-            `{{ analysis.approach.content | replace("\\", "\\\\") | replace("`", "\\`") }}`
-        );
-
-        {% for title, findings in [
-            ("Representations", analysis.representations),
-            ("Modalities", analysis.modalities),
-            ("Learning / Alignment Objectives", analysis.learning_objectives),
-            ("Datasets / Tasks", analysis.datasets_tasks),
-            ("Findings", analysis.findings),
-            ("Limitations", analysis.limitations)
-        ] %}
-        {% if findings %}
-        lines.push("");
-        lines.push("### {{ title }}");
-        lines.push("");
-        {% for finding in findings %}
-        lines.push(
-            `- {{ finding.content | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
-        );
-        {% endfor %}
-        {% endif %}
-        {% endfor %}
 
         {% if analysis.warnings %}
         lines.push("");
-        lines.push("### Warnings");
-        lines.push("");
-        {% for warning in analysis.warnings %}
         lines.push(
-            `- {{ warning | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
+            "**Analysis Notes:** {{ analysis.warnings | join(" ") | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}"
         );
-        {% endfor %}
+        {% endif %}
         {% endif %}
         {% endfor %}
         {% endif %}
@@ -1074,98 +1015,49 @@ if (saveButton) {
         {% set synthesis = page.direction_analysis.synthesis %}
 
         {% if synthesis.themes %}
+        {% set contents = synthesis.themes | map(attribute="content") | list %}
         lines.push("");
-        lines.push("## Themes");
-        lines.push("");
-        {% for finding in synthesis.themes %}
         lines.push(
-            `- {{ finding.content | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
+            `**Themes:** {{ contents | join(" ") | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
         );
-        {% endfor %}
         {% endif %}
 
         {% if synthesis.comparisons %}
+        {% set contents = synthesis.comparisons | map(attribute="content") | list %}
         lines.push("");
-        lines.push("## Comparisons");
-        lines.push("");
-        {% for finding in synthesis.comparisons %}
         lines.push(
-            `- {{ finding.content | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
+            `**Comparisons:** {{ contents | join(" ") | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
         );
-        {% endfor %}
         {% endif %}
 
         {% if synthesis.shared_limitations %}
+        {% set contents = synthesis.shared_limitations | map(attribute="content") | list %}
         lines.push("");
-        lines.push("## Shared Limitations");
-        lines.push("");
-        {% for finding in synthesis.shared_limitations %}
         lines.push(
-            `- {{ finding.content | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
+            `**Shared Limitations:** {{ contents | join(" ") | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
         );
-        {% endfor %}
         {% endif %}
 
         {% if synthesis.unresolved_questions %}
+        {% set contents = synthesis.unresolved_questions | map(attribute="content") | list %}
         lines.push("");
-        lines.push("## Unresolved Questions");
-        lines.push("");
-        {% for finding in synthesis.unresolved_questions %}
         lines.push(
-            `- {{ finding.content | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
+            `**Unresolved Questions:** {{ contents | join(" ") | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
         );
-        {% endfor %}
         {% endif %}
 
         {% if page.direction_analysis.candidate_directions %}
-        lines.push("");
-        lines.push("## Candidate Research Directions");
-
         {% for direction in page.direction_analysis.candidate_directions %}
         lines.push("");
         lines.push(
-            "### {{ direction.direction | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}"
+            `**Candidate Research Direction{% if page.direction_analysis.candidate_directions | length > 1 %} {{ loop.index }}{% endif %}:** {{ direction.direction | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}{% if direction.speculative %} (Speculative){% endif %}`
         );
         lines.push("");
         lines.push(
-            `{{ direction.rationale | replace("\\", "\\\\") | replace("`", "\\`") }}`
-        );
-        {% if direction.speculative %}
-        lines.push("");
-        lines.push("**Speculative:** Yes");
-        {% endif %}
-
-        {% endfor %}
-        {% endif %}
-        {% endif %}
-
-        {% if false %}
-        lines.push("");
-        lines.push("---");
-        lines.push("");
-        lines.push("# Research Synthesis Artifacts");
-
-        {% for artifact in page.artifacts %}
-        lines.push("");
-        lines.push(
-            "## {{ artifact.title | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}"
-        );
-        lines.push("");
-        lines.push(
-            `{{ artifact.content | replace("\\", "\\\\") | replace("`", "\\`") }}`
-        );
-
-        {% if artifact.source_ids %}
-        lines.push("");
-        lines.push("### Source References");
-        lines.push("");
-        {% for source_id in artifact.source_ids %}
-        lines.push(
-            "- `{{ source_id | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", "") }}`"
+            `**Rationale:** {{ direction.rationale | replace("\\", "\\\\") | replace("`", "\\`") | replace("\n", " ") }}`
         );
         {% endfor %}
         {% endif %}
-        {% endfor %}
         {% endif %}
 
         {% if page.workflow_summary %}
@@ -1175,10 +1067,10 @@ if (saveButton) {
         lines.push("# Workflow Summary");
         lines.push("");
         lines.push(
-            "**Sources:** {{ page.workflow_summary.source_count }}"
+            "**Sources:** {{ page.workflow_summary.source_count }}  "
         );
         lines.push(
-            "**Papers:** {{ page.workflow_summary.paper_count }}"
+            "**Papers:** {{ page.workflow_summary.paper_count }}  "
         );
         lines.push(
             "**Evaluations:** {{ page.workflow_summary.evaluation_count }}"

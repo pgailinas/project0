@@ -241,13 +241,13 @@ def test_analyze_skips_invalid_synthesis_finding_without_retry():
     assert len(provider.requests) == 1
 
 
-def test_analyze_deduplicates_candidate_evidence_ids_without_retry():
-    output = _valid_output()
-    output["candidate_directions"][0]["literature_evidence_ids"] = [
+def test_analyze_retries_when_candidate_evidence_ids_are_duplicated():
+    invalid = _valid_output()
+    invalid["candidate_directions"][0]["literature_evidence_ids"] = [
         "literature-003",
         "literature-003",
     ]
-    provider = StubProvider([output])
+    provider = StubProvider([invalid, _valid_output()])
     service = ResearchDirectionAnalysisService(provider, "test-model")
     papers = (
         _paper_analysis("Paper-A", "Paper A", 3),
@@ -256,12 +256,38 @@ def test_analyze_deduplicates_candidate_evidence_ids_without_retry():
 
     result = service.analyze(_request(), _context(), papers)
 
-    direction = result.candidate_directions[0]
-    assert (
-        direction.literature_evidence
-        == papers[0].findings[0].evidence
+    assert result.candidate_directions
+    assert len(provider.requests) == 2
+    retry_payload = json.loads(provider.requests[1].user_prompt)
+    assert retry_payload["validation_feedback"] == (
+        "Provider field 'candidate_directions.literature_evidence_ids' "
+        "must not contain duplicates."
     )
-    assert len(provider.requests) == 1
+
+
+def test_analyze_retries_when_candidate_bulk_cites_literature_evidence():
+    invalid = _valid_output()
+    invalid["candidate_directions"][0]["literature_evidence_ids"] = [
+        "literature-001",
+        "literature-002",
+        "literature-003",
+    ]
+    provider = StubProvider([invalid, _valid_output()])
+    service = ResearchDirectionAnalysisService(provider, "test-model")
+    papers = (
+        _paper_analysis("Paper-A", "Paper A", 3),
+        _paper_analysis("Paper-B", "Paper B", 7),
+    )
+
+    result = service.analyze(_request(), _context(), papers)
+
+    assert result.candidate_directions
+    assert len(provider.requests) == 2
+    retry_payload = json.loads(provider.requests[1].user_prompt)
+    assert retry_payload["validation_feedback"] == (
+        "Provider field 'candidate_directions.literature_evidence_ids' "
+        "must contain no more than 2 evidence identifiers."
+    )
 
 
 def test_analyze_retries_when_candidate_evidence_uses_wrong_source_type():
@@ -410,6 +436,7 @@ def test_provider_request_uses_structured_findings_and_prohibits_novelty_claims(
             "type": "string",
             "enum": ["context-001"],
         },
+        "uniqueItems": True,
     }
     assert direction_schema["literature_evidence_ids"] == {
         "type": "array",
@@ -426,9 +453,20 @@ def test_provider_request_uses_structured_findings_and_prohibits_novelty_claims(
                 "literature-008",
             ],
         },
+        "uniqueItems": True,
+        "maxItems": 2,
     }
+
+    synthesis_schema = request.response_schema["properties"][
+        "synthesis"
+    ]["properties"]["themes"]["items"]["properties"]["evidence_ids"]
+    assert synthesis_schema["uniqueItems"] is True
+    assert synthesis_schema["maxItems"] == 2
 
     instructions = request.system_instructions.lower()
     assert "do not use outside knowledge" in instructions
+    assert "directly support the specific claim content" in instructions
+    assert "smallest sufficient evidence set" in instructions
+    assert "synthesis fields are literature-only" in instructions
     assert "do not claim novelty" in instructions
     assert "broader literature" in instructions

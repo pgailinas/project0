@@ -1365,25 +1365,35 @@ Table of Contents:
 }
 
 
-.research-analysis-section + .research-analysis-section {
-
-    margin-top: var(--spacing-md);
-
-}
-
-.research-analysis-section > h3 {
-
-    margin-bottom: 0;
-
-    font-size: 1rem;
-
-}
-
-.research-analysis-section .proposal-card > p {
+.research-analysis-list {
 
     margin: 0;
 
-    line-height: 1.55;
+}
+
+.research-analysis-item {
+
+    margin: 0;
+
+}
+
+.research-analysis-item + .research-analysis-item {
+
+    margin-top: var(--spacing-sm);
+
+}
+
+.research-analysis-item strong {
+
+    font-weight: 700;
+
+}
+
+.research-analysis-speculative {
+
+    color: var(--text-muted);
+
+    font-style: italic;
 
 }
 

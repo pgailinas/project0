@@ -306,6 +306,8 @@ class ResearchDirectionAnalysisService:
                         "type": "string",
                         "enum": literature_evidence_ids,
                     },
+                    "uniqueItems": True,
+                    "maxItems": len(paper_analyses),
                 },
             },
             "required": ["content", "evidence_ids"],
@@ -322,6 +324,7 @@ class ResearchDirectionAnalysisService:
                         "type": "string",
                         "enum": context_evidence_ids,
                     },
+                    "uniqueItems": True,
                 },
                 "literature_evidence_ids": {
                     "type": "array",
@@ -329,6 +332,8 @@ class ResearchDirectionAnalysisService:
                         "type": "string",
                         "enum": literature_evidence_ids,
                     },
+                    "uniqueItems": True,
+                    "maxItems": len(paper_analyses),
                 },
                 "speculative": {"type": "boolean"},
             },
@@ -389,15 +394,26 @@ class ResearchDirectionAnalysisService:
                 "unresolved questions, then propose candidate research "
                 "directions relevant to the supplied research request. "
                 "Every synthesis item must be supported by supplied paper "
-                "evidence identifiers. Themes, comparisons, and shared "
-                "limitations must be supported by findings from at least two "
-                "distinct papers. Scope claims to the analyzed evidence. Do "
+                "evidence identifiers. Each cited evidence identifier must "
+                "directly support the specific claim content; do not cite an "
+                "identifier merely because it is topically related. Use the "
+                "smallest sufficient evidence set and never bulk-cite all "
+                "available identifiers. Synthesis fields are literature-only: "
+                "do not restate an existing-context claim as synthesis unless "
+                "the same claim is independently supported by the cited paper "
+                "findings. Themes, comparisons, and shared limitations must be "
+                "supported by findings from at least two distinct papers. "
+                "Scope claims to the analyzed evidence. Do "
                 "not infer absence from the broader literature merely because "
                 "something is absent from the supplied analyses. Do not claim "
                 "novelty, no prior work, or a global research gap unless such "
                 "a broader claim is explicitly supported by supplied evidence. "
-                "For candidate directions, use context_evidence_ids only "
-                "from allowed_evidence_ids.context_evidence_ids and use "
+                "For candidate directions, cite only findings that directly "
+                "support the direction and rationale. Use context_evidence_ids "
+                "only for claims supported by existing research context, and "
+                "use literature_evidence_ids only for claims supported by "
+                "retained-paper findings. Use context_evidence_ids only from "
+                "allowed_evidence_ids.context_evidence_ids and use "
                 "literature_evidence_ids only from "
                 "allowed_evidence_ids.literature_evidence_ids. When existing "
                 "research context is supplied, a non-speculative candidate "
@@ -559,30 +575,38 @@ class ResearchDirectionAnalysisService:
                 "Provider field 'synthesis' must be an object."
             )
 
+        maximum_literature_evidence_ids = (
+            self._count_distinct_literature_sources(evidence_catalog)
+        )
+
         synthesis = ResearchSynthesis(
             themes=self._parse_synthesis_findings(
                 value=synthesis_value.get("themes"),
                 field_name="themes",
                 evidence_catalog=evidence_catalog,
                 minimum_distinct_papers=2,
+                maximum_evidence_ids=maximum_literature_evidence_ids,
             ),
             comparisons=self._parse_synthesis_findings(
                 value=synthesis_value.get("comparisons"),
                 field_name="comparisons",
                 evidence_catalog=evidence_catalog,
                 minimum_distinct_papers=2,
+                maximum_evidence_ids=maximum_literature_evidence_ids,
             ),
             shared_limitations=self._parse_synthesis_findings(
                 value=synthesis_value.get("shared_limitations"),
                 field_name="shared_limitations",
                 evidence_catalog=evidence_catalog,
                 minimum_distinct_papers=2,
+                maximum_evidence_ids=maximum_literature_evidence_ids,
             ),
             unresolved_questions=self._parse_synthesis_findings(
                 value=synthesis_value.get("unresolved_questions"),
                 field_name="unresolved_questions",
                 evidence_catalog=evidence_catalog,
                 minimum_distinct_papers=1,
+                maximum_evidence_ids=maximum_literature_evidence_ids,
             ),
         )
 
@@ -590,6 +614,9 @@ class ResearchDirectionAnalysisService:
             value=structured_output.get("candidate_directions"),
             context=context,
             evidence_catalog=evidence_catalog,
+            maximum_literature_evidence_ids=(
+                maximum_literature_evidence_ids
+            ),
         )
 
         return ResearchDirectionAnalysis(
@@ -604,6 +631,7 @@ class ResearchDirectionAnalysisService:
         field_name: str,
         evidence_catalog: dict[str, _EvidenceCatalogEntry],
         minimum_distinct_papers: int,
+        maximum_evidence_ids: int,
     ) -> tuple[ResearchFinding, ...]:
         """Parse one collection of evidence-grounded synthesis findings."""
 
@@ -628,6 +656,7 @@ class ResearchDirectionAnalysisService:
                 evidence_ids = self._parse_evidence_ids(
                     item.get("evidence_ids"),
                     f"{field_name}.evidence_ids",
+                    maximum_count=maximum_evidence_ids,
                 )
 
                 evidence = self._resolve_evidence(
@@ -675,6 +704,7 @@ class ResearchDirectionAnalysisService:
         value: Any,
         context: ExistingResearchContext | None,
         evidence_catalog: dict[str, _EvidenceCatalogEntry],
+        maximum_literature_evidence_ids: int,
     ) -> tuple[ResearchDirection, ...]:
         """Parse candidate research directions."""
 
@@ -715,6 +745,7 @@ class ResearchDirectionAnalysisService:
             literature_ids = self._parse_candidate_evidence_ids(
                 item.get("literature_evidence_ids"),
                 "candidate_directions.literature_evidence_ids",
+                maximum_count=maximum_literature_evidence_ids,
             )
 
             context_evidence = self._resolve_evidence(
@@ -774,8 +805,10 @@ class ResearchDirectionAnalysisService:
     def _parse_candidate_evidence_ids(
         value: Any,
         field_name: str,
+        *,
+        maximum_count: int | None = None,
     ) -> tuple[str, ...]:
-        """Parse candidate evidence handles and remove duplicates."""
+        """Parse and validate provider-returned candidate evidence handles."""
 
         if not isinstance(value, list):
             raise ValueError(
@@ -787,12 +820,25 @@ class ResearchDirectionAnalysisService:
                 f"Provider field '{field_name}' must contain strings only."
             )
 
-        return tuple(dict.fromkeys(value))
+        if len(value) != len(set(value)):
+            raise ValueError(
+                f"Provider field '{field_name}' must not contain duplicates."
+            )
+
+        if maximum_count is not None and len(value) > maximum_count:
+            raise ValueError(
+                f"Provider field '{field_name}' must contain no more than "
+                f"{maximum_count} evidence identifiers."
+            )
+
+        return tuple(value)
 
     @staticmethod
     def _parse_evidence_ids(
         value: Any,
         field_name: str,
+        *,
+        maximum_count: int | None = None,
     ) -> tuple[str, ...]:
         """Parse and validate provider-returned evidence handles."""
 
@@ -811,7 +857,31 @@ class ResearchDirectionAnalysisService:
                 f"Provider field '{field_name}' must not contain duplicates."
             )
 
+        if maximum_count is not None and len(value) > maximum_count:
+            raise ValueError(
+                f"Provider field '{field_name}' must contain no more than "
+                f"{maximum_count} evidence identifiers."
+            )
+
         return tuple(value)
+
+    @staticmethod
+    def _count_distinct_literature_sources(
+        evidence_catalog: dict[str, _EvidenceCatalogEntry],
+    ) -> int:
+        """Count distinct retained-paper sources represented in the catalog."""
+
+        return len(
+            {
+                reference.source_id
+                for entry in evidence_catalog.values()
+                if entry.source_type
+                == ResearchEvidenceSourceType.RESEARCH_PAPER
+                for reference in entry.finding.evidence
+                if reference.source_type
+                == ResearchEvidenceSourceType.RESEARCH_PAPER
+            }
+        )
 
     def _resolve_evidence(
         self,
