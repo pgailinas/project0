@@ -803,6 +803,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 const saveButton = document.getElementById("research-results-save");
 
+const decodeHtmlEntities = (value) => {
+    const textarea = document.createElement("textarea");
+
+    textarea.innerHTML = value;
+    return textarea.value;
+};
+
 if (saveButton) {
     saveButton.addEventListener("click", async () => {
         const lines = [];
@@ -1077,7 +1084,9 @@ if (saveButton) {
         );
         {% endif %}
 
-        const documentContent = `${lines.join("\n")}\n`;
+        const documentContent = decodeHtmlEntities(
+            `${lines.join("\n")}\n`
+        );
 
         if ("showSaveFilePicker" in window) {
             try {

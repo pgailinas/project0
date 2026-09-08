@@ -14,6 +14,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import json
 import logging
+import re
 from typing import Any
 
 from project0.interfaces.reasoning_interfaces import (
@@ -37,6 +38,10 @@ from project0.models.research_models import (
 
 
 LOGGER = logging.getLogger(__name__)
+
+
+class _SemanticGroundingError(ValueError):
+    """Signal a generated claim that is not directly grounded in evidence."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -396,8 +401,12 @@ class ResearchDirectionAnalysisService:
                 "Every synthesis item must be supported by supplied paper "
                 "evidence identifiers. Each cited evidence identifier must "
                 "directly support the specific claim content; do not cite an "
-                "identifier merely because it is topically related. Use the "
-                "smallest sufficient evidence set and never bulk-cite all "
+                "identifier merely because it is topically related. Explicit performance "
+                "ordering claims such as better, worse, higher, lower, "
+                "outperforms, or underperforms must be directly stated by "
+                "the cited literature findings; do not infer, reverse, or "
+                "import such comparisons from existing research context. "
+                "Use the smallest sufficient evidence set and never bulk-cite all "
                 "available identifiers. Synthesis fields are literature-only: "
                 "do not restate an existing-context claim as synthesis unless "
                 "the same claim is independently supported by the cited paper "
@@ -668,6 +677,13 @@ class ResearchDirectionAnalysisService:
                     evidence_catalog=evidence_catalog,
                 )
 
+                if field_name == "comparisons":
+                    self._validate_explicit_performance_comparison(
+                        content=content,
+                        evidence_ids=evidence_ids,
+                        evidence_catalog=evidence_catalog,
+                    )
+
                 distinct_papers = {
                     reference.source_id
                     for reference in evidence
@@ -688,6 +704,8 @@ class ResearchDirectionAnalysisService:
                         evidence=evidence,
                     )
                 )
+            except _SemanticGroundingError:
+                raise
             except ValueError as error:
                 LOGGER.warning(
                     "Skipping invalid research direction synthesis finding "
@@ -800,6 +818,76 @@ class ResearchDirectionAnalysisService:
             )
 
         return tuple(directions)
+
+    def _validate_explicit_performance_comparison(
+        self,
+        *,
+        content: str,
+        evidence_ids: tuple[str, ...],
+        evidence_catalog: dict[str, _EvidenceCatalogEntry],
+    ) -> None:
+        """Reject unsupported explicit performance-ordering comparisons."""
+
+        claim_polarities = self._performance_comparison_polarities(content)
+
+        if not claim_polarities:
+            return
+
+        evidence_polarities: set[str] = set()
+
+        for evidence_id in evidence_ids:
+            entry = next(
+                (
+                    catalog_entry
+                    for catalog_entry in evidence_catalog.values()
+                    if catalog_entry.provider_id == evidence_id
+                ),
+                None,
+            )
+
+            if entry is not None:
+                evidence_polarities.update(
+                    self._performance_comparison_polarities(
+                        entry.finding.content
+                    )
+                )
+
+        if not claim_polarities.issubset(evidence_polarities):
+            raise _SemanticGroundingError(
+                "Provider field 'comparisons.content' makes an explicit "
+                "performance-ordering claim that is not directly stated by "
+                "the cited literature evidence."
+            )
+
+    @staticmethod
+    def _performance_comparison_polarities(
+        value: str,
+    ) -> set[str]:
+        """Return explicit positive or negative performance comparison cues."""
+
+        positive_patterns = (
+            r"\bbetter\b",
+            r"\boutperform(?:s|ed|ing)?\b",
+            r"\bhigher\b",
+            r"\bsuperior\b",
+            r"\bexceed(?:s|ed|ing)?\b",
+            r"\bsurpass(?:es|ed|ing)?\b",
+        )
+        negative_patterns = (
+            r"\bworse\b",
+            r"\bunderperform(?:s|ed|ing)?\b",
+            r"\blower\b",
+            r"\binferior\b",
+        )
+        normalized = value.casefold()
+        polarities: set[str] = set()
+
+        if any(re.search(pattern, normalized) for pattern in positive_patterns):
+            polarities.add("positive")
+        if any(re.search(pattern, normalized) for pattern in negative_patterns):
+            polarities.add("negative")
+
+        return polarities
 
     @staticmethod
     def _parse_candidate_evidence_ids(

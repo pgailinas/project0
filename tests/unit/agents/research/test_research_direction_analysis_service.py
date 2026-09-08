@@ -361,6 +361,78 @@ def test_analyze_allows_evidence_anchored_speculative_direction():
     assert result.candidate_directions[0].literature_evidence
 
 
+def test_analyze_retries_when_comparison_reverses_unsupported_performance_order():
+    invalid = _valid_output()
+    invalid["synthesis"]["comparisons"] = [
+        {
+            "content": (
+                "Self-supervised autoencoders perform better than direct "
+                "multimodal inference using CLIP."
+            ),
+            "evidence_ids": [
+                "literature-002",
+                "literature-007",
+            ],
+        }
+    ]
+    provider = StubProvider([invalid, _valid_output()])
+    service = ResearchDirectionAnalysisService(provider, "test-model")
+    papers = (
+        _paper_analysis("Paper-A", "Paper A", 3),
+        _paper_analysis("Paper-B", "Paper B", 7),
+    )
+
+    result = service.analyze(_request(), _context(), papers)
+
+    assert result.synthesis.comparisons == ()
+    assert len(provider.requests) == 2
+    retry_payload = json.loads(provider.requests[1].user_prompt)
+    assert retry_payload["validation_feedback"] == (
+        "Provider field 'comparisons.content' makes an explicit "
+        "performance-ordering claim that is not directly stated by "
+        "the cited literature evidence."
+    )
+
+
+def test_analyze_accepts_explicit_performance_order_supported_by_literature():
+    first = _paper_analysis("Paper-A", "Paper A", 3)
+    first = PaperAnalysis(
+        paper=first.paper,
+        problem=first.problem,
+        approach=first.approach,
+        findings=(
+            _paper_finding(
+                "Paper-A",
+                "Paper A outperforms the comparison baseline.",
+                3,
+            ),
+        ),
+        limitations=first.limitations,
+    )
+    second = _paper_analysis("Paper-B", "Paper B", 7)
+    output = _valid_output()
+    output["synthesis"]["comparisons"] = [
+        {
+            "content": "Paper A outperforms the comparison baseline.",
+            "evidence_ids": [
+                "literature-003",
+                "literature-007",
+            ],
+        }
+    ]
+    provider = StubProvider([output])
+    service = ResearchDirectionAnalysisService(provider, "test-model")
+
+    result = service.analyze(
+        _request(),
+        _context(),
+        (first, second),
+    )
+
+    assert result.synthesis.comparisons
+    assert len(provider.requests) == 1
+
+
 def test_provider_request_limits_direction_analysis_to_three_papers():
     provider = StubProvider([_valid_output()])
     service = ResearchDirectionAnalysisService(provider, "test-model")
@@ -466,6 +538,8 @@ def test_provider_request_uses_structured_findings_and_prohibits_novelty_claims(
     instructions = request.system_instructions.lower()
     assert "do not use outside knowledge" in instructions
     assert "directly support the specific claim content" in instructions
+    assert "performance ordering claims" in instructions
+    assert "do not infer, reverse, or import such comparisons" in instructions
     assert "smallest sufficient evidence set" in instructions
     assert "synthesis fields are literature-only" in instructions
     assert "do not claim novelty" in instructions
