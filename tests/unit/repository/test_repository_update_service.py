@@ -38,6 +38,7 @@ def _proposal(
     proposed_content: str = "# Updated\n",
     anchor_text: str | None = None,
     artifact_location: ArtifactLocation | None = None,
+    anchor_mode: DocumentationAnchorMode = DocumentationAnchorMode.REPLACE,
     proposal_id: str = "proposal-001",
 ) -> DocumentationChangeProposal:
     """Create a standard documentation change proposal."""
@@ -48,6 +49,7 @@ def _proposal(
         proposed_content=proposed_content,
         anchor_text=anchor_text,
         artifact_location=artifact_location,
+        anchor_mode=anchor_mode,
         rationale="Update the documentation.",
         proposal_id=proposal_id,
     )
@@ -576,6 +578,97 @@ def test_artifact_location_change_updates_target_lines(
 
     assert result.status is ChangeApplicationStatus.APPLIED
     assert "New content." in file_path.read_text(encoding="utf-8")
+
+
+def test_artifact_location_insert_after_preserves_target_lines(
+    tmp_path: Path,
+) -> None:
+    """An insert-after artifact edit preserves the located content."""
+
+    file_path = tmp_path / "docs/index.md"
+    file_path.parent.mkdir()
+
+    original = (
+        "# Documentation\n"
+        "## Existing Context\n"
+        "Existing details.\n"
+        "## Next Section\n"
+        "Next details.\n"
+    )
+
+    file_path.write_text(original, encoding="utf-8")
+
+    service = RepositoryUpdateService(tmp_path)
+
+    result = service.apply(
+        proposal=_proposal(
+            original_content=original,
+            proposed_content="New context detail.",
+            anchor_mode=DocumentationAnchorMode.INSERT_AFTER,
+            artifact_location=ArtifactLocation(
+                location_id="context-heading",
+                repository_path="docs/index.md",
+                location_type=ArtifactLocationType.LINE_RANGE,
+                locator="Existing Context",
+                start_line=2,
+                end_line=2,
+            ),
+        ),
+        review=_review(),
+    )
+
+    assert result.status is ChangeApplicationStatus.APPLIED
+    assert file_path.read_text(encoding="utf-8") == (
+        "# Documentation\n"
+        "## Existing Context\n"
+        "New context detail.\n"
+        "Existing details.\n"
+        "## Next Section\n"
+        "Next details.\n"
+    )
+
+
+def test_artifact_location_replace_behavior_is_preserved(
+    tmp_path: Path,
+) -> None:
+    """Artifact replacement still replaces the exact located range."""
+
+    file_path = tmp_path / "docs/index.md"
+    file_path.parent.mkdir()
+
+    original = (
+        "# Documentation\n"
+        "Old detail.\n"
+        "Unchanged detail.\n"
+    )
+
+    file_path.write_text(original, encoding="utf-8")
+
+    service = RepositoryUpdateService(tmp_path)
+
+    result = service.apply(
+        proposal=_proposal(
+            original_content=original,
+            proposed_content="New detail.",
+            anchor_mode=DocumentationAnchorMode.REPLACE,
+            artifact_location=ArtifactLocation(
+                location_id="detail",
+                repository_path="docs/index.md",
+                location_type=ArtifactLocationType.LINE_RANGE,
+                locator="Old detail",
+                start_line=2,
+                end_line=2,
+            ),
+        ),
+        review=_review(),
+    )
+
+    assert result.status is ChangeApplicationStatus.APPLIED
+    assert file_path.read_text(encoding="utf-8") == (
+        "# Documentation\n"
+        "New detail.\n"
+        "Unchanged detail.\n"
+    )
 
 
 def test_artifact_location_invalid_range_fails(

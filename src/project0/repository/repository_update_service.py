@@ -33,6 +33,7 @@ def apply_artifact_location_change(
     original_content: str,
     proposed_content: str,
     artifact_location: ArtifactLocation,
+    anchor_mode: DocumentationAnchorMode = DocumentationAnchorMode.REPLACE,
 ) -> str:
     """Apply a change using a precise artifact location."""
 
@@ -56,11 +57,18 @@ def apply_artifact_location_change(
 
     replacement_lines = proposed_content.splitlines()
 
-    updated_lines = (
-        lines[:start]
-        + replacement_lines
-        + lines[end:]
-    )
+    if anchor_mode is DocumentationAnchorMode.INSERT_AFTER:
+        updated_lines = (
+            lines[:end]
+            + replacement_lines
+            + lines[end:]
+        )
+    else:
+        updated_lines = (
+            lines[:start]
+            + replacement_lines
+            + lines[end:]
+        )
 
     return "\n".join(updated_lines) + (
         "\n" if original_content.endswith("\n") else ""
@@ -81,6 +89,7 @@ def apply_documentation_change(
             original_content,
             proposed_content,
             artifact_location,
+            anchor_mode,
         )
 
     if anchor_text is None:

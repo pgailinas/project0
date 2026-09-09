@@ -1336,6 +1336,130 @@ def test_proposal_with_ambiguous_anchor_and_no_location_is_skipped(
     )
 
 
+def test_source_grounded_meta_instruction_content_is_skipped(
+    tmp_path: Path,
+) -> None:
+    """Instructional prose is not surfaced as documentation content."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text(
+        "# Original\n"
+        "## Per-Paper Analysis Interface Contract\n"
+        "Existing details.\n",
+        encoding="utf-8",
+    )
+
+    components = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(
+                ProposedDocumentationChange(
+                    document_path=Path("docs/index.md"),
+                    operation=DocumentationChangeOperation.UPDATE,
+                    rationale="Reflect current shared research models.",
+                    proposed_content=(
+                        "Add sections for each of the defined classes, "
+                        "explaining their purpose and attributes. Include "
+                        "examples of how they might be used."
+                    ),
+                    section="Per-Paper Analysis Interface Contract",
+                    anchor_text=None,
+                    edit_type=DocumentationEditType.REPLACE,
+                ),
+            )
+        ),
+        validation_results=(),
+    )
+    workflow = components[0]
+    validation_service = components[2]
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Update documentation.",
+            target_paths=("docs/index.md",),
+            source_paths=("src/project0/example.py",),
+            workflow_id="workflow-meta-instruction",
+        )
+    )
+
+    assert result.proposals == ()
+    assert result.preliminary_validation is None
+    assert validation_service.requests == []
+    assert any(
+        "described what should be written instead of providing concrete Markdown"
+        in warning
+        for warning in result.warnings
+    )
+
+
+def test_non_source_grounded_meta_instruction_remains_reviewable(
+    tmp_path: Path,
+) -> None:
+    """Ordinary documentation requests preserve legacy model behavior."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text("# Original\n", encoding="utf-8")
+
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(
+                _update_change(
+                    proposed_content="Add documentation for the new model.",
+                    anchor_text="# Original",
+                ),
+            )
+        ),
+        validation_results=(
+            _validation_result(ValidationStatus.PASSED),
+        ),
+    )[0]
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Update documentation.",
+            target_paths=("docs/index.md",),
+            workflow_id="workflow-non-source-meta",
+        )
+    )
+
+    assert len(result.proposals) == 1
+
+
+def test_meta_instruction_detector_allows_concrete_markdown() -> None:
+    """Concrete Markdown beginning with structure is not rejected."""
+
+    assert not DocumentationWorkflow._is_meta_instruction_content(
+        "## Model Contract\n\nDescribe the model's exported fields."
+    )
+    assert not DocumentationWorkflow._is_meta_instruction_content(
+        "- Includes source identifiers."
+    )
+    assert not DocumentationWorkflow._is_meta_instruction_content(
+        "```python\nclass Example:\n    pass\n```"
+    )
+
+
+def test_meta_instruction_detector_rejects_common_planning_phrases() -> None:
+    """Common imperative planning prose is rejected."""
+
+    examples = (
+        "Add sections for each model.",
+        "Include examples of interface usage.",
+        "Explain the responsibilities of each class.",
+        "Describe the model relationships.",
+        "Document the new interface.",
+        "Update the documentation to reflect the model.",
+    )
+
+    assert all(
+        DocumentationWorkflow._is_meta_instruction_content(value)
+        for value in examples
+    )
+
+
 def test_source_grounded_semantically_misaligned_section_recovers(
     tmp_path: Path,
 ) -> None:
@@ -1424,7 +1548,18 @@ def test_source_grounded_semantically_misaligned_section_recovers(
 
     assert result.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
     assert len(result.proposals) == 1
-    assert result.proposals[0].artifact_location == context_location
+
+    proposal = result.proposals[0]
+
+    assert proposal.anchor_mode is DocumentationAnchorMode.INSERT_AFTER
+    assert proposal.artifact_location is not None
+    assert (
+        proposal.artifact_location.location_type
+        is ArtifactLocationType.LINE_RANGE
+    )
+    assert proposal.artifact_location.locator == context_location.locator
+    assert proposal.artifact_location.start_line == context_location.start_line
+    assert proposal.artifact_location.end_line == context_location.start_line
     assert result.warnings == ()
 
 
@@ -1568,6 +1703,140 @@ def test_source_grounded_semantic_recovery_requires_resolved_location(
     )
 
 
+def test_source_grounded_section_snippet_preserves_existing_section(
+    tmp_path: Path,
+) -> None:
+    """A section-scoped snippet is converted to a localized insertion."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text(
+        "# Original\n"
+        "## Existing Research Context Interface Contract\n"
+        "Existing context details.\n",
+        encoding="utf-8",
+    )
+
+    location = ArtifactLocation(
+        location_id="location-context",
+        repository_path=str(document),
+        location_type=ArtifactLocationType.SECTION,
+        locator="Existing Research Context Interface Contract",
+        start_line=2,
+        end_line=3,
+        content_hash="hash",
+    )
+
+    change = ProposedDocumentationChange(
+        document_path=Path("docs/index.md"),
+        operation=DocumentationChangeOperation.UPDATE,
+        rationale="Document existing research context handling.",
+        proposed_content=(
+            "```python\n"
+            "def execute(self, context_source_name=None):\n"
+            "    pass\n"
+            "```"
+        ),
+        section="Existing Research Context Interface Contract",
+        anchor_text=None,
+        edit_type=DocumentationEditType.REPLACE,
+    )
+
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(change,)
+        ),
+        validation_results=(
+            _validation_result(ValidationStatus.PASSED),
+        ),
+        artifact_locations=(location,),
+    )[0]
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Update documentation.",
+            target_paths=("docs/index.md",),
+            source_paths=("src/project0/example.py",),
+            workflow_id="workflow-safe-section-snippet",
+        )
+    )
+
+    proposal = result.proposals[0]
+
+    assert proposal.anchor_mode is DocumentationAnchorMode.INSERT_AFTER
+    assert proposal.artifact_location is not None
+    assert (
+        proposal.artifact_location.location_type
+        is ArtifactLocationType.LINE_RANGE
+    )
+    assert proposal.artifact_location.start_line == 2
+    assert proposal.artifact_location.end_line == 2
+
+
+def test_source_grounded_complete_section_replacement_remains_replace(
+    tmp_path: Path,
+) -> None:
+    """A proposal containing the exact section heading may replace it."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text(
+        "# Original\n"
+        "## Existing Research Context Interface Contract\n"
+        "Existing context details.\n",
+        encoding="utf-8",
+    )
+
+    location = ArtifactLocation(
+        location_id="location-context",
+        repository_path=str(document),
+        location_type=ArtifactLocationType.SECTION,
+        locator="Existing Research Context Interface Contract",
+        start_line=2,
+        end_line=3,
+        content_hash="hash",
+    )
+
+    change = ProposedDocumentationChange(
+        document_path=Path("docs/index.md"),
+        operation=DocumentationChangeOperation.UPDATE,
+        rationale="Replace the existing research context section.",
+        proposed_content=(
+            "## Existing Research Context Interface Contract\n"
+            "Updated context details."
+        ),
+        section="Existing Research Context Interface Contract",
+        anchor_text=None,
+        edit_type=DocumentationEditType.REPLACE,
+    )
+
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(change,)
+        ),
+        validation_results=(
+            _validation_result(ValidationStatus.PASSED),
+        ),
+        artifact_locations=(location,),
+    )[0]
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Update documentation.",
+            target_paths=("docs/index.md",),
+            source_paths=("src/project0/example.py",),
+            workflow_id="workflow-full-section-replace",
+        )
+    )
+
+    proposal = result.proposals[0]
+
+    assert proposal.anchor_mode is DocumentationAnchorMode.REPLACE
+    assert proposal.artifact_location == location
+
+
 def test_source_grounded_semantically_aligned_section_is_reviewable(
     tmp_path: Path,
 ) -> None:
@@ -1632,7 +1901,18 @@ def test_source_grounded_semantically_aligned_section_is_reviewable(
 
     assert result.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
     assert len(result.proposals) == 1
-    assert result.proposals[0].artifact_location == location
+
+    proposal = result.proposals[0]
+
+    assert proposal.anchor_mode is DocumentationAnchorMode.INSERT_AFTER
+    assert proposal.artifact_location is not None
+    assert (
+        proposal.artifact_location.location_type
+        is ArtifactLocationType.LINE_RANGE
+    )
+    assert proposal.artifact_location.locator == location.locator
+    assert proposal.artifact_location.start_line == location.start_line
+    assert proposal.artifact_location.end_line == location.start_line
     assert not any(
         "not semantically aligned"
         in warning

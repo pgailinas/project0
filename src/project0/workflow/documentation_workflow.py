@@ -21,6 +21,10 @@ import re
 from project0.interfaces.artifact_interfaces import (
     ArtifactLocationServiceInterface,
 )
+from project0.models.artifact_models import (
+    ArtifactLocation,
+    ArtifactLocationType,
+)
 from project0.interfaces.documentation_workflow_interfaces import (
     GitDiffInterface,
     RepositoryUpdateInterface,
@@ -63,6 +67,17 @@ logger = logging.getLogger(__name__)
 
 
 ContextProvider = Callable[[DocumentationWorkflowRequest], str]
+
+
+_PROPOSED_CONTENT_META_INSTRUCTION_PATTERNS = (
+    re.compile(r"^\s*add\s+(?:a\s+|an\s+|the\s+|new\s+)?sections?\b", re.IGNORECASE),
+    re.compile(r"^\s*include\s+examples?\b", re.IGNORECASE),
+    re.compile(r"^\s*explain\b", re.IGNORECASE),
+    re.compile(r"^\s*describe\b", re.IGNORECASE),
+    re.compile(r"^\s*document\b", re.IGNORECASE),
+    re.compile(r"^\s*update\s+the\s+documentation\b", re.IGNORECASE),
+    re.compile(r"^\s*add\s+documentation\b", re.IGNORECASE),
+)
 
 
 _SECTION_SEMANTIC_STOP_WORDS = frozenset(
@@ -587,6 +602,19 @@ class DocumentationWorkflow:
 
             original_content = file_path.read_text(encoding="utf-8")
 
+            if (
+                source_grounded
+                and self._is_meta_instruction_content(
+                    proposed_change.proposed_content
+                )
+            ):
+                warnings.append(
+                    "Proposed documentation content described what "
+                    "should be written instead of providing concrete "
+                    f"Markdown and was skipped: {repository_path}."
+                )
+                continue
+
             artifact_locations = ()
             if proposed_change.section:
                 artifact_locations = (
@@ -690,6 +718,32 @@ class DocumentationWorkflow:
                     )
                     continue
 
+            proposal_artifact_location = artifact_location
+            proposal_anchor_mode = (
+                DocumentationAnchorMode.INSERT_AFTER
+                if proposed_change.edit_type
+                is DocumentationEditType.INSERT
+                else DocumentationAnchorMode.REPLACE
+            )
+
+            if (
+                source_grounded
+                and artifact_location is not None
+                and artifact_location.location_type
+                is ArtifactLocationType.SECTION
+                and proposed_change.edit_type
+                is DocumentationEditType.REPLACE
+                and not self._proposed_content_replaces_full_section(
+                    original_content=original_content,
+                    proposed_content=proposed_change.proposed_content,
+                    artifact_location=artifact_location,
+                )
+            ):
+                proposal_artifact_location = self._section_heading_location(
+                    artifact_location
+                )
+                proposal_anchor_mode = DocumentationAnchorMode.INSERT_AFTER
+
             proposal = DocumentationChangeProposal(
                 repository_path=repository_path,
                 original_content=original_content,
@@ -697,19 +751,112 @@ class DocumentationWorkflow:
                     proposed_change.proposed_content
                 ),
                 rationale=proposed_change.rationale,
-                artifact_location=artifact_location,
+                artifact_location=proposal_artifact_location,
                 anchor_text=proposed_change.anchor_text,
-                anchor_mode=(
-                    DocumentationAnchorMode.INSERT_AFTER
-                    if proposed_change.edit_type
-                    is DocumentationEditType.INSERT
-                    else DocumentationAnchorMode.REPLACE
-                ),
+                anchor_mode=proposal_anchor_mode,
             )
 
             proposals.append(proposal)
 
         return tuple(proposals), tuple(warnings)
+
+    @staticmethod
+    def _is_meta_instruction_content(
+        proposed_content: str,
+    ) -> bool:
+        """Return whether proposed content is an instruction, not content.
+
+        Source-grounded proposals must contain actual documentation text.
+        Obvious imperative planning language is rejected deterministically
+        instead of being surfaced as reviewable Markdown.
+        """
+
+        stripped = proposed_content.strip()
+
+        if not stripped:
+            return False
+
+        nonempty_lines = tuple(
+            line.strip()
+            for line in stripped.splitlines()
+            if line.strip()
+        )
+
+        if not nonempty_lines:
+            return False
+
+        # Concrete Markdown structures should not be rejected merely
+        # because later prose begins with a verb.
+        first_line = nonempty_lines[0]
+        if (
+            first_line.startswith(("#", "-", "*", ">", "```"))
+            or re.match(r"^\d+[.)]\s+", first_line)
+        ):
+            return False
+
+        return any(
+            pattern.search(stripped)
+            for pattern in _PROPOSED_CONTENT_META_INSTRUCTION_PATTERNS
+        )
+
+    @staticmethod
+    def _proposed_content_replaces_full_section(
+        original_content: str,
+        proposed_content: str,
+        artifact_location: ArtifactLocation,
+    ) -> bool:
+        """Return whether proposed content explicitly includes the heading.
+
+        Source-grounded section updates may safely replace an entire
+        section only when the proposed content begins with the exact
+        existing Markdown heading. Otherwise the proposal is treated as
+        localized content to insert beneath that heading.
+        """
+
+        if artifact_location.start_line is None:
+            return False
+
+        lines = original_content.splitlines()
+        heading_index = artifact_location.start_line - 1
+
+        if heading_index < 0 or heading_index >= len(lines):
+            return False
+
+        existing_heading = lines[heading_index].strip()
+        first_proposed_line = next(
+            (
+                line.strip()
+                for line in proposed_content.splitlines()
+                if line.strip()
+            ),
+            "",
+        )
+
+        return (
+            bool(existing_heading)
+            and first_proposed_line == existing_heading
+        )
+
+    @staticmethod
+    def _section_heading_location(
+        artifact_location: ArtifactLocation,
+    ) -> ArtifactLocation:
+        """Narrow a section location to its heading line."""
+
+        if artifact_location.start_line is None:
+            raise ValueError(
+                "Section artifact location does not define a start line."
+            )
+
+        return ArtifactLocation(
+            location_id=f"{artifact_location.location_id}-heading",
+            repository_path=artifact_location.repository_path,
+            location_type=ArtifactLocationType.LINE_RANGE,
+            locator=artifact_location.locator,
+            start_line=artifact_location.start_line,
+            end_line=artifact_location.start_line,
+            content_hash=artifact_location.content_hash,
+        )
 
     @staticmethod
     def _semantic_tokens(text: str) -> frozenset[str]:
