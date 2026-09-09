@@ -2,7 +2,7 @@
 
 **Version:** 0.6  
 **Owner:** Project0  
-**Last Updated:** 2026-09-02
+**Last Updated:** 2026-09-09
 
 ---
 
@@ -371,6 +371,30 @@ Current progress:
 -   Context-aware multi-query retrieval, bounded batch evaluation, and
     consolidated retained-paper results completed and validated.
 
+### Phase 14 --- Project0 Agent Skills Foundation
+
+Establish a reusable platform-level Agent Skills capability using
+repository-local `SKILL.md` definitions.
+
+Primary activities:
+
+-   Define the Project0 Agent Skills platform contract.
+-   Implement local skill discovery and registration.
+-   Implement skill loading.
+-   Load only skills applicable to the current agent request.
+-   Integrate an initial Documentation Agent skill.
+-   Preserve deterministic workflow enforcement outside skill
+    definitions.
+-   Validate local skill selection and loading behavior.
+
+Deliverables:
+
+-   Project0 Agent Skills design.
+-   Repository-local `skills/<skill-name>/SKILL.md` structure.
+-   Skill registry and loading capability.
+-   Initial Documentation Agent skill.
+-   Unit and integration test coverage.
+
 ## 4. Implementation Dependencies
 
 Implementation phases depend upon the completion of earlier foundational
@@ -432,20 +456,10 @@ Future implementation efforts may include:
 -   Additional AI reasoning providers.
 -   Expanded validation capabilities.
 -   Additional specialized AI agents.
--   Project0 reusable AI worker/skill framework.
-    -   Maintain a common Project0 library of specialized AI worker
-        definitions available to any agent.
-    -   Define worker files by specialized function, such as
-        `repository_analyst.md`, `documentation_reviewer.md`,
-        `source_researcher.md`, `source_evaluator.md`, and
-        `technical_writer.md`.
-    -   Keep worker definitions distinct from deterministic Project0
-        services and components.
-    -   Allow agents to select and compose appropriate workers with
-        Project0 services for their workflows.
-    -   Load only worker definitions relevant to the current task rather
-        than the complete worker library.
+-   External Agent Skills support.
     -   Evaluate external `SKILL.md` compatibility or import as a future
         extension.
+    -   Require a trust-validation and approval mechanism before external
+        skills are installed or used.
 -   Dashboard plugin architecture.
 -   Additional agent interface implementations.

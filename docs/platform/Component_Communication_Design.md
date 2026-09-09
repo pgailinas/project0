@@ -2,7 +2,7 @@
 
 **Version:** 0.5  
 **Owner:** Project0  
-**Last Updated:** 2026-09-02  
+**Last Updated:** 2026-09-09  
 
 ---
 
@@ -267,6 +267,7 @@ The following responsibilities remain planned:
 * Dashboard and audit storage
 * Persistent workflow history
 * Distributed communication
+* Agent Skills registry and loading
 
 ## 8. Communication Contracts
 
@@ -406,6 +407,8 @@ The communication architecture is designed to support future enhancements includ
 * Cloud execution
 * Multiple concurrent workflows
 * Additional AI agent types
+* Repository-local Agent Skills using `SKILL.md` definitions
+* External Agent Skills only after trust validation and approval
 * Enhanced dashboard monitoring
 * Asynchronous workflow execution
 
