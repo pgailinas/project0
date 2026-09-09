@@ -118,6 +118,9 @@ def test_build_prompt_includes_system_instructions() -> None:
     assert "actual Markdown text to apply" in instructions
     assert "not instructions, a plan, or a description" in instructions
     assert "Do not return directives such as Add, Describe, Explain" in instructions
+    assert "do not use the level-one document title" in instructions
+    assert "directly belongs to that section" in instructions
+    assert "do not choose the closest available heading" in instructions
     assert "Do not reproduce the surrounding document or section" in instructions
     assert "only the new list item or items" in instructions
     assert (
@@ -234,6 +237,98 @@ def test_build_prompt_includes_target_paths() -> None:
         "of the permitted document_path values above."
         in provider_request.user_prompt
     )
+
+
+def test_build_prompt_includes_source_grounded_section_guidance() -> None:
+    """Source-grounded prompts enumerate valid target sections."""
+
+    reasoning_request = ReasoningRequest(
+        objective="Update documentation.",
+        context=(
+            "=== TARGET DOCUMENTATION ===\n"
+            "Path: docs/Example.md\n"
+            "# Example\n"
+            "## Existing Interface Contract\n"
+            "Body text.\n"
+            "### Validation Behavior\n"
+            "\n"
+            "=== AUTHORITATIVE SOURCE ===\n"
+            "Path: src/project0/example.py\n"
+            "## Source Heading\n"
+        ),
+        target_paths=(Path("docs/Example.md"),),
+    )
+
+    builder = PromptBuilder()
+
+    user_prompt = builder.build_prompt(
+        reasoning_request
+    ).user_prompt
+
+    guidance_block = user_prompt.split(
+        "Permitted Existing Target Sections:\n",
+        1,
+    )[1].split(
+        "\n\nRepository Context:\n",
+        1,
+    )[0]
+
+    assert (
+        "- Existing Interface Contract\n"
+        "- Validation Behavior"
+        in guidance_block
+    )
+    assert "Source Heading" not in guidance_block
+    assert "Choose a section only when the proposed change" in user_prompt
+    assert "directly belongs to that section's existing subject matter" in user_prompt
+    assert "Do not choose a section merely because it is the closest" in user_prompt
+    assert "return section as null" in user_prompt
+
+
+def test_build_prompt_omits_section_guidance_for_generic_context() -> None:
+    """Generic prompts should preserve prior user-prompt behavior."""
+
+    reasoning_request = ReasoningRequest(
+        objective="Update documentation.",
+        context=(
+            "# Example\n"
+            "## Existing Interface Contract\n"
+        ),
+    )
+
+    builder = PromptBuilder()
+
+    user_prompt = builder.build_prompt(
+        reasoning_request
+    ).user_prompt
+
+    assert "Permitted Existing Target Sections:" not in user_prompt
+
+
+def test_build_prompt_omits_section_guidance_without_target_subsections() -> None:
+    """Source-grounded title-only targets should not list sections."""
+
+    reasoning_request = ReasoningRequest(
+        objective="Update documentation.",
+        context=(
+            "=== TARGET DOCUMENTATION ===\n"
+            "Path: docs/Example.md\n"
+            "# Example\n"
+            "\n"
+            "=== AUTHORITATIVE SOURCE ===\n"
+            "Path: src/project0/example.py\n"
+            "## Source Heading\n"
+        ),
+        target_paths=(Path("docs/Example.md"),),
+    )
+
+    builder = PromptBuilder()
+
+    user_prompt = builder.build_prompt(
+        reasoning_request
+    ).user_prompt
+
+    assert "Permitted Existing Target Sections:" not in user_prompt
 
 
 def test_build_prompt_omits_target_paths_when_empty() -> None:
@@ -598,6 +693,20 @@ def test_response_schema_allows_nullable_section() -> None:
 
 
 
+def test_extract_markdown_headings_preserves_generic_context_behavior() -> None:
+    """Generic context still includes level-one and subsection headings."""
+
+    headings, source_grounded = PromptBuilder._extract_markdown_headings(
+        "# Example\n## Existing Interface Contract\n"
+    )
+
+    assert source_grounded is False
+    assert headings == (
+        "Example",
+        "Existing Interface Contract",
+    )
+
+
 def test_response_schema_constrains_section_to_context_headings() -> None:
     """Verify section values are limited to exact supplied headings."""
 
@@ -631,6 +740,81 @@ def test_response_schema_constrains_section_to_context_headings() -> None:
             "Existing Interface Contract",
             "Validation Behavior",
         ],
+    }
+    assert section_schema["anyOf"][1] == {
+        "type": "null",
+    }
+
+
+def test_response_schema_uses_only_source_grounded_target_subheadings() -> None:
+    """Source-grounded section enum excludes source headings and target H1."""
+
+    reasoning_request = ReasoningRequest(
+        objective="Update documentation.",
+        context=(
+            "=== TARGET DOCUMENTATION ===\n"
+            "Path: docs/Example.md\n"
+            "# Example\n"
+            "## Existing Interface Contract\n"
+            "Body text.\n"
+            "### Validation Behavior\n"
+            "\n"
+            "=== AUTHORITATIVE SOURCE ===\n"
+            "Path: src/project0/example.py\n"
+            "# Source Comment That Looks Like Markdown\n"
+            "## Another Source Comment\n"
+        ),
+        target_paths=(Path("docs/Example.md"),),
+    )
+
+    builder = PromptBuilder()
+
+    schema = builder.build_prompt(
+        reasoning_request
+    ).response_schema
+
+    section_values = (
+        schema["properties"]["proposed_changes"]["items"]
+        ["properties"]["section"]["anyOf"][0]["enum"]
+    )
+
+    assert section_values == [
+        "Existing Interface Contract",
+        "Validation Behavior",
+    ]
+
+
+def test_response_schema_source_grounded_target_with_only_h1_allows_null_only() -> None:
+    """Source-grounded target title alone should not become an edit section."""
+
+    reasoning_request = ReasoningRequest(
+        objective="Update documentation.",
+        context=(
+            "=== TARGET DOCUMENTATION ===\n"
+            "Path: docs/Example.md\n"
+            "# Example\n"
+            "\n"
+            "=== AUTHORITATIVE SOURCE ===\n"
+            "Path: src/project0/example.py\n"
+            "## Source Heading\n"
+        ),
+        target_paths=(Path("docs/Example.md"),),
+    )
+
+    builder = PromptBuilder()
+
+    schema = builder.build_prompt(
+        reasoning_request
+    ).response_schema
+
+    section_schema = (
+        schema["properties"]["proposed_changes"]["items"]
+        ["properties"]["section"]
+    )
+
+    assert section_schema["anyOf"][0] == {
+        "type": "string",
+        "enum": [],
     }
     assert section_schema["anyOf"][1] == {
         "type": "null",

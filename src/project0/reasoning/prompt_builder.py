@@ -76,7 +76,12 @@ class PromptBuilder:
             "document, excluding leading Markdown # characters and surrounding "
             "whitespace. Do not invent or paraphrase section names. If no existing "
             "heading reliably identifies the update location, return section as "
-            "null. anchor_text, when supplied, must be exact verbatim text from "
+            "null. In source-grounded documentation updates, do not use the "
+            "level-one document title as an update section. Choose an existing "
+            "section only when the proposed change directly belongs to that "
+            "section's current subject matter; do not choose the closest "
+            "available heading when the semantic fit is weak. anchor_text, when "
+            "supplied, must be exact verbatim text from "
             "the target document rather than a generated description. Do not "
             "reproduce the surrounding document or section in proposed_content. "
             "If adding information to an existing list, proposed_content must "
@@ -156,6 +161,31 @@ class PromptBuilder:
                 )
             )
 
+        target_headings, source_grounded = (
+            self._extract_markdown_headings(
+                request.context
+            )
+        )
+        if source_grounded and target_headings:
+            sections.extend(
+                (
+                    "",
+                    "Permitted Existing Target Sections:",
+                    *(
+                        f"- {heading}"
+                        for heading in target_headings
+                    ),
+                    (
+                        "Choose a section only when the proposed change "
+                        "directly belongs to that section's existing subject "
+                        "matter. Do not choose a section merely because it "
+                        "is the closest available heading. If no existing "
+                        "section is semantically appropriate, return section "
+                        "as null."
+                    ),
+                )
+            )
+
         sections.extend(
             (
                 "",
@@ -169,13 +199,43 @@ class PromptBuilder:
     @staticmethod
     def _extract_markdown_headings(
         context: str,
-    ) -> tuple[str, ...]:
-        """Extract exact Markdown heading text from supplied context."""
+    ) -> tuple[tuple[str, ...], bool]:
+        """Extract valid Markdown section headings from supplied context.
+
+        Source-grounded documentation context is explicitly segmented using
+        TARGET DOCUMENTATION and AUTHORITATIVE SOURCE markers. When those
+        markers are present, only target-documentation headings are eligible
+        and level-one document titles are excluded as update locations.
+
+        Generic documentation context preserves the previous behavior and
+        considers all Markdown headings.
+        """
+
+        target_marker = "=== TARGET DOCUMENTATION ==="
+        source_marker = "=== AUTHORITATIVE SOURCE ==="
+        source_grounded = target_marker in context
 
         headings: list[str] = []
+        in_target = not source_grounded
 
         for line in context.splitlines():
             stripped = line.strip()
+
+            if source_grounded:
+                if stripped == target_marker:
+                    in_target = True
+                    continue
+
+                if stripped == source_marker:
+                    in_target = False
+                    continue
+
+                if stripped.startswith("=== ") and stripped.endswith(" ==="):
+                    in_target = False
+                    continue
+
+                if not in_target:
+                    continue
 
             if not stripped.startswith("#"):
                 continue
@@ -185,6 +245,9 @@ class PromptBuilder:
             )
 
             if not 1 <= marker_length <= 6:
+                continue
+
+            if source_grounded and marker_length == 1:
                 continue
 
             remainder = stripped[marker_length:]
@@ -197,7 +260,7 @@ class PromptBuilder:
             if heading and heading not in headings:
                 headings.append(heading)
 
-        return tuple(headings)
+        return tuple(headings), source_grounded
 
     def _build_response_schema(
         self,
@@ -230,11 +293,15 @@ class PromptBuilder:
         section_value_schema: dict[str, object] = {
             "type": "string",
         }
-        target_headings = self._extract_markdown_headings(
-            request.context
+        target_headings, source_grounded = (
+            self._extract_markdown_headings(
+                request.context
+            )
         )
         if target_headings:
             section_value_schema["enum"] = list(target_headings)
+        elif source_grounded:
+            section_value_schema["enum"] = []
 
         return {
             "type": "object",
