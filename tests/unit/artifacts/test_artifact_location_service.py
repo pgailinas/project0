@@ -49,10 +49,10 @@ Validation content.
     return document
 
 
-def test_artifact_location_service_discovers_markdown_locations(
+def test_artifact_location_service_discovers_matching_markdown_location(
     tmp_path: Path,
 ) -> None:
-    """Artifact location service discovers Markdown locations."""
+    """Artifact location service returns one request-matched section."""
 
     document = _create_markdown_document(tmp_path)
 
@@ -63,12 +63,64 @@ def test_artifact_location_service_discovers_markdown_locations(
         "Update workflow documentation.",
     )
 
-    assert len(locations) == 3
-    assert locations[1].locator == "Workflow"
+    assert len(locations) == 1
+    assert locations[0].locator == "Workflow"
     assert (
-        locations[1].location_type
+        locations[0].location_type
         == ArtifactLocationType.SECTION
     )
+
+
+def test_artifact_location_service_returns_no_location_without_heading_match(
+    tmp_path: Path,
+) -> None:
+    """Requests without a heading match should fail closed."""
+
+    document = _create_markdown_document(tmp_path)
+
+    service = ArtifactLocationService()
+
+    locations = service.discover_locations(
+        document,
+        "Update the documentation.",
+    )
+
+    assert locations == ()
+
+
+def test_artifact_location_service_returns_no_location_for_ambiguous_match(
+    tmp_path: Path,
+) -> None:
+    """Requests matching multiple headings should fail closed."""
+
+    document = _create_markdown_document(tmp_path)
+
+    service = ArtifactLocationService()
+
+    locations = service.discover_locations(
+        document,
+        "Update workflow and validation documentation.",
+    )
+
+    assert locations == ()
+
+
+def test_artifact_location_service_matches_headings_case_insensitively(
+    tmp_path: Path,
+) -> None:
+    """Heading matching should not depend on capitalization."""
+
+    document = _create_markdown_document(tmp_path)
+
+    service = ArtifactLocationService()
+
+    locations = service.discover_locations(
+        document,
+        "Update WORKFLOW documentation.",
+    )
+
+    assert len(locations) == 1
+    assert locations[0].locator == "Workflow"
 
 
 def test_artifact_location_service_ignores_unsupported_files(

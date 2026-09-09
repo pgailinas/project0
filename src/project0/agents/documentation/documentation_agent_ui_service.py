@@ -480,6 +480,11 @@ class DocumentationAgentUIService:
                 default=None,
             )
         )
+        artifact_location = self._read_value(
+            proposal,
+            "artifact_location",
+            default=None,
+        )
         anchor_mode_value = self._read_value(
             proposal,
             "anchor_mode",
@@ -497,6 +502,7 @@ class DocumentationAgentUIService:
                 proposed_content=proposed_content,
                 anchor_text=anchor_text,
                 anchor_mode=anchor_mode,
+                artifact_location=artifact_location,
             )
 
         except ValueError as error:

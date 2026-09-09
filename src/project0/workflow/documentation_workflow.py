@@ -117,6 +117,16 @@ class DocumentationWorkflow:
                         "Preserve existing documentation style.",
                         "Make the minimum necessary changes.",
                         "Do not invent project information.",
+                        (
+                            "Ground Truth Source Paths are read-only "
+                            "authoritative evidence and must not be "
+                            "proposed for modification."
+                        ),
+                        (
+                            "When target documentation paths are "
+                            "provided, propose changes only to those "
+                            "target paths."
+                        ),
                     ),
                     metadata={
                         "workflow_id": request.workflow_id,
@@ -143,6 +153,24 @@ class DocumentationWorkflow:
                 target_paths=request.target_paths,
             )
             warnings.extend(proposal_warnings)
+
+            if not proposals:
+                state = DocumentationWorkflowState(
+                    workflow_id=request.workflow_id,
+                    status=DocumentationWorkflowStatus.REVIEW_REQUIRED,
+                    started_at=started_at,
+                    user_request=request.user_request,
+                    target_paths=request.target_paths,
+                    source_paths=request.source_paths,
+                    reasoning_result=reasoning_result,
+                    proposals=(),
+                    preliminary_validation=None,
+                    warnings=tuple(warnings),
+                )
+
+                self._workflow_states[request.workflow_id] = state
+
+                return self._create_review_required_result(state)
 
             preliminary_validation = self._validate_paths(
                 tuple(
@@ -185,24 +213,6 @@ class DocumentationWorkflow:
                 warnings.append(
                     "Preliminary validation completed with warnings."
                 )
-
-            if not proposals:
-                state = DocumentationWorkflowState(
-                    workflow_id=request.workflow_id,
-                    status=DocumentationWorkflowStatus.REVIEW_REQUIRED,
-                    started_at=started_at,
-                    user_request=request.user_request,
-                    target_paths=request.target_paths,
-                    source_paths=request.source_paths,
-                    reasoning_result=reasoning_result,
-                    proposals=(),
-                    preliminary_validation=preliminary_validation,
-                    warnings=tuple(warnings),
-                )
-
-                self._workflow_states[request.workflow_id] = state
-
-                return self._create_review_required_result(state)
 
             state = DocumentationWorkflowState(
                 workflow_id=request.workflow_id,
@@ -545,10 +555,15 @@ class DocumentationWorkflow:
 
             original_content = file_path.read_text(encoding="utf-8")
 
+            location_request = (
+                proposed_change.section
+                or proposed_change.rationale
+            )
+
             artifact_locations = (
                 self._artifact_location_service.discover_locations(
                     file_path,
-                    proposed_change.rationale,
+                    location_request,
                 )
             )
 

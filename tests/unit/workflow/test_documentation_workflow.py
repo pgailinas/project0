@@ -230,6 +230,7 @@ def _validation_result(
 def _update_change(
     repository_path: str = "docs/index.md",
     proposed_content: str = "# Updated\n",
+    section: str | None = None,
     anchor_text: str | None = None,
     edit_type: DocumentationEditType = DocumentationEditType.REPLACE,
 ) -> ProposedDocumentationChange:
@@ -240,6 +241,7 @@ def _update_change(
         operation=DocumentationChangeOperation.UPDATE,
         rationale="Update the document.",
         proposed_content=proposed_content,
+        section=section,
         anchor_text=anchor_text,
         edit_type=edit_type,
     )
@@ -516,6 +518,16 @@ def test_context_and_reasoning_request_are_forwarded(
     assert reasoning_request.context == "repository context"
     assert reasoning_request.workflow_type == "documentation_update"
     assert reasoning_request.target_paths == (Path("docs/index.md"),)
+    assert (
+        "Ground Truth Source Paths are read-only authoritative evidence "
+        "and must not be proposed for modification."
+        in reasoning_request.constraints
+    )
+    assert (
+        "When target documentation paths are provided, propose changes "
+        "only to those target paths."
+        in reasoning_request.constraints
+    )
     assert reasoning_request.metadata["workflow_id"] == "workflow-002"
 
 
@@ -640,7 +652,7 @@ def test_proposal_outside_requested_target_scope_is_skipped(
     allowed.write_text("# Allowed\n", encoding="utf-8")
     other.write_text("# Other\n", encoding="utf-8")
 
-    workflow = _create_workflow(
+    components = _create_workflow(
         tmp_path,
         reasoning_result=_reasoning_result(
             proposed_changes=(
@@ -650,10 +662,10 @@ def test_proposal_outside_requested_target_scope_is_skipped(
                 ),
             )
         ),
-        validation_results=(
-            _validation_result(ValidationStatus.PASSED),
-        ),
-    )[0]
+        validation_results=(),
+    )
+    workflow = components[0]
+    validation_service = components[2]
 
     result = workflow.execute(
         DocumentationWorkflowRequest(
@@ -664,6 +676,8 @@ def test_proposal_outside_requested_target_scope_is_skipped(
     )
 
     assert result.proposals == ()
+    assert result.preliminary_validation is None
+    assert validation_service.requests == []
     assert any(
         "outside the requested target scope"
         in warning
@@ -683,15 +697,15 @@ def test_unsupported_create_operation_is_skipped(
         proposed_content="# New\n",
     )
 
-    workflow = _create_workflow(
+    components = _create_workflow(
         tmp_path,
         reasoning_result=_reasoning_result(
             proposed_changes=(create_change,)
         ),
-        validation_results=(
-            _validation_result(ValidationStatus.PASSED),
-        ),
-    )[0]
+        validation_results=(),
+    )
+    workflow = components[0]
+    validation_service = components[2]
 
     result = workflow.execute(
         DocumentationWorkflowRequest(
@@ -702,6 +716,8 @@ def test_unsupported_create_operation_is_skipped(
     assert result.proposals == ()
     assert result.reviews == ()
     assert result.applied_changes == ()
+    assert result.preliminary_validation is None
+    assert validation_service.requests == []
     assert result.git_diff == ""
     assert (
         result.status
@@ -718,7 +734,7 @@ def test_non_markdown_proposal_is_skipped(tmp_path: Path) -> None:
     target = tmp_path / "config.txt"
     target.write_text("original\n", encoding="utf-8")
 
-    workflow = _create_workflow(
+    components = _create_workflow(
         tmp_path,
         reasoning_result=_reasoning_result(
             proposed_changes=(
@@ -728,10 +744,10 @@ def test_non_markdown_proposal_is_skipped(tmp_path: Path) -> None:
                 ),
             )
         ),
-        validation_results=(
-            _validation_result(ValidationStatus.PASSED),
-        ),
-    )[0]
+        validation_results=(),
+    )
+    workflow = components[0]
+    validation_service = components[2]
 
     result = workflow.execute(
         DocumentationWorkflowRequest(
@@ -740,6 +756,8 @@ def test_non_markdown_proposal_is_skipped(tmp_path: Path) -> None:
     )
 
     assert result.proposals == ()
+    assert result.preliminary_validation is None
+    assert validation_service.requests == []
     assert "Proposed non-Markdown change was skipped" in (
         result.warnings[0]
     )
@@ -1055,15 +1073,15 @@ def test_context_provider_error_is_converted_to_failed_result(
 def test_reasoning_warnings_are_preserved(tmp_path: Path) -> None:
     """Reasoning warnings produce completed-with-warnings status."""
 
-    workflow = _create_workflow(
+    components = _create_workflow(
         tmp_path,
         reasoning_result=_reasoning_result(
             warnings=("Reasoning warning.",)
         ),
-        validation_results=(
-            _validation_result(ValidationStatus.PASSED),
-        ),
-    )[0]
+        validation_results=(),
+    )
+    workflow = components[0]
+    validation_service = components[2]
 
     result = workflow.execute(
         DocumentationWorkflowRequest(
@@ -1075,6 +1093,8 @@ def test_reasoning_warnings_are_preserved(tmp_path: Path) -> None:
         result.status
         is DocumentationWorkflowStatus.COMPLETED_WITH_WARNINGS
     )
+    assert result.preliminary_validation is None
+    assert validation_service.requests == []
     assert result.warnings == ("Reasoning warning.",)
 
 
@@ -1086,9 +1106,7 @@ def test_workflow_timestamps_are_timezone_aware(
     workflow = _create_workflow(
         tmp_path,
         reasoning_result=_reasoning_result(),
-        validation_results=(
-            _validation_result(ValidationStatus.PASSED),
-        ),
+        validation_results=(),
     )[0]
 
     result = workflow.execute(
@@ -1102,10 +1120,87 @@ def test_workflow_timestamps_are_timezone_aware(
     assert result.completed_at >= result.started_at
 
 
-def test_artifact_location_service_is_used_for_proposals(
+def test_artifact_location_service_uses_section_for_proposals(
     tmp_path: Path,
 ) -> None:
-    """Artifact location discovery is requested during proposal creation."""
+    """Structured section should be the preferred location request."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text("# Original\n## Interfaces\n", encoding="utf-8")
+
+    components = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(
+                _update_change(
+                    section="Interfaces",
+                    anchor_text="Existing interface text.",
+                ),
+            )
+        ),
+        validation_results=(
+            _validation_result(ValidationStatus.PASSED),
+        ),
+    )
+
+    workflow = components[0]
+    artifact_location_service = workflow._artifact_location_service
+
+    workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Update documentation.",
+            workflow_id="workflow-artifact-location-section",
+        )
+    )
+
+    assert artifact_location_service.requests == [
+        (document.resolve(), "Interfaces"),
+    ]
+
+
+def test_artifact_location_service_uses_rationale_when_anchor_exists(
+    tmp_path: Path,
+) -> None:
+    """Anchor text should not be used for section discovery."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text("# Original\nExisting text.\n", encoding="utf-8")
+
+    components = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(
+                _update_change(
+                    anchor_text="Existing text.",
+                ),
+            )
+        ),
+        validation_results=(
+            _validation_result(ValidationStatus.PASSED),
+        ),
+    )
+
+    workflow = components[0]
+    artifact_location_service = workflow._artifact_location_service
+
+    workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Update documentation.",
+            workflow_id="workflow-artifact-location-anchor",
+        )
+    )
+
+    assert artifact_location_service.requests == [
+        (document.resolve(), "Update the document."),
+    ]
+
+
+def test_artifact_location_service_falls_back_to_rationale(
+    tmp_path: Path,
+) -> None:
+    """Rationale should be used only when no structured location exists."""
 
     document = tmp_path / "docs/index.md"
     document.parent.mkdir()
@@ -1127,8 +1222,10 @@ def test_artifact_location_service_is_used_for_proposals(
     workflow.execute(
         DocumentationWorkflowRequest(
             user_request="Update documentation.",
-            workflow_id="workflow-artifact-location",
+            workflow_id="workflow-artifact-location-rationale",
         )
     )
 
-    assert len(artifact_location_service.requests) == 1
+    assert artifact_location_service.requests == [
+        (document.resolve(), "Update the document."),
+    ]

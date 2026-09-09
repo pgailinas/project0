@@ -36,21 +36,34 @@ class ArtifactLocationService:
         artifact_path: Path,
         request: str,
     ) -> tuple[ArtifactLocation, ...]:
-        """Discover valid locations within an artifact.
+        """Discover one unambiguous location within an artifact.
 
-        Initial implementation supports Markdown artifacts.
-        The request parameter is retained as part of the service
-        contract for future location ranking and selection.
+        Markdown section discovery is narrowed using the supplied
+        request. A section is returned only when exactly one heading
+        is explicitly referenced by the request. Ambiguous or
+        unmatched requests fail closed by returning no location.
         """
-
-        del request
 
         if artifact_path.suffix.lower() not in {".md", ".markdown"}:
             return ()
 
-        return self._markdown_locator.locate_sections(
+        locations = self._markdown_locator.locate_sections(
             artifact_path
         )
+        normalized_request = request.casefold()
+
+        matching_locations = tuple(
+            location
+            for location in locations
+            if location.locator.strip().casefold()
+            and location.locator.strip().casefold()
+            in normalized_request
+        )
+
+        if len(matching_locations) != 1:
+            return ()
+
+        return matching_locations
 
     def validate_location(
         self,

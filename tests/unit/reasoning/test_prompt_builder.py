@@ -95,8 +95,10 @@ def test_build_prompt_includes_system_instructions() -> None:
     assert "Analyze only the supplied repository context" in instructions
     assert "Do not modify source code" in instructions
     assert "Preserve repository-relative paths" in instructions
-    assert "Target Paths identify the documents that may be changed" in instructions
-    assert "reference-only" in instructions
+    assert "Target Paths identify the only documents that may be changed" in instructions
+    assert "read-only reference evidence" in instructions
+    assert "must never be returned as a proposed change document_path" in instructions
+    assert "Ground Truth Source content is always read-only evidence" in instructions
     assert "proposed_content must contain only" in instructions
     assert (
         "For an update operation, proposed_content must contain the "
@@ -218,6 +220,14 @@ def test_build_prompt_includes_target_paths() -> None:
         "- docs/Design.md"
         in provider_request.user_prompt
     )
+    assert (
+        "Permitted proposed_changes document_path values:\n"
+        "- docs/Architecture.md\n"
+        "- docs/Design.md\n"
+        "Every proposed_changes item must use exactly one "
+        "of the permitted document_path values above."
+        in provider_request.user_prompt
+    )
 
 
 def test_build_prompt_omits_target_paths_when_empty() -> None:
@@ -235,6 +245,10 @@ def test_build_prompt_omits_target_paths_when_empty() -> None:
     )
 
     assert "Target Paths:" not in provider_request.user_prompt
+    assert (
+        "Permitted proposed_changes document_path values:"
+        not in provider_request.user_prompt
+    )
 
 
 def test_build_prompt_includes_constraints() -> None:
@@ -422,6 +436,89 @@ def test_response_schema_defines_change_shape() -> None:
             "delete",
         ]
     )
+
+
+def test_response_schema_limits_proposed_change_paths_to_targets() -> None:
+    """Target paths should constrain proposed change document paths."""
+
+    reasoning_request = ReasoningRequest(
+        objective="Update selected documentation.",
+        context="Repository context.",
+        target_paths=(
+            Path("docs/Architecture.md"),
+            Path("docs/Design.md"),
+        ),
+    )
+
+    builder = PromptBuilder()
+
+    schema = builder.build_prompt(
+        reasoning_request
+    ).response_schema
+
+    document_path_schema = (
+        schema["properties"]["proposed_changes"]["items"]
+        ["properties"]["document_path"]
+    )
+
+    assert document_path_schema == {
+        "type": "string",
+        "enum": [
+            "docs/Architecture.md",
+            "docs/Design.md",
+        ],
+    }
+
+
+def test_response_schema_leaves_proposed_change_path_open_without_targets() -> None:
+    """Absent target paths should preserve the generic path schema."""
+
+    reasoning_request = ReasoningRequest(
+        objective="Analyze documentation.",
+        context="Repository context.",
+    )
+
+    builder = PromptBuilder()
+
+    schema = builder.build_prompt(
+        reasoning_request
+    ).response_schema
+
+    document_path_schema = (
+        schema["properties"]["proposed_changes"]["items"]
+        ["properties"]["document_path"]
+    )
+
+    assert document_path_schema == {
+        "type": "string",
+    }
+
+
+def test_response_schema_does_not_limit_impact_paths_to_targets() -> None:
+    """Impact reporting may still identify documentation outside targets."""
+
+    reasoning_request = ReasoningRequest(
+        objective="Analyze documentation impact.",
+        context="Repository context.",
+        target_paths=(
+            Path("docs/Architecture.md"),
+        ),
+    )
+
+    builder = PromptBuilder()
+
+    schema = builder.build_prompt(
+        reasoning_request
+    ).response_schema
+
+    impact_path_schema = (
+        schema["properties"]["impacts"]["items"]
+        ["properties"]["document_path"]
+    )
+
+    assert impact_path_schema == {
+        "type": "string",
+    }
 
 
 def test_response_schema_allows_nullable_confidence() -> None:

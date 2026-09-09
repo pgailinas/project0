@@ -36,7 +36,7 @@ class PromptBuilder:
         return ProviderRequest(
             system_instructions=self._build_system_instructions(),
             user_prompt=self._build_user_prompt(request),
-            response_schema=self._build_response_schema(),
+            response_schema=self._build_response_schema(request),
             model_name=self.model_name,
             temperature=self.temperature,
             maximum_output_tokens=self.maximum_output_tokens,
@@ -57,10 +57,11 @@ class PromptBuilder:
             "Do not modify source code or claim that repository changes were "
             "applied.\n"
             "Preserve repository-relative paths and Markdown formatting.\n"
-            "Target Paths identify the documents that may be changed. "
-            "Repository context outside the Target Paths is reference-only "
-            "and must not be proposed for modification unless explicitly "
-            "requested.\n"
+            "Target Paths identify the only documents that may be changed. "
+            "Repository context outside the Target Paths is read-only "
+            "reference evidence and must never be returned as a proposed "
+            "change document_path. Ground Truth Source content is always "
+            "read-only evidence.\n"
             "For an update operation, proposed_content must contain only "
             "the documentation content to insert or replace. It must not "
             "contain the complete resulting document. Identify the target "
@@ -113,6 +114,16 @@ class PromptBuilder:
                         f"- {path.as_posix()}"
                         for path in request.target_paths
                     ),
+                    "",
+                    "Permitted proposed_changes document_path values:",
+                    *(
+                        f"- {path.as_posix()}"
+                        for path in request.target_paths
+                    ),
+                    (
+                        "Every proposed_changes item must use exactly one "
+                        "of the permitted document_path values above."
+                    ),
                 )
             )
 
@@ -138,7 +149,10 @@ class PromptBuilder:
 
         return "\n".join(sections)
 
-    def _build_response_schema(self) -> dict[str, object]:
+    def _build_response_schema(
+        self,
+        request: ReasoningRequest,
+    ) -> dict[str, object]:
         """Build the structured reasoning response schema."""
 
         confidence_schema = {
@@ -153,6 +167,15 @@ class PromptBuilder:
                 },
             ]
         }
+
+        proposed_document_path_schema: dict[str, object] = {
+            "type": "string",
+        }
+        if request.target_paths:
+            proposed_document_path_schema["enum"] = [
+                path.as_posix()
+                for path in request.target_paths
+            ]
 
         return {
             "type": "object",
@@ -209,9 +232,9 @@ class PromptBuilder:
                             "confidence",
                         ],
                         "properties": {
-                            "document_path": {
-                                "type": "string",
-                            },
+                            "document_path": (
+                                proposed_document_path_schema
+                            ),
                             "operation": {
                                 "type": "string",
                                 "enum": [

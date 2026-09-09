@@ -22,6 +22,10 @@ from project0.agents.documentation.documentation_agent_view_models import (
     DocumentationAgentPageStatus,
     ValidationDisplayStatus,
 )
+from project0.models.artifact_models import (
+    ArtifactLocation,
+    ArtifactLocationType,
+)
 from project0.models.documentation_workflow_models import ReviewDecision
 
 
@@ -439,6 +443,62 @@ def test_submit_request_focuses_multiple_difference_hunks() -> None:
     assert "Line 10" not in contents
     assert "Line 20" not in contents
 
+
+
+def test_submit_request_difference_uses_artifact_location_before_anchor() -> None:
+    """Review diff should match artifact-location repository application."""
+
+    original = (
+        "# Documentation\n\n"
+        "## Interface\n\n"
+        "Old interface text.\n\n"
+        "## Other\n\n"
+        "Unchanged text.\n"
+    )
+
+    workflow = FakeWorkflow(
+        result={
+            "workflow_id": "workflow-artifact-diff",
+            "status": "review_required",
+            "proposals": (
+                {
+                    "proposal_id": "proposal-1",
+                    "repository_path": "docs/Example.md",
+                    "rationale": "Update the interface description.",
+                    "original_content": original,
+                    "proposed_content": "Updated interface text.",
+                    "anchor_text": "Missing anchor",
+                    "artifact_location": ArtifactLocation(
+                        location_id="interface-content",
+                        repository_path="docs/Example.md",
+                        location_type=ArtifactLocationType.LINE_RANGE,
+                        locator="Interface content",
+                        start_line=5,
+                        end_line=5,
+                    ),
+                },
+            ),
+        }
+    )
+
+    service = DocumentationAgentUIService(workflow=workflow)
+
+    page = service.submit_request("Update the interface description.")
+
+    difference = page.proposals[0].difference
+
+    assert difference is not None
+    assert difference.error_message is None
+    assert any(
+        line.content == "Old interface text."
+        and line.line_type is DifferenceLineType.REMOVED
+        for line in difference.lines
+    )
+    assert any(
+        line.content == "Updated interface text."
+        and line.line_type is DifferenceLineType.ADDED
+        for line in difference.lines
+    )
 
 
 def test_submit_request_handles_invalid_anchor_difference_failure() -> None:
