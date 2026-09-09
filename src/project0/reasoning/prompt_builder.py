@@ -66,7 +66,11 @@ class PromptBuilder:
             "the documentation content to insert or replace. It must not "
             "contain the complete resulting document. Identify the target "
             "location using section and anchor_text. Make only the minimum "
-            "textual modification required to satisfy the request. When an "
+            "textual modification required to satisfy the request. "
+            "proposed_content must be the actual Markdown text to apply, not "
+            "instructions, a plan, or a description of content that should be "
+            "written. Do not return directives such as Add, Describe, Explain, "
+            "Include, or Update in place of the concrete Markdown content. When an "
             "update applies within an existing Markdown section, section must "
             "contain the exact existing heading text from the supplied target "
             "document, excluding leading Markdown # characters and surrounding "
@@ -162,6 +166,39 @@ class PromptBuilder:
 
         return "\n".join(sections)
 
+    @staticmethod
+    def _extract_markdown_headings(
+        context: str,
+    ) -> tuple[str, ...]:
+        """Extract exact Markdown heading text from supplied context."""
+
+        headings: list[str] = []
+
+        for line in context.splitlines():
+            stripped = line.strip()
+
+            if not stripped.startswith("#"):
+                continue
+
+            marker_length = len(stripped) - len(
+                stripped.lstrip("#")
+            )
+
+            if not 1 <= marker_length <= 6:
+                continue
+
+            remainder = stripped[marker_length:]
+
+            if not remainder.startswith(" "):
+                continue
+
+            heading = remainder.strip()
+
+            if heading and heading not in headings:
+                headings.append(heading)
+
+        return tuple(headings)
+
     def _build_response_schema(
         self,
         request: ReasoningRequest,
@@ -189,6 +226,15 @@ class PromptBuilder:
                 path.as_posix()
                 for path in request.target_paths
             ]
+
+        section_value_schema: dict[str, object] = {
+            "type": "string",
+        }
+        target_headings = self._extract_markdown_headings(
+            request.context
+        )
+        if target_headings:
+            section_value_schema["enum"] = list(target_headings)
 
         return {
             "type": "object",
@@ -260,6 +306,11 @@ class PromptBuilder:
                                 "type": "string",
                             },
                             "proposed_content": {
+                                "description": (
+                                    "Concrete Markdown text to apply. Must not "
+                                    "be instructions, a plan, or a description "
+                                    "of content that should be written."
+                                ),
                                 "type": "string",
                             },
                             "section": {
@@ -271,9 +322,7 @@ class PromptBuilder:
                                     "update location."
                                 ),
                                 "anyOf": [
-                                    {
-                                        "type": "string",
-                                    },
+                                    section_value_schema,
                                     {
                                         "type": "null",
                                     },

@@ -115,6 +115,9 @@ def test_build_prompt_includes_system_instructions() -> None:
         in instructions
     )
     assert "minimum textual modification" in instructions
+    assert "actual Markdown text to apply" in instructions
+    assert "not instructions, a plan, or a description" in instructions
+    assert "Do not return directives such as Add, Describe, Explain" in instructions
     assert "Do not reproduce the surrounding document or section" in instructions
     assert "only the new list item or items" in instructions
     assert (
@@ -593,6 +596,104 @@ def test_response_schema_allows_nullable_section() -> None:
     }
 
 
+
+
+def test_response_schema_constrains_section_to_context_headings() -> None:
+    """Verify section values are limited to exact supplied headings."""
+
+    reasoning_request = ReasoningRequest(
+        objective="Update documentation.",
+        context=(
+            "--- Document: docs/Example.md ---\n"
+            "# Example\n"
+            "## Existing Interface Contract\n"
+            "Body text.\n"
+            "### Validation Behavior\n"
+        ),
+        target_paths=(Path("docs/Example.md"),),
+    )
+
+    builder = PromptBuilder()
+
+    schema = builder.build_prompt(
+        reasoning_request
+    ).response_schema
+
+    section_schema = (
+        schema["properties"]["proposed_changes"]["items"]
+        ["properties"]["section"]
+    )
+
+    assert section_schema["anyOf"][0] == {
+        "type": "string",
+        "enum": [
+            "Example",
+            "Existing Interface Contract",
+            "Validation Behavior",
+        ],
+    }
+    assert section_schema["anyOf"][1] == {
+        "type": "null",
+    }
+
+
+def test_response_schema_deduplicates_context_headings() -> None:
+    """Verify repeated headings appear only once in the section enum."""
+
+    reasoning_request = ReasoningRequest(
+        objective="Update documentation.",
+        context=(
+            "# Example\n"
+            "## Shared Section\n"
+            "## Shared Section\n"
+        ),
+    )
+
+    builder = PromptBuilder()
+
+    schema = builder.build_prompt(
+        reasoning_request
+    ).response_schema
+
+    section_values = (
+        schema["properties"]["proposed_changes"]["items"]
+        ["properties"]["section"]["anyOf"][0]["enum"]
+    )
+
+    assert section_values == [
+        "Example",
+        "Shared Section",
+    ]
+
+
+def test_response_schema_requires_concrete_proposed_content() -> None:
+    """Verify proposed content schema requires concrete Markdown text."""
+
+    reasoning_request = ReasoningRequest(
+        objective="Update documentation.",
+        context="Repository context.",
+    )
+
+    builder = PromptBuilder()
+
+    schema = builder.build_prompt(
+        reasoning_request
+    ).response_schema
+
+    proposed_content_schema = (
+        schema["properties"]["proposed_changes"]["items"]
+        ["properties"]["proposed_content"]
+    )
+
+    assert proposed_content_schema["type"] == "string"
+    assert (
+        "Concrete Markdown text to apply"
+        in proposed_content_schema["description"]
+    )
+    assert (
+        "Must not be instructions"
+        in proposed_content_schema["description"]
+    )
 
 
 def test_response_schema_allows_nullable_anchor_text() -> None:
