@@ -15,7 +15,10 @@ from pathlib import Path
 from project0.interfaces.artifact_interfaces import (
     ArtifactLocationServiceInterface,
 )
-from project0.models.artifact_models import ArtifactLocation
+from project0.models.artifact_models import (
+    ArtifactLocation,
+    ArtifactLocationType,
+)
 from project0.models.documentation_workflow_models import (
     AppliedDocumentationChange,
     ChangeApplicationStatus,
@@ -60,8 +63,13 @@ class StubArtifactLocationService:
     def __init__(
         self,
         locations: tuple[ArtifactLocation, ...] = (),
+        locations_by_request: dict[
+            str,
+            tuple[ArtifactLocation, ...],
+        ] | None = None,
     ) -> None:
         self._locations = locations
+        self._locations_by_request = locations_by_request or {}
         self.requests: list[tuple[Path, str]] = []
 
     def discover_locations(
@@ -70,7 +78,11 @@ class StubArtifactLocationService:
         request: str,
     ) -> tuple[ArtifactLocation, ...]:
         self.requests.append((artifact_path, request))
-        return self._locations
+
+        return self._locations_by_request.get(
+            request,
+            self._locations,
+        )
 
 
 class StubValidationService:
@@ -270,11 +282,19 @@ def _create_workflow(
     git_diff: str = "diff output",
     git_error: Exception | None = None,
     context_provider=None,
+    artifact_locations: tuple[ArtifactLocation, ...] = (),
+    artifact_locations_by_request: dict[
+        str,
+        tuple[ArtifactLocation, ...],
+    ] | None = None,
 ):
     """Create a workflow and its test doubles."""
 
     reasoning_service = StubReasoningService(reasoning_result)
-    artifact_location_service = StubArtifactLocationService()
+    artifact_location_service = StubArtifactLocationService(
+        artifact_locations,
+        artifact_locations_by_request,
+    )
     validation_service = StubValidationService(validation_results)
     review_coordinator = StubReviewCoordinator(decisions)
     update_service = StubRepositoryUpdateService(status_by_path)
@@ -1313,6 +1333,381 @@ def test_proposal_with_ambiguous_anchor_and_no_location_is_skipped(
         "anchor text was ambiguous"
         in warning
         for warning in result.warnings
+    )
+
+
+def test_source_grounded_semantically_misaligned_section_recovers(
+    tmp_path: Path,
+) -> None:
+    """A wrong selected section recovers to one clear semantic match."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text(
+        "# Original\n"
+        "## Existing Research Context Interface Contract\n"
+        "Context details.\n"
+        "## Research Analysis Validation Interface Behavior\n"
+        "Validation details.\n"
+        "## Revision Workflow Interface Behavior\n"
+        "Revision details.\n",
+        encoding="utf-8",
+    )
+
+    validation_location = ArtifactLocation(
+        location_id="location-validation",
+        repository_path=str(document),
+        location_type=ArtifactLocationType.SECTION,
+        locator="Research Analysis Validation Interface Behavior",
+        start_line=4,
+        end_line=5,
+        content_hash="validation-hash",
+    )
+    context_location = ArtifactLocation(
+        location_id="location-context",
+        repository_path=str(document),
+        location_type=ArtifactLocationType.SECTION,
+        locator="Existing Research Context Interface Contract",
+        start_line=2,
+        end_line=3,
+        content_hash="context-hash",
+    )
+
+    change = ProposedDocumentationChange(
+        document_path=Path("docs/index.md"),
+        operation=DocumentationChangeOperation.UPDATE,
+        rationale=(
+            "Update ResearchWorkflowProtocol.execute to support "
+            "existing research context."
+        ),
+        proposed_content=(
+            "```python\n"
+            "def execute(\n"
+            "    self,\n"
+            "    context_source_name=None,\n"
+            "    context_content=None,\n"
+            "):\n"
+            "    pass\n"
+            "```"
+        ),
+        section="Research Analysis Validation Interface Behavior",
+        anchor_text=None,
+        edit_type=DocumentationEditType.REPLACE,
+    )
+
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(change,)
+        ),
+        validation_results=(
+            _validation_result(ValidationStatus.PASSED),
+        ),
+        artifact_locations_by_request={
+            "Research Analysis Validation Interface Behavior": (
+                validation_location,
+            ),
+            "Existing Research Context Interface Contract": (
+                context_location,
+            ),
+        },
+    )[0]
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Update documentation.",
+            target_paths=("docs/index.md",),
+            source_paths=("src/project0/example.py",),
+            workflow_id="workflow-semantic-recovery",
+        )
+    )
+
+    assert result.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+    assert len(result.proposals) == 1
+    assert result.proposals[0].artifact_location == context_location
+    assert result.warnings == ()
+
+
+def test_source_grounded_semantic_recovery_fails_on_tied_candidates(
+    tmp_path: Path,
+) -> None:
+    """Tied semantic candidates fail closed rather than guessing."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text(
+        "# Original\n"
+        "## Existing Context Contract\n"
+        "Context details.\n"
+        "## Context Reference\n"
+        "More context details.\n"
+        "## Validation Behavior\n"
+        "Validation details.\n",
+        encoding="utf-8",
+    )
+
+    validation_location = ArtifactLocation(
+        location_id="location-validation",
+        repository_path=str(document),
+        location_type=ArtifactLocationType.SECTION,
+        locator="Validation Behavior",
+        start_line=6,
+        end_line=7,
+        content_hash="validation-hash",
+    )
+
+    change = ProposedDocumentationChange(
+        document_path=Path("docs/index.md"),
+        operation=DocumentationChangeOperation.UPDATE,
+        rationale="Document context handling.",
+        proposed_content="Context handling details.",
+        section="Validation Behavior",
+        anchor_text=None,
+        edit_type=DocumentationEditType.REPLACE,
+    )
+
+    components = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(change,)
+        ),
+        validation_results=(),
+        artifact_locations_by_request={
+            "Validation Behavior": (
+                validation_location,
+            ),
+        },
+    )
+    workflow = components[0]
+    validation_service = components[2]
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Update documentation.",
+            target_paths=("docs/index.md",),
+            source_paths=("src/project0/example.py",),
+            workflow_id="workflow-semantic-recovery-tie",
+        )
+    )
+
+    assert result.proposals == ()
+    assert result.preliminary_validation is None
+    assert validation_service.requests == []
+    assert any(
+        "no unambiguous replacement section was found"
+        in warning
+        for warning in result.warnings
+    )
+
+
+def test_source_grounded_semantic_recovery_requires_resolved_location(
+    tmp_path: Path,
+) -> None:
+    """A recovered heading must resolve to one concrete location."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text(
+        "# Original\n"
+        "## Existing Research Context Interface Contract\n"
+        "Context details.\n"
+        "## Validation Behavior\n"
+        "Validation details.\n",
+        encoding="utf-8",
+    )
+
+    validation_location = ArtifactLocation(
+        location_id="location-validation",
+        repository_path=str(document),
+        location_type=ArtifactLocationType.SECTION,
+        locator="Validation Behavior",
+        start_line=4,
+        end_line=5,
+        content_hash="validation-hash",
+    )
+
+    change = ProposedDocumentationChange(
+        document_path=Path("docs/index.md"),
+        operation=DocumentationChangeOperation.UPDATE,
+        rationale="Document existing research context handling.",
+        proposed_content="Context handling details.",
+        section="Validation Behavior",
+        anchor_text=None,
+        edit_type=DocumentationEditType.REPLACE,
+    )
+
+    components = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(change,)
+        ),
+        validation_results=(),
+        artifact_locations_by_request={
+            "Validation Behavior": (
+                validation_location,
+            ),
+            "Existing Research Context Interface Contract": (),
+        },
+    )
+    workflow = components[0]
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Update documentation.",
+            target_paths=("docs/index.md",),
+            source_paths=("src/project0/example.py",),
+            workflow_id="workflow-semantic-recovery-unresolved",
+        )
+    )
+
+    assert result.proposals == ()
+    assert any(
+        "replacement section could not be resolved unambiguously"
+        in warning
+        for warning in result.warnings
+    )
+
+
+def test_source_grounded_semantically_aligned_section_is_reviewable(
+    tmp_path: Path,
+) -> None:
+    """A selected section sharing meaningful subject terms is retained."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text(
+        "# Original\n"
+        "## Existing Research Context Interface Contract\n"
+        "Context details.\n",
+        encoding="utf-8",
+    )
+
+    location = ArtifactLocation(
+        location_id="location-context",
+        repository_path=str(document),
+        location_type=ArtifactLocationType.SECTION,
+        locator="Existing Research Context Interface Contract",
+        start_line=2,
+        end_line=3,
+        content_hash="hash",
+    )
+
+    change = ProposedDocumentationChange(
+        document_path=Path("docs/index.md"),
+        operation=DocumentationChangeOperation.UPDATE,
+        rationale=(
+            "Document existing research context handling for "
+            "ResearchWorkflowProtocol.execute."
+        ),
+        proposed_content=(
+            "```python\n"
+            "def execute(self, context_source_name=None):\n"
+            "    pass\n"
+            "```"
+        ),
+        section="Existing Research Context Interface Contract",
+        anchor_text=None,
+        edit_type=DocumentationEditType.REPLACE,
+    )
+
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(change,)
+        ),
+        validation_results=(
+            _validation_result(ValidationStatus.PASSED),
+        ),
+        artifact_locations=(location,),
+    )[0]
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Update documentation.",
+            target_paths=("docs/index.md",),
+            source_paths=("src/project0/example.py",),
+            workflow_id="workflow-semantic-match",
+        )
+    )
+
+    assert result.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+    assert len(result.proposals) == 1
+    assert result.proposals[0].artifact_location == location
+    assert not any(
+        "not semantically aligned"
+        in warning
+        for warning in result.warnings
+    )
+
+
+def test_section_semantic_tokens_split_identifiers_and_ignore_generic_terms() -> None:
+    """Semantic tokens normalize snake/camel identifiers consistently."""
+
+    tokens = DocumentationWorkflow._semantic_tokens(
+        "ResearchWorkflowProtocol context_source_name"
+    )
+
+    assert "workflow" in tokens
+    assert "protocol" in tokens
+    assert "context" in tokens
+    assert "source" in tokens
+    assert "name" in tokens
+    assert "research" not in tokens
+
+
+def test_select_recovery_section_returns_unique_highest_match() -> None:
+    """Recovery selects the one subsection with greatest token overlap."""
+
+    content = (
+        "# Document\n"
+        "## Existing Research Context Interface Contract\n"
+        "## Research Analysis Validation Interface Behavior\n"
+        "## Revision Workflow Interface Behavior\n"
+    )
+
+    section = DocumentationWorkflow._select_recovery_section(
+        original_content=content,
+        rationale=(
+            "Update ResearchWorkflowProtocol.execute for existing "
+            "research context."
+        ),
+        proposed_content="context_source_name context_content",
+    )
+
+    assert section == "Existing Research Context Interface Contract"
+
+
+def test_select_recovery_section_returns_none_for_tie() -> None:
+    """Recovery refuses tied best candidates."""
+
+    content = (
+        "# Document\n"
+        "## Existing Context\n"
+        "## Context Handling\n"
+    )
+
+    section = DocumentationWorkflow._select_recovery_section(
+        original_content=content,
+        rationale="Document context.",
+        proposed_content="Context details.",
+    )
+
+    assert section is None
+
+
+def test_extract_recovery_section_headings_excludes_document_title() -> None:
+    """Recovery candidates exclude H1 titles and deduplicate headings."""
+
+    headings = DocumentationWorkflow._extract_recovery_section_headings(
+        "# Document\n"
+        "## Context\n"
+        "### Validation\n"
+        "## Context\n"
+    )
+
+    assert headings == (
+        "Context",
+        "Validation",
     )
 
 

@@ -16,6 +16,7 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 import logging
 from pathlib import Path
+import re
 
 from project0.interfaces.artifact_interfaces import (
     ArtifactLocationServiceInterface,
@@ -62,6 +63,30 @@ logger = logging.getLogger(__name__)
 
 
 ContextProvider = Callable[[DocumentationWorkflowRequest], str]
+
+
+_SECTION_SEMANTIC_STOP_WORDS = frozenset(
+    {
+        "agent",
+        "behavior",
+        "change",
+        "class",
+        "code",
+        "contract",
+        "current",
+        "document",
+        "documentation",
+        "implemented",
+        "implementation",
+        "interface",
+        "method",
+        "proposed",
+        "research",
+        "section",
+        "update",
+        "updated",
+    }
+)
 
 
 class DocumentationWorkflow:
@@ -585,6 +610,51 @@ class DocumentationWorkflow:
                 else None
             )
 
+            if (
+                source_grounded
+                and proposed_change.section
+                and artifact_location is not None
+                and not self._is_semantically_aligned_section(
+                    section_heading=artifact_location.locator,
+                    rationale=proposed_change.rationale,
+                    proposed_content=proposed_change.proposed_content,
+                )
+            ):
+                recovered_heading = self._select_recovery_section(
+                    original_content=original_content,
+                    rationale=proposed_change.rationale,
+                    proposed_content=proposed_change.proposed_content,
+                )
+
+                if recovered_heading is None:
+                    warnings.append(
+                        "Proposed documentation section was not "
+                        "semantically aligned with the proposed change "
+                        "and no unambiguous replacement section was "
+                        f"found; the change was skipped: {repository_path} "
+                        f"(section: {artifact_location.locator})."
+                    )
+                    continue
+
+                recovered_locations = (
+                    self._artifact_location_service.discover_locations(
+                        file_path,
+                        recovered_heading,
+                    )
+                )
+
+                if len(recovered_locations) != 1:
+                    warnings.append(
+                        "A semantically aligned replacement section "
+                        "could not be resolved unambiguously; the proposed "
+                        f"change was skipped: {repository_path} "
+                        f"(section: {recovered_heading})."
+                    )
+                    continue
+
+                artifact_locations = recovered_locations
+                artifact_location = recovered_locations[0]
+
             if len(artifact_locations) > 1:
                 warnings.append(
                     "Multiple artifact locations were discovered; "
@@ -640,6 +710,149 @@ class DocumentationWorkflow:
             proposals.append(proposal)
 
         return tuple(proposals), tuple(warnings)
+
+    @staticmethod
+    def _semantic_tokens(text: str) -> frozenset[str]:
+        """Return normalized semantic tokens for section validation."""
+
+        expanded = re.sub(
+            r"([a-z0-9])([A-Z])",
+            r"\1 \2",
+            text.replace("_", " ").replace("-", " "),
+        )
+
+        return frozenset(
+            token
+            for token in (
+                value.casefold()
+                for value in re.findall(
+                    r"[A-Za-z0-9]+",
+                    expanded,
+                )
+            )
+            if (
+                len(token) > 1
+                and token not in _SECTION_SEMANTIC_STOP_WORDS
+            )
+        )
+
+    @classmethod
+    def _is_semantically_aligned_section(
+        cls,
+        section_heading: str,
+        rationale: str,
+        proposed_content: str,
+    ) -> bool:
+        """Return whether a selected heading matches the proposed change.
+
+        Source-grounded proposals must share at least one meaningful,
+        normalized term with the selected section heading. This provides
+        a deterministic fail-closed guard against structurally valid but
+        semantically unrelated model-selected sections.
+        """
+
+        heading_tokens = cls._semantic_tokens(section_heading)
+
+        if not heading_tokens:
+            return False
+
+        change_tokens = cls._semantic_tokens(
+            f"{rationale}\n{proposed_content}"
+        )
+
+        return bool(
+            heading_tokens.intersection(change_tokens)
+        )
+
+    @classmethod
+    def _select_recovery_section(
+        cls,
+        original_content: str,
+        rationale: str,
+        proposed_content: str,
+    ) -> str | None:
+        """Return one clear semantically aligned Markdown subsection.
+
+        Candidate headings are taken directly from the target document.
+        Level-one document titles are excluded. A recovery section is
+        selected only when one candidate has a strictly greater positive
+        overlap score than every other candidate.
+        """
+
+        candidates = cls._extract_recovery_section_headings(
+            original_content
+        )
+
+        if not candidates:
+            return None
+
+        change_tokens = cls._semantic_tokens(
+            f"{rationale}\n{proposed_content}"
+        )
+
+        scored_candidates = tuple(
+            (
+                heading,
+                len(
+                    cls._semantic_tokens(heading).intersection(
+                        change_tokens
+                    )
+                ),
+            )
+            for heading in candidates
+        )
+
+        highest_score = max(
+            score
+            for _, score in scored_candidates
+        )
+
+        if highest_score <= 0:
+            return None
+
+        best_candidates = tuple(
+            heading
+            for heading, score in scored_candidates
+            if score == highest_score
+        )
+
+        if len(best_candidates) != 1:
+            return None
+
+        return best_candidates[0]
+
+    @staticmethod
+    def _extract_recovery_section_headings(
+        content: str,
+    ) -> tuple[str, ...]:
+        """Extract unique Markdown subsection headings from a document."""
+
+        headings: list[str] = []
+
+        for line in content.splitlines():
+            stripped = line.strip()
+
+            if not stripped.startswith("#"):
+                continue
+
+            marker_length = len(stripped) - len(
+                stripped.lstrip("#")
+            )
+
+            if not 2 <= marker_length <= 6:
+                continue
+
+            remainder = stripped[marker_length:]
+
+            if not remainder.startswith(" "):
+                continue
+
+            heading = remainder.strip()
+
+            if heading and heading not in headings:
+                headings.append(heading)
+
+        return tuple(headings)
 
     @staticmethod
     def _select_reasoning_warnings(
