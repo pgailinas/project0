@@ -39,7 +39,7 @@ Project0 documentation is organized into the following categories.
 | [**Dashboard Design**](platform/Dashboard_Design.md) | Defines the Project0 Dashboard Framework architecture, reusable browser interface, navigation, layout, shared user interface components, and integration model for future AI agents. |
 | [**Shared Data Models and Error Contracts**](platform/Shared_Data_Models_and_Error_Contracts.md) | Defines the shared information models and standard error contracts used for communication between Project0 platform components and future AI agents. |
 | [**Component Communication Design**](platform/Component_Communication_Design.md) | Defines the communication patterns, orchestration rules, message flow, event handling, error propagation, and interaction requirements used by Project0 platform components and AI agents. |
-| [**Project0 Test Plan**](platform/Project0_Test_Plan.md) | Defines Project0 platform acceptance criteria, including reusable service verification, platform workflows, Dashboard Framework behavior, shared interfaces, agent integration contracts, validation services, error handling, regression criteria, and platform completion requirements. |
+| [**Project0 Test Results**](platform/Project0_Test_Results.md) | TBD. |
 
 ### Documentation Agent
 
