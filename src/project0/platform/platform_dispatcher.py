@@ -88,6 +88,7 @@ from project0.models.workflow_models import (
 )
 from project0.reasoning.prompt_builder import PromptBuilder
 from project0.reasoning.reasoning_service import ReasoningService
+from project0.skills.skill_registry import SkillRegistry
 from project0.repository.git_diff_service import GitDiffService
 from project0.repository.repository_service import RepositoryService
 from project0.repository.repository_update_service import (
@@ -119,6 +120,7 @@ class PlatformDispatcher:
     workflow_engine: WorkflowInterface
     documentation_workflow: DocumentationWorkflowInterface | None = None
     research_workflow: ResearchWorkflowProtocol | None = None
+    skill_registry: SkillRegistry | None = None
 
     def run_context_workflow(
         self,
@@ -288,6 +290,9 @@ def create_platform_dispatcher(
         repository_service=repository
     )
     workflow_engine = WorkflowEngine()
+    skill_registry = SkillRegistry(
+        repository_root / "skills"
+    )
 
     documentation_workflow = _create_documentation_workflow(
         repository_root=repository_root,
@@ -297,6 +302,7 @@ def create_platform_dispatcher(
         ),
         reasoning_model_name=reasoning_model_name,
         review_decision_provider=review_decision_provider,
+        skill_registry=skill_registry,
     )
 
     research_workflow = _create_research_workflow(
@@ -319,6 +325,7 @@ def create_platform_dispatcher(
         workflow_engine=workflow_engine,
         documentation_workflow=documentation_workflow,
         research_workflow=research_workflow,
+        skill_registry=skill_registry,
     )
 
 
@@ -337,6 +344,7 @@ def _create_documentation_workflow(
     reasoning_provider: ReasoningProviderProtocol | None,
     reasoning_model_name: str | None,
     review_decision_provider: ReviewDecisionProvider | None,
+    skill_registry: SkillRegistry | None = None,
 ) -> DocumentationWorkflowInterface | None:
     """Assemble the documentation workflow when dependencies are supplied."""
 
@@ -408,6 +416,7 @@ def _create_documentation_workflow(
             repository_root
         ),
         git_diff_service=GitDiffService(repository_root),
+        skill_registry=skill_registry,
     )
 
 def _build_source_grounded_documentation_context(

@@ -184,6 +184,7 @@ def test_reasoning_service_flow_builds_provider_request() -> None:
     assert provider_request.metadata == {
         "reasoning_request_id": request.request_id,
         "workflow_type": "documentation_update",
+        "skill_names": (),
     }
     assert (
         "Objective:\nAnalyze documentation impact."

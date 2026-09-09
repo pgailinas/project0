@@ -13,10 +13,12 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+import ast
 from datetime import UTC, datetime
 import logging
 from pathlib import Path
 import re
+import textwrap
 
 from project0.interfaces.artifact_interfaces import (
     ArtifactLocationServiceInterface,
@@ -61,12 +63,16 @@ from project0.models.validation_models import (
     ValidationResult,
     ValidationStatus,
 )
+from project0.skills.skill_registry import SkillRegistry
 
 
 logger = logging.getLogger(__name__)
 
 
 ContextProvider = Callable[[DocumentationWorkflowRequest], str]
+
+
+_STRICT_DOCUMENTATION_SKILL_NAME = "strict-documentation-editor"
 
 
 _PROPOSED_CONTENT_META_INSTRUCTION_PATTERNS = (
@@ -117,6 +123,7 @@ class DocumentationWorkflow:
         review_coordinator: ReviewCoordinatorInterface,
         repository_update_service: RepositoryUpdateInterface,
         git_diff_service: GitDiffInterface,
+        skill_registry: SkillRegistry | None = None,
     ) -> None:
         self._repository_root = repository_root.resolve()
         self._context_provider = context_provider
@@ -126,6 +133,7 @@ class DocumentationWorkflow:
         self._review_coordinator = review_coordinator
         self._repository_update_service = repository_update_service
         self._git_diff_service = git_diff_service
+        self._skill_registry = skill_registry
         self._workflow_states: dict[str, DocumentationWorkflowState] = {}
 
     def execute(
@@ -142,6 +150,14 @@ class DocumentationWorkflow:
 
         try:
             context = self._context_provider(request)
+
+            active_skills = ()
+            if request.source_paths and self._skill_registry is not None:
+                active_skills = (
+                    self._skill_registry.load(
+                        _STRICT_DOCUMENTATION_SKILL_NAME
+                    ),
+                )
 
             reasoning_result = self._reasoning_service.reason(
                 ReasoningRequest(
@@ -168,6 +184,7 @@ class DocumentationWorkflow:
                             "target paths."
                         ),
                     ),
+                    skills=active_skills,
                     metadata={
                         "workflow_id": request.workflow_id,
                     },
@@ -197,6 +214,7 @@ class DocumentationWorkflow:
                 reasoning_result=reasoning_result,
                 target_paths=request.target_paths,
                 source_grounded=bool(request.source_paths),
+                context=context,
             )
             warnings.extend(proposal_warnings)
 
@@ -540,6 +558,7 @@ class DocumentationWorkflow:
         reasoning_result: ReasoningResult,
         target_paths: tuple[str, ...] = (),
         source_grounded: bool = False,
+        context: str = "",
     ) -> tuple[
         tuple[DocumentationChangeProposal, ...],
         tuple[str, ...],
@@ -612,6 +631,20 @@ class DocumentationWorkflow:
                     "Proposed documentation content described what "
                     "should be written instead of providing concrete "
                     f"Markdown and was skipped: {repository_path}."
+                )
+                continue
+
+            if (
+                source_grounded
+                and not self._python_declarations_are_source_grounded(
+                    proposed_content=proposed_change.proposed_content,
+                    context=context,
+                )
+            ):
+                warnings.append(
+                    "Proposed Python declaration did not exactly match "
+                    "an authoritative source declaration and was skipped: "
+                    f"{repository_path}."
                 )
                 continue
 
@@ -798,6 +831,194 @@ class DocumentationWorkflow:
             pattern.search(stripped)
             for pattern in _PROPOSED_CONTENT_META_INSTRUCTION_PATTERNS
         )
+
+    @classmethod
+    def _python_declarations_are_source_grounded(
+        cls,
+        proposed_content: str,
+        context: str,
+    ) -> bool:
+        """Verify fenced Python declarations against authoritative sources.
+
+        Source-grounded documentation may reproduce Python declarations
+        only when each proposed function, async function, or class
+        declaration exactly matches one declaration present in an
+        authoritative Python source file. Non-declaration Python examples
+        and proposals without authoritative Python source content preserve
+        existing behavior.
+        """
+
+        proposed_declarations = cls._extract_python_declarations(
+            proposed_content
+        )
+
+        if not proposed_declarations:
+            return True
+
+        authoritative_sources = (
+            cls._extract_authoritative_python_sources(context)
+        )
+
+        if not authoritative_sources:
+            return True
+
+        authoritative_declarations: set[str] = set()
+
+        for source_content in authoritative_sources:
+            authoritative_declarations.update(
+                cls._extract_python_source_declarations(
+                    source_content
+                )
+            )
+
+        return all(
+            declaration in authoritative_declarations
+            for declaration in proposed_declarations
+        )
+
+    @classmethod
+    def _extract_python_declarations(
+        cls,
+        markdown_content: str,
+    ) -> tuple[str, ...]:
+        """Extract function and class declarations from fenced Python."""
+
+        declarations: list[str] = []
+
+        for match in re.finditer(
+            r"```(?:python|py)\s*\n(.*?)```",
+            markdown_content,
+            re.IGNORECASE | re.DOTALL,
+        ):
+            code = match.group(1)
+
+            try:
+                module = ast.parse(code)
+            except SyntaxError:
+                continue
+
+            for node in module.body:
+                if isinstance(
+                    node,
+                    (
+                        ast.FunctionDef,
+                        ast.AsyncFunctionDef,
+                        ast.ClassDef,
+                    ),
+                ):
+                    declarations.append(
+                        cls._normalized_ast_node_source(
+                            code,
+                            node,
+                        )
+                    )
+
+        return tuple(declarations)
+
+    @classmethod
+    def _extract_python_source_declarations(
+        cls,
+        source_content: str,
+    ) -> tuple[str, ...]:
+        """Extract declarations recursively from authoritative Python."""
+
+        try:
+            module = ast.parse(source_content)
+        except SyntaxError:
+            return ()
+
+        declarations: list[str] = []
+
+        for node in ast.walk(module):
+            if isinstance(
+                node,
+                (
+                    ast.FunctionDef,
+                    ast.AsyncFunctionDef,
+                    ast.ClassDef,
+                ),
+            ):
+                declarations.append(
+                    cls._normalized_ast_node_source(
+                        source_content,
+                        node,
+                    )
+                )
+
+        return tuple(declarations)
+
+    @staticmethod
+    def _normalized_ast_node_source(
+        source_content: str,
+        node: ast.AST,
+    ) -> str:
+        """Return a declaration using stable dedented source text."""
+
+        lineno = getattr(node, "lineno", None)
+        end_lineno = getattr(node, "end_lineno", None)
+
+        if lineno is None or end_lineno is None:
+            return ""
+
+        lines = source_content.splitlines()
+        declaration = "\n".join(
+            lines[lineno - 1:end_lineno]
+        )
+
+        return textwrap.dedent(declaration).strip()
+
+    @staticmethod
+    def _extract_authoritative_python_sources(
+        context: str,
+    ) -> tuple[str, ...]:
+        """Extract Python source bodies from authoritative context sections."""
+
+        target_marker = "=== TARGET DOCUMENTATION ==="
+        source_marker = "=== AUTHORITATIVE SOURCE ==="
+
+        sources: list[str] = []
+        current_role: str | None = None
+        current_path: str | None = None
+        current_lines: list[str] = []
+
+        def flush() -> None:
+            if (
+                current_role == source_marker
+                and current_path is not None
+                and current_path.endswith(".py")
+            ):
+                sources.append("\n".join(current_lines))
+
+        for line in context.splitlines():
+            stripped = line.strip()
+
+            if stripped in {target_marker, source_marker}:
+                flush()
+                current_role = stripped
+                current_path = None
+                current_lines = []
+                continue
+
+            if (
+                stripped.startswith("=== ")
+                and stripped.endswith(" ===")
+            ):
+                flush()
+                current_role = stripped
+                current_path = None
+                current_lines = []
+                continue
+
+            if current_path is None and line.startswith("Path: "):
+                current_path = line[6:].strip()
+                continue
+
+            if current_role == source_marker:
+                current_lines.append(line)
+
+        flush()
+
+        return tuple(sources)
 
     @staticmethod
     def _proposed_content_replaces_full_section(

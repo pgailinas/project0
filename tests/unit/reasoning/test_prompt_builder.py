@@ -14,6 +14,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from project0.models.reasoning_models import ReasoningRequest
+from project0.models.skill_models import SkillDefinition
 from project0.reasoning.prompt_builder import PromptBuilder
 
 
@@ -69,6 +70,7 @@ def test_build_prompt_preserves_reasoning_request_metadata() -> None:
     assert provider_request.metadata == {
         "reasoning_request_id": reasoning_request.request_id,
         "workflow_type": "documentation_update",
+        "skill_names": (),
     }
 
 
@@ -1009,3 +1011,53 @@ def test_response_schema_instances_are_independent() -> None:
         first_request.response_schema
         is not second_request.response_schema
     )
+
+
+def test_build_prompt_includes_active_skill_instructions() -> None:
+    """Loaded Agent Skill instructions are added to the system prompt."""
+
+    skill = SkillDefinition(
+        name="strict-documentation-editor",
+        description="Preserve controlled documentation artifacts.",
+        skill_path=Path("skills/strict-documentation-editor/SKILL.md"),
+        instructions=(
+            "# Strict Documentation Editing\n"
+            "Apply the minimum textual modification."
+        ),
+    )
+    reasoning_request = ReasoningRequest(
+        objective="Update documentation.",
+        context="Repository context.",
+        skills=(skill,),
+    )
+
+    provider_request = PromptBuilder().build_prompt(reasoning_request)
+
+    assert (
+        "=== ACTIVE AGENT SKILL: strict-documentation-editor ==="
+        in provider_request.system_instructions
+    )
+    assert (
+        "# Strict Documentation Editing\n"
+        "Apply the minimum textual modification."
+        in provider_request.system_instructions
+    )
+    assert provider_request.metadata["skill_names"] == (
+        "strict-documentation-editor",
+    )
+
+
+def test_build_prompt_omits_skill_section_when_no_skills_are_active() -> None:
+    """Existing prompt behavior is preserved without active skills."""
+
+    provider_request = PromptBuilder().build_prompt(
+        ReasoningRequest(
+            objective="Analyze documentation.",
+            context="Repository context.",
+        )
+    )
+
+    assert "=== ACTIVE AGENT SKILL:" not in (
+        provider_request.system_instructions
+    )
+    assert provider_request.metadata["skill_names"] == ()

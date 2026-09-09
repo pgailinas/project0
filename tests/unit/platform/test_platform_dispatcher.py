@@ -214,6 +214,7 @@ def test_platform_dispatcher_stores_dependencies() -> None:
     assert dispatcher.workflow_engine is workflow_engine
     assert dispatcher.documentation_workflow is documentation_workflow
     assert dispatcher.research_workflow is None
+    assert dispatcher.skill_registry is None
 
 
 def test_documentation_workflow_defaults_to_none() -> None:
@@ -1142,4 +1143,66 @@ def test_create_platform_dispatcher_accepts_custom_settings(
     assert (
         dispatcher.research_workflow._metadata_service.semantic_scholar_api_key
         == "test-semantic-scholar-key"
+    )
+
+
+def test_create_platform_dispatcher_configures_local_skill_registry(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    """Default platform construction owns a repository-local skill registry."""
+
+    settings = ProjectSettings(
+        project_root=tmp_path,
+        docs_dir=tmp_path / "docs",
+        source_dir=tmp_path / "src",
+        tests_dir=tmp_path / "tests",
+    )
+
+    monkeypatch.setattr(
+        "project0.platform.platform_dispatcher.validate_startup",
+        Mock(),
+    )
+
+    dispatcher = create_platform_dispatcher(
+        reasoning_provider=Mock(),
+        reasoning_model_name="stub-model",
+        settings=settings,
+    )
+
+    assert dispatcher.skill_registry is not None
+    assert dispatcher.skill_registry.skills_root == (
+        tmp_path / "skills"
+    ).resolve()
+
+
+def test_create_platform_dispatcher_shares_skill_registry_with_documentation_workflow(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    """Default documentation workflow uses the platform skill registry."""
+
+    settings = ProjectSettings(
+        project_root=tmp_path,
+        docs_dir=tmp_path / "docs",
+        source_dir=tmp_path / "src",
+        tests_dir=tmp_path / "tests",
+    )
+
+    monkeypatch.setattr(
+        "project0.platform.platform_dispatcher.validate_startup",
+        Mock(),
+    )
+
+    dispatcher = create_platform_dispatcher(
+        reasoning_provider=Mock(),
+        reasoning_model_name="stub-model",
+        settings=settings,
+    )
+
+    assert dispatcher.documentation_workflow is not None
+    assert dispatcher.skill_registry is not None
+    assert (
+        dispatcher.documentation_workflow._skill_registry
+        is dispatcher.skill_registry
     )

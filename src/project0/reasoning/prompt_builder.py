@@ -34,7 +34,7 @@ class PromptBuilder:
         """Build a provider request from a reasoning request."""
 
         return ProviderRequest(
-            system_instructions=self._build_system_instructions(),
+            system_instructions=self._build_system_instructions(request),
             user_prompt=self._build_user_prompt(request),
             response_schema=self._build_response_schema(request),
             model_name=self.model_name,
@@ -43,13 +43,20 @@ class PromptBuilder:
             metadata={
                 "reasoning_request_id": request.request_id,
                 "workflow_type": request.workflow_type,
+                "skill_names": tuple(
+                    skill.name
+                    for skill in request.skills
+                ),
             },
         )
 
-    def _build_system_instructions(self) -> str:
+    def _build_system_instructions(
+        self,
+        request: ReasoningRequest,
+    ) -> str:
         """Build deterministic system instructions."""
 
-        return (
+        base_instructions = (
             "You are the Project0 Documentation Agent reasoning service.\n"
             "Analyze only the supplied repository context and request.\n"
             "Identify documentation impacts and propose documentation changes "
@@ -106,6 +113,19 @@ class PromptBuilder:
             "greater than 1.0.\n"
             "Return output that conforms exactly to the supplied JSON schema."
         )
+
+        if not request.skills:
+            return base_instructions
+
+        skill_sections = tuple(
+            (
+                f"\n\n=== ACTIVE AGENT SKILL: {skill.name} ===\n"
+                f"{skill.instructions.strip()}"
+            )
+            for skill in request.skills
+        )
+
+        return base_instructions + "".join(skill_sections)
 
     def _build_user_prompt(
         self,

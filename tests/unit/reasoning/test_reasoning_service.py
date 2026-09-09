@@ -21,6 +21,7 @@ from project0.models.reasoning_models import (
     ReasoningRequest,
     ReasoningStatus,
 )
+from project0.models.skill_models import SkillDefinition
 from project0.reasoning.reasoning_service import ReasoningService
 
 
@@ -953,3 +954,28 @@ def test_reasoning_service_rejects_non_string_warnings() -> None:
     assert result.error_message == (
         "warnings must contain strings only."
     )
+
+
+def test_reasoning_service_forwards_active_skills_to_prompt_builder() -> None:
+    """Reasoning requests preserve loaded Agent Skills."""
+
+    skill = SkillDefinition(
+        name="strict-documentation-editor",
+        description="Preserve controlled documentation artifacts.",
+        skill_path=Path("skills/strict-documentation-editor/SKILL.md"),
+        instructions="Apply the minimum textual modification.",
+    )
+    reasoning_request = ReasoningRequest(
+        objective="Analyze documentation impact.",
+        context="Repository context.",
+        skills=(skill,),
+    )
+    prompt_builder = StubPromptBuilder(create_provider_request())
+    service = ReasoningService(
+        prompt_builder=prompt_builder,
+        provider=StubProvider(create_valid_provider_response()),
+    )
+
+    service.reason(reasoning_request)
+
+    assert prompt_builder.requests[0].skills == (skill,)

@@ -18,6 +18,8 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
+from project0.models.skill_models import SkillDefinition
+
 
 class ReasoningStatus(StrEnum):
     """Supported reasoning execution states."""
@@ -77,6 +79,7 @@ class ReasoningRequest:
     workflow_type: str | None = None
     target_paths: tuple[Path, ...] = ()
     constraints: tuple[str, ...] = ()
+    skills: tuple[SkillDefinition, ...] = ()
     metadata: dict[str, Any] = field(default_factory=dict)
     request_id: str = field(default_factory=lambda: str(uuid4()))
 

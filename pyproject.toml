@@ -18,6 +18,7 @@ dependencies = [
     "pymdown-extensions",
     "pypdf",
     "python-multipart>=0.0.32",
+    "PyYAML>=6.0.2",
     "uvicorn>=0.52.1",
 ]
 

@@ -42,6 +42,7 @@ from project0.models.validation_models import (
     ValidationResult,
     ValidationStatus,
 )
+from project0.models.skill_models import SkillDefinition
 from project0.workflow.documentation_workflow import DocumentationWorkflow
 
 
@@ -83,6 +84,30 @@ class StubArtifactLocationService:
             request,
             self._locations,
         )
+
+
+class StubSkillRegistry:
+    """Return a configured local Agent Skill."""
+
+    def __init__(
+        self,
+        skill: SkillDefinition | None = None,
+        error: Exception | None = None,
+    ) -> None:
+        self._skill = skill
+        self._error = error
+        self.requests: list[str] = []
+
+    def load(self, name: str) -> SkillDefinition:
+        self.requests.append(name)
+
+        if self._error is not None:
+            raise self._error
+
+        if self._skill is None:
+            raise ValueError(f"Skill was not found: {name}")
+
+        return self._skill
 
 
 class StubValidationService:
@@ -287,6 +312,7 @@ def _create_workflow(
         str,
         tuple[ArtifactLocation, ...],
     ] | None = None,
+    skill_registry=None,
 ):
     """Create a workflow and its test doubles."""
 
@@ -317,6 +343,7 @@ def _create_workflow(
         review_coordinator=review_coordinator,
         repository_update_service=update_service,
         git_diff_service=git_service,
+        skill_registry=skill_registry,
     )
 
     return (
@@ -549,6 +576,131 @@ def test_context_and_reasoning_request_are_forwarded(
         in reasoning_request.constraints
     )
     assert reasoning_request.metadata["workflow_id"] == "workflow-002"
+
+
+def test_source_grounded_workflow_loads_strict_documentation_skill(
+    tmp_path: Path,
+) -> None:
+    """Source-grounded reasoning receives the strict documentation skill."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text("# Original\n", encoding="utf-8")
+
+    skill = SkillDefinition(
+        name="strict-documentation-editor",
+        description="Preserve controlled documentation artifacts.",
+        skill_path=Path(
+            "skills/strict-documentation-editor/SKILL.md"
+        ),
+        instructions="Apply the minimum textual modification.",
+    )
+    skill_registry = StubSkillRegistry(skill=skill)
+
+    components = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(),
+        validation_results=(),
+        skill_registry=skill_registry,
+    )
+    workflow = components[0]
+    reasoning_service = components[1]
+
+    workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Update documentation.",
+            target_paths=("docs/index.md",),
+            source_paths=("src/project0/example.py",),
+            workflow_id="workflow-strict-skill",
+        )
+    )
+
+    assert skill_registry.requests == [
+        "strict-documentation-editor",
+    ]
+    assert reasoning_service.requests[0].skills == (skill,)
+
+
+def test_non_source_grounded_workflow_does_not_load_skill(
+    tmp_path: Path,
+) -> None:
+    """Ordinary documentation reasoning preserves no-skill behavior."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text("# Original\n", encoding="utf-8")
+
+    skill = SkillDefinition(
+        name="strict-documentation-editor",
+        description="Preserve controlled documentation artifacts.",
+        skill_path=Path(
+            "skills/strict-documentation-editor/SKILL.md"
+        ),
+        instructions="Apply the minimum textual modification.",
+    )
+    skill_registry = StubSkillRegistry(skill=skill)
+
+    components = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(),
+        validation_results=(),
+        skill_registry=skill_registry,
+    )
+    workflow = components[0]
+    reasoning_service = components[1]
+
+    workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Review documentation.",
+            target_paths=("docs/index.md",),
+            workflow_id="workflow-no-strict-skill",
+        )
+    )
+
+    assert skill_registry.requests == []
+    assert reasoning_service.requests[0].skills == ()
+
+
+def test_source_grounded_missing_strict_skill_fails_workflow(
+    tmp_path: Path,
+) -> None:
+    """A configured source-grounded workflow fails closed if skill loading fails."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text("# Original\n", encoding="utf-8")
+
+    skill_registry = StubSkillRegistry(
+        error=ValueError(
+            "Skill was not found: strict-documentation-editor"
+        )
+    )
+
+    components = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(),
+        validation_results=(),
+        skill_registry=skill_registry,
+    )
+    workflow = components[0]
+    reasoning_service = components[1]
+    validation_service = components[2]
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Update documentation.",
+            target_paths=("docs/index.md",),
+            source_paths=("src/project0/example.py",),
+            workflow_id="workflow-missing-strict-skill",
+        )
+    )
+
+    assert result.status is DocumentationWorkflowStatus.FAILED
+    assert result.error_message == (
+        "Skill was not found: strict-documentation-editor"
+    )
+    assert reasoning_service.requests == []
+    assert validation_service.requests == []
 
 
 def test_reasoning_failure_stops_workflow(tmp_path: Path) -> None:
@@ -1390,6 +1542,238 @@ def test_source_grounded_meta_instruction_content_is_skipped(
         "described what should be written instead of providing concrete Markdown"
         in warning
         for warning in result.warnings
+    )
+
+
+def test_source_grounded_python_declaration_mismatch_is_skipped(
+    tmp_path: Path,
+) -> None:
+    """Source-grounded Python declarations must match source exactly."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text(
+        "# Original\n"
+        "## Existing Research Context Interface Contract\n"
+        "Existing details.\n",
+        encoding="utf-8",
+    )
+
+    location = ArtifactLocation(
+        location_id="location-context",
+        repository_path=str(document),
+        location_type=ArtifactLocationType.SECTION,
+        locator="Existing Research Context Interface Contract",
+        start_line=2,
+        end_line=3,
+        content_hash="hash",
+    )
+
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/index.md\n"
+        "# Original\n"
+        "## Existing Research Context Interface Contract\n"
+        "Existing details.\n"
+        "\n"
+        "=== AUTHORITATIVE SOURCE ===\n"
+        "Path: src/project0/interfaces/research_interfaces.py\n"
+        "class ResearchWorkflowProtocol:\n"
+        "    def execute(\n"
+        "        self,\n"
+        "        request: ResearchRequest,\n"
+        "        context_source_name: str | None = None,\n"
+        "        context_content: bytes | None = None,\n"
+        "    ) -> ResearchResult:\n"
+        "        \"\"\"Execute the research workflow.\"\"\"\n"
+        "        ...\n"
+    )
+
+    def context_provider(
+        request: DocumentationWorkflowRequest,
+    ) -> str:
+        del request
+        return context
+
+    change = ProposedDocumentationChange(
+        document_path=Path("docs/index.md"),
+        operation=DocumentationChangeOperation.UPDATE,
+        rationale="Document existing research context handling.",
+        proposed_content=(
+            "```python\n"
+            "def execute(\n"
+            "    self,\n"
+            "    request: ResearchRequest,\n"
+            "    context_source_name: str | None = None,\n"
+            "    context_content: bytes | None = None,\n"
+            ") -> ResearchResult:\n"
+            "    pass\n"
+            "```"
+        ),
+        section="Existing Research Context Interface Contract",
+        anchor_text=None,
+        edit_type=DocumentationEditType.REPLACE,
+    )
+
+    components = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(change,)
+        ),
+        validation_results=(),
+        context_provider=context_provider,
+        artifact_locations=(location,),
+    )
+    workflow = components[0]
+    validation_service = components[2]
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Update documentation.",
+            target_paths=("docs/index.md",),
+            source_paths=(
+                "src/project0/interfaces/research_interfaces.py",
+            ),
+            workflow_id="workflow-source-code-mismatch",
+        )
+    )
+
+    assert result.proposals == ()
+    assert result.preliminary_validation is None
+    assert validation_service.requests == []
+    assert any(
+        "did not exactly match an authoritative source declaration"
+        in warning
+        for warning in result.warnings
+    )
+
+
+def test_source_grounded_exact_python_declaration_is_reviewable(
+    tmp_path: Path,
+) -> None:
+    """Exact authoritative Python declarations remain reviewable."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text(
+        "# Original\n"
+        "## Existing Research Context Interface Contract\n"
+        "Existing details.\n",
+        encoding="utf-8",
+    )
+
+    location = ArtifactLocation(
+        location_id="location-context",
+        repository_path=str(document),
+        location_type=ArtifactLocationType.SECTION,
+        locator="Existing Research Context Interface Contract",
+        start_line=2,
+        end_line=3,
+        content_hash="hash",
+    )
+
+    declaration = (
+        "def execute(\n"
+        "    self,\n"
+        "    request: ResearchRequest,\n"
+        "    context_source_name: str | None = None,\n"
+        "    context_content: bytes | None = None,\n"
+        ") -> ResearchResult:\n"
+        "    \"\"\"Execute the research workflow.\"\"\"\n"
+        "    ..."
+    )
+
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/index.md\n"
+        "# Original\n"
+        "## Existing Research Context Interface Contract\n"
+        "Existing details.\n"
+        "\n"
+        "=== AUTHORITATIVE SOURCE ===\n"
+        "Path: src/project0/interfaces/research_interfaces.py\n"
+        "class ResearchWorkflowProtocol:\n"
+        + "\n".join(
+            f"    {line}" if line else line
+            for line in declaration.splitlines()
+        )
+        + "\n"
+    )
+
+    def context_provider(
+        request: DocumentationWorkflowRequest,
+    ) -> str:
+        del request
+        return context
+
+    change = ProposedDocumentationChange(
+        document_path=Path("docs/index.md"),
+        operation=DocumentationChangeOperation.UPDATE,
+        rationale="Document existing research context handling.",
+        proposed_content=(
+            "```python\n"
+            f"{declaration}\n"
+            "```"
+        ),
+        section="Existing Research Context Interface Contract",
+        anchor_text=None,
+        edit_type=DocumentationEditType.REPLACE,
+    )
+
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(change,)
+        ),
+        validation_results=(
+            _validation_result(ValidationStatus.PASSED),
+        ),
+        context_provider=context_provider,
+        artifact_locations=(location,),
+    )[0]
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Update documentation.",
+            target_paths=("docs/index.md",),
+            source_paths=(
+                "src/project0/interfaces/research_interfaces.py",
+            ),
+            workflow_id="workflow-source-code-exact",
+        )
+    )
+
+    assert result.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+    assert len(result.proposals) == 1
+    assert not any(
+        "did not exactly match an authoritative source declaration"
+        in warning
+        for warning in result.warnings
+    )
+
+
+def test_source_grounded_non_declaration_python_example_preserves_behavior(
+    tmp_path: Path,
+) -> None:
+    """Python examples that do not declare source interfaces are unaffected."""
+
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/index.md\n"
+        "# Original\n"
+        "\n"
+        "=== AUTHORITATIVE SOURCE ===\n"
+        "Path: src/project0/example.py\n"
+        "VALUE = 1\n"
+    )
+
+    assert DocumentationWorkflow._python_declarations_are_source_grounded(
+        proposed_content=(
+            "```python\n"
+            "request = ResearchRequest(question=\"example\")\n"
+            "```"
+        ),
+        context=context,
     )
 
 
