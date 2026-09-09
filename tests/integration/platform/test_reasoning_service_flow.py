@@ -396,6 +396,8 @@ def test_reasoning_service_flow_preserves_provider_metadata() -> None:
         "provider_metadata": {
             "stub": True,
         },
+        "provider_warnings": (),
+        "response_warnings": (),
     }
 
 

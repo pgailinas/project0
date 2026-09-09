@@ -66,7 +66,14 @@ class PromptBuilder:
             "the documentation content to insert or replace. It must not "
             "contain the complete resulting document. Identify the target "
             "location using section and anchor_text. Make only the minimum "
-            "textual modification required to satisfy the request. Do not "
+            "textual modification required to satisfy the request. When an "
+            "update applies within an existing Markdown section, section must "
+            "contain the exact existing heading text from the supplied target "
+            "document, excluding leading Markdown # characters and surrounding "
+            "whitespace. Do not invent or paraphrase section names. If no existing "
+            "heading reliably identifies the update location, return section as "
+            "null. anchor_text, when supplied, must be exact verbatim text from "
+            "the target document rather than a generated description. Do not "
             "reproduce the surrounding document or section in proposed_content. "
             "If adding information to an existing list, proposed_content must "
             "contain only the new list item or items. Do not include existing "
@@ -75,6 +82,12 @@ class PromptBuilder:
             "unrelated to the requested change. Do not rewrite, reorder, "
             "normalize, or reproduce unrelated Markdown content. Do not change "
             "metadata or other lines unless required by the requested update.\n"
+            "Warnings must be directly supported by the supplied repository "
+            "context. Do not report duplicate definitions, inconsistencies, "
+            "missing elements, unsupported behavior, or other repository "
+            "conditions unless they are explicitly observable in the supplied "
+            "context. If a warning cannot be verified from the supplied context, "
+            "omit it.\n"
             "For a create operation, proposed_content must contain the "
             "complete new document. For a delete operation, proposed_content "
             "must contain the content to remove or be empty when no content "
@@ -250,6 +263,13 @@ class PromptBuilder:
                                 "type": "string",
                             },
                             "section": {
+                                "description": (
+                                    "Exact existing Markdown heading text from "
+                                    "the supplied target document, excluding "
+                                    "leading # characters, or null when no "
+                                    "existing heading reliably identifies the "
+                                    "update location."
+                                ),
                                 "anyOf": [
                                     {
                                         "type": "string",
@@ -260,6 +280,11 @@ class PromptBuilder:
                                 ]
                             },
                             "anchor_text": {
+                                "description": (
+                                    "Exact verbatim text from the supplied "
+                                    "target document to use as an edit anchor, "
+                                    "or null when no reliable anchor exists."
+                                ),
                                 "anyOf": [
                                     {
                                         "type": "string",
@@ -288,6 +313,11 @@ class PromptBuilder:
                     },
                 },
                 "warnings": {
+                    "description": (
+                        "Only repository warnings directly supported by "
+                        "the supplied context. Omit warnings that cannot "
+                        "be verified from that context."
+                    ),
                     "type": "array",
                     "items": {
                         "type": "string",

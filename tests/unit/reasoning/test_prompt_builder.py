@@ -107,6 +107,9 @@ def test_build_prompt_includes_system_instructions() -> None:
     )
     assert "Identify the target location using section and anchor_text" in instructions
     assert "Preserve existing repository content that is unrelated" in instructions
+    assert "Warnings must be directly supported" in instructions
+    assert "Do not report duplicate definitions" in instructions
+    assert "If a warning cannot be verified" in instructions
     assert (
         "rewrite, reorder, normalize, or reproduce unrelated Markdown content"
         in instructions
@@ -574,6 +577,11 @@ def test_response_schema_allows_nullable_section() -> None:
     )
 
     assert section_schema == {
+        "description": (
+            "Exact existing Markdown heading text from the supplied target "
+            "document, excluding leading # characters, or null when no "
+            "existing heading reliably identifies the update location."
+        ),
         "anyOf": [
             {
                 "type": "string",
@@ -607,6 +615,10 @@ def test_response_schema_allows_nullable_anchor_text() -> None:
     )
 
     assert anchor_schema == {
+        "description": (
+            "Exact verbatim text from the supplied target document to use "
+            "as an edit anchor, or null when no reliable anchor exists."
+        ),
         "anyOf": [
             {
                 "type": "string",
@@ -616,6 +628,36 @@ def test_response_schema_allows_nullable_anchor_text() -> None:
             },
         ]
     }
+
+
+def test_response_schema_requires_grounded_warnings() -> None:
+    """Verify warning schema describes context-grounded warnings."""
+
+    reasoning_request = ReasoningRequest(
+        objective="Analyze documentation.",
+        context="Repository context.",
+    )
+
+    builder = PromptBuilder()
+
+    schema = builder.build_prompt(
+        reasoning_request
+    ).response_schema
+
+    warnings_schema = schema["properties"]["warnings"]
+
+    assert warnings_schema["type"] == "array"
+    assert warnings_schema["items"] == {
+        "type": "string",
+    }
+    assert (
+        "directly supported by the supplied context"
+        in warnings_schema["description"]
+    )
+    assert (
+        "Omit warnings that cannot be verified"
+        in warnings_schema["description"]
+    )
 
 
 def test_build_prompt_is_deterministic_except_request_id() -> None:

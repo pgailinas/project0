@@ -303,6 +303,8 @@ def test_ollama_reasoning_flow_preserves_provider_metrics(
             "prompt_eval_duration": 800_000_000,
             "eval_duration": 2_000_000_000,
         },
+        "provider_warnings": (),
+        "response_warnings": (),
     }
 
 

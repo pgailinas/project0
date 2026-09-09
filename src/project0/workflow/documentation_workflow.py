@@ -146,11 +146,17 @@ class DocumentationWorkflow:
                     warnings=reasoning_result.warnings,
                 )
 
-            warnings.extend(reasoning_result.warnings)
+            warnings.extend(
+                self._select_reasoning_warnings(
+                    reasoning_result=reasoning_result,
+                    source_grounded=bool(request.source_paths),
+                )
+            )
 
             proposals, proposal_warnings = self._build_proposals(
                 reasoning_result=reasoning_result,
                 target_paths=request.target_paths,
+                source_grounded=bool(request.source_paths),
             )
             warnings.extend(proposal_warnings)
 
@@ -493,6 +499,7 @@ class DocumentationWorkflow:
         self,
         reasoning_result: ReasoningResult,
         target_paths: tuple[str, ...] = (),
+        source_grounded: bool = False,
     ) -> tuple[
         tuple[DocumentationChangeProposal, ...],
         tuple[str, ...],
@@ -555,17 +562,22 @@ class DocumentationWorkflow:
 
             original_content = file_path.read_text(encoding="utf-8")
 
-            location_request = (
-                proposed_change.section
-                or proposed_change.rationale
-            )
-
-            artifact_locations = (
-                self._artifact_location_service.discover_locations(
-                    file_path,
-                    location_request,
+            artifact_locations = ()
+            if proposed_change.section:
+                artifact_locations = (
+                    self._artifact_location_service.discover_locations(
+                        file_path,
+                        proposed_change.section,
+                    )
                 )
-            )
+
+            if not artifact_locations:
+                artifact_locations = (
+                    self._artifact_location_service.discover_locations(
+                        file_path,
+                        proposed_change.rationale,
+                    )
+                )
 
             artifact_location = (
                 artifact_locations[0]
@@ -576,8 +588,37 @@ class DocumentationWorkflow:
             if len(artifact_locations) > 1:
                 warnings.append(
                     "Multiple artifact locations were discovered; "
-                    "the first location was selected."
+                    "the proposed documentation change was skipped: "
+                    f"{repository_path}."
                 )
+                continue
+
+            if artifact_location is None and source_grounded:
+                anchor_text = proposed_change.anchor_text
+
+                if anchor_text is None:
+                    warnings.append(
+                        "No unambiguous documentation location or exact "
+                        "anchor text was provided; the proposed change was "
+                        f"skipped: {repository_path}."
+                    )
+                    continue
+
+                anchor_count = original_content.count(anchor_text)
+
+                if anchor_count == 0:
+                    warnings.append(
+                        "Proposed documentation anchor text was not found; "
+                        f"the change was skipped: {repository_path}."
+                    )
+                    continue
+
+                if anchor_count > 1:
+                    warnings.append(
+                        "Proposed documentation anchor text was ambiguous; "
+                        f"the change was skipped: {repository_path}."
+                    )
+                    continue
 
             proposal = DocumentationChangeProposal(
                 repository_path=repository_path,
@@ -599,6 +640,37 @@ class DocumentationWorkflow:
             proposals.append(proposal)
 
         return tuple(proposals), tuple(warnings)
+
+    @staticmethod
+    def _select_reasoning_warnings(
+        reasoning_result: ReasoningResult,
+        source_grounded: bool,
+    ) -> tuple[str, ...]:
+        """Select warnings safe to surface for the workflow.
+
+        Source-grounded documentation runs fail closed for free-form
+        model warnings because the current reasoning response does not
+        carry structured evidence for verifying them. Provider warnings
+        remain available because they describe provider execution rather
+        than repository conditions.
+        """
+
+        if not source_grounded:
+            return reasoning_result.warnings
+
+        provider_warnings = reasoning_result.metadata.get(
+            "provider_warnings",
+            (),
+        )
+
+        if not isinstance(provider_warnings, (tuple, list)):
+            return ()
+
+        return tuple(
+            warning
+            for warning in provider_warnings
+            if isinstance(warning, str)
+        )
 
     def _validate_paths(
         self,

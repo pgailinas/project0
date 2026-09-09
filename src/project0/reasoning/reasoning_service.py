@@ -145,6 +145,10 @@ class ReasoningService:
                 "provider_metadata": dict(
                     provider_response.metadata
                 ),
+                "provider_warnings": tuple(
+                    provider_response.warnings
+                ),
+                "response_warnings": response_warnings,
             },
         )
 

@@ -351,6 +351,33 @@ def test_reasoning_service_combines_warnings() -> None:
     )
 
 
+def test_reasoning_service_preserves_warning_provenance() -> None:
+    """Verify provider and response warnings retain separate provenance."""
+
+    service = ReasoningService(
+        prompt_builder=StubPromptBuilder(
+            create_provider_request()
+        ),
+        provider=StubProvider(
+            create_valid_provider_response(
+                warnings=("Provider warning.",),
+                response_warnings=["Reasoning warning."],
+            )
+        ),
+    )
+
+    result = service.reason(
+        create_reasoning_request()
+    )
+
+    assert result.metadata["provider_warnings"] == (
+        "Provider warning.",
+    )
+    assert result.metadata["response_warnings"] == (
+        "Reasoning warning.",
+    )
+
+
 def test_reasoning_service_preserves_provider_metadata() -> None:
     """Verify provider execution metadata is preserved."""
 
@@ -375,6 +402,8 @@ def test_reasoning_service_preserves_provider_metadata() -> None:
         "provider_metadata": {
             "done": True,
         },
+        "provider_warnings": (),
+        "response_warnings": (),
     }
 
 

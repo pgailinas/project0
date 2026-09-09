@@ -231,7 +231,7 @@ def _update_change(
     repository_path: str = "docs/index.md",
     proposed_content: str = "# Updated\n",
     section: str | None = None,
-    anchor_text: str | None = None,
+    anchor_text: str | None = "# Original",
     edit_type: DocumentationEditType = DocumentationEditType.REPLACE,
 ) -> ProposedDocumentationChange:
     """Create an update reasoning proposal."""
@@ -1098,6 +1098,224 @@ def test_reasoning_warnings_are_preserved(tmp_path: Path) -> None:
     assert result.warnings == ("Reasoning warning.",)
 
 
+def test_source_grounded_workflow_omits_unverified_reasoning_warnings(
+    tmp_path: Path,
+) -> None:
+    """Source-grounded runs omit free-form model repository warnings."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text("# Original\n", encoding="utf-8")
+
+    reasoning_result = _reasoning_result(
+        warnings=("Unverified repository warning.",)
+    )
+    reasoning_result = ReasoningResult(
+        request_id=reasoning_result.request_id,
+        status=reasoning_result.status,
+        summary=reasoning_result.summary,
+        impacts=reasoning_result.impacts,
+        proposed_changes=reasoning_result.proposed_changes,
+        created_at=reasoning_result.created_at,
+        provider_name=reasoning_result.provider_name,
+        model_name=reasoning_result.model_name,
+        warnings=reasoning_result.warnings,
+        metadata={
+            "provider_warnings": (),
+            "response_warnings": (
+                "Unverified repository warning.",
+            ),
+        },
+    )
+
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=reasoning_result,
+        validation_results=(),
+    )[0]
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Review documentation.",
+            target_paths=("docs/index.md",),
+            source_paths=("src/project0/example.py",),
+            workflow_id="workflow-source-grounded-warning",
+        )
+    )
+
+    assert result.warnings == ()
+    assert result.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+
+
+def test_source_grounded_workflow_preserves_provider_warnings(
+    tmp_path: Path,
+) -> None:
+    """Source-grounded runs retain provider execution warnings."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text("# Original\n", encoding="utf-8")
+
+    reasoning_result = _reasoning_result(
+        warnings=("Provider warning.", "Reasoning warning.")
+    )
+    reasoning_result = ReasoningResult(
+        request_id=reasoning_result.request_id,
+        status=reasoning_result.status,
+        summary=reasoning_result.summary,
+        impacts=reasoning_result.impacts,
+        proposed_changes=reasoning_result.proposed_changes,
+        created_at=reasoning_result.created_at,
+        provider_name=reasoning_result.provider_name,
+        model_name=reasoning_result.model_name,
+        warnings=reasoning_result.warnings,
+        metadata={
+            "provider_warnings": ("Provider warning.",),
+            "response_warnings": ("Reasoning warning.",),
+        },
+    )
+
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=reasoning_result,
+        validation_results=(),
+    )[0]
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Review documentation.",
+            target_paths=("docs/index.md",),
+            source_paths=("src/project0/example.py",),
+            workflow_id="workflow-provider-warning",
+        )
+    )
+
+    assert result.warnings == ("Provider warning.",)
+
+
+def test_non_source_grounded_unresolved_anchor_remains_reviewable(
+    tmp_path: Path,
+) -> None:
+    """Ordinary requests preserve legacy proposal review behavior."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text("# Original\nExisting text.\n", encoding="utf-8")
+
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(
+                _update_change(
+                    section="Missing Section",
+                    anchor_text="Missing anchor.",
+                ),
+            )
+        ),
+        validation_results=(
+            _validation_result(ValidationStatus.PASSED),
+        ),
+    )[0]
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Update documentation.",
+            target_paths=("docs/index.md",),
+            workflow_id="workflow-non-source-grounded-anchor",
+        )
+    )
+
+    assert result.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+    assert len(result.proposals) == 1
+    assert result.proposals[0].artifact_location is None
+    assert result.proposals[0].anchor_text == "Missing anchor."
+
+
+def test_proposal_with_missing_anchor_and_no_location_is_skipped(
+    tmp_path: Path,
+) -> None:
+    """Unlocatable updates fail closed instead of reaching review."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text("# Original\nExisting text.\n", encoding="utf-8")
+
+    components = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(
+                _update_change(
+                    section="Missing Section",
+                    anchor_text="Missing anchor.",
+                ),
+            )
+        ),
+        validation_results=(),
+    )
+
+    workflow = components[0]
+    validation_service = components[2]
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Update documentation.",
+            target_paths=("docs/index.md",),
+            source_paths=("src/project0/example.py",),
+            workflow_id="workflow-missing-anchor",
+        )
+    )
+
+    assert result.proposals == ()
+    assert result.preliminary_validation is None
+    assert validation_service.requests == []
+    assert any(
+        "anchor text was not found"
+        in warning
+        for warning in result.warnings
+    )
+
+
+def test_proposal_with_ambiguous_anchor_and_no_location_is_skipped(
+    tmp_path: Path,
+) -> None:
+    """Ambiguous anchor text fails closed instead of selecting one."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text(
+        "# Original\nRepeated text.\nRepeated text.\n",
+        encoding="utf-8",
+    )
+
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(
+                _update_change(
+                    anchor_text="Repeated text.",
+                ),
+            )
+        ),
+        validation_results=(),
+    )[0]
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Update documentation.",
+            target_paths=("docs/index.md",),
+            source_paths=("src/project0/example.py",),
+            workflow_id="workflow-ambiguous-anchor",
+        )
+    )
+
+    assert result.proposals == ()
+    assert any(
+        "anchor text was ambiguous"
+        in warning
+        for warning in result.warnings
+    )
+
+
 def test_workflow_timestamps_are_timezone_aware(
     tmp_path: Path,
 ) -> None:
@@ -1156,6 +1374,7 @@ def test_artifact_location_service_uses_section_for_proposals(
 
     assert artifact_location_service.requests == [
         (document.resolve(), "Interfaces"),
+        (document.resolve(), "Update the document."),
     ]
 
 
@@ -1209,11 +1428,13 @@ def test_artifact_location_service_falls_back_to_rationale(
     components = _create_workflow(
         tmp_path,
         reasoning_result=_reasoning_result(
-            proposed_changes=(_update_change(),)
+            proposed_changes=(
+                _update_change(
+                    anchor_text=None,
+                ),
+            )
         ),
-        validation_results=(
-            _validation_result(ValidationStatus.PASSED),
-        ),
+        validation_results=(),
     )
 
     workflow = components[0]
