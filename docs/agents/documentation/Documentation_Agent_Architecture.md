@@ -2,7 +2,7 @@
 
 **Version:** 0.6  
 **Owner:** Project0  
-**Last Updated:** 2026-08-17
+**Last Updated:** 2026-09-09
 
 ---
 
@@ -66,6 +66,7 @@ flowchart TD
     A["Application Entry Point<br/><small>main.py</small>"]
     B["Platform Dispatcher"]
     C["Documentation Workflow"]
+    S["Skill Registry"]
 
     D["Knowledge Service"]
     E["Reasoning Service"]
@@ -80,6 +81,8 @@ flowchart TD
     UI --> A
     A --> B
     B --> C
+    B --> S
+    S --> C
 
     C --> D
     D --> E
@@ -99,17 +102,18 @@ flowchart TD
 
 1. `dashboard_app.py` creates the Dashboard application and configured Documentation Agent UI services.
 2. `main.py` creates the Platform Dispatcher.
-3. The Platform Dispatcher dispatches the requested Documentation Workflow.
-4. The Knowledge Service builds structured repository knowledge.
-5. The Reasoning Service generates proposed documentation changes.
+3. The Platform Dispatcher dispatches the requested Documentation Workflow and provides the repository-local Skill Registry.
+4. For source-grounded requests, the Documentation Workflow loads the `strict-documentation-editor` skill.
+5. The Knowledge Service builds structured repository knowledge for ordinary requests, while source-grounded requests use only the requested target and authoritative source files.
+7. The Reasoning Service generates proposed documentation changes using any active skill instructions.
 6. The Validation Service validates all proposed documentation changes.
-7. The Review Coordinator processes each proposed change individually.
-8. Approved changes are applied through the Repository Update Service.
-9. Rejected and skipped changes continue without repository modification.
-10. Revised changes return to the Reasoning Service for regeneration.
-11. Approved repository updates undergo final validation.
-12. The Git Diff Service generates a summary of applied repository changes.
-13. The Documentation Workflow returns a structured Documentation Workflow Result.
+8. The Review Coordinator processes each proposed change individually.
+9. Approved changes are applied through the Repository Update Service.
+10. Rejected and skipped changes continue without repository modification.
+11. Revised changes return to the Reasoning Service for regeneration.
+12. Approved repository updates undergo final validation.
+13. The Git Diff Service generates a summary of applied repository changes.
+14. The Documentation Workflow returns a structured Documentation Workflow Result.
 
 ---
 
@@ -128,6 +132,8 @@ Responsibilities:
 - Return structured workflow execution results.
 - Dispatch Documentation Workflows.
 - Assemble Documentation Workflow dependencies.
+- Configure and expose the repository-local Skill Registry.
+- Provide the Skill Registry to the Documentation Workflow.
 - Provide workflow state access through platform interfaces.
 
 ### Workflow Engine
@@ -331,6 +337,26 @@ Implemented validators:
 
 Validation components communicate through the Validation Interface and exchange immutable Validation Models.
 
+### Skill Registry
+
+Provides deterministic discovery and loading of repository-local Agent
+Skills.
+
+Responsibilities:
+
+- Discover skill directories containing `SKILL.md`.
+- Validate required skill metadata and stable skill names.
+- Return skill metadata without loading full instructions during
+  discovery.
+- Load immutable Skill Definitions when requested.
+- Reject missing, invalid, or out-of-root skill paths.
+
+The Platform Dispatcher configures the Skill Registry at the repository
+`skills/` directory. The current Documentation Workflow loads
+`strict-documentation-editor` only for source-grounded requests.
+
+---
+
 ### Reasoning Service
 
 Provides AI reasoning through an abstract provider interface.
@@ -341,7 +367,7 @@ Responsibilities:
 - Generate proposed documentation updates.
 - Explain proposed documentation changes.
 
-The Reasoning Service is implemented and integrated into the Documentation Workflow through an abstract provider interface.
+The Reasoning Service is implemented and integrated into the Documentation Workflow through an abstract provider interface. Reasoning Requests may carry loaded Agent Skills, and Prompt Builder appends active skill instructions to provider system instructions.
 
 ---
 
@@ -390,6 +416,8 @@ Coordinates the complete Documentation Agent execution pipeline.
 Responsibilities:
 
 - Coordinate Knowledge, Reasoning, Validation, Review, Repository Update, Artifact Location, and Git Diff services.
+- Load the strict documentation skill for source-grounded requests.
+- Preserve deterministic source-grounded proposal enforcement independently of skill instructions.
 - Preserve internal workflow state.
 - Produce immutable Documentation Workflow Results.
 
@@ -426,6 +454,7 @@ The Documentation Agent interacts with:
 - Source code modification by the Documentation Agent is outside the current architectural scope.
 - The Dashboard Framework shall remain a reusable platform interface and shall not contain Documentation Agent business logic.
 - Agent user interfaces shall render within Dashboard Work Areas rather than operating as independent applications.
+- Agent Skills are repository-local capabilities; deterministic workflow safety and validation remain outside skill definitions.
 
 ---
 

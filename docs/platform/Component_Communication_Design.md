@@ -34,6 +34,7 @@ It also includes the following implemented components:
 * Repository Update Service
 * Git Diff Service
 * Artifact Location Service
+* Skill Registry
 * Documentation Workflow
 * Research Workflow
 
@@ -106,6 +107,7 @@ flowchart TD
     A["Application Entry Point<br/><small>main.py</small>"]
     B["Platform Dispatcher"]
     C["Documentation Workflow"]
+    S["Skill Registry"]
 
     D["Knowledge Service"]
     E["Reasoning Service"]
@@ -118,6 +120,8 @@ flowchart TD
     UI --> A
     A --> B
     B --> C
+    B --> S
+    S --> C
     C --> D
     D --> E
     E --> F
@@ -135,10 +139,10 @@ flowchart TD
 The implemented sequence is:
 
 1. `main.py` creates the Platform Dispatcher.
-2. The Platform Dispatcher dispatches the Documentation Workflow.
-3. The Documentation Workflow requests repository knowledge from the Knowledge Service and coordinates artifact-based documentation modification through the Artifact Location Service.
-4. The Knowledge Service returns structured repository context.
-5. The Reasoning Service generates proposed documentation changes.
+2. The Platform Dispatcher dispatches the Documentation Workflow and provides the repository-local Skill Registry.
+3. For source-grounded documentation requests, the Documentation Workflow loads the `strict-documentation-editor` skill from the Skill Registry.
+4. The Documentation Workflow requests repository knowledge from the Knowledge Service for ordinary requests and uses only the requested target and authoritative source files for source-grounded requests, while coordinating artifact-based documentation modification through the Artifact Location Service.
+5. The Reasoning Service generates proposed documentation changes using any active skill instructions carried by the Reasoning Request.
 6. The Validation Service validates proposed documentation changes.
 7. The Review Coordinator processes each proposal individually.
 8. Approved changes are applied by the Repository Update Service.
@@ -162,6 +166,8 @@ The implemented sequence is:
 * Return Documentation Workflow Results.
 * Dispatch Research Workflows.
 * Return Research Workflow Results.
+* Configure and expose the repository-local Skill Registry.
+* Provide the Skill Registry to the Documentation Workflow.
 * Provide workflow state access through platform interfaces.
 
 ### Workflow Engine
@@ -206,6 +212,15 @@ The implemented sequence is:
 * Prevent access outside the repository root.
 * Return structured repository results and errors.
 
+## Skill Registry
+
+* Discover repository-local Agent Skills from `skills/<skill-name>/SKILL.md`.
+* Return skill metadata without loading full instructions during discovery.
+* Load full immutable Skill Definitions when requested.
+* Validate skill names, required frontmatter, and directory/name agreement.
+* Reject unknown skills and paths outside the configured skills root.
+* Preserve deterministic skill discovery order.
+
 ## Validation Service
 
 * Coordinate configured validators.
@@ -236,6 +251,8 @@ The implemented sequence is:
 ## Documentation Workflow
 
 * Coordinate Knowledge, Reasoning, Validation, Review, Repository Update, Artifact Location, and Git Diff services.
+* Load the `strict-documentation-editor` skill for source-grounded requests when a Skill Registry is configured.
+* Preserve deterministic source-grounded proposal enforcement independently of skill instructions.
 * Preserve internal workflow state.
 * Return immutable Documentation Workflow Results.
 
@@ -257,6 +274,8 @@ The implemented sequence is:
 
 * Define immutable communication objects.
 * Provide shared workflow and task statuses.
+* Provide Skill Metadata and Skill Definition models for repository-local Agent Skills.
+* Allow Reasoning Requests to carry loaded Agent Skills.
 * Provide Context Packages, Knowledge Results, Validation Results, Validator Results, Workflow Execution Results, Documentation Workflow Results, Documentation Reviews, Documentation Change Proposals, and Applied Documentation Changes.
 * Preserve identifiers, timestamps, outputs, warnings, and errors.
 
@@ -267,7 +286,6 @@ The following responsibilities remain planned:
 * Dashboard and audit storage
 * Persistent workflow history
 * Distributed communication
-* Agent Skills registry and loading
 
 ## 8. Communication Contracts
 
@@ -384,6 +402,8 @@ The implemented Phase 7 communication foundation uses:
 * Repository-relative file access
 * pytest unit and integration testing
 * End-to-end Documentation Workflow orchestration
+* Repository-local Agent Skill discovery and loading
+* Active Agent Skill propagation through Reasoning Requests
 * Repository update coordination
 * Git diff generation
 
@@ -407,7 +427,6 @@ The communication architecture is designed to support future enhancements includ
 * Cloud execution
 * Multiple concurrent workflows
 * Additional AI agent types
-* Repository-local Agent Skills using `SKILL.md` definitions
 * External Agent Skills only after trust validation and approval
 * Enhanced dashboard monitoring
 * Asynchronous workflow execution
@@ -443,13 +462,21 @@ The validated end-to-end communication flow includes:
 1. Platform Dispatcher
 2. Workflow Engine
 3. Knowledge Service
-4. Reasoning Service
-5. Validation Service
-6. Review Coordinator
-7. Repository Update Service
-8. Git Diff Service
-9. Documentation Workflow
-10. Documentation Workflow Results
+4. Skill Registry
+5. Reasoning Service
+6. Validation Service
+7. Review Coordinator
+8. Repository Update Service
+9. Git Diff Service
+10. Documentation Workflow
+11. Documentation Workflow Results
+
+The implemented Agent Skills communication path uses a repository-local
+Skill Registry, immutable skill models, Reasoning Request skill
+propagation, and Prompt Builder injection of active skill instructions.
+The current Documentation Workflow uses
+`strict-documentation-editor` for source-grounded requests while
+deterministic proposal guards remain workflow responsibilities.
 
 The Research Agent also uses the Platform Dispatcher to execute the
 implemented Research Workflow through reusable Project0 platform

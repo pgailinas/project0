@@ -395,6 +395,20 @@ Deliverables:
 -   Initial Documentation Agent skill.
 -   Unit and integration test coverage.
 
+Current progress:
+
+-   Repository-local Agent Skill models implemented.
+-   Skill discovery, validation, and loading implemented.
+-   Reasoning requests support loaded Agent Skills.
+-   Prompt construction includes active skill instructions and skill
+    metadata.
+-   Platform Dispatcher configures the repository-local Skill Registry.
+-   Source-grounded Documentation Workflows load the
+    `strict-documentation-editor` skill.
+-   Deterministic source-grounded proposal guards remain enforced by the
+    Documentation Workflow.
+-   Unit and integration coverage added for Agent Skills behavior.
+
 ## 4. Implementation Dependencies
 
 Implementation phases depend upon the completion of earlier foundational

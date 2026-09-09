@@ -2,7 +2,7 @@
 
 **Version:** 0.2  
 **Owner:** Project0  
-**Last Updated:** 2026-08-16
+**Last Updated:** 2026-09-09
 
 ---
 
@@ -41,6 +41,20 @@ underlying services.
 
 Agent-specific UI behavior and presentation details remain outside these
 interfaces and are implemented by the Documentation Agent UI components.
+
+### Phase 14 Alignment
+
+Source-grounded Documentation Agent requests use the repository-local
+Project0 Agent Skills capability. When Ground Truth Source Paths are
+provided, the Documentation Workflow loads the
+`strict-documentation-editor` skill and includes the loaded skill in the
+Reasoning Request. Ordinary documentation requests without Ground Truth
+Source Paths preserve existing no-skill behavior.
+
+Skill definitions guide AI reasoning but do not replace deterministic
+workflow enforcement. Source-grounded proposal scope, location,
+content, and authoritative Python declaration checks remain workflow
+responsibilities.
 
 ---
 

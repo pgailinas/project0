@@ -2,7 +2,7 @@
 
 **Version:** 0.8\
 **Owner:** Project0\
-**Last Updated:** 2026-09-02
+**Last Updated:** 2026-09-09
 
 ------------------------------------------------------------------------
 
@@ -21,7 +21,7 @@ file is the editable project planning document.
 
 ## Current Phase
 
-Phase 13 -- Research Agent Context-Aware Literature Analysis (Completed)
+Phase 14 -- Project0 Agent Skills Foundation (Completed)
 
 ## Overall Status
 
@@ -37,6 +37,7 @@ Phase 13 -- Research Agent Context-Aware Literature Analysis (Completed)
 -   ✅ Phase 10 -- Platform Validation Consolidation: Completed
 -   ✅ Phase 11 -- Research Agent Expansion and Enhancement: Completed
 -   ✅ Phase 13 -- Research Agent Context-Aware Literature Analysis: Completed
+-   ✅ Phase 14 -- Project0 Agent Skills Foundation: Completed
 
 ------------------------------------------------------------------------
 
@@ -44,26 +45,22 @@ Phase 13 -- Research Agent Context-Aware Literature Analysis (Completed)
 
 ## Current Milestone
 
-Research Agent Context-Aware Literature Analysis Completed
+Project0 Agent Skills Foundation Completed
 
-The Research Agent context-aware literature analysis milestone is
-complete using reusable Project0 platform services.
+The Project0 Agent Skills foundation is implemented using repository-local
+`SKILL.md` definitions, shared skill models, deterministic skill discovery
+and loading, and Reasoning Service prompt integration.
 
 Completed capabilities:
 
--   Optional Existing Research Context document ingestion and analysis.
--   Context-aware Research Strategy generation.
--   Existing Research Context Dashboard integration.
--   Structured per-paper analysis from available metadata and abstract
-    information.
--   Research Workflow integration and validation.
--   Research evaluation missing-paper retry behavior.
--   Bounded batch evaluation with opaque paper identifiers.
--   Research Direction Analysis with evidence validation.
--   Consolidated retained-paper results in the Dashboard Work Area.
+-   Repository-local Agent Skill discovery and loading.
+-   Skill metadata and loaded skill definition models.
+-   Active skill propagation through Reasoning Requests.
+-   Active skill instructions included in provider system instructions.
+-   Platform-level Skill Registry assembly.
+-   Source-grounded Documentation Workflow integration with the
+    `strict-documentation-editor` skill.
+-   Deterministic source-grounded proposal validation remains enforced by
+    the Documentation Workflow.
 
-Detailed implementation history, architecture decisions, and validation
-results are maintained in the Research Agent documentation set.
 
-Research Direction Analysis performs cross-paper synthesis and produces
-evidence-grounded candidate research directions.

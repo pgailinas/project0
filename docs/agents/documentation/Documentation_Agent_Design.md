@@ -2,7 +2,7 @@
 
 **Version:** 0.7  
 **Owner:** Project0  
-**Last Updated:** 2026-08-17
+**Last Updated:** 2026-09-09
 
 ---
 
@@ -60,6 +60,7 @@ Work Area:
 * Shared Data Models
 * Validation Service
 * Reasoning Service
+* Skill Registry
 * Review Coordinator
 * Repository Update Service
 * Git Diff Service
@@ -92,6 +93,7 @@ Provide the platform-level entry point for assembling services and dispatching w
 * Dispatch tasks to the Workflow Engine.
 * Return structured workflow execution results.
 * Assemble the Documentation Workflow.
+* Configure the repository-local Skill Registry.
 * Dispatch Documentation Workflows.
 
 #### Interfaces
@@ -841,11 +843,16 @@ Perform AI-assisted documentation reasoning.
 * Does not directly read or write repository files.
 * Produces proposed changes for validation and user review.
 * Uses repository context supplied by the Knowledge Service.
+* Reasoning Requests may include loaded Agent Skills.
+* Prompt construction appends active skill instructions to the provider
+  system instructions and records active skill names in provider
+  metadata.
 
 #### Inputs
 
 * Repository context
 * User requests
+* Optional loaded Agent Skills
 
 #### Outputs
 
@@ -873,6 +880,42 @@ Implemented in Phase 4 and integrated into the Documentation Workflow in Phase 6
 
 ---
 
+### 4.17 Skill Registry
+
+#### Purpose
+
+Discover and load repository-local Project0 Agent Skills.
+
+#### Responsibilities
+
+* Discover skill directories containing `SKILL.md`.
+* Validate required skill name and description metadata.
+* Preserve additional skill metadata.
+* Load full skill instructions only when a skill is requested.
+* Reject invalid skill names, missing skills, and paths outside the
+  configured skills root.
+* Preserve deterministic skill discovery order.
+
+#### Inputs
+
+* Repository-local `skills/` directory
+* Skill name
+
+#### Outputs
+
+* Skill Metadata
+* Skill Definition
+
+#### Design Notes
+
+* Skill definitions are repository-local.
+* Discovery returns metadata without loading full instructions.
+* Loaded skills are immutable shared models.
+* The current Documentation Workflow loads
+  `strict-documentation-editor` only for source-grounded requests.
+
+---
+
 ### Revision Workflow Support
 
 The Documentation Workflow supports a revision path when a user requests changes to a generated proposal before approval.
@@ -892,7 +935,7 @@ The Documentation Workflow supports a revision path when a user requests changes
 * The original target documentation path remains the active scope unless future UI functionality explicitly allows modification.
 
 
-### 4.17 Review Coordinator
+### 4.18 Review Coordinator
 
 #### Purpose
 
@@ -915,7 +958,7 @@ Coordinate user review of individual documentation changes.
 
 ---
 
-### 4.18 Repository Update Service
+### 4.19 Repository Update Service
 
 #### Purpose
 
@@ -929,7 +972,7 @@ Apply approved documentation changes.
 
 ---
 
-### 4.19 Git Diff Service
+### 4.20 Git Diff Service
 
 #### Purpose
 
@@ -943,7 +986,7 @@ Generate Git diffs for approved documentation updates.
 
 ---
 
-### 4.20 Documentation Workflow
+### 4.21 Documentation Workflow
 
 #### Purpose
 
@@ -953,6 +996,10 @@ Coordinate the complete Documentation Agent execution pipeline.
 
 * Coordinate Knowledge, Reasoning, Validation, Review, Repository
 * Update, Artifact Location, and Git Diff services.
+* Load the `strict-documentation-editor` skill for source-grounded
+  documentation requests when a Skill Registry is configured.
+* Preserve deterministic source-grounded proposal guards independently
+  of skill instructions.
 * Preserve internal workflow state.
 * Produce immutable Documentation Workflow Results.
 * Support human-in-the-loop review before applying documentation
@@ -964,6 +1011,11 @@ Coordinate the complete Documentation Agent execution pipeline.
   Dispatcher.
 * Documentation Agent UI interactions are hosted by the Dashboard
   Framework.
+* Source-grounded requests use only requested target and authoritative
+  source files for context.
+* Source-grounded proposals fail closed for unsupported paths,
+  unresolvable locations, meta-instruction content, semantically
+  misaligned sections, and authoritative Python declaration mismatches.
 * Proposed documentation changes are reviewed before repository
   updates are applied.
 
