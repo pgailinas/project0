@@ -2037,6 +2037,130 @@ def test_source_grounded_python_block_uses_documentation_meaning(
     )
 
 
+def test_source_grounded_python_block_logs_documentation_meaning(
+    tmp_path: Path,
+    caplog,
+) -> None:
+    """Source-grounded fallback evaluation logs the returned meaning."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text(
+        "# Original\n"
+        "## Existing Research Context Interface Contract\n"
+        "Existing prose details.\n",
+        encoding="utf-8",
+    )
+
+    change = ProposedDocumentationChange(
+        document_path=Path("docs/index.md"),
+        operation=DocumentationChangeOperation.UPDATE,
+        rationale="Document existing research context handling.",
+        proposed_content=(
+            "```python\n"
+            "def execute(self) -> None:\n"
+            "    ...\n"
+            "```"
+        ),
+        documentation_meaning=(
+            "This change will ensure that provided context can be used."
+        ),
+        section="Existing Research Context Interface Contract",
+        anchor_text=None,
+        edit_type=DocumentationEditType.REPLACE,
+    )
+
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(change,)
+        ),
+        validation_results=(),
+    )[0]
+
+    with caplog.at_level(
+        "DEBUG",
+        logger="project0.workflow.documentation_workflow",
+    ):
+        workflow.execute(
+            DocumentationWorkflowRequest(
+                user_request="Synchronize documentation.",
+                target_paths=("docs/index.md",),
+                source_paths=("src/project0/example.py",),
+                workflow_id="workflow-python-meaning-log",
+            )
+        )
+
+    assert (
+        "Evaluating source-grounded documentation meaning fallback for "
+        "docs/index.md: 'This change will ensure that provided context "
+        "can be used.'"
+        in caplog.text
+    )
+
+
+def test_source_grounded_python_block_rejects_rationale_like_meaning(
+    tmp_path: Path,
+) -> None:
+    """Rationale-like fallback prose is not surfaced as documentation."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text(
+        "# Original\n"
+        "## Existing Research Context Interface Contract\n"
+        "Existing prose details.\n",
+        encoding="utf-8",
+    )
+
+    change = ProposedDocumentationChange(
+        document_path=Path("docs/index.md"),
+        operation=DocumentationChangeOperation.UPDATE,
+        rationale="Document existing research context handling.",
+        proposed_content=(
+            "```python\n"
+            "def execute(self) -> None:\n"
+            "    ...\n"
+            "```"
+        ),
+        documentation_meaning=(
+            "This change will ensure that the Research Agent can "
+            "incorporate provided context into its analysis."
+        ),
+        section="Existing Research Context Interface Contract",
+        anchor_text=None,
+        edit_type=DocumentationEditType.REPLACE,
+    )
+
+    components = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(change,)
+        ),
+        validation_results=(),
+    )
+    workflow = components[0]
+    validation_service = components[2]
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Synchronize documentation.",
+            target_paths=("docs/index.md",),
+            source_paths=("src/project0/example.py",),
+            workflow_id="workflow-python-rationale-meaning",
+        )
+    )
+
+    assert result.proposals == ()
+    assert result.preliminary_validation is None
+    assert validation_service.requests == []
+    assert any(
+        "does not already use fenced Python content"
+        in warning
+        for warning in result.warnings
+    )
+
+
 def test_source_grounded_new_python_block_without_target_form_is_skipped(
     tmp_path: Path,
 ) -> None:
@@ -2227,6 +2351,35 @@ def test_meta_instruction_detector_allows_concrete_markdown() -> None:
     )
     assert not DocumentationWorkflow._is_meta_instruction_content(
         "```python\nclass Example:\n    pass\n```"
+    )
+
+
+def test_documentation_meaning_quality_guard_rejects_change_rationale() -> None:
+    """Fallback meaning must state current behavior, not change rationale."""
+
+    rejected = (
+        "This change will ensure that context can be incorporated.",
+        "This update improves the documented workflow.",
+        "This will make the interface more flexible.",
+        "This ensures that existing context can be analyzed.",
+    )
+
+    accepted = (
+        "The workflow accepts optional existing research context content.",
+        "Existing research context can be incorporated into the analysis.",
+    )
+
+    assert all(
+        DocumentationWorkflow._is_rationale_like_documentation_meaning(
+            value
+        )
+        for value in rejected
+    )
+    assert all(
+        not DocumentationWorkflow._is_rationale_like_documentation_meaning(
+            value
+        )
+        for value in accepted
     )
 
 

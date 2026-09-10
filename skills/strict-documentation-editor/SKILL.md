@@ -17,6 +17,10 @@ Treat target documentation as an existing controlled artifact.
 - Modify only permitted target documentation paths.
 - First compare authoritative source evidence against the existing documented contracts.
 - Propose a change only when the source shows that an existing documented contract is missing, outdated, inaccurate, or materially incomplete.
+- Treat source-grounded work as documentation synchronization, not implementation design or architecture review.
+- Do not recommend adding, changing, or redesigning source fields, interfaces, behaviors, mechanisms, requirements, or implementation features.
+- Do not propose documentation for behavior that is not already established by the authoritative source evidence.
+- If authoritative source evidence does not establish a material documentation gap, return no proposed change for that point.
 - Do not assume every authoritative source declaration requires documentation.
 - Make only the minimum textual modification required.
 - Preserve repository-relative paths, existing terminology, organization, writing style, and Markdown formatting.

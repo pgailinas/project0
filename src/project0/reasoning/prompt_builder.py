@@ -124,6 +124,10 @@ class PromptBuilder:
             "applied.\n"
             "The supplied response schema constrains which documentation paths "
             "may be changed. Ground Truth Source content is read-only evidence.\n"
+            "Source-grounded documentation work is synchronization, not "
+            "implementation design. Do not propose new source fields, interfaces, "
+            "behaviors, mechanisms, or requirements. If authoritative evidence "
+            "does not establish a documentation gap, do not propose a change.\n"
             "For update operations, proposed_content must contain only the "
             "Markdown content to insert or replace, not the complete resulting "
             "document. Use section and anchor_text only to identify the exact "
@@ -206,6 +210,22 @@ class PromptBuilder:
                     *(
                         f"- {constraint}"
                         for constraint in request.constraints
+                    ),
+                )
+            )
+
+        if source_grounded:
+            sections.extend(
+                (
+                    "",
+                    "Source-Grounded Synchronization Rule:",
+                    (
+                        "Compare the authoritative source only against what the "
+                        "target documentation already claims. Propose documentation "
+                        "changes only for source-established gaps. Do not recommend "
+                        "new implementation fields, interfaces, behaviors, mechanisms, "
+                        "or requirements. If the source does not establish a material "
+                        "documentation gap, return no proposed change for it."
                     ),
                 )
             )
@@ -419,6 +439,21 @@ class PromptBuilder:
                                 ],
                             },
                             "rationale": {
+                                "description": (
+                                    (
+                                        "Explain only why authoritative source "
+                                        "evidence makes the existing target "
+                                        "documentation missing, outdated, "
+                                        "inaccurate, or materially incomplete. "
+                                        "Do not recommend implementation changes "
+                                        "or new source behavior."
+                                    )
+                                    if source_grounded
+                                    else (
+                                        "Explain why the proposed documentation "
+                                        "change is needed."
+                                    )
+                                ),
                                 "type": "string",
                             },
                             "documentation_meaning": {
@@ -427,8 +462,9 @@ class PromptBuilder:
                                     "the supplied evidence. Describe the contract, "
                                     "purpose, inputs, outputs, constraints, or "
                                     "behavior that the target documentation needs "
-                                    "to express. Do not copy source syntax or return "
-                                    "Markdown editing instructions."
+                                    "to express. Do not copy source syntax, recommend "
+                                    "implementation changes, invent new source behavior, "
+                                    "or return Markdown editing instructions."
                                 ),
                                 "type": "string",
                             },
@@ -443,9 +479,11 @@ class PromptBuilder:
                                         "introduce a fenced source-code block "
                                         "unless that target section already "
                                         "contains comparable fenced source code. "
-                                        "Must not be instructions, a plan, or a "
-                                        "description of content that should be "
-                                        "written."
+                                        "Must not be instructions, a plan, a "
+                                        "recommendation, or a description of content "
+                                        "that should be written. Must document only "
+                                        "behavior established by the authoritative "
+                                        "source."
                                     )
                                     if source_grounded
                                     else (

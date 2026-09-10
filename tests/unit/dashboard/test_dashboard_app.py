@@ -443,11 +443,14 @@ def test_create_project0_dashboard_app_configures_documentation_agent(
 ) -> None:
     """The executable factory wires the Documentation Agent service."""
 
-    dispatcher = FakeDocumentationWorkflow()
+    dispatchers = [
+        FakeDocumentationWorkflow(),
+        FakeDocumentationWorkflow(),
+    ]
 
     monkeypatch.setattr(
         "project0.dashboard.dashboard_app.create_platform_dispatcher",
-        lambda reasoning_provider, reasoning_model_name: dispatcher,
+        lambda reasoning_provider, reasoning_model_name: dispatchers.pop(0),
     )
     monkeypatch.setattr(
         "project0.dashboard.dashboard_app.SETTINGS",
@@ -456,7 +459,8 @@ def test_create_project0_dashboard_app_configures_documentation_agent(
             reasoning_provider="ollama",
             ollama_base_url="http://127.0.0.1:11434",
             ollama_timeout_seconds=120.0,
-            ollama_model="qwen2.5:7b",
+            research_ollama_model="qwen2.5:7b",
+            documentation_ollama_model="gemma3:4b",
         ),
     )
 
@@ -474,7 +478,7 @@ def test_create_project0_dashboard_app_configures_documentation_agent(
     )
     assert (
         application.state.documentation_agent_ui_service.workflow
-        is dispatcher
+        is not application.state.research_agent_ui_service.workflow
     )
 
 
@@ -597,15 +601,16 @@ def test_create_project0_dashboard_app_supplies_reasoning_provider(
 ) -> None:
     """The executable factory supplies the configured reasoning provider."""
 
-    captured: dict[str, object] = {}
+    captured: list[tuple[object, str]] = []
     dispatcher = FakeDocumentationWorkflow()
 
     def fake_create_platform_dispatcher(
         reasoning_provider,
         reasoning_model_name,
     ):
-        captured["reasoning_provider"] = reasoning_provider
-        captured["reasoning_model_name"] = reasoning_model_name
+        captured.append(
+            (reasoning_provider, reasoning_model_name)
+        )
         return dispatcher
 
     monkeypatch.setattr(
@@ -619,16 +624,18 @@ def test_create_project0_dashboard_app_supplies_reasoning_provider(
             reasoning_provider="ollama",
             ollama_base_url="http://127.0.0.1:11434",
             ollama_timeout_seconds=120.0,
-            ollama_model="qwen2.5:7b",
+            research_ollama_model="qwen2.5:7b",
+            documentation_ollama_model="gemma3:4b",
         ),
     )
 
     create_project0_dashboard_app()
 
-    reasoning_provider = captured["reasoning_provider"]
-
+    assert len(captured) == 2
     assert isinstance(
-        reasoning_provider,
+        captured[0][0],
         OllamaReasoningProvider,
     )
-    assert captured["reasoning_model_name"] == "qwen2.5:7b"
+    assert captured[0][0] is captured[1][0]
+    assert captured[0][1] == "gemma3:4b"
+    assert captured[1][1] == "qwen2.5:7b"

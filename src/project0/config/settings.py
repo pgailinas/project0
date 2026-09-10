@@ -36,6 +36,8 @@ class ProjectSettings:
     semantic_scholar_api_key: str | None = None
     crossref_contact_email: str | None = None
     ollama_model: str = "qwen2.5:7b"
+    research_ollama_model: str = "qwen2.5:7b"
+    documentation_ollama_model: str = "gemma3:4b"
     ollama_base_url: str = "http://127.0.0.1:11434"
     ollama_timeout_seconds: float = DEFAULT_OLLAMA_TIMEOUT_SECONDS
 
@@ -100,6 +102,20 @@ def load_settings() -> ProjectSettings:
         ollama_model=os.getenv(
             "PROJECT0_OLLAMA_MODEL",
             "qwen2.5:7b",
+        ),
+        research_ollama_model=os.getenv(
+            "PROJECT0_RESEARCH_OLLAMA_MODEL",
+            os.getenv(
+                "PROJECT0_OLLAMA_MODEL",
+                "qwen2.5:7b",
+            ),
+        ),
+        documentation_ollama_model=os.getenv(
+            "PROJECT0_DOCUMENTATION_OLLAMA_MODEL",
+            os.getenv(
+                "PROJECT0_OLLAMA_MODEL",
+                "gemma3:4b",
+            ),
         ),
         ollama_base_url=os.getenv(
             "PROJECT0_OLLAMA_BASE_URL",

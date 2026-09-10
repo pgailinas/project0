@@ -39,6 +39,8 @@ def test_project_settings_stores_supplied_values(
         reasoning_provider="stub",
         semantic_scholar_api_key="test-semantic-scholar-key",
         ollama_model="test-model",
+        research_ollama_model="test-research-model",
+        documentation_ollama_model="test-documentation-model",
         ollama_base_url="http://localhost:11434",
         ollama_timeout_seconds=45.0,
     )
@@ -51,6 +53,10 @@ def test_project_settings_stores_supplied_values(
     assert settings.reasoning_provider == "stub"
     assert settings.semantic_scholar_api_key == "test-semantic-scholar-key"
     assert settings.ollama_model == "test-model"
+    assert settings.research_ollama_model == "test-research-model"
+    assert settings.documentation_ollama_model == (
+        "test-documentation-model"
+    )
     assert settings.ollama_base_url == "http://localhost:11434"
     assert settings.ollama_timeout_seconds == 45.0
 
@@ -80,6 +86,8 @@ def test_project_settings_uses_default_reasoning_settings(
 
     assert settings.reasoning_provider == "ollama"
     assert settings.ollama_model == "qwen2.5:7b"
+    assert settings.research_ollama_model == "qwen2.5:7b"
+    assert settings.documentation_ollama_model == "gemma3:4b"
     assert settings.ollama_base_url == "http://127.0.0.1:11434"
     assert settings.ollama_timeout_seconds == DEFAULT_OLLAMA_TIMEOUT_SECONDS
 
@@ -201,6 +209,14 @@ def test_load_settings_uses_default_reasoning_settings(
         raising=False,
     )
     monkeypatch.delenv(
+        "PROJECT0_RESEARCH_OLLAMA_MODEL",
+        raising=False,
+    )
+    monkeypatch.delenv(
+        "PROJECT0_DOCUMENTATION_OLLAMA_MODEL",
+        raising=False,
+    )
+    monkeypatch.delenv(
         "PROJECT0_OLLAMA_BASE_URL",
         raising=False,
     )
@@ -213,6 +229,8 @@ def test_load_settings_uses_default_reasoning_settings(
 
     assert settings.reasoning_provider == "ollama"
     assert settings.ollama_model == "qwen2.5:7b"
+    assert settings.research_ollama_model == "qwen2.5:7b"
+    assert settings.documentation_ollama_model == "gemma3:4b"
     assert settings.ollama_base_url == "http://127.0.0.1:11434"
     assert settings.ollama_timeout_seconds == DEFAULT_OLLAMA_TIMEOUT_SECONDS
 
@@ -229,6 +247,14 @@ def test_load_settings_uses_reasoning_environment_overrides(
         "alternate-model",
     )
     monkeypatch.setenv(
+        "PROJECT0_RESEARCH_OLLAMA_MODEL",
+        "alternate-research-model",
+    )
+    monkeypatch.setenv(
+        "PROJECT0_DOCUMENTATION_OLLAMA_MODEL",
+        "alternate-documentation-model",
+    )
+    monkeypatch.setenv(
         "PROJECT0_OLLAMA_BASE_URL",
         "http://localhost:22000",
     )
@@ -241,6 +267,10 @@ def test_load_settings_uses_reasoning_environment_overrides(
 
     assert settings.reasoning_provider == "stub"
     assert settings.ollama_model == "alternate-model"
+    assert settings.research_ollama_model == "alternate-research-model"
+    assert settings.documentation_ollama_model == (
+        "alternate-documentation-model"
+    )
     assert settings.ollama_base_url == "http://localhost:22000"
     assert settings.ollama_timeout_seconds == 45.5
 

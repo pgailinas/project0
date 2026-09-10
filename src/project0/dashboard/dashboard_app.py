@@ -479,29 +479,42 @@ def create_project0_dashboard_app() -> FastAPI:
             _create_research_reasoning_provider()
         )
 
-        dispatcher = create_platform_dispatcher(
+        documentation_dispatcher = create_platform_dispatcher(
             documentation_reasoning_provider=(
                 documentation_reasoning_provider
             ),
             research_reasoning_provider=(
                 research_reasoning_provider
             ),
-            reasoning_model_name=SETTINGS.ollama_model,
+            reasoning_model_name=SETTINGS.documentation_ollama_model,
+        )
+        research_dispatcher = create_platform_dispatcher(
+            documentation_reasoning_provider=(
+                documentation_reasoning_provider
+            ),
+            research_reasoning_provider=(
+                research_reasoning_provider
+            ),
+            reasoning_model_name=SETTINGS.research_ollama_model,
         )
 
     else:
         reasoning_provider = _create_reasoning_provider()
 
-        dispatcher = create_platform_dispatcher(
+        documentation_dispatcher = create_platform_dispatcher(
             reasoning_provider=reasoning_provider,
-            reasoning_model_name=SETTINGS.ollama_model,
+            reasoning_model_name=SETTINGS.documentation_ollama_model,
+        )
+        research_dispatcher = create_platform_dispatcher(
+            reasoning_provider=reasoning_provider,
+            reasoning_model_name=SETTINGS.research_ollama_model,
         )
     documentation_agent_ui_service = DocumentationAgentUIService(
-        workflow=dispatcher,
+        workflow=documentation_dispatcher,
     )
 
     research_agent_ui_service = ResearchAgentUIService(
-        workflow=dispatcher,
+        workflow=research_dispatcher,
     )
 
     return create_dashboard_app(

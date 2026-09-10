@@ -285,6 +285,11 @@ def test_build_prompt_includes_source_grounded_section_guidance() -> None:
     assert "directly belongs to that section's existing subject matter" in user_prompt
     assert "Do not choose a section merely because it is the closest" in user_prompt
     assert "return section as null" in user_prompt
+    assert "Source-Grounded Synchronization Rule:" in user_prompt
+    assert "Propose documentation changes only for source-established gaps" in (
+        user_prompt
+    )
+    assert "Do not recommend new implementation fields" in user_prompt
 
 
 def test_build_prompt_omits_section_guidance_for_generic_context() -> None:
@@ -575,6 +580,8 @@ def test_source_grounded_response_schema_requires_documentation_meaning() -> Non
         meaning_schema["description"]
     )
     assert "Do not copy source syntax" in meaning_schema["description"]
+    assert "recommend implementation changes" in meaning_schema["description"]
+    assert "invent new source behavior" in meaning_schema["description"]
 
 
 def test_response_schema_limits_proposed_change_paths_to_targets() -> None:
@@ -953,6 +960,43 @@ def test_source_grounded_response_schema_guides_target_form() -> None:
     assert "documentation prose when the target section is prose" in description
     assert "Do not introduce a fenced source-code block" in description
     assert "already contains comparable fenced source code" in description
+    assert "Must not be instructions, a plan, a recommendation" in description
+    assert "behavior established by the authoritative source" in description
+
+
+def test_source_grounded_response_schema_rejects_design_rationale() -> None:
+    """Source-grounded rationale is limited to documentation synchronization."""
+
+    reasoning_request = ReasoningRequest(
+        objective="Synchronize documentation.",
+        context=(
+            "=== TARGET DOCUMENTATION ===\n"
+            "Path: docs/Example.md\n"
+            "# Example\n"
+            "## Interface Contract\n"
+            "Existing prose.\n"
+            "\n"
+            "=== AUTHORITATIVE SOURCE ===\n"
+            "Path: src/project0/example.py\n"
+            "class Example:\n"
+            "    pass\n"
+        ),
+        target_paths=(Path("docs/Example.md"),),
+    )
+
+    change_schema = (
+        PromptBuilder().build_prompt(reasoning_request)
+        .response_schema["properties"]["proposed_changes"]["items"]
+    )
+
+    rationale_description = (
+        change_schema["properties"]["rationale"]["description"]
+    )
+
+    assert "authoritative source evidence" in rationale_description
+    assert "existing target documentation" in rationale_description
+    assert "Do not recommend implementation changes" in rationale_description
+    assert "new source behavior" in rationale_description
 
 
 def test_response_schema_allows_nullable_anchor_text() -> None:
@@ -1198,6 +1242,9 @@ def test_active_skill_uses_concise_system_instructions() -> None:
     ).system_instructions
 
     assert "The supplied response schema constrains" in instructions
+    assert "Source-grounded documentation work is synchronization" in instructions
+    assert "Do not propose new source fields" in instructions
+    assert "does not establish a documentation gap" in instructions
     assert "Target Paths identify the only documents" not in instructions
     assert "Do not return directives such as Add, Describe, Explain" not in (
         instructions

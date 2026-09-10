@@ -86,6 +86,14 @@ _PROPOSED_CONTENT_META_INSTRUCTION_PATTERNS = (
 )
 
 
+_DOCUMENTATION_MEANING_RATIONALE_PATTERNS = (
+    re.compile(r"^\s*this\s+change\b", re.IGNORECASE),
+    re.compile(r"^\s*this\s+update\b", re.IGNORECASE),
+    re.compile(r"^\s*this\s+will\b", re.IGNORECASE),
+    re.compile(r"^\s*this\s+ensures?\b", re.IGNORECASE),
+)
+
+
 _SECTION_SEMANTIC_STOP_WORDS = frozenset(
     {
         "agent",
@@ -657,9 +665,19 @@ class DocumentationWorkflow:
                     proposed_change.documentation_meaning
                 )
 
+                logger.debug(
+                    "Evaluating source-grounded documentation meaning "
+                    "fallback for %s: %r",
+                    repository_path,
+                    documentation_meaning,
+                )
+
                 if (
                     documentation_meaning
                     and not self._is_meta_instruction_content(
+                        documentation_meaning
+                    )
+                    and not self._is_rationale_like_documentation_meaning(
                         documentation_meaning
                     )
                     and not self._contains_fenced_python(
@@ -896,6 +914,27 @@ class DocumentationWorkflow:
         return any(
             pattern.search(stripped)
             for pattern in _PROPOSED_CONTENT_META_INSTRUCTION_PATTERNS
+        )
+
+    @staticmethod
+    def _is_rationale_like_documentation_meaning(
+        documentation_meaning: str,
+    ) -> bool:
+        """Return whether semantic fallback prose describes the change itself.
+
+        Documentation meaning used as fallback content must state the
+        implemented contract directly rather than explain what a proposed
+        documentation change will accomplish.
+        """
+
+        stripped = documentation_meaning.strip()
+
+        if not stripped:
+            return False
+
+        return any(
+            pattern.search(stripped)
+            for pattern in _DOCUMENTATION_MEANING_RATIONALE_PATTERNS
         )
 
     @classmethod
