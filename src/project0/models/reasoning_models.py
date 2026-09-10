@@ -64,6 +64,7 @@ class ProposedDocumentationChange:
     operation: DocumentationChangeOperation
     rationale: str
     proposed_content: str
+    documentation_meaning: str | None = None
     section: str | None = None
     anchor_text: str | None = None
     edit_type: DocumentationEditType = DocumentationEditType.REPLACE

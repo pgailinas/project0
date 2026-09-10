@@ -117,6 +117,29 @@ class PromptBuilder:
         if not request.skills:
             return base_instructions
 
+        base_instructions = (
+            "You are the Project0 Documentation Agent reasoning service.\n"
+            "Analyze only the supplied repository context and request.\n"
+            "Do not modify source code or claim that repository changes were "
+            "applied.\n"
+            "The supplied response schema constrains which documentation paths "
+            "may be changed. Ground Truth Source content is read-only evidence.\n"
+            "For update operations, proposed_content must contain only the "
+            "Markdown content to insert or replace, not the complete resulting "
+            "document. Use section and anchor_text only to identify the exact "
+            "target location. section must use an existing target-document "
+            "heading value permitted by the response schema, or null when no "
+            "existing heading reliably identifies the location. anchor_text, "
+            "when supplied, must be exact verbatim text from the target document.\n"
+            "For create operations, proposed_content must contain the complete "
+            "new document. For delete operations, proposed_content must contain "
+            "the content to remove or be empty when no content is required.\n"
+            "When providing confidence values, use a decimal number between "
+            "0.0 and 1.0 inclusive or null. Do not use percentages or values "
+            "greater than 1.0.\n"
+            "Return output that conforms exactly to the supplied JSON schema."
+        )
+
         skill_sections = tuple(
             (
                 f"\n\n=== ACTIVE AGENT SKILL: {skill.name} ===\n"
@@ -138,6 +161,12 @@ class PromptBuilder:
             request.objective.strip(),
         ]
 
+        target_headings, source_grounded = (
+            self._extract_markdown_headings(
+                request.context
+            )
+        )
+
         if request.workflow_type:
             sections.extend(
                 (
@@ -147,7 +176,7 @@ class PromptBuilder:
                 )
             )
 
-        if request.target_paths:
+        if request.target_paths and not source_grounded:
             sections.extend(
                 (
                     "",
@@ -181,11 +210,6 @@ class PromptBuilder:
                 )
             )
 
-        target_headings, source_grounded = (
-            self._extract_markdown_headings(
-                request.context
-            )
-        )
         if source_grounded and target_headings:
             sections.extend(
                 (
@@ -371,6 +395,11 @@ class PromptBuilder:
                             "document_path",
                             "operation",
                             "rationale",
+                            *(
+                                ["documentation_meaning"]
+                                if source_grounded
+                                else []
+                            ),
                             "proposed_content",
                             "section",
                             "anchor_text",
@@ -392,11 +421,39 @@ class PromptBuilder:
                             "rationale": {
                                 "type": "string",
                             },
+                            "documentation_meaning": {
+                                "description": (
+                                    "Concise documentation meaning derived from "
+                                    "the supplied evidence. Describe the contract, "
+                                    "purpose, inputs, outputs, constraints, or "
+                                    "behavior that the target documentation needs "
+                                    "to express. Do not copy source syntax or return "
+                                    "Markdown editing instructions."
+                                ),
+                                "type": "string",
+                            },
                             "proposed_content": {
                                 "description": (
-                                    "Concrete Markdown text to apply. Must not "
-                                    "be instructions, a plan, or a description "
-                                    "of content that should be written."
+                                    (
+                                        "Concrete Markdown text in the existing "
+                                        "form of the affected target section. "
+                                        "Translate authoritative implementation "
+                                        "evidence into documentation prose when "
+                                        "the target section is prose. Do not "
+                                        "introduce a fenced source-code block "
+                                        "unless that target section already "
+                                        "contains comparable fenced source code. "
+                                        "Must not be instructions, a plan, or a "
+                                        "description of content that should be "
+                                        "written."
+                                    )
+                                    if source_grounded
+                                    else (
+                                        "Concrete Markdown text to apply. Must "
+                                        "not be instructions, a plan, or a "
+                                        "description of content that should be "
+                                        "written."
+                                    )
                                 ),
                                 "type": "string",
                             },

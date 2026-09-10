@@ -143,6 +143,10 @@ def create_valid_provider_response(
                     "rationale": (
                         "Document the Reasoning Service."
                     ),
+                    "documentation_meaning": (
+                        "The Reasoning Service is part of the documented "
+                        "component contract."
+                    ),
                     "proposed_content": (
                         "## Reasoning Service\n"
                     ),
@@ -290,6 +294,9 @@ def test_reasoning_service_parses_proposed_changes() -> None:
     )
     assert change.proposed_content == (
         "## Reasoning Service\n"
+    )
+    assert change.documentation_meaning == (
+        "The Reasoning Service is part of the documented component contract."
     )
     assert change.section == "Component Specifications"
     assert change.anchor_text == "## Component Specifications"
@@ -553,6 +560,53 @@ def test_reasoning_service_allows_null_section() -> None:
 
     assert result.proposed_changes[0].section is None
 
+
+
+def test_reasoning_service_allows_missing_documentation_meaning() -> None:
+    """Verify generic responses may omit documentation meaning."""
+
+    response = create_valid_provider_response()
+    response.structured_output[
+        "proposed_changes"
+    ][0].pop("documentation_meaning")
+
+    service = ReasoningService(
+        prompt_builder=StubPromptBuilder(
+            create_provider_request()
+        ),
+        provider=StubProvider(response),
+    )
+
+    result = service.reason(
+        create_reasoning_request()
+    )
+
+    assert result.proposed_changes[0].documentation_meaning is None
+
+
+def test_reasoning_service_rejects_invalid_documentation_meaning() -> None:
+    """Verify documentation meaning must be a string or null."""
+
+    response = create_valid_provider_response()
+    response.structured_output[
+        "proposed_changes"
+    ][0]["documentation_meaning"] = 123
+
+    service = ReasoningService(
+        prompt_builder=StubPromptBuilder(
+            create_provider_request()
+        ),
+        provider=StubProvider(response),
+    )
+
+    result = service.reason(
+        create_reasoning_request()
+    )
+
+    assert result.status == ReasoningStatus.FAILED
+    assert result.error_message == (
+        "documentation_meaning must be a string or null."
+    )
 
 
 def test_reasoning_service_allows_null_anchor_text() -> None:

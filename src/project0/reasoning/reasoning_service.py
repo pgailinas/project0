@@ -290,6 +290,10 @@ class ReasoningService:
                         mapping,
                         "proposed_content",
                     ),
+                    documentation_meaning=self._parse_optional_string(
+                        mapping.get("documentation_meaning"),
+                        "documentation_meaning",
+                    ),
                     section=section,
                     anchor_text=self._parse_optional_string(
                         mapping.get("anchor_text"),

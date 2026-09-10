@@ -103,6 +103,9 @@ def test_proposed_documentation_change_creation() -> None:
         operation=DocumentationChangeOperation.UPDATE,
         rationale="Add the Reasoning Service design.",
         proposed_content="## Reasoning Service\n",
+        documentation_meaning=(
+            "The Reasoning Service is part of the documented component contract."
+        ),
         section="Component Specifications",
         anchor_text="## Component Specifications",
         confidence=0.9,
@@ -121,6 +124,9 @@ def test_proposed_documentation_change_creation() -> None:
     assert change.proposed_content == (
         "## Reasoning Service\n"
     )
+    assert change.documentation_meaning == (
+        "The Reasoning Service is part of the documented component contract."
+    )
     assert change.section == "Component Specifications"
     assert change.anchor_text == "## Component Specifications"
     assert change.confidence == 0.9
@@ -136,6 +142,7 @@ def test_proposed_documentation_change_defaults() -> None:
         proposed_content="# New Document\n",
     )
 
+    assert change.documentation_meaning is None
     assert change.section is None
     assert change.anchor_text is None
     assert change.confidence is None

@@ -159,6 +159,25 @@ class DocumentationWorkflow:
                     ),
                 )
 
+            reasoning_constraints = ()
+            if not active_skills:
+                reasoning_constraints = (
+                    "Modify Markdown documentation only.",
+                    "Preserve existing documentation style.",
+                    "Make the minimum necessary changes.",
+                    "Do not invent project information.",
+                    (
+                        "Ground Truth Source Paths are read-only "
+                        "authoritative evidence and must not be "
+                        "proposed for modification."
+                    ),
+                    (
+                        "When target documentation paths are "
+                        "provided, propose changes only to those "
+                        "target paths."
+                    ),
+                )
+
             reasoning_result = self._reasoning_service.reason(
                 ReasoningRequest(
                     objective=request.user_request,
@@ -168,22 +187,7 @@ class DocumentationWorkflow:
                         Path(repository_path)
                         for repository_path in request.target_paths
                     ),
-                    constraints=(
-                        "Modify Markdown documentation only.",
-                        "Preserve existing documentation style.",
-                        "Make the minimum necessary changes.",
-                        "Do not invent project information.",
-                        (
-                            "Ground Truth Source Paths are read-only "
-                            "authoritative evidence and must not be "
-                            "proposed for modification."
-                        ),
-                        (
-                            "When target documentation paths are "
-                            "provided, propose changes only to those "
-                            "target paths."
-                        ),
-                    ),
+                    constraints=reasoning_constraints,
                     skills=active_skills,
                     metadata={
                         "workflow_id": request.workflow_id,
@@ -620,13 +624,20 @@ class DocumentationWorkflow:
                 continue
 
             original_content = file_path.read_text(encoding="utf-8")
+            proposed_content = proposed_change.proposed_content
 
             if (
                 source_grounded
                 and self._is_meta_instruction_content(
-                    proposed_change.proposed_content
+                    proposed_content
                 )
             ):
+                logger.debug(
+                    "Rejected source-grounded meta-instruction content "
+                    "for %s: %r",
+                    repository_path,
+                    proposed_content,
+                )
                 warnings.append(
                     "Proposed documentation content described what "
                     "should be written instead of providing concrete "
@@ -636,11 +647,68 @@ class DocumentationWorkflow:
 
             if (
                 source_grounded
+                and self._introduces_python_fence_without_target_form(
+                    original_content=original_content,
+                    proposed_content=proposed_content,
+                    section=proposed_change.section,
+                )
+            ):
+                documentation_meaning = (
+                    proposed_change.documentation_meaning
+                )
+
+                if (
+                    documentation_meaning
+                    and not self._is_meta_instruction_content(
+                        documentation_meaning
+                    )
+                    and not self._contains_fenced_python(
+                        documentation_meaning
+                    )
+                ):
+                    proposed_content = documentation_meaning
+                else:
+                    warnings.append(
+                        "Proposed documentation introduced a fenced Python "
+                        "block where the affected target section does not "
+                        "already use fenced Python content; the change was "
+                        f"skipped: {repository_path}."
+                    )
+                    continue
+
+            if source_grounded:
+                proposed_content = self._canonicalize_python_declarations(
+                    proposed_content=proposed_content,
+                    context=context,
+                )
+
+            if (
+                source_grounded
                 and not self._python_declarations_are_source_grounded(
-                    proposed_content=proposed_change.proposed_content,
+                    proposed_content=proposed_content,
                     context=context,
                 )
             ):
+                proposed_declarations = self._extract_python_declarations(
+                    proposed_content
+                )
+                authoritative_declarations: set[str] = set()
+                for source_content in (
+                    self._extract_authoritative_python_sources(context)
+                ):
+                    authoritative_declarations.update(
+                        self._extract_python_source_declarations(
+                            source_content
+                        )
+                    )
+
+                logger.debug(
+                    "Rejected source-grounded Python declaration for %s; "
+                    "proposed_declarations=%r authoritative_declarations=%r",
+                    repository_path,
+                    proposed_declarations,
+                    tuple(sorted(authoritative_declarations)),
+                )
                 warnings.append(
                     "Proposed Python declaration did not exactly match "
                     "an authoritative source declaration and was skipped: "
@@ -678,13 +746,13 @@ class DocumentationWorkflow:
                 and not self._is_semantically_aligned_section(
                     section_heading=artifact_location.locator,
                     rationale=proposed_change.rationale,
-                    proposed_content=proposed_change.proposed_content,
+                    proposed_content=proposed_content,
                 )
             ):
                 recovered_heading = self._select_recovery_section(
                     original_content=original_content,
                     rationale=proposed_change.rationale,
-                    proposed_content=proposed_change.proposed_content,
+                    proposed_content=proposed_content,
                 )
 
                 if recovered_heading is None:
@@ -768,7 +836,7 @@ class DocumentationWorkflow:
                 is DocumentationEditType.REPLACE
                 and not self._proposed_content_replaces_full_section(
                     original_content=original_content,
-                    proposed_content=proposed_change.proposed_content,
+                    proposed_content=proposed_content,
                     artifact_location=artifact_location,
                 )
             ):
@@ -780,9 +848,7 @@ class DocumentationWorkflow:
             proposal = DocumentationChangeProposal(
                 repository_path=repository_path,
                 original_content=original_content,
-                proposed_content=(
-                    proposed_change.proposed_content
-                ),
+                proposed_content=proposed_content,
                 rationale=proposed_change.rationale,
                 artifact_location=proposal_artifact_location,
                 anchor_text=proposed_change.anchor_text,
@@ -830,6 +896,346 @@ class DocumentationWorkflow:
         return any(
             pattern.search(stripped)
             for pattern in _PROPOSED_CONTENT_META_INSTRUCTION_PATTERNS
+        )
+
+    @classmethod
+    def _introduces_python_fence_without_target_form(
+        cls,
+        original_content: str,
+        proposed_content: str,
+        section: str | None,
+    ) -> bool:
+        """Return whether a proposal introduces Python outside target form.
+
+        Source-grounded synchronization may update fenced Python only when
+        the affected existing target section already contains fenced Python.
+        A proposal without a resolvable section fails closed when it
+        introduces fenced Python.
+        """
+
+        if not cls._contains_fenced_python(proposed_content):
+            return False
+
+        if section is None:
+            return True
+
+        section_content = cls._extract_markdown_section_content(
+            original_content,
+            section,
+        )
+
+        if section_content is None:
+            return True
+
+        return not cls._contains_fenced_python(section_content)
+
+    @staticmethod
+    def _contains_fenced_python(content: str) -> bool:
+        """Return whether Markdown contains a fenced Python code block."""
+
+        return bool(
+            re.search(
+                r"```(?:python|py)\s*\n",
+                content,
+                re.IGNORECASE,
+            )
+        )
+
+    @staticmethod
+    def _extract_markdown_section_content(
+        content: str,
+        section: str,
+    ) -> str | None:
+        """Return one exact Markdown section including its heading."""
+
+        lines = content.splitlines(keepends=True)
+        heading_index: int | None = None
+        heading_level: int | None = None
+
+        for index, line in enumerate(lines):
+            stripped = line.strip()
+
+            if not stripped.startswith("#"):
+                continue
+
+            marker_length = len(stripped) - len(
+                stripped.lstrip("#")
+            )
+
+            if not 1 <= marker_length <= 6:
+                continue
+
+            remainder = stripped[marker_length:]
+
+            if not remainder.startswith(" "):
+                continue
+
+            if remainder.strip() != section:
+                continue
+
+            if heading_index is not None:
+                return None
+
+            heading_index = index
+            heading_level = marker_length
+
+        if heading_index is None or heading_level is None:
+            return None
+
+        end_index = len(lines)
+
+        for index in range(heading_index + 1, len(lines)):
+            stripped = lines[index].strip()
+
+            if not stripped.startswith("#"):
+                continue
+
+            marker_length = len(stripped) - len(
+                stripped.lstrip("#")
+            )
+
+            if not 1 <= marker_length <= 6:
+                continue
+
+            remainder = stripped[marker_length:]
+
+            if (
+                remainder.startswith(" ")
+                and marker_length <= heading_level
+            ):
+                end_index = index
+                break
+
+        return "".join(lines[heading_index:end_index])
+
+    @classmethod
+    def _canonicalize_python_declarations(
+        cls,
+        proposed_content: str,
+        context: str,
+    ) -> str:
+        """Replace uniquely matched Python declarations with source text.
+
+        Only fenced Python declarations with one exact authoritative
+        signature match are canonicalized. Unmatched or ambiguous
+        declarations remain unchanged for the existing fail-closed
+        source-fidelity guard.
+        """
+
+        authoritative_sources = (
+            cls._extract_authoritative_python_sources(context)
+        )
+
+        if not authoritative_sources:
+            return proposed_content
+
+        declarations_by_signature: dict[str, list[str]] = {}
+
+        for source_content in authoritative_sources:
+            for signature, declaration in (
+                cls._extract_python_source_declaration_records(
+                    source_content
+                )
+            ):
+                declarations_by_signature.setdefault(
+                    signature,
+                    [],
+                ).append(declaration)
+
+        if not declarations_by_signature:
+            return proposed_content
+
+        fence_pattern = re.compile(
+            r"```(?:python|py)\s*\n(.*?)```",
+            re.IGNORECASE | re.DOTALL,
+        )
+
+        def canonicalize_fence(match: re.Match[str]) -> str:
+            code = match.group(1)
+
+            try:
+                module = ast.parse(code)
+            except SyntaxError:
+                return match.group(0)
+
+            lines = code.splitlines(keepends=True)
+            replacements: list[tuple[int, int, str]] = []
+
+            for node in module.body:
+                if not isinstance(
+                    node,
+                    (
+                        ast.FunctionDef,
+                        ast.AsyncFunctionDef,
+                        ast.ClassDef,
+                    ),
+                ):
+                    continue
+
+                signature = cls._python_declaration_signature(node)
+                matches = declarations_by_signature.get(
+                    signature,
+                    [],
+                )
+
+                if len(matches) != 1:
+                    continue
+
+                if node.end_lineno is None:
+                    continue
+
+                start_index = node.lineno - 1
+                end_index = node.end_lineno
+                original_segment = "".join(
+                    lines[start_index:end_index]
+                )
+                replacement = matches[0]
+
+                if original_segment.endswith("\n"):
+                    replacement += "\n"
+
+                replacements.append(
+                    (
+                        start_index,
+                        end_index,
+                        replacement,
+                    )
+                )
+
+            if not replacements:
+                return match.group(0)
+
+            for start_index, end_index, replacement in reversed(
+                replacements
+            ):
+                lines[start_index:end_index] = [replacement]
+
+            canonical_code = "".join(lines)
+            prefix = match.group(0)[:match.start(1) - match.start(0)]
+            suffix = match.group(0)[match.end(1) - match.start(0):]
+
+            return f"{prefix}{canonical_code}{suffix}"
+
+        return fence_pattern.sub(
+            canonicalize_fence,
+            proposed_content,
+        )
+
+    @classmethod
+    def _extract_python_source_declaration_records(
+        cls,
+        source_content: str,
+    ) -> tuple[tuple[str, str], ...]:
+        """Extract authoritative declaration signatures and source text."""
+
+        try:
+            module = ast.parse(source_content)
+        except SyntaxError:
+            return ()
+
+        records: list[tuple[str, str]] = []
+
+        for node in ast.walk(module):
+            if isinstance(
+                node,
+                (
+                    ast.FunctionDef,
+                    ast.AsyncFunctionDef,
+                    ast.ClassDef,
+                ),
+            ):
+                records.append(
+                    (
+                        cls._python_declaration_signature(node),
+                        cls._normalized_ast_node_source(
+                            source_content,
+                            node,
+                        ),
+                    )
+                )
+
+        return tuple(records)
+
+    @staticmethod
+    def _python_declaration_signature(
+        node: ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef,
+    ) -> str:
+        """Return a stable body-independent Python declaration signature."""
+
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            return repr(
+                (
+                    type(node).__name__,
+                    node.name,
+                    ast.dump(
+                        node.args,
+                        include_attributes=False,
+                    ),
+                    ast.dump(
+                        node.returns,
+                        include_attributes=False,
+                    )
+                    if node.returns is not None
+                    else None,
+                    tuple(
+                        ast.dump(
+                            decorator,
+                            include_attributes=False,
+                        )
+                        for decorator in node.decorator_list
+                    ),
+                    node.type_comment,
+                    tuple(
+                        ast.dump(
+                            type_parameter,
+                            include_attributes=False,
+                        )
+                        for type_parameter in getattr(
+                            node,
+                            "type_params",
+                            (),
+                        )
+                    ),
+                )
+            )
+
+        return repr(
+            (
+                type(node).__name__,
+                node.name,
+                tuple(
+                    ast.dump(
+                        base,
+                        include_attributes=False,
+                    )
+                    for base in node.bases
+                ),
+                tuple(
+                    ast.dump(
+                        keyword,
+                        include_attributes=False,
+                    )
+                    for keyword in node.keywords
+                ),
+                tuple(
+                    ast.dump(
+                        decorator,
+                        include_attributes=False,
+                    )
+                    for decorator in node.decorator_list
+                ),
+                tuple(
+                    ast.dump(
+                        type_parameter,
+                        include_attributes=False,
+                    )
+                    for type_parameter in getattr(
+                        node,
+                        "type_params",
+                        (),
+                    )
+                ),
+            )
         )
 
     @classmethod

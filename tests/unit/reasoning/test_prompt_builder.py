@@ -529,6 +529,8 @@ def test_response_schema_defines_change_shape() -> None:
         ]
     )
 
+    assert "documentation_meaning" not in change_schema["required"]
+    assert "documentation_meaning" in change_schema["properties"]
     assert "anchor_text" in change_schema["properties"]
 
     assert (
@@ -539,6 +541,40 @@ def test_response_schema_defines_change_shape() -> None:
             "delete",
         ]
     )
+
+
+def test_source_grounded_response_schema_requires_documentation_meaning() -> None:
+    """Source-grounded changes require an explicit semantic translation."""
+
+    reasoning_request = ReasoningRequest(
+        objective="Synchronize documentation.",
+        context=(
+            "=== TARGET DOCUMENTATION ===\n"
+            "Path: docs/Example.md\n"
+            "# Example\n"
+            "## Interface Contract\n"
+            "Existing prose.\n"
+            "\n"
+            "=== AUTHORITATIVE SOURCE ===\n"
+            "Path: src/project0/example.py\n"
+            "class Example:\n"
+            "    pass\n"
+        ),
+        target_paths=(Path("docs/Example.md"),),
+    )
+
+    change_schema = (
+        PromptBuilder().build_prompt(reasoning_request)
+        .response_schema["properties"]["proposed_changes"]["items"]
+    )
+
+    assert "documentation_meaning" in change_schema["required"]
+    meaning_schema = change_schema["properties"]["documentation_meaning"]
+    assert meaning_schema["type"] == "string"
+    assert "documentation meaning derived from" in (
+        meaning_schema["description"]
+    )
+    assert "Do not copy source syntax" in meaning_schema["description"]
 
 
 def test_response_schema_limits_proposed_change_paths_to_targets() -> None:
@@ -882,6 +918,43 @@ def test_response_schema_requires_concrete_proposed_content() -> None:
     )
 
 
+def test_source_grounded_response_schema_guides_target_form() -> None:
+    """Source-grounded content should follow the existing target form."""
+
+    reasoning_request = ReasoningRequest(
+        objective="Synchronize documentation.",
+        context=(
+            "=== TARGET DOCUMENTATION ===\n"
+            "Path: docs/Example.md\n"
+            "# Example\n"
+            "## Interface Contract\n"
+            "Existing prose.\n"
+            "\n"
+            "=== AUTHORITATIVE SOURCE ===\n"
+            "Path: src/project0/example.py\n"
+            "class Example:\n"
+            "    pass\n"
+        ),
+        target_paths=(Path("docs/Example.md"),),
+    )
+
+    schema = PromptBuilder().build_prompt(
+        reasoning_request
+    ).response_schema
+
+    proposed_content_schema = (
+        schema["properties"]["proposed_changes"]["items"]
+        ["properties"]["proposed_content"]
+    )
+    description = proposed_content_schema["description"]
+
+    assert "existing form of the affected target section" in description
+    assert "Translate authoritative implementation evidence" in description
+    assert "documentation prose when the target section is prose" in description
+    assert "Do not introduce a fenced source-code block" in description
+    assert "already contains comparable fenced source code" in description
+
+
 def test_response_schema_allows_nullable_anchor_text() -> None:
     """Verify proposed change anchor text may be string or null."""
 
@@ -1061,3 +1134,74 @@ def test_build_prompt_omits_skill_section_when_no_skills_are_active() -> None:
         provider_request.system_instructions
     )
     assert provider_request.metadata["skill_names"] == ()
+
+
+def test_source_grounded_prompt_avoids_redundant_target_path_listing() -> None:
+    """Structured source-grounded context should not repeat target paths."""
+
+    skill = SkillDefinition(
+        name="strict-documentation-editor",
+        description="Preserve controlled documentation artifacts.",
+        skill_path=Path("skills/strict-documentation-editor/SKILL.md"),
+        instructions="Apply the minimum textual modification.",
+    )
+    reasoning_request = ReasoningRequest(
+        objective="Synchronize documentation.",
+        context=(
+            "=== TARGET DOCUMENTATION ===\n"
+            "Path: docs/Example.md\n"
+            "# Example\n"
+            "## Interface Contract\n"
+            "Existing details.\n"
+            "\n"
+            "=== AUTHORITATIVE SOURCE ===\n"
+            "Path: src/project0/example.py\n"
+            "class Example:\n"
+            "    pass\n"
+        ),
+        workflow_type="documentation_update",
+        target_paths=(Path("docs/Example.md"),),
+        skills=(skill,),
+    )
+
+    provider_request = PromptBuilder().build_prompt(reasoning_request)
+
+    assert "Target Paths:" not in provider_request.user_prompt
+    assert (
+        "Permitted proposed_changes document_path values:"
+        not in provider_request.user_prompt
+    )
+    assert (
+        provider_request.response_schema["properties"]
+        ["proposed_changes"]["items"]["properties"]["document_path"]["enum"]
+        == ["docs/Example.md"]
+    )
+
+
+def test_active_skill_uses_concise_system_instructions() -> None:
+    """Active skills own persistent strict-editing policy."""
+
+    skill = SkillDefinition(
+        name="strict-documentation-editor",
+        description="Preserve controlled documentation artifacts.",
+        skill_path=Path("skills/strict-documentation-editor/SKILL.md"),
+        instructions="Apply the minimum textual modification.",
+    )
+
+    instructions = PromptBuilder().build_prompt(
+        ReasoningRequest(
+            objective="Synchronize documentation.",
+            context="Repository context.",
+            target_paths=(Path("docs/Example.md"),),
+            skills=(skill,),
+        )
+    ).system_instructions
+
+    assert "The supplied response schema constrains" in instructions
+    assert "Target Paths identify the only documents" not in instructions
+    assert "Do not return directives such as Add, Describe, Explain" not in (
+        instructions
+    )
+    assert "=== ACTIVE AGENT SKILL: strict-documentation-editor ===" in (
+        instructions
+    )

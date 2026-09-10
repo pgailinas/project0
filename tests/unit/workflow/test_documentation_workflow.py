@@ -619,6 +619,7 @@ def test_source_grounded_workflow_loads_strict_documentation_skill(
         "strict-documentation-editor",
     ]
     assert reasoning_service.requests[0].skills == (skill,)
+    assert reasoning_service.requests[0].constraints == ()
 
 
 def test_non_source_grounded_workflow_does_not_load_skill(
@@ -1545,17 +1546,76 @@ def test_source_grounded_meta_instruction_content_is_skipped(
     )
 
 
-def test_source_grounded_python_declaration_mismatch_is_skipped(
+def test_source_grounded_meta_instruction_rejection_logs_content(
+    tmp_path: Path,
+    caplog,
+) -> None:
+    """Rejected source-grounded meta instructions are visible in DEBUG logs."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text(
+        "# Original\n"
+        "## Interfaces\n"
+        "Existing details.\n",
+        encoding="utf-8",
+    )
+
+    change = ProposedDocumentationChange(
+        document_path=Path("docs/index.md"),
+        operation=DocumentationChangeOperation.UPDATE,
+        rationale="Reflect current interfaces.",
+        proposed_content=(
+            "Add documentation describing the current interfaces."
+        ),
+        section="Interfaces",
+        anchor_text=None,
+        edit_type=DocumentationEditType.REPLACE,
+    )
+
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(change,)
+        ),
+        validation_results=(),
+    )[0]
+
+    with caplog.at_level(
+        "DEBUG",
+        logger="project0.workflow.documentation_workflow",
+    ):
+        workflow.execute(
+            DocumentationWorkflowRequest(
+                user_request="Update documentation.",
+                target_paths=("docs/index.md",),
+                source_paths=("src/project0/example.py",),
+                workflow_id="workflow-meta-instruction-log",
+            )
+        )
+
+    assert (
+        "Rejected source-grounded meta-instruction content for "
+        "docs/index.md: 'Add documentation describing the current "
+        "interfaces.'"
+        in caplog.text
+    )
+
+
+def test_source_grounded_python_declaration_is_canonicalized(
     tmp_path: Path,
 ) -> None:
-    """Source-grounded Python declarations must match source exactly."""
+    """A uniquely matched source declaration replaces model-normalized code."""
 
     document = tmp_path / "docs/index.md"
     document.parent.mkdir()
     document.write_text(
         "# Original\n"
         "## Existing Research Context Interface Contract\n"
-        "Existing details.\n",
+        "Existing details.\n"
+        "```python\n"
+        "existing_call()\n"
+        "```\n",
         encoding="utf-8",
     )
 
@@ -1569,6 +1629,18 @@ def test_source_grounded_python_declaration_mismatch_is_skipped(
         content_hash="hash",
     )
 
+    authoritative_declaration = (
+        "def execute(\n"
+        "    self,\n"
+        "    request: ResearchRequest,\n"
+        "    context_source_name: str | None = None,\n"
+        "    context_content: bytes | None = None,\n"
+        ") -> ResearchResult:\n"
+        "    \"\"\"Execute the research workflow.\"\"\"\n"
+        "\n"
+        "    ..."
+    )
+
     context = (
         "=== TARGET DOCUMENTATION ===\n"
         "Path: docs/index.md\n"
@@ -1579,14 +1651,11 @@ def test_source_grounded_python_declaration_mismatch_is_skipped(
         "=== AUTHORITATIVE SOURCE ===\n"
         "Path: src/project0/interfaces/research_interfaces.py\n"
         "class ResearchWorkflowProtocol:\n"
-        "    def execute(\n"
-        "        self,\n"
-        "        request: ResearchRequest,\n"
-        "        context_source_name: str | None = None,\n"
-        "        context_content: bytes | None = None,\n"
-        "    ) -> ResearchResult:\n"
-        "        \"\"\"Execute the research workflow.\"\"\"\n"
-        "        ...\n"
+        + "\n".join(
+            f"    {line}" if line else line
+            for line in authoritative_declaration.splitlines()
+        )
+        + "\n"
     )
 
     def context_provider(
@@ -1615,17 +1684,17 @@ def test_source_grounded_python_declaration_mismatch_is_skipped(
         edit_type=DocumentationEditType.REPLACE,
     )
 
-    components = _create_workflow(
+    workflow = _create_workflow(
         tmp_path,
         reasoning_result=_reasoning_result(
             proposed_changes=(change,)
         ),
-        validation_results=(),
+        validation_results=(
+            _validation_result(ValidationStatus.PASSED),
+        ),
         context_provider=context_provider,
         artifact_locations=(location,),
-    )
-    workflow = components[0]
-    validation_service = components[2]
+    )[0]
 
     result = workflow.execute(
         DocumentationWorkflowRequest(
@@ -1634,17 +1703,154 @@ def test_source_grounded_python_declaration_mismatch_is_skipped(
             source_paths=(
                 "src/project0/interfaces/research_interfaces.py",
             ),
-            workflow_id="workflow-source-code-mismatch",
+            workflow_id="workflow-source-code-canonicalized",
         )
     )
 
-    assert result.proposals == ()
-    assert result.preliminary_validation is None
-    assert validation_service.requests == []
-    assert any(
+    assert result.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+    assert len(result.proposals) == 1
+    assert result.proposals[0].proposed_content == (
+        "```python\n"
+        f"{authoritative_declaration}\n"
+        "```"
+    )
+    assert not any(
         "did not exactly match an authoritative source declaration"
         in warning
         for warning in result.warnings
+    )
+
+
+def test_source_grounded_python_declaration_mismatch_logs_comparison(
+    tmp_path: Path,
+    caplog,
+) -> None:
+    """Rejected Python declarations log proposed and authoritative text."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text(
+        "# Original\n"
+        "## Existing Research Context Interface Contract\n"
+        "Existing details.\n"
+        "```python\n"
+        "existing_call()\n"
+        "```\n",
+        encoding="utf-8",
+    )
+
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/index.md\n"
+        "# Original\n"
+        "## Existing Research Context Interface Contract\n"
+        "Existing details.\n"
+        "\n"
+        "=== AUTHORITATIVE SOURCE ===\n"
+        "Path: src/project0/interfaces/research_interfaces.py\n"
+        "class ResearchWorkflowProtocol:\n"
+        "    def execute(\n"
+        "        self,\n"
+        "        request: ResearchRequest,\n"
+        "    ) -> ResearchResult:\n"
+        "        \"\"\"Execute the research workflow.\"\"\"\n"
+        "        ...\n"
+    )
+
+    def context_provider(
+        request: DocumentationWorkflowRequest,
+    ) -> str:
+        del request
+        return context
+
+    change = ProposedDocumentationChange(
+        document_path=Path("docs/index.md"),
+        operation=DocumentationChangeOperation.UPDATE,
+        rationale="Document the workflow interface.",
+        proposed_content=(
+            "```python\n"
+            "def execute(\n"
+            "    self,\n"
+            "    request: ResearchRequest,\n"
+            "    unsupported: str = \"\",\n"
+            ") -> ResearchResult:\n"
+            "    pass\n"
+            "```"
+        ),
+        section="Existing Research Context Interface Contract",
+        anchor_text=None,
+        edit_type=DocumentationEditType.REPLACE,
+    )
+
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(change,)
+        ),
+        validation_results=(),
+        context_provider=context_provider,
+    )[0]
+
+    with caplog.at_level(
+        "DEBUG",
+        logger="project0.workflow.documentation_workflow",
+    ):
+        workflow.execute(
+            DocumentationWorkflowRequest(
+                user_request="Update documentation.",
+                target_paths=("docs/index.md",),
+                source_paths=(
+                    "src/project0/interfaces/research_interfaces.py",
+                ),
+                workflow_id="workflow-source-code-mismatch-log",
+            )
+        )
+
+    assert (
+        "Rejected source-grounded Python declaration for docs/index.md"
+        in caplog.text
+    )
+    assert "proposed_declarations=" in caplog.text
+    assert "authoritative_declarations=" in caplog.text
+    assert "pass" in caplog.text
+    assert "Execute the research workflow." in caplog.text
+    assert "..." in caplog.text
+
+
+def test_source_grounded_python_canonicalization_requires_unique_match() -> None:
+    """Ambiguous authoritative signatures are not canonicalized."""
+
+    proposed_content = (
+        "```python\n"
+        "def execute(self, request: ResearchRequest) -> ResearchResult:\n"
+        "    pass\n"
+        "```"
+    )
+    context = (
+        "=== AUTHORITATIVE SOURCE ===\n"
+        "Path: src/project0/first.py\n"
+        "class FirstProtocol:\n"
+        "    def execute(self, request: ResearchRequest) -> ResearchResult:\n"
+        "        \"\"\"First implementation contract.\"\"\"\n"
+        "        ...\n"
+        "\n"
+        "=== AUTHORITATIVE SOURCE ===\n"
+        "Path: src/project0/second.py\n"
+        "class SecondProtocol:\n"
+        "    def execute(self, request: ResearchRequest) -> ResearchResult:\n"
+        "        \"\"\"Second implementation contract.\"\"\"\n"
+        "        ...\n"
+    )
+
+    canonicalized = DocumentationWorkflow._canonicalize_python_declarations(
+        proposed_content=proposed_content,
+        context=context,
+    )
+
+    assert canonicalized == proposed_content
+    assert not DocumentationWorkflow._python_declarations_are_source_grounded(
+        proposed_content=canonicalized,
+        context=context,
     )
 
 
@@ -1658,7 +1864,10 @@ def test_source_grounded_exact_python_declaration_is_reviewable(
     document.write_text(
         "# Original\n"
         "## Existing Research Context Interface Contract\n"
-        "Existing details.\n",
+        "Existing details.\n"
+        "```python\n"
+        "existing_call()\n"
+        "```\n",
         encoding="utf-8",
     )
 
@@ -1749,6 +1958,201 @@ def test_source_grounded_exact_python_declaration_is_reviewable(
         "did not exactly match an authoritative source declaration"
         in warning
         for warning in result.warnings
+    )
+
+
+def test_source_grounded_python_block_uses_documentation_meaning(
+    tmp_path: Path,
+) -> None:
+    """Prose meaning replaces fenced Python in a prose-only target section."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text(
+        "# Original\n"
+        "## Existing Research Context Interface Contract\n"
+        "Existing prose details.\n",
+        encoding="utf-8",
+    )
+
+    location = ArtifactLocation(
+        location_id="location-context",
+        repository_path=str(document),
+        location_type=ArtifactLocationType.SECTION,
+        locator="Existing Research Context Interface Contract",
+        start_line=2,
+        end_line=3,
+        content_hash="hash",
+    )
+
+    change = ProposedDocumentationChange(
+        document_path=Path("docs/index.md"),
+        operation=DocumentationChangeOperation.UPDATE,
+        rationale="Document existing research context handling.",
+        proposed_content=(
+            "```python\n"
+            "def execute(self) -> None:\n"
+            "    ...\n"
+            "```"
+        ),
+        documentation_meaning=(
+            "The workflow accepts optional existing research context "
+            "content for analysis."
+        ),
+        section="Existing Research Context Interface Contract",
+        anchor_text=None,
+        edit_type=DocumentationEditType.REPLACE,
+    )
+
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(change,)
+        ),
+        validation_results=(
+            _validation_result(ValidationStatus.PASSED),
+        ),
+        artifact_locations=(location,),
+    )[0]
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Synchronize documentation.",
+            target_paths=("docs/index.md",),
+            source_paths=("src/project0/example.py",),
+            workflow_id="workflow-python-meaning-fallback",
+        )
+    )
+
+    assert result.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+    assert len(result.proposals) == 1
+    assert result.proposals[0].proposed_content == (
+        "The workflow accepts optional existing research context "
+        "content for analysis."
+    )
+    assert not any(
+        "does not already use fenced Python content"
+        in warning
+        for warning in result.warnings
+    )
+
+
+def test_source_grounded_new_python_block_without_target_form_is_skipped(
+    tmp_path: Path,
+) -> None:
+    """New fenced Python is rejected when the target section uses prose."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text(
+        "# Original\n"
+        "## Existing Research Context Interface Contract\n"
+        "Existing prose details.\n",
+        encoding="utf-8",
+    )
+
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/index.md\n"
+        "# Original\n"
+        "## Existing Research Context Interface Contract\n"
+        "Existing prose details.\n"
+        "\n"
+        "=== AUTHORITATIVE SOURCE ===\n"
+        "Path: src/project0/interfaces/research_interfaces.py\n"
+        "class ResearchWorkflowProtocol:\n"
+        "    def execute(self) -> None:\n"
+        "        ...\n"
+    )
+
+    def context_provider(
+        request: DocumentationWorkflowRequest,
+    ) -> str:
+        del request
+        return context
+
+    change = ProposedDocumentationChange(
+        document_path=Path("docs/index.md"),
+        operation=DocumentationChangeOperation.UPDATE,
+        rationale="Document existing research context handling.",
+        proposed_content=(
+            "```python\n"
+            "def execute(self) -> None:\n"
+            "    ...\n"
+            "```"
+        ),
+        documentation_meaning=None,
+        section="Existing Research Context Interface Contract",
+        anchor_text=None,
+        edit_type=DocumentationEditType.REPLACE,
+    )
+
+    components = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(change,)
+        ),
+        validation_results=(),
+        context_provider=context_provider,
+    )
+    workflow = components[0]
+    validation_service = components[2]
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Synchronize documentation.",
+            target_paths=("docs/index.md",),
+            source_paths=(
+                "src/project0/interfaces/research_interfaces.py",
+            ),
+            workflow_id="workflow-python-target-form",
+        )
+    )
+
+    assert result.proposals == ()
+    assert result.preliminary_validation is None
+    assert validation_service.requests == []
+    assert any(
+        "does not already use fenced Python content"
+        in warning
+        for warning in result.warnings
+    )
+
+
+def test_python_target_form_guard_allows_existing_section_python() -> None:
+    """Existing fenced Python in the affected section permits code updates."""
+
+    original_content = (
+        "# Original\n"
+        "## Interface Contract\n"
+        "```python\n"
+        "existing_call()\n"
+        "```\n"
+        "## Other\n"
+        "Other details.\n"
+    )
+
+    assert not (
+        DocumentationWorkflow._introduces_python_fence_without_target_form(
+            original_content=original_content,
+            proposed_content=(
+                "```python\n"
+                "updated_call()\n"
+                "```"
+            ),
+            section="Interface Contract",
+        )
+    )
+    assert (
+        DocumentationWorkflow._introduces_python_fence_without_target_form(
+            original_content=original_content,
+            proposed_content=(
+                "```python\n"
+                "updated_call()\n"
+                "```"
+            ),
+            section="Other",
+        )
     )
 
 
@@ -1889,14 +2293,8 @@ def test_source_grounded_semantically_misaligned_section_recovers(
             "existing research context."
         ),
         proposed_content=(
-            "```python\n"
-            "def execute(\n"
-            "    self,\n"
-            "    context_source_name=None,\n"
-            "    context_content=None,\n"
-            "):\n"
-            "    pass\n"
-            "```"
+            "Existing research context handling accepts a context source "
+            "name and context content."
         ),
         section="Research Analysis Validation Interface Behavior",
         anchor_text=None,
@@ -2116,10 +2514,7 @@ def test_source_grounded_section_snippet_preserves_existing_section(
         operation=DocumentationChangeOperation.UPDATE,
         rationale="Document existing research context handling.",
         proposed_content=(
-            "```python\n"
-            "def execute(self, context_source_name=None):\n"
-            "    pass\n"
-            "```"
+            "The workflow accepts an optional context source name."
         ),
         section="Existing Research Context Interface Contract",
         anchor_text=None,
@@ -2253,10 +2648,7 @@ def test_source_grounded_semantically_aligned_section_is_reviewable(
             "ResearchWorkflowProtocol.execute."
         ),
         proposed_content=(
-            "```python\n"
-            "def execute(self, context_source_name=None):\n"
-            "    pass\n"
-            "```"
+            "The workflow accepts an optional context source name."
         ),
         section="Existing Research Context Interface Contract",
         anchor_text=None,
