@@ -56,8 +56,10 @@ nav:
       - Dashboard Design: platform/Dashboard_Design.md
       - Component Communication Design: platform/Component_Communication_Design.md
       - Shared Data Models and Error Contracts: platform/Shared_Data_Models_and_Error_Contracts.md
+      - Agent Skills Design: platform/Agent_Skills_Design.md
       - Project0 Test Results: platform/Project0_Test_Results.md
 
+      
   - Documentation Agent:
       - Documentation Agent Charter: agents/documentation/Documentation_Agent_Charter.md
       - Documentation Agent Functional Spec: agents/documentation/Documentation_Agent_Functional_Spec.md
