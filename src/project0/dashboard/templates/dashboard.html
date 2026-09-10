@@ -75,23 +75,35 @@
                     <dl class="status-list">
                         <div class="status-row">
                             <dt>Active Agent</dt>
-                            <dd>{{ active_agent_name | default("None") }}</dd>
+                            <dd id="system-status-active-agent">{{ active_agent_name | default("None") }}</dd>
                         </div>
                         <div class="status-row">
                             <dt>State</dt>
-                            <dd>{{ system_state | default("Idle") }}</dd>
+                            <dd id="system-status-state">{{ system_state | default("Idle") }}</dd>
                         </div>
-                        <div class="status-row">
+                        <div
+                            id="system-status-operation-row"
+                            class="status-row"
+                            {% if not system_operation %}hidden{% endif %}
+                        >
                             <dt>Operation</dt>
-                            <dd>{{ system_operation | default("None") }}</dd>
+                            <dd id="system-status-operation">{{ system_operation | default("") }}</dd>
                         </div>
-                        <div class="status-row">
+                        <div
+                            id="system-status-elapsed-row"
+                            class="status-row"
+                            {% if not elapsed_time %}hidden{% endif %}
+                        >
                             <dt>Elapsed</dt>
-                            <dd>{{ elapsed_time | default("—") }}</dd>
+                            <dd id="system-status-elapsed">{{ elapsed_time | default("") }}</dd>
                         </div>
                         <div class="status-row">
-                            <dt>Progress</dt>
-                            <dd>{{ system_progress | default("—") }}</dd>
+                            <dt>LLM</dt>
+                            <dd id="system-status-llm">{{ llm_status | default("Not configured") }}</dd>
+                        </div>
+                        <div class="status-row">
+                            <dt>Model</dt>
+                            <dd id="system-status-llm-model">{{ llm_model | default("Unavailable") }}</dd>
                         </div>
                         <div class="status-row">
                             <dt>GPU</dt>

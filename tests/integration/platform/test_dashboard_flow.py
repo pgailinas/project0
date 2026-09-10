@@ -91,6 +91,7 @@ def _write_dashboard_templates(
             "<p>{{ validation_status }}</p>"
             "<p>{{ git_status }}</p>"
             "<p>{{ llm_status }}</p>"
+            "<p>{{ llm_model }}</p>"
             "<p>{{ workflow_status }}</p>"
             "<a href=\"{{ documentation_url }}\">Documentation</a>"
             "{% endblock %}"
@@ -323,10 +324,12 @@ def test_dashboard_system_status_flow(
         monkeypatch,
     )
 
-    response = client.get("/api/system-status")
+    response = client.get("/api/system-status?agent=research")
 
     assert response.status_code == 200
     assert response.json() == {
+        "llm_provider": "ollama",
+        "llm_model": "qwen2.5:7b",
         "gpu_name": "Test GPU",
         "gpu_utilization": "42%",
         "gpu_vram": "512 / 8192 MiB",

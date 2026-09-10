@@ -620,6 +620,125 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
+    const updateSystemStatus = async () => {
+        try {
+            const response = await fetch(
+                "/api/system-status?agent=documentation"
+            );
+
+            if (!response.ok) {
+                return;
+            }
+
+            const status = await response.json();
+            const llmProvider = document.getElementById(
+                "system-status-llm"
+            );
+            const llmModel = document.getElementById(
+                "system-status-llm-model"
+            );
+            const gpuName = document.getElementById(
+                "system-status-gpu"
+            );
+            const gpuUtilization = document.getElementById(
+                "system-status-gpu-utilization"
+            );
+            const gpuVram = document.getElementById(
+                "system-status-gpu-vram"
+            );
+
+            if (llmProvider) {
+                llmProvider.textContent = status.llm_provider;
+            }
+
+            if (llmModel) {
+                llmModel.textContent = status.llm_model;
+            }
+
+            if (gpuName) {
+                gpuName.textContent = status.gpu_name;
+            }
+
+            if (gpuUtilization) {
+                gpuUtilization.textContent = status.gpu_utilization;
+            }
+
+            if (gpuVram) {
+                gpuVram.textContent = status.gpu_vram;
+            }
+        } catch (error) {
+            return;
+        }
+    };
+
+    let elapsedTimer = null;
+
+    const formatElapsed = (elapsedSeconds) => {
+        const minutes = Math.floor(elapsedSeconds / 60);
+        const seconds = elapsedSeconds % 60;
+
+        return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    };
+
+    const beginDocumentationSystemStatus = () => {
+        const activeAgent = document.getElementById(
+            "system-status-active-agent"
+        );
+        const state = document.getElementById(
+            "system-status-state"
+        );
+        const operationRow = document.getElementById(
+            "system-status-operation-row"
+        );
+        const operation = document.getElementById(
+            "system-status-operation"
+        );
+        const elapsedRow = document.getElementById(
+            "system-status-elapsed-row"
+        );
+        const elapsed = document.getElementById(
+            "system-status-elapsed"
+        );
+
+        if (activeAgent) {
+            activeAgent.textContent = "Documentation Agent";
+        }
+
+        if (state) {
+            state.textContent = "Running";
+        }
+
+        if (operationRow) {
+            operationRow.hidden = false;
+        }
+
+        if (operation) {
+            operation.textContent = "Documentation Workflow";
+        }
+
+        if (elapsedRow) {
+            elapsedRow.hidden = false;
+        }
+
+        let elapsedSeconds = 0;
+
+        if (elapsed) {
+            elapsed.textContent = formatElapsed(elapsedSeconds);
+        }
+
+        if (elapsedTimer !== null) {
+            window.clearInterval(elapsedTimer);
+        }
+
+        elapsedTimer = window.setInterval(() => {
+            elapsedSeconds += 1;
+
+            if (elapsed) {
+                elapsed.textContent = formatElapsed(elapsedSeconds);
+            }
+        }, 1000);
+    };
+
     form.addEventListener("submit", (event) => {
         event.preventDefault();
 
@@ -657,6 +776,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 "workflow-progress--client-processing"
             );
         }
+
+        beginDocumentationSystemStatus();
+        updateSystemStatus();
+        window.setInterval(updateSystemStatus, 2000);
 
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {

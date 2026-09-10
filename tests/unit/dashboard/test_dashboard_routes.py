@@ -103,6 +103,7 @@ def _create_test_client(
             <p>{{ validation_status }}</p>
             <p>{{ git_status }}</p>
             <p>{{ llm_status }}</p>
+            <p>{{ llm_model }}</p>
             <p>{{ workflow_status }}</p>
         {% endblock %}
         """,
@@ -206,7 +207,8 @@ def test_dashboard_home_displays_project_status_in_work_area(
     assert "Phase 11 – Research Agent Functional Validation" in response.text
     assert "12 passed, 3 skipped" in response.text
     assert "Regression suite passed" in response.text
-    assert "Not configured" in response.text
+    assert "ollama" in response.text
+    assert "qwen2.5:7b" in response.text
     assert "Idle" in response.text
     assert "dashboard" in response.text
 
@@ -367,11 +369,11 @@ def test_dashboard_status_returns_expected_json(
     }
 
 
-def test_dashboard_system_status_returns_gpu_status(
+def test_dashboard_system_status_returns_gpu_and_llm_status(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
-    """System status endpoint returns current GPU information."""
+    """System status endpoint returns current GPU and reasoning information."""
 
     monkeypatch.setattr(
         "project0.dashboard.dashboard_routes._read_gpu_status",
@@ -379,10 +381,12 @@ def test_dashboard_system_status_returns_gpu_status(
     )
     client, _ = _create_test_client(tmp_path)
 
-    response = client.get("/api/system-status")
+    response = client.get("/api/system-status?agent=research")
 
     assert response.status_code == 200
     assert response.json() == {
+        "llm_provider": "ollama",
+        "llm_model": "qwen2.5:7b",
         "gpu_name": "Test GPU",
         "gpu_utilization": "42%",
         "gpu_vram": "512 / 8192 MiB",
@@ -405,10 +409,53 @@ def test_dashboard_system_status_handles_unavailable_gpu(
 
     assert response.status_code == 200
     assert response.json() == {
+        "llm_provider": "ollama",
+        "llm_model": "qwen2.5:7b",
         "gpu_name": "Unavailable",
         "gpu_utilization": "Unavailable",
         "gpu_vram": "Unavailable",
     }
+
+
+
+def test_dashboard_system_status_returns_documentation_model(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    """System status returns the Documentation Agent-specific model."""
+
+    monkeypatch.setenv(
+        "PROJECT0_DOCUMENTATION_OLLAMA_MODEL",
+        "gemma3:4b",
+    )
+    client, _ = _create_test_client(tmp_path)
+
+    response = client.get(
+        "/api/system-status?agent=documentation"
+    )
+
+    assert response.status_code == 200
+    assert response.json()["llm_provider"] == "ollama"
+    assert response.json()["llm_model"] == "gemma3:4b"
+
+
+def test_dashboard_system_status_non_ollama_model_is_not_applicable(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    """Non-Ollama providers do not report an Ollama model."""
+
+    monkeypatch.setenv(
+        "PROJECT0_REASONING_PROVIDER",
+        "stub",
+    )
+    client, _ = _create_test_client(tmp_path)
+
+    response = client.get("/api/system-status?agent=research")
+
+    assert response.status_code == 200
+    assert response.json()["llm_provider"] == "stub"
+    assert response.json()["llm_model"] == "Not applicable"
 
 
 def test_unknown_route_returns_not_found(

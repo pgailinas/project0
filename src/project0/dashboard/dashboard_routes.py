@@ -99,10 +99,46 @@ def _read_llm_status() -> str:
 
     provider = os.getenv(
         "PROJECT0_REASONING_PROVIDER",
-        "",
+        "ollama",
     ).strip()
 
     return provider or "Not configured"
+
+
+def _read_llm_model(agent_identifier: str | None = None) -> str:
+    """Return the configured reasoning model for the requested agent."""
+
+    provider = _read_llm_status().casefold()
+
+    if provider != "ollama":
+        return "Not applicable"
+
+    default_model = os.getenv(
+        "PROJECT0_OLLAMA_MODEL",
+        "",
+    ).strip()
+
+    if agent_identifier == "research":
+        return (
+            os.getenv(
+                "PROJECT0_RESEARCH_OLLAMA_MODEL",
+                default_model or "qwen2.5:7b",
+            ).strip()
+            or default_model
+            or "qwen2.5:7b"
+        )
+
+    if agent_identifier == "documentation":
+        return (
+            os.getenv(
+                "PROJECT0_DOCUMENTATION_OLLAMA_MODEL",
+                default_model or "gemma3:4b",
+            ).strip()
+            or default_model
+            or "gemma3:4b"
+        )
+
+    return default_model or "qwen2.5:7b"
 
 
 def _read_test_status(project_root: Path) -> tuple[str, str]:
@@ -191,6 +227,10 @@ def build_dashboard_shell_context(
 
     gpu_name, gpu_utilization, gpu_vram = _read_gpu_status()
 
+    agent_identifier = None
+    if active_page.startswith("agent:"):
+        agent_identifier = active_page.removeprefix("agent:")
+
     return {
         "request": request,
         "project_name": "Project0",
@@ -198,9 +238,10 @@ def build_dashboard_shell_context(
         "agents": DASHBOARD_AGENTS,
         "active_agent_name": "None",
         "system_state": "Idle",
-        "system_operation": "None",
-        "elapsed_time": "—",
-        "system_progress": "—",
+        "system_operation": None,
+        "elapsed_time": None,
+        "llm_status": _read_llm_status(),
+        "llm_model": _read_llm_model(agent_identifier),
         "gpu_name": gpu_name,
         "gpu_utilization": gpu_utilization,
         "gpu_vram": gpu_vram,
@@ -249,7 +290,6 @@ def create_dashboard_router(
                 "test_status_class": "status-value--success",
                 "validation_status": validation_status,
                 "validation_status_class": "status-value--muted",
-                "llm_status": _read_llm_status(),
                 "workflow_status": "Idle",
                 "platform_version": "0.1.0",
             }
@@ -354,12 +394,18 @@ def create_dashboard_router(
         "/api/system-status",
         name="dashboard_system_status",
     )
-    async def dashboard_system_status() -> dict[str, object]:
+    async def dashboard_system_status(
+        agent: str | None = None,
+    ) -> dict[str, object]:
         """Return current Project0 system status information."""
 
         gpu_name, gpu_utilization, gpu_vram = _read_gpu_status()
 
+        normalized_agent = agent.strip().lower() if agent else None
+
         return {
+            "llm_provider": _read_llm_status(),
+            "llm_model": _read_llm_model(normalized_agent),
             "gpu_name": gpu_name,
             "gpu_utilization": gpu_utilization,
             "gpu_vram": gpu_vram,
