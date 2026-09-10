@@ -307,6 +307,123 @@ def test_reasoning_service_parses_proposed_changes() -> None:
     assert change.confidence == 0.9
 
 
+def test_reasoning_service_gap_analysis_parses_dedicated_gaps() -> None:
+    """Gap analysis parses the dedicated source-grounded gap contract."""
+
+    base_response = create_valid_provider_response()
+    response = ProviderResponse(
+        provider_name=base_response.provider_name,
+        model_name=base_response.model_name,
+        content=base_response.content,
+        structured_output={
+            "summary": "One material documentation gap was found.",
+            "gaps": [
+                {
+                    "document_path": "docs/Documentation_Agent_Design.md",
+                    "section": "Component Specifications",
+                    "gap": "The documented contract omits existing context input.",
+                    "source_evidence": (
+                        "The authoritative execute signature accepts "
+                        "context_content."
+                    ),
+                    "confidence": 0.95,
+                }
+            ],
+            "assumptions": [],
+            "warnings": [],
+        },
+        input_tokens=base_response.input_tokens,
+        output_tokens=base_response.output_tokens,
+        duration_seconds=base_response.duration_seconds,
+        provider_request_id=base_response.provider_request_id,
+        warnings=base_response.warnings,
+        metadata=base_response.metadata,
+    )
+
+    request = ReasoningRequest(
+        objective="Identify documentation gaps.",
+        context="Repository context.",
+        workflow_type="documentation_gap_analysis",
+        target_paths=(Path("docs/Documentation_Agent_Design.md"),),
+    )
+
+    service = ReasoningService(
+        prompt_builder=StubPromptBuilder(
+            create_provider_request()
+        ),
+        provider=StubProvider(response),
+    )
+
+    result = service.reason(request)
+
+    assert result.status is ReasoningStatus.COMPLETED
+    assert result.impacts == ()
+    assert result.proposed_changes == ()
+    assert len(result.gaps) == 1
+    assert result.gaps[0].document_path == Path(
+        "docs/Documentation_Agent_Design.md"
+    )
+    assert result.gaps[0].section == "Component Specifications"
+    assert result.gaps[0].gap == (
+        "The documented contract omits existing context input."
+    )
+    assert result.gaps[0].source_evidence == (
+        "The authoritative execute signature accepts context_content."
+    )
+    assert result.gaps[0].confidence == 0.95
+
+
+def test_reasoning_service_gap_analysis_rejects_invalid_section() -> None:
+    """Gap-analysis section must be a string or null."""
+
+    base_response = create_valid_provider_response()
+    response = ProviderResponse(
+        provider_name=base_response.provider_name,
+        model_name=base_response.model_name,
+        content=base_response.content,
+        structured_output={
+            "summary": "Gap analysis.",
+            "gaps": [
+                {
+                    "document_path": "docs/Documentation_Agent_Design.md",
+                    "section": 123,
+                    "gap": "Missing contract.",
+                    "source_evidence": "Authoritative evidence.",
+                    "confidence": 0.9,
+                }
+            ],
+            "assumptions": [],
+            "warnings": [],
+        },
+        input_tokens=base_response.input_tokens,
+        output_tokens=base_response.output_tokens,
+        duration_seconds=base_response.duration_seconds,
+        provider_request_id=base_response.provider_request_id,
+        warnings=base_response.warnings,
+        metadata=base_response.metadata,
+    )
+
+    request = ReasoningRequest(
+        objective="Identify documentation gaps.",
+        context="Repository context.",
+        workflow_type="documentation_gap_analysis",
+    )
+
+    service = ReasoningService(
+        prompt_builder=StubPromptBuilder(
+            create_provider_request()
+        ),
+        provider=StubProvider(response),
+    )
+
+    result = service.reason(request)
+
+    assert result.status is ReasoningStatus.FAILED
+    assert result.error_message == (
+        "Documentation gap section must be a string or null."
+    )
+
+
 def test_reasoning_service_parses_assumptions() -> None:
     """Verify assumption parsing."""
 

@@ -54,6 +54,7 @@ from project0.models.documentation_workflow_models import (
 from project0.models.reasoning_models import (
     DocumentationChangeOperation,
     DocumentationEditType,
+    DocumentationGap,
     ReasoningRequest,
     ReasoningResult,
     ReasoningStatus,
@@ -77,6 +78,7 @@ _STRICT_DOCUMENTATION_SKILL_NAME = "strict-documentation-editor"
 
 _PROPOSED_CONTENT_META_INSTRUCTION_PATTERNS = (
     re.compile(r"^\s*add\s+(?:a\s+|an\s+|the\s+|new\s+)?sections?\b", re.IGNORECASE),
+    re.compile(r"^\s*consider\s+adding\b", re.IGNORECASE),
     re.compile(r"^\s*include\s+examples?\b", re.IGNORECASE),
     re.compile(r"^\s*explain\b", re.IGNORECASE),
     re.compile(r"^\s*describe\b", re.IGNORECASE),
@@ -186,21 +188,101 @@ class DocumentationWorkflow:
                     ),
                 )
 
+            source_grounded = bool(request.source_paths)
+            target_paths = tuple(
+                Path(repository_path)
+                for repository_path in request.target_paths
+            )
+
+            if source_grounded:
+                gap_result = self._reasoning_service.reason(
+                    ReasoningRequest(
+                        objective=request.user_request,
+                        context=context,
+                        workflow_type="documentation_gap_analysis",
+                        target_paths=target_paths,
+                        constraints=(),
+                        skills=(),
+                        metadata={
+                            "workflow_id": request.workflow_id,
+                            "documentation_stage": "gap_analysis",
+                        },
+                    )
+                )
+
+                self._log_reasoning_result(
+                    "Documentation gap analysis",
+                    gap_result,
+                )
+
+                if gap_result.status is ReasoningStatus.FAILED:
+                    return self._failed_result(
+                        request=request,
+                        started_at=started_at,
+                        reasoning_result=gap_result,
+                        error_message=(
+                            gap_result.error_message
+                            or "Documentation gap analysis failed."
+                        ),
+                        warnings=gap_result.warnings,
+                    )
+
+                warnings.extend(
+                    self._select_reasoning_warnings(
+                        reasoning_result=gap_result,
+                        source_grounded=True,
+                    )
+                )
+
+                if not gap_result.gaps:
+                    state = DocumentationWorkflowState(
+                        workflow_id=request.workflow_id,
+                        status=DocumentationWorkflowStatus.REVIEW_REQUIRED,
+                        started_at=started_at,
+                        user_request=request.user_request,
+                        target_paths=request.target_paths,
+                        source_paths=request.source_paths,
+                        reasoning_result=gap_result,
+                        proposals=(),
+                        preliminary_validation=None,
+                        warnings=tuple(warnings),
+                    )
+
+                    self._workflow_states[request.workflow_id] = state
+
+                    return self._create_review_required_result(state)
+
+                established_gaps = self._deduplicate_documentation_gaps(
+                    gap_result.gaps
+                )
+
+                context = (
+                    f"{context.rstrip()}\n\n"
+                    f"{self._format_established_gaps(established_gaps)}"
+                )
+
             reasoning_result = self._reasoning_service.reason(
                 ReasoningRequest(
                     objective=request.user_request,
                     context=context,
                     workflow_type="documentation_update",
-                    target_paths=tuple(
-                        Path(repository_path)
-                        for repository_path in request.target_paths
-                    ),
+                    target_paths=target_paths,
                     constraints=reasoning_constraints,
                     skills=active_skills,
                     metadata={
                         "workflow_id": request.workflow_id,
+                        "documentation_stage": (
+                            "proposal_generation"
+                            if source_grounded
+                            else "single_stage"
+                        ),
                     },
                 )
+            )
+
+            self._log_reasoning_result(
+                "Documentation proposal generation",
+                reasoning_result,
             )
 
             if reasoning_result.status is ReasoningStatus.FAILED:
@@ -218,14 +300,14 @@ class DocumentationWorkflow:
             warnings.extend(
                 self._select_reasoning_warnings(
                     reasoning_result=reasoning_result,
-                    source_grounded=bool(request.source_paths),
+                    source_grounded=source_grounded,
                 )
             )
 
             proposals, proposal_warnings = self._build_proposals(
                 reasoning_result=reasoning_result,
                 target_paths=request.target_paths,
-                source_grounded=bool(request.source_paths),
+                source_grounded=source_grounded,
                 context=context,
             )
             warnings.extend(proposal_warnings)
@@ -317,6 +399,97 @@ class DocumentationWorkflow:
                 warnings=tuple(warnings),
             )
 
+
+    @staticmethod
+    def _deduplicate_documentation_gaps(
+        gaps: tuple[DocumentationGap, ...],
+    ) -> tuple[DocumentationGap, ...]:
+        """Return Stage 1 gaps with exact semantic duplicates removed."""
+
+        deduplicated: list[DocumentationGap] = []
+        seen: set[tuple[str, str | None, str, str]] = set()
+
+        for gap in gaps:
+            key = (
+                gap.document_path.as_posix(),
+                gap.section.strip() if gap.section is not None else None,
+                " ".join(gap.gap.split()),
+                " ".join(gap.source_evidence.split()),
+            )
+
+            if key in seen:
+                continue
+
+            seen.add(key)
+            deduplicated.append(gap)
+
+        return tuple(deduplicated)
+
+    @staticmethod
+    def _format_established_gaps(
+        gaps: tuple[DocumentationGap, ...],
+    ) -> str:
+        """Format Stage 1 gaps as bounded input for proposal generation."""
+
+        lines = ["=== ESTABLISHED DOCUMENTATION GAPS ==="]
+
+        for index, gap in enumerate(gaps, start=1):
+            lines.extend(
+                (
+                    f"Gap {index}:",
+                    f"Document Path: {gap.document_path.as_posix()}",
+                    f"Section: {gap.section if gap.section is not None else 'null'}",
+                    f"Gap: {gap.gap}",
+                    f"Source Evidence: {gap.source_evidence}",
+                )
+            )
+
+        lines.append(
+            "Generate documentation edits only for the established gaps above. "
+            "Do not introduce additional gaps, requirements, or design changes."
+        )
+
+        return "\n".join(lines)
+
+    @staticmethod
+    def _log_reasoning_result(
+        label: str,
+        reasoning_result: ReasoningResult,
+    ) -> None:
+        """Log one reasoning-stage result before workflow filtering."""
+
+        logger.debug(
+            "%s result summary=%r gaps=%r impacts=%r warnings=%r metadata=%r",
+            label,
+            reasoning_result.summary,
+            reasoning_result.gaps,
+            reasoning_result.impacts,
+            reasoning_result.warnings,
+            reasoning_result.metadata,
+        )
+
+        for index, proposed_change in enumerate(
+            reasoning_result.proposed_changes,
+            start=1,
+        ):
+            logger.debug(
+                "%s proposed_change[%d] "
+                "document_path=%r operation=%r rationale=%r "
+                "documentation_meaning=%r proposed_content=%r "
+                "section=%r anchor_text=%r edit_type=%r "
+                "confidence=%r",
+                label,
+                index,
+                proposed_change.document_path.as_posix(),
+                proposed_change.operation.value,
+                proposed_change.rationale,
+                proposed_change.documentation_meaning,
+                proposed_change.proposed_content,
+                proposed_change.section,
+                proposed_change.anchor_text,
+                proposed_change.edit_type.value,
+                proposed_change.confidence,
+            )
 
     def _create_review_required_result(
         self,

@@ -141,6 +141,105 @@ def test_build_prompt_includes_system_instructions() -> None:
     assert "conforms exactly to the supplied JSON schema" in instructions
 
 
+def test_gap_analysis_prompt_is_comparison_only() -> None:
+    """Stage 1 prompt performs gap detection without proposing edits."""
+
+    request = ReasoningRequest(
+        objective="Synchronize documentation.",
+        context=(
+            "=== TARGET DOCUMENTATION ===\n"
+            "Path: docs/Example.md\n"
+            "# Example\n"
+            "## Contract\n"
+            "Existing prose.\n"
+            "\n"
+            "=== AUTHORITATIVE SOURCE ===\n"
+            "Path: src/project0/example.py\n"
+            "VALUE = 1\n"
+        ),
+        workflow_type="documentation_gap_analysis",
+        target_paths=(Path("docs/Example.md"),),
+    )
+
+    provider_request = PromptBuilder().build_prompt(request)
+
+    assert "gap-analysis stage" in provider_request.system_instructions
+    assert "Perform Stage 1 only" in provider_request.system_instructions
+    assert "Do not propose wording" in provider_request.system_instructions
+    assert "Do not summarize the source" in (
+        provider_request.system_instructions
+    )
+    assert "Do not infer performance, efficiency" in (
+        provider_request.system_instructions
+    )
+    assert "Stage 1 Gap Analysis Rule:" in provider_request.user_prompt
+    assert "exact target section" in provider_request.user_prompt
+    assert "Do not propose edits" in provider_request.user_prompt
+    assert "Target Documentation Paths:" in provider_request.user_prompt
+
+
+def test_gap_analysis_schema_uses_dedicated_gap_contract() -> None:
+    """Stage 1 schema exposes source-grounded gaps, not generic impacts."""
+
+    request = ReasoningRequest(
+        objective="Synchronize documentation.",
+        context=(
+            "=== TARGET DOCUMENTATION ===\n"
+            "Path: docs/Example.md\n"
+            "# Example\n"
+            "## Interface Contract\n"
+            "Existing prose.\n"
+            "\n"
+            "=== AUTHORITATIVE SOURCE ===\n"
+            "Path: src/project0/example.py\n"
+            "VALUE = 1\n"
+        ),
+        workflow_type="documentation_gap_analysis",
+        target_paths=(Path("docs/Example.md"),),
+    )
+
+    schema = PromptBuilder().build_prompt(request).response_schema
+
+    assert schema["required"] == [
+        "summary",
+        "gaps",
+        "assumptions",
+        "warnings",
+    ]
+    assert set(schema["properties"]) == {
+        "summary",
+        "gaps",
+        "assumptions",
+        "warnings",
+    }
+    assert "impacts" not in schema["properties"]
+    assert "proposed_changes" not in schema["properties"]
+
+    gap_schema = schema["properties"]["gaps"]["items"]
+
+    assert gap_schema["required"] == [
+        "document_path",
+        "section",
+        "gap",
+        "source_evidence",
+        "confidence",
+    ]
+    assert set(gap_schema["properties"]) == {
+        "document_path",
+        "section",
+        "gap",
+        "source_evidence",
+        "confidence",
+    }
+    assert gap_schema["properties"]["document_path"]["enum"] == [
+        "docs/Example.md"
+    ]
+    assert gap_schema["properties"]["section"]["anyOf"][0] == {
+        "type": "string",
+        "enum": ["Interface Contract"],
+    }
+
+
 def test_build_prompt_includes_objective_and_context() -> None:
     """Verify objective and repository context are included."""
 

@@ -23,6 +23,7 @@ from project0.interfaces.reasoning_interfaces import (
 from project0.models.reasoning_models import (
     DocumentationChangeOperation,
     DocumentationEditType,
+    DocumentationGap,
     DocumentationImpact,
     ProposedDocumentationChange,
     ProviderResponse,
@@ -93,13 +94,20 @@ class ReasoningService:
             "summary",
         )
 
-        impacts = self._parse_impacts(
-            structured_output.get("impacts")
-        )
-
-        proposed_changes = self._parse_proposed_changes(
-            structured_output.get("proposed_changes")
-        )
+        if request.workflow_type == "documentation_gap_analysis":
+            gaps = self._parse_gaps(
+                structured_output.get("gaps")
+            )
+            impacts = ()
+            proposed_changes = ()
+        else:
+            gaps = ()
+            impacts = self._parse_impacts(
+                structured_output.get("impacts")
+            )
+            proposed_changes = self._parse_proposed_changes(
+                structured_output.get("proposed_changes")
+            )
 
         assumptions = self._parse_string_tuple(
             structured_output.get("assumptions"),
@@ -131,6 +139,7 @@ class ReasoningService:
             created_at=datetime.now(),
             provider_name=provider_response.provider_name,
             model_name=provider_response.model_name,
+            gaps=gaps,
             assumptions=assumptions,
             warnings=warnings,
             metadata={
@@ -170,6 +179,57 @@ class ReasoningService:
             model_name="unknown",
             error_message=str(error),
         )
+
+    def _parse_gaps(
+        self,
+        value: Any,
+    ) -> tuple[DocumentationGap, ...]:
+        """Parse source-grounded documentation gaps from structured output."""
+
+        items = self._require_list(
+            value,
+            "gaps",
+        )
+
+        gaps: list[DocumentationGap] = []
+
+        for item in items:
+            mapping = self._require_mapping(
+                item,
+                "documentation gap",
+            )
+
+            section = mapping.get("section")
+
+            if section is not None and not isinstance(section, str):
+                raise TypeError(
+                    "Documentation gap section must be a string or null."
+                )
+
+            gaps.append(
+                DocumentationGap(
+                    document_path=Path(
+                        self._require_string(
+                            mapping,
+                            "document_path",
+                        )
+                    ),
+                    section=section,
+                    gap=self._require_string(
+                        mapping,
+                        "gap",
+                    ),
+                    source_evidence=self._require_string(
+                        mapping,
+                        "source_evidence",
+                    ),
+                    confidence=self._parse_confidence(
+                        mapping.get("confidence")
+                    ),
+                )
+            )
+
+        return tuple(gaps)
 
     def _parse_impacts(
         self,

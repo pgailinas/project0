@@ -32,6 +32,7 @@ from project0.models.documentation_workflow_models import (
 from project0.models.reasoning_models import (
     DocumentationChangeOperation,
     DocumentationEditType,
+    DocumentationGap,
     ProposedDocumentationChange,
     ReasoningRequest,
     ReasoningResult,
@@ -47,7 +48,7 @@ from project0.workflow.documentation_workflow import DocumentationWorkflow
 
 
 class StubReasoningService:
-    """Return a configured reasoning result."""
+    """Return configured results for documentation reasoning stages."""
 
     def __init__(self, result: ReasoningResult) -> None:
         self._result = result
@@ -55,6 +56,47 @@ class StubReasoningService:
 
     def reason(self, request: ReasoningRequest) -> ReasoningResult:
         self.requests.append(request)
+
+        if (
+            request.workflow_type == "documentation_gap_analysis"
+            and self._result.proposed_changes
+        ):
+            seen_paths: set[Path] = set()
+            gaps: list[DocumentationGap] = []
+
+            for change in self._result.proposed_changes:
+                if change.document_path in seen_paths:
+                    continue
+
+                seen_paths.add(change.document_path)
+                gaps.append(
+                    DocumentationGap(
+                        document_path=change.document_path,
+                        section=change.section,
+                        gap="Configured documentation gap.",
+                        source_evidence=(
+                            "Configured authoritative source evidence."
+                        ),
+                        confidence=0.9,
+                    )
+                )
+
+            return ReasoningResult(
+                request_id=self._result.request_id,
+                status=self._result.status,
+                summary="Configured gap analysis.",
+                impacts=(),
+                proposed_changes=(),
+                created_at=self._result.created_at,
+                provider_name=self._result.provider_name,
+                model_name=self._result.model_name,
+                gaps=tuple(gaps),
+                assumptions=self._result.assumptions,
+                warnings=self._result.warnings,
+                error_message=self._result.error_message,
+                metadata=self._result.metadata,
+            )
+
         return self._result
 
 
@@ -563,19 +605,12 @@ def test_context_and_reasoning_request_are_forwarded(
 
     assert reasoning_request.objective == "Review the documentation."
     assert reasoning_request.context == "repository context"
-    assert reasoning_request.workflow_type == "documentation_update"
+    assert reasoning_request.workflow_type == "documentation_gap_analysis"
     assert reasoning_request.target_paths == (Path("docs/index.md"),)
-    assert (
-        "Ground Truth Source Paths are read-only authoritative evidence "
-        "and must not be proposed for modification."
-        in reasoning_request.constraints
-    )
-    assert (
-        "When target documentation paths are provided, propose changes "
-        "only to those target paths."
-        in reasoning_request.constraints
-    )
+    assert reasoning_request.constraints == ()
+    assert reasoning_request.skills == ()
     assert reasoning_request.metadata["workflow_id"] == "workflow-002"
+    assert reasoning_request.metadata["documentation_stage"] == "gap_analysis"
 
 
 def test_source_grounded_workflow_loads_strict_documentation_skill(
@@ -618,7 +653,11 @@ def test_source_grounded_workflow_loads_strict_documentation_skill(
     assert skill_registry.requests == [
         "strict-documentation-editor",
     ]
-    assert reasoning_service.requests[0].skills == (skill,)
+    assert len(reasoning_service.requests) == 1
+    assert reasoning_service.requests[0].workflow_type == (
+        "documentation_gap_analysis"
+    )
+    assert reasoning_service.requests[0].skills == ()
     assert reasoning_service.requests[0].constraints == ()
 
 
@@ -701,6 +740,203 @@ def test_source_grounded_missing_strict_skill_fails_workflow(
         "Skill was not found: strict-documentation-editor"
     )
     assert reasoning_service.requests == []
+    assert validation_service.requests == []
+
+
+def test_reasoning_result_debug_logging_preserves_structured_fields(
+    tmp_path: Path,
+    caplog,
+) -> None:
+    """Completed reasoning output is visible in DEBUG logs before filtering."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text("# Original\n", encoding="utf-8")
+
+    change = ProposedDocumentationChange(
+        document_path=Path("docs/index.md"),
+        operation=DocumentationChangeOperation.UPDATE,
+        rationale="Document existing behavior.",
+        documentation_meaning="Existing behavior is documented.",
+        proposed_content="Existing behavior is documented.",
+        section=None,
+        anchor_text="# Original",
+        edit_type=DocumentationEditType.INSERT,
+        confidence=0.85,
+    )
+
+    reasoning_result = _reasoning_result(
+        proposed_changes=(change,),
+        warnings=("Reasoning warning.",),
+    )
+
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=reasoning_result,
+        validation_results=(
+            _validation_result(ValidationStatus.PASSED),
+        ),
+    )[0]
+
+    with caplog.at_level(
+        "DEBUG",
+        logger="project0.workflow.documentation_workflow",
+    ):
+        workflow.execute(
+            DocumentationWorkflowRequest(
+                user_request="Update documentation.",
+                target_paths=("docs/index.md",),
+                workflow_id="workflow-reasoning-debug-log",
+            )
+        )
+
+    assert "Documentation gap analysis result" not in caplog.text
+    assert "Documentation proposal generation result summary='Reasoning summary.'" in (
+        caplog.text
+    )
+    assert "warnings=('Reasoning warning.',)" in caplog.text
+    assert "Documentation proposal generation proposed_change[1]" in caplog.text
+    assert "document_path='docs/index.md'" in caplog.text
+    assert "operation='update'" in caplog.text
+    assert "rationale='Document existing behavior.'" in caplog.text
+    assert (
+        "documentation_meaning='Existing behavior is documented.'"
+        in caplog.text
+    )
+    assert (
+        "proposed_content='Existing behavior is documented.'"
+        in caplog.text
+    )
+    assert "section=None" in caplog.text
+    assert "anchor_text='# Original'" in caplog.text
+    assert "edit_type='insert'" in caplog.text
+    assert "confidence=0.85" in caplog.text
+
+
+def test_source_grounded_workflow_runs_gap_analysis_before_edit_generation(
+    tmp_path: Path,
+) -> None:
+    """Strict source-grounded work uses separate analysis and edit calls."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text("# Original\n", encoding="utf-8")
+
+    skill = SkillDefinition(
+        name="strict-documentation-editor",
+        description="Preserve controlled documentation artifacts.",
+        skill_path=Path("skills/strict-documentation-editor/SKILL.md"),
+        instructions="Apply the minimum textual modification.",
+    )
+
+    components = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(
+                _update_change(
+                    proposed_content="Current documented behavior.",
+                ),
+            )
+        ),
+        validation_results=(
+            _validation_result(ValidationStatus.PASSED),
+        ),
+        skill_registry=StubSkillRegistry(skill=skill),
+    )
+    workflow = components[0]
+    reasoning_service = components[1]
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Synchronize documentation.",
+            target_paths=("docs/index.md",),
+            source_paths=("src/project0/example.py",),
+            workflow_id="workflow-two-stage",
+        )
+    )
+
+    assert result.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+    assert len(reasoning_service.requests) == 2
+
+    gap_request, edit_request = reasoning_service.requests
+
+    assert gap_request.workflow_type == "documentation_gap_analysis"
+    assert gap_request.skills == ()
+    assert gap_request.metadata["documentation_stage"] == "gap_analysis"
+
+    assert edit_request.workflow_type == "documentation_update"
+    assert edit_request.skills == (skill,)
+    assert edit_request.metadata["documentation_stage"] == (
+        "proposal_generation"
+    )
+    assert "=== ESTABLISHED DOCUMENTATION GAPS ===" in edit_request.context
+    assert "Configured documentation gap." in edit_request.context
+    assert "Configured authoritative source evidence." in edit_request.context
+    assert "Section: null" in edit_request.context
+    assert (
+        "Generate documentation edits only for the established gaps above."
+        in edit_request.context
+    )
+
+
+def test_documentation_gap_deduplication_preserves_first_exact_gap() -> None:
+    """Exact Stage 1 duplicates are removed before proposal generation."""
+
+    first = DocumentationGap(
+        document_path=Path("docs/index.md"),
+        section="Interface Contract",
+        gap="The documented contract omits context input.",
+        source_evidence="The execute signature accepts context_content.",
+        confidence=0.9,
+    )
+    duplicate = DocumentationGap(
+        document_path=Path("docs/index.md"),
+        section="Interface Contract",
+        gap="The documented contract omits   context input.",
+        source_evidence="The execute signature accepts context_content.",
+        confidence=0.8,
+    )
+
+    result = DocumentationWorkflow._deduplicate_documentation_gaps(
+        (first, duplicate)
+    )
+
+    assert result == (first,)
+
+
+def test_source_grounded_workflow_stops_after_gap_analysis_when_no_gaps(
+    tmp_path: Path,
+) -> None:
+    """No Stage 1 gaps means no Stage 2 proposal-generation call."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text("# Original\n", encoding="utf-8")
+
+    components = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(),
+        validation_results=(),
+    )
+    workflow = components[0]
+    reasoning_service = components[1]
+    validation_service = components[2]
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Synchronize documentation.",
+            target_paths=("docs/index.md",),
+            source_paths=("src/project0/example.py",),
+            workflow_id="workflow-two-stage-no-gaps",
+        )
+    )
+
+    assert len(reasoning_service.requests) == 1
+    assert reasoning_service.requests[0].workflow_type == (
+        "documentation_gap_analysis"
+    )
+    assert result.proposals == ()
+    assert result.preliminary_validation is None
     assert validation_service.requests == []
 
 
@@ -1533,6 +1769,65 @@ def test_source_grounded_meta_instruction_content_is_skipped(
             target_paths=("docs/index.md",),
             source_paths=("src/project0/example.py",),
             workflow_id="workflow-meta-instruction",
+        )
+    )
+
+    assert result.proposals == ()
+    assert result.preliminary_validation is None
+    assert validation_service.requests == []
+    assert any(
+        "described what should be written instead of providing concrete Markdown"
+        in warning
+        for warning in result.warnings
+    )
+
+
+def test_source_grounded_consider_adding_recommendation_is_skipped(
+    tmp_path: Path,
+) -> None:
+    """Implementation recommendations are not surfaced for strict review."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text(
+        "# Original\n"
+        "## Research Source Provider Interface Contract\n"
+        "Existing details.\n",
+        encoding="utf-8",
+    )
+
+    components = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(
+                ProposedDocumentationChange(
+                    document_path=Path("docs/index.md"),
+                    operation=DocumentationChangeOperation.UPDATE,
+                    rationale=(
+                        "The current model lacks a clear mechanism for "
+                        "handling conflicting evidence or uncertainties."
+                    ),
+                    proposed_content=(
+                        "Consider adding a `confidence_score` field to "
+                        "`ResearchFinding` and `ResearchDirection`."
+                    ),
+                    section="Research Source Provider Interface Contract",
+                    anchor_text=None,
+                    edit_type=DocumentationEditType.REPLACE,
+                ),
+            )
+        ),
+        validation_results=(),
+    )
+    workflow = components[0]
+    validation_service = components[2]
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Synchronize documentation.",
+            target_paths=("docs/index.md",),
+            source_paths=("src/project0/example.py",),
+            workflow_id="workflow-consider-adding-recommendation",
         )
     )
 
@@ -2388,6 +2683,7 @@ def test_meta_instruction_detector_rejects_common_planning_phrases() -> None:
 
     examples = (
         "Add sections for each model.",
+        "Consider adding a `confidence_score` field to `ResearchFinding`.",
         "Include examples of interface usage.",
         "Explain the responsibilities of each class.",
         "Describe the model relationships.",

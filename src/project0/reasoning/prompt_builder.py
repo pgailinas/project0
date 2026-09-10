@@ -56,6 +56,40 @@ class PromptBuilder:
     ) -> str:
         """Build deterministic system instructions."""
 
+        if request.workflow_type == "documentation_gap_analysis":
+            base_instructions = (
+                "You are the Project0 Documentation Agent gap-analysis stage.\n"
+                "Perform Stage 1 only: compare the supplied target documentation "
+                "with the supplied authoritative source evidence.\n"
+                "Return only material documentation gaps that are missing, "
+                "outdated, inaccurate, or materially incomplete in the target.\n"
+                "Each gap item must identify the affected target document, the "
+                "exact existing target section when one applies, the missing or "
+                "inaccurate documented fact or contract, and the authoritative "
+                "source evidence that establishes the gap.\n"
+                "Do not summarize the source, describe general implementation "
+                "benefits, or report implementation details merely because they "
+                "exist in source. Do not infer performance, efficiency, "
+                "immutability benefits, architecture benefits, or design intent "
+                "unless those claims are explicitly established by the supplied "
+                "authoritative evidence and are materially required by the target "
+                "document's existing abstraction level.\n"
+                "Do not propose wording, Markdown edits, implementation changes, "
+                "new fields, new interfaces, new behaviors, mechanisms, "
+                "requirements, examples, or design improvements.\n"
+                "A gap is material only when the target document's existing "
+                "contract is missing, outdated, inaccurate, or materially "
+                "incomplete at its current abstraction level.\n"
+                "If no material source-established documentation gap exists, "
+                "return an empty gaps array.\n"
+                "Warnings must be directly supported by the supplied context.\n"
+                "When providing confidence values, use a decimal number between "
+                "0.0 and 1.0 inclusive or null.\n"
+                "Return output that conforms exactly to the supplied JSON schema."
+            )
+
+            return base_instructions
+
         base_instructions = (
             "You are the Project0 Documentation Agent reasoning service.\n"
             "Analyze only the supplied repository context and request.\n"
@@ -159,6 +193,49 @@ class PromptBuilder:
         request: ReasoningRequest,
     ) -> str:
         """Build the user prompt from a reasoning request."""
+
+        if request.workflow_type == "documentation_gap_analysis":
+            sections = [
+                "Objective:",
+                request.objective.strip(),
+                "",
+                "Workflow Type:",
+                "documentation_gap_analysis",
+            ]
+
+            if request.target_paths:
+                sections.extend(
+                    (
+                        "",
+                        "Target Documentation Paths:",
+                        *(
+                            f"- {path.as_posix()}"
+                            for path in request.target_paths
+                        ),
+                    )
+                )
+
+            sections.extend(
+                (
+                    "",
+                    "Stage 1 Gap Analysis Rule:",
+                    (
+                        "Compare target documentation against authoritative "
+                        "source evidence and return only material "
+                        "source-established documentation gaps. Each gap must "
+                        "name the exact target section when one applies and cite "
+                        "the source evidence that establishes the missing or "
+                        "inaccurate documented fact. Do not propose edits, wording, "
+                        "implementation changes, or design recommendations. Return "
+                        "an empty gaps array when there is no material gap."
+                    ),
+                    "",
+                    "Repository Context:",
+                    request.context.strip(),
+                )
+            )
+
+            return "\n".join(sections)
 
         sections = [
             "Objective:",
@@ -344,6 +421,121 @@ class PromptBuilder:
                 },
             ]
         }
+
+        if request.workflow_type == "documentation_gap_analysis":
+            gap_document_path_schema: dict[str, object] = {
+                "type": "string",
+            }
+            if request.target_paths:
+                gap_document_path_schema["enum"] = [
+                    path.as_posix()
+                    for path in request.target_paths
+                ]
+
+            target_headings, source_grounded = (
+                self._extract_markdown_headings(
+                    request.context
+                )
+            )
+            gap_section_value_schema: dict[str, object] = {
+                "type": "string",
+            }
+            if target_headings:
+                gap_section_value_schema["enum"] = list(target_headings)
+            elif source_grounded:
+                gap_section_value_schema["enum"] = []
+
+            return {
+                "type": "object",
+                "additionalProperties": False,
+                "required": [
+                    "summary",
+                    "gaps",
+                    "assumptions",
+                    "warnings",
+                ],
+                "properties": {
+                    "summary": {
+                        "description": (
+                            "Concise result of the target-versus-source "
+                            "documentation gap comparison. Do not summarize "
+                            "the source implementation."
+                        ),
+                        "type": "string",
+                    },
+                    "gaps": {
+                        "description": (
+                            "Material source-established documentation gaps "
+                            "only. Return an empty array when there are none."
+                        ),
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": False,
+                            "required": [
+                                "document_path",
+                                "section",
+                                "gap",
+                                "source_evidence",
+                                "confidence",
+                            ],
+                            "properties": {
+                                "document_path": gap_document_path_schema,
+                                "section": {
+                                    "description": (
+                                        "Exact existing Markdown heading text "
+                                        "from the target document, excluding "
+                                        "leading # characters, or null when no "
+                                        "existing section directly owns the gap."
+                                    ),
+                                    "anyOf": [
+                                        gap_section_value_schema,
+                                        {
+                                            "type": "null",
+                                        },
+                                    ],
+                                },
+                                "gap": {
+                                    "description": (
+                                        "The specific documented fact or contract "
+                                        "that is missing, outdated, inaccurate, "
+                                        "or materially incomplete in the target. "
+                                        "Do not describe general implementation "
+                                        "benefits or propose a design change."
+                                    ),
+                                    "type": "string",
+                                },
+                                "source_evidence": {
+                                    "description": (
+                                        "The concrete authoritative source fact "
+                                        "that establishes this gap. State only "
+                                        "evidence observable in the supplied "
+                                        "authoritative source."
+                                    ),
+                                    "type": "string",
+                                },
+                                "confidence": confidence_schema,
+                            },
+                        },
+                    },
+                    "assumptions": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                        },
+                    },
+                    "warnings": {
+                        "description": (
+                            "Only warnings directly supported by the "
+                            "supplied context."
+                        ),
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                        },
+                    },
+                },
+            }
 
         proposed_document_path_schema: dict[str, object] = {
             "type": "string",

@@ -57,6 +57,17 @@ class DocumentationImpact:
 
 
 @dataclass(frozen=True, slots=True)
+class DocumentationGap:
+    """A material source-grounded documentation gap."""
+
+    document_path: Path
+    section: str | None
+    gap: str
+    source_evidence: str
+    confidence: float | None = None
+
+
+@dataclass(frozen=True, slots=True)
 class ProposedDocumentationChange:
     """A proposed documentation edit to one repository document."""
 
@@ -127,6 +138,7 @@ class ReasoningResult:
     created_at: datetime
     provider_name: str
     model_name: str
+    gaps: tuple[DocumentationGap, ...] = ()
     assumptions: tuple[str, ...] = ()
     warnings: tuple[str, ...] = ()
     error_message: str | None = None
