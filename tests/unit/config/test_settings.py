@@ -121,6 +121,21 @@ def test_project_settings_uses_default_semantic_scholar_api_key(
     assert settings.crossref_contact_email is None
 
 
+def test_load_settings_enables_research_direction_analysis_by_default(
+    monkeypatch,
+) -> None:
+    """Research direction analysis is enabled without an environment flag."""
+
+    monkeypatch.delenv(
+        "PROJECT0_ENABLE_RESEARCH_DIRECTION_ANALYSIS",
+        raising=False,
+    )
+
+    settings = load_settings()
+
+    assert settings.research_direction_analysis_enabled is True
+
+
 def test_load_settings_uses_research_direction_analysis_environment_override(
     monkeypatch,
 ) -> None:
