@@ -1140,6 +1140,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#skill-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Skill Registry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#reasoning-service" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1937,6 +1948,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#skill-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Skill Registry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#reasoning-service" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2057,7 +2079,7 @@
 <h1 id="documentation-agent-architecture">Documentation Agent Architecture</h1>
 <p><strong>Version:</strong> 0.6<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-17</p>
+<strong>Last Updated:</strong> 2026-09-09</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="objective">Objective</h3>
@@ -2107,6 +2129,7 @@ repository update behavior.</p>
     A["Application Entry Point&lt;br/&gt;&lt;small&gt;main.py&lt;/small&gt;"]
     B["Platform Dispatcher"]
     C["Documentation Workflow"]
+    S["Skill Registry"]
 
     D["Knowledge Service"]
     E["Reasoning Service"]
@@ -2121,6 +2144,8 @@ repository update behavior.</p>
     UI --&gt; A
     A --&gt; B
     B --&gt; C
+    B --&gt; S
+    S --&gt; C
 
     C --&gt; D
     D --&gt; E
@@ -2138,9 +2163,10 @@ repository update behavior.</p>
 <ol>
 <li><code>dashboard_app.py</code> creates the Dashboard application and configured Documentation Agent UI services.</li>
 <li><code>main.py</code> creates the Platform Dispatcher.</li>
-<li>The Platform Dispatcher dispatches the requested Documentation Workflow.</li>
-<li>The Knowledge Service builds structured repository knowledge.</li>
-<li>The Reasoning Service generates proposed documentation changes.</li>
+<li>The Platform Dispatcher dispatches the requested Documentation Workflow and provides the repository-local Skill Registry.</li>
+<li>For source-grounded requests, the Documentation Workflow loads the <code>strict-documentation-editor</code> skill.</li>
+<li>The Knowledge Service builds structured repository knowledge for ordinary requests, while source-grounded requests use only the requested target and authoritative source files.</li>
+<li>The Reasoning Service generates proposed documentation changes using any active skill instructions.</li>
 <li>The Validation Service validates all proposed documentation changes.</li>
 <li>The Review Coordinator processes each proposed change individually.</li>
 <li>Approved changes are applied through the Repository Update Service.</li>
@@ -2163,6 +2189,8 @@ repository update behavior.</p>
 <li>Return structured workflow execution results.</li>
 <li>Dispatch Documentation Workflows.</li>
 <li>Assemble Documentation Workflow dependencies.</li>
+<li>Configure and expose the repository-local Skill Registry.</li>
+<li>Provide the Skill Registry to the Documentation Workflow.</li>
 <li>Provide workflow state access through platform interfaces.</li>
 </ul>
 <h3 id="workflow-engine">Workflow Engine</h3>
@@ -2338,6 +2366,22 @@ repository update behavior.</p>
 <li>Documentation Consistency Validator</li>
 </ul>
 <p>Validation components communicate through the Validation Interface and exchange immutable Validation Models.</p>
+<h3 id="skill-registry">Skill Registry</h3>
+<p>Provides deterministic discovery and loading of repository-local Agent
+Skills.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>Discover skill directories containing <code>SKILL.md</code>.</li>
+<li>Validate required skill metadata and stable skill names.</li>
+<li>Return skill metadata without loading full instructions during
+  discovery.</li>
+<li>Load immutable Skill Definitions when requested.</li>
+<li>Reject missing, invalid, or out-of-root skill paths.</li>
+</ul>
+<p>The Platform Dispatcher configures the Skill Registry at the repository
+<code>skills/</code> directory. The current Documentation Workflow loads
+<code>strict-documentation-editor</code> only for source-grounded requests.</p>
+<hr />
 <h3 id="reasoning-service">Reasoning Service</h3>
 <p>Provides AI reasoning through an abstract provider interface.</p>
 <p>Responsibilities:</p>
@@ -2346,7 +2390,7 @@ repository update behavior.</p>
 <li>Generate proposed documentation updates.</li>
 <li>Explain proposed documentation changes.</li>
 </ul>
-<p>The Reasoning Service is implemented and integrated into the Documentation Workflow through an abstract provider interface.</p>
+<p>The Reasoning Service is implemented and integrated into the Documentation Workflow through an abstract provider interface. Reasoning Requests may carry loaded Agent Skills, and Prompt Builder appends active skill instructions to provider system instructions.</p>
 <hr />
 <h3 id="review-coordinator">Review Coordinator</h3>
 <p>Coordinates user review of individual proposed documentation changes.</p>
@@ -2382,6 +2426,8 @@ repository update behavior.</p>
 <p>Responsibilities:</p>
 <ul>
 <li>Coordinate Knowledge, Reasoning, Validation, Review, Repository Update, Artifact Location, and Git Diff services.</li>
+<li>Load the strict documentation skill for source-grounded requests.</li>
+<li>Preserve deterministic source-grounded proposal enforcement independently of skill instructions.</li>
 <li>Preserve internal workflow state.</li>
 <li>Produce immutable Documentation Workflow Results.</li>
 </ul>
@@ -2415,6 +2461,7 @@ repository update behavior.</p>
 <li>Source code modification by the Documentation Agent is outside the current architectural scope.</li>
 <li>The Dashboard Framework shall remain a reusable platform interface and shall not contain Documentation Agent business logic.</li>
 <li>Agent user interfaces shall render within Dashboard Work Areas rather than operating as independent applications.</li>
+<li>Agent Skills are repository-local capabilities; deterministic workflow safety and validation remain outside skill definitions.</li>
 </ul>
 <hr />
 <h2 id="7-future-architectural-expansion">7. Future Architectural Expansion</h2>

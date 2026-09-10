@@ -985,6 +985,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#phase-14-alignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 14 Alignment
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1439,6 +1450,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#phase-14-alignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 14 Alignment
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1483,7 +1505,7 @@
 <h1 id="documentation-agent-interface-design">Documentation Agent Interface Design</h1>
 <p><strong>Version:</strong> 0.2<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-16</p>
+<strong>Last Updated:</strong> 2026-09-09</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="phase-7-alignment">Phase 7 Alignment</h3>
@@ -1513,6 +1535,17 @@ independent of the specific document selection strategy used by the
 underlying services.</p>
 <p>Agent-specific UI behavior and presentation details remain outside these
 interfaces and are implemented by the Documentation Agent UI components.</p>
+<h3 id="phase-14-alignment">Phase 14 Alignment</h3>
+<p>Source-grounded Documentation Agent requests use the repository-local
+Project0 Agent Skills capability. When Ground Truth Source Paths are
+provided, the Documentation Workflow loads the
+<code>strict-documentation-editor</code> skill and includes the loaded skill in the
+Reasoning Request. Ordinary documentation requests without Ground Truth
+Source Paths preserve existing no-skill behavior.</p>
+<p>Skill definitions guide AI reasoning but do not replace deterministic
+workflow enforcement. Source-grounded proposal scope, location,
+content, and authoritative Python declaration checks remain workflow
+responsibilities.</p>
 <hr />
 <h2 id="revision-workflow-interface-behavior">Revision Workflow Interface Behavior</h2>
 <p>Documentation Agent interfaces support revision of generated documentation requests through the workflow interaction contract.</p>

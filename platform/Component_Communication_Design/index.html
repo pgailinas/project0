@@ -879,6 +879,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#skill-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Skill Registry
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#validation-service" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2003,6 +2014,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#skill-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Skill Registry
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#validation-service" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2323,7 +2345,7 @@
 <h1 id="component-communication-design">Component Communication Design</h1>
 <p><strong>Version:</strong> 0.5<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-02  </p>
+<strong>Last Updated:</strong> 2026-09-09  </p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <p>This document defines how Project0 platform components communicate. It establishes the implemented communication patterns, execution flow, interface responsibilities, shared model usage, and event handling.</p>
@@ -2349,6 +2371,7 @@
 <li>Repository Update Service</li>
 <li>Git Diff Service</li>
 <li>Artifact Location Service</li>
+<li>Skill Registry</li>
 <li>Documentation Workflow</li>
 <li>Research Workflow</li>
 </ul>
@@ -2410,6 +2433,7 @@
     A["Application Entry Point&lt;br/&gt;&lt;small&gt;main.py&lt;/small&gt;"]
     B["Platform Dispatcher"]
     C["Documentation Workflow"]
+    S["Skill Registry"]
 
     D["Knowledge Service"]
     E["Reasoning Service"]
@@ -2422,6 +2446,8 @@
     UI --&gt; A
     A --&gt; B
     B --&gt; C
+    B --&gt; S
+    S --&gt; C
     C --&gt; D
     D --&gt; E
     E --&gt; F
@@ -2437,10 +2463,10 @@
 <p>The implemented sequence is:</p>
 <ol>
 <li><code>main.py</code> creates the Platform Dispatcher.</li>
-<li>The Platform Dispatcher dispatches the Documentation Workflow.</li>
-<li>The Documentation Workflow requests repository knowledge from the Knowledge Service and coordinates artifact-based documentation modification through the Artifact Location Service.</li>
-<li>The Knowledge Service returns structured repository context.</li>
-<li>The Reasoning Service generates proposed documentation changes.</li>
+<li>The Platform Dispatcher dispatches the Documentation Workflow and provides the repository-local Skill Registry.</li>
+<li>For source-grounded documentation requests, the Documentation Workflow loads the <code>strict-documentation-editor</code> skill from the Skill Registry.</li>
+<li>The Documentation Workflow requests repository knowledge from the Knowledge Service for ordinary requests and uses only the requested target and authoritative source files for source-grounded requests, while coordinating artifact-based documentation modification through the Artifact Location Service.</li>
+<li>The Reasoning Service generates proposed documentation changes using any active skill instructions carried by the Reasoning Request.</li>
 <li>The Validation Service validates proposed documentation changes.</li>
 <li>The Review Coordinator processes each proposal individually.</li>
 <li>Approved changes are applied by the Repository Update Service.</li>
@@ -2463,6 +2489,8 @@
 <li>Return Documentation Workflow Results.</li>
 <li>Dispatch Research Workflows.</li>
 <li>Return Research Workflow Results.</li>
+<li>Configure and expose the repository-local Skill Registry.</li>
+<li>Provide the Skill Registry to the Documentation Workflow.</li>
 <li>Provide workflow state access through platform interfaces.</li>
 </ul>
 <h3 id="workflow-engine">Workflow Engine</h3>
@@ -2507,6 +2535,15 @@
 <li>Prevent access outside the repository root.</li>
 <li>Return structured repository results and errors.</li>
 </ul>
+<h2 id="skill-registry">Skill Registry</h2>
+<ul>
+<li>Discover repository-local Agent Skills from <code>skills/&lt;skill-name&gt;/SKILL.md</code>.</li>
+<li>Return skill metadata without loading full instructions during discovery.</li>
+<li>Load full immutable Skill Definitions when requested.</li>
+<li>Validate skill names, required frontmatter, and directory/name agreement.</li>
+<li>Reject unknown skills and paths outside the configured skills root.</li>
+<li>Preserve deterministic skill discovery order.</li>
+</ul>
 <h2 id="validation-service">Validation Service</h2>
 <ul>
 <li>Coordinate configured validators.</li>
@@ -2537,6 +2574,8 @@
 <h2 id="documentation-workflow">Documentation Workflow</h2>
 <ul>
 <li>Coordinate Knowledge, Reasoning, Validation, Review, Repository Update, Artifact Location, and Git Diff services.</li>
+<li>Load the <code>strict-documentation-editor</code> skill for source-grounded requests when a Skill Registry is configured.</li>
+<li>Preserve deterministic source-grounded proposal enforcement independently of skill instructions.</li>
 <li>Preserve internal workflow state.</li>
 <li>Return immutable Documentation Workflow Results.</li>
 </ul>
@@ -2558,6 +2597,8 @@
 <ul>
 <li>Define immutable communication objects.</li>
 <li>Provide shared workflow and task statuses.</li>
+<li>Provide Skill Metadata and Skill Definition models for repository-local Agent Skills.</li>
+<li>Allow Reasoning Requests to carry loaded Agent Skills.</li>
 <li>Provide Context Packages, Knowledge Results, Validation Results, Validator Results, Workflow Execution Results, Documentation Workflow Results, Documentation Reviews, Documentation Change Proposals, and Applied Documentation Changes.</li>
 <li>Preserve identifiers, timestamps, outputs, warnings, and errors.</li>
 </ul>
@@ -2674,6 +2715,8 @@
 <li>Repository-relative file access</li>
 <li>pytest unit and integration testing</li>
 <li>End-to-end Documentation Workflow orchestration</li>
+<li>Repository-local Agent Skill discovery and loading</li>
+<li>Active Agent Skill propagation through Reasoning Requests</li>
 <li>Repository update coordination</li>
 <li>Git diff generation</li>
 </ul>
@@ -2696,6 +2739,7 @@
 <li>Cloud execution</li>
 <li>Multiple concurrent workflows</li>
 <li>Additional AI agent types</li>
+<li>External Agent Skills only after trust validation and approval</li>
 <li>Enhanced dashboard monitoring</li>
 <li>Asynchronous workflow execution</li>
 </ul>
@@ -2721,6 +2765,7 @@ validated through comprehensive unit and integration testing.</p>
 <li>Platform Dispatcher</li>
 <li>Workflow Engine</li>
 <li>Knowledge Service</li>
+<li>Skill Registry</li>
 <li>Reasoning Service</li>
 <li>Validation Service</li>
 <li>Review Coordinator</li>
@@ -2729,6 +2774,12 @@ validated through comprehensive unit and integration testing.</p>
 <li>Documentation Workflow</li>
 <li>Documentation Workflow Results</li>
 </ol>
+<p>The implemented Agent Skills communication path uses a repository-local
+Skill Registry, immutable skill models, Reasoning Request skill
+propagation, and Prompt Builder injection of active skill instructions.
+The current Documentation Workflow uses
+<code>strict-documentation-editor</code> for source-grounded requests while
+deterministic proposal guards remain workflow responsibilities.</p>
 <p>The Research Agent also uses the Platform Dispatcher to execute the
 implemented Research Workflow through reusable Project0 platform
 services while preserving Research Agent-specific workflow

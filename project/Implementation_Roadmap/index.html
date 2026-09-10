@@ -785,6 +785,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#phase-14-project0-agent-skills-foundation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 14 --- Project0 Agent Skills Foundation
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1848,6 +1859,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#phase-14-project0-agent-skills-foundation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 14 --- Project0 Agent Skills Foundation
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1925,7 +1947,7 @@
 <h1 id="implementation-roadmap">Implementation Roadmap</h1>
 <p><strong>Version:</strong> 0.6<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-02</p>
+<strong>Last Updated:</strong> 2026-09-09</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="objective">Objective</h3>
@@ -2244,6 +2266,42 @@ literature analysis capabilities.</p>
 <li>Context-aware multi-query retrieval, bounded batch evaluation, and
     consolidated retained-paper results completed and validated.</li>
 </ul>
+<h3 id="phase-14-project0-agent-skills-foundation">Phase 14 --- Project0 Agent Skills Foundation</h3>
+<p>Establish a reusable platform-level Agent Skills capability using
+repository-local <code>SKILL.md</code> definitions.</p>
+<p>Primary activities:</p>
+<ul>
+<li>Define the Project0 Agent Skills platform contract.</li>
+<li>Implement local skill discovery and registration.</li>
+<li>Implement skill loading.</li>
+<li>Load only skills applicable to the current agent request.</li>
+<li>Integrate an initial Documentation Agent skill.</li>
+<li>Preserve deterministic workflow enforcement outside skill
+    definitions.</li>
+<li>Validate local skill selection and loading behavior.</li>
+</ul>
+<p>Deliverables:</p>
+<ul>
+<li>Project0 Agent Skills design.</li>
+<li>Repository-local <code>skills/&lt;skill-name&gt;/SKILL.md</code> structure.</li>
+<li>Skill registry and loading capability.</li>
+<li>Initial Documentation Agent skill.</li>
+<li>Unit and integration test coverage.</li>
+</ul>
+<p>Current progress:</p>
+<ul>
+<li>Repository-local Agent Skill models implemented.</li>
+<li>Skill discovery, validation, and loading implemented.</li>
+<li>Reasoning requests support loaded Agent Skills.</li>
+<li>Prompt construction includes active skill instructions and skill
+    metadata.</li>
+<li>Platform Dispatcher configures the repository-local Skill Registry.</li>
+<li>Source-grounded Documentation Workflows load the
+    <code>strict-documentation-editor</code> skill.</li>
+<li>Deterministic source-grounded proposal guards remain enforced by the
+    Documentation Workflow.</li>
+<li>Unit and integration coverage added for Agent Skills behavior.</li>
+</ul>
 <h2 id="4-implementation-dependencies">4. Implementation Dependencies</h2>
 <p>Implementation phases depend upon the completion of earlier foundational
 capabilities.</p>
@@ -2296,21 +2354,11 @@ architectural consistency and functional correctness.</p>
 <li>Additional AI reasoning providers.</li>
 <li>Expanded validation capabilities.</li>
 <li>Additional specialized AI agents.</li>
-<li>Project0 reusable AI worker/skill framework.<ul>
-<li>Maintain a common Project0 library of specialized AI worker
-    definitions available to any agent.</li>
-<li>Define worker files by specialized function, such as
-    <code>repository_analyst.md</code>, <code>documentation_reviewer.md</code>,
-    <code>source_researcher.md</code>, <code>source_evaluator.md</code>, and
-    <code>technical_writer.md</code>.</li>
-<li>Keep worker definitions distinct from deterministic Project0
-    services and components.</li>
-<li>Allow agents to select and compose appropriate workers with
-    Project0 services for their workflows.</li>
-<li>Load only worker definitions relevant to the current task rather
-    than the complete worker library.</li>
+<li>External Agent Skills support.<ul>
 <li>Evaluate external <code>SKILL.md</code> compatibility or import as a future
     extension.</li>
+<li>Require a trust-validation and approval mechanism before external
+    skills are installed or used.</li>
 </ul>
 </li>
 <li>Dashboard plugin architecture.</li>
