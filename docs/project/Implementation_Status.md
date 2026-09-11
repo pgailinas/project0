@@ -9,8 +9,7 @@
 ## Purpose and Authority
 
 This document summarizes Project0 capabilities visible in source, tests,
-templates, configuration, and Markdown documentation at commit
-`da217ae42f7ceeffc95a84c6baad3dc4376a18f9`.
+templates, configuration, and Markdown documentation.
 
 Status terms mean:
 
@@ -27,10 +26,6 @@ facts. Phase labels organize project history; they do not establish validation.
 The [Implementation Roadmap](Implementation_Roadmap.md) owns phase objectives
 and future sequencing. The [Testing Guide](Testing_Guide.md) owns commands, and
 the platform display record reports the Dashboard's current test text.
-
-The companion `Implementation_Status.pdf` and `Implementation_Status.ods` were
-not used as authority for this synchronization and may differ from the current
-Markdown, source, tests, or configuration.
 
 ## Current or Planned State
 
