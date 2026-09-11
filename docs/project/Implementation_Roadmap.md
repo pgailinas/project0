@@ -1,479 +1,404 @@
 # Implementation Roadmap
 
-**Version:** 0.6  
+**Version:** 0.8  
 **Owner:** Project0  
-**Last Updated:** 2026-09-09
+**Last Updated:** 2026-09-11
 
 ---
 
-## 1. Purpose
+## 1. Purpose and Status Authority
+
+This roadmap records Project0's phased implementation history, the capability delivered by each phase, the dependency sequence, current corrective priorities, and possible future expansion.
+
+The roadmap is not a test-results record. Repository-visible implementation and verification status belong in [Implementation Status](Implementation_Status.md) and [Project0 Test Results](../platform/Project0_Test_Results.md). A phase's presence in source does not by itself establish that every test or acceptance criterion passes at the current commit.
+
+The phases are historical planning boundaries. Ongoing work can improve an earlier phase without creating a new phase number.
+
+## 2. Delivery Strategy
+
+Project0 evolves through small, testable, end-to-end capabilities. Development emphasizes:
+
+- modular components with typed interfaces and models;
+- deterministic processing wherever model reasoning is unnecessary;
+- dependency injection and deterministic substitutes for testing;
+- human review before Documentation Workflow repository writes;
+- agent-specific behavior separated from reusable platform services;
+- source-grounded documentation and explicit limitations; and
+- validation throughout implementation rather than only at a final milestone.
+
+Priority is given to complete, reviewable vertical capabilities over disconnected architectural scaffolding. Architecture should evolve from demonstrated requirements while preserving clear ownership and stable contracts.
+
+## 3. Phase Summary
+
+| Phase | Name | Repository-visible state at pinned commit |
+| --- | --- | --- |
+| 1 | Foundation | Implemented |
+| 2 | Core Platform Services | Implemented |
+| 3 | Repository Knowledge Services | Implemented with in-memory, non-semantic retrieval boundaries |
+| 4 | AI Reasoning Integration | Implemented for Ollama and deterministic stub reasoning |
+| 5 | Validation Services | Implemented; default Documentation Workflow composition omits Documentation Consistency |
+| 6 | Workflow Integration | Implemented for Documentation review/update flow and Git diff generation |
+| 7 | Dashboard Framework | Implemented with documented shared limitations |
+| 8 | Documentation Agent User Interface | Implemented |
+| 9 | Testing and Verification | Test layers and sources implemented; current pinned-commit result not established |
+| 10 | Platform Validation Consolidation | Partially realized; no separate Platform Test Plan exists |
+| 11 | Research Agent Foundation and Functional Validation | Implemented in source and agent test suites |
+| 12 | Documentation Agent Enhancement | Implemented in source and tests |
+| 13 | Research Agent Context-Aware Literature Analysis | Implemented in source and tests |
+| 14 | Project0 Agent Skills Foundation | Implemented; current repository-wide verification incomplete |
+
+The status summary is deliberately more precise than the earlier blanket use of “completed.” Current source contains work corresponding to every phase, but the pinned audit could not establish an unconditional all-phases-passing result and identified repository-level gaps.
+
+## Phase 1 — Foundation
 
 ### Objective
 
-Define the phased implementation approach for developing the Project0
-platform and its initial Documentation AI Agent implementation.
+Establish the repository and runtime foundation required for Project0 development.
 
-### Scope
+### Delivered capability
 
-Describe the recommended implementation sequence, major development
-phases, dependencies, deliverables, validation strategy, and future
-expansion considerations. Implementation details, algorithms, and
-technology selections are intentionally excluded.
+- Python 3.12+ package metadata and `src` layout;
+- Markdown documentation organized for Material for MkDocs;
+- shared environment-based configuration;
+- application logging setup;
+- startup directory/file validation; and
+- project-level development, documentation, and testing guidance.
 
----
+### Repository evidence
 
-## 2. Implementation Strategy
+`pyproject.toml`, `mkdocs.yml`, `src/project0/config/`, `src/project0/common/`, `README.md`, and `docs/project/`.
 
-The Project0 platform and its initial Documentation AI Agent
-implementation shall be developed using an incremental, component-based
-approach. Each implementation phase builds upon the capabilities
-delivered by previous phases while maintaining a functional and testable
-system throughout development.
+### Current boundaries
 
-Implementation shall emphasize:
+No dependency lock, checked-in continuous-integration workflow, containerized environment, or formal cross-platform support matrix is present.
 
--   Incremental delivery of functionality.
--   Modular component implementation.
--   Deterministic processing whenever AI reasoning is not required.
--   Continuous validation throughout development.
--   Human review before documentation changes are applied.
--   Future extensibility through well-defined interfaces.
+## Phase 2 — Core Platform Services
 
-### Implementation Priority
+### Objective
 
-Project0 shall prioritize completing small, fully functional end-to-end
-workflows over implementing isolated architectural components. Platform
-architecture will continue to evolve based on implementation experience
-rather than attempting to define all architectural details before
-development begins.
+Implement reusable platform services required by agent workflows.
 
----
+### Delivered capability
 
-## 3. Implementation Phases
+- read-only Repository Service with containment and supported-file checks;
+- generic sequential Workflow Engine;
+- deterministic Context Builder;
+- shared protocols and typed models; and
+- Platform Dispatcher composition.
 
-### Phase 1 --- Foundation
+### Current boundaries
 
-Establish the project infrastructure required to support development.
+The generic Workflow Engine owns generic task sequences and the context workflow. The stateful Documentation Workflow and Research Workflow are dispatched directly through their dedicated coordinators; they are not orchestrated by the generic engine.
 
-Primary activities:
+## Phase 3 — Repository Knowledge Services
 
--   Configure the development environment.
--   Establish project structure.
--   Configure documentation generation.
--   Define shared configuration.
--   Establish logging and common utilities.
+### Objective
 
-Deliverables:
+Provide deterministic repository-document parsing, selection, and context formatting for reasoning workflows.
 
--   Initial project repository.
--   Build environment.
--   Documentation infrastructure.
--   Shared project configuration.
+### Delivered capability
 
----
+- Markdown parsing for headings, links, tags, metadata, and content;
+- per-request in-memory document indexing;
+- deterministic filtering and ranking;
+- bounded document selection;
+- formatted reasoning context; and
+- coordinated Knowledge Request/Result processing.
 
-### Phase 2 --- Core Platform Services
+### Current boundaries
 
-Implement the foundational platform services required by the
-Documentation AI Agent.
+The current Knowledge Service scans repository Markdown under `docs/` for each request. It has no embeddings, vector database, semantic search backend, or durable index.
 
-Primary activities:
+## Phase 4 — AI Reasoning Integration
 
--   Implement Repository Tools.
--   Implement the Workflow Engine.
--   Implement Context Builder.
--   Implement shared communication contracts.
--   Implement platform orchestration.
+### Objective
 
-Deliverables:
+Add provider-neutral, structured AI reasoning without moving deterministic policy into the model.
 
--   Functional Repository Services.
--   Functional Workflow Engine.
--   Initial Context Builder.
--   Working platform communication infrastructure.
+### Delivered capability
 
----
+- provider-neutral request and response models;
+- prompt construction with required response schemas;
+- Reasoning Service parsing and validation;
+- Ollama provider support;
+- deterministic stub provider behavior; and
+- structured documentation impacts, gaps, and change proposals.
 
-### Phase 3 --- Repository Knowledge Services
+### Current boundaries
 
-Implement and validate the deterministic repository knowledge subsystem
-that provides structured repository context for future AI reasoning.
+The executable Dashboard reasoning-provider factory accepts `ollama` and `stub`. Additional provider names are not implemented at that boundary. Model output remains subject to deterministic downstream validation and workflow rules.
 
-Primary activities:
+## Phase 5 — Validation Services
 
--   Implement repository document parsing.
--   Implement deterministic document indexing.
--   Implement deterministic document selection.
--   Implement context formatting.
--   Implement the Knowledge Service.
--   Validate the complete knowledge pipeline.
+### Objective
 
-Deliverables:
+Provide structured, composable validation for repository documentation.
 
--   Functional Knowledge Service.
--   Deterministic repository knowledge pipeline.
--   Structured Knowledge Request and Knowledge Result models.
--   Unit and integration test coverage.
--   Validated repository knowledge workflow.
+### Delivered capability
 
----
+- Markdown validation;
+- local-link and referenced-file validation;
+- strict MkDocs build validation;
+- documentation-consistency validation;
+- ordered validation aggregation; and
+- per-validator exception isolation with structured issues.
 
-### Phase 4 --- AI Reasoning Integration
+### Current boundaries
 
-Implement AI-assisted documentation analysis and generation.
+The default Documentation Workflow assembles Markdown, Link, and MkDocs validators. `DocumentationConsistencyValidator` is implemented and used explicitly in integration coverage but is not part of that default tuple. Source, tests, and documentation should be aligned before claiming it as a default workflow gate.
 
-Primary activities:
+## Phase 6 — Workflow Integration
 
--   Implement the Reasoning Service.
--   Integrate AI provider interfaces.
--   Generate proposed documentation updates.
--   Produce documentation impact explanations.
+### Objective
 
-Deliverables:
+Integrate documentation reasoning, review, controlled updates, validation, and Git diff reporting into a stateful workflow.
 
--   Functional Reasoning Service.
--   AI provider abstraction.
--   Documentation update generation.
+### Delivered capability
 
----
+- Documentation Workflow request and in-memory review state;
+- source-grounded gap analysis and proposal generation;
+- per-proposal review decisions;
+- constrained Markdown update application;
+- stale-content, path, extension, location, and anchor safeguards;
+- preliminary and final validation; and
+- Git diff generation and completion summaries.
 
-### Phase 5 --- Validation Services
+### Current boundaries
 
-Implement documentation validation capabilities.
+Workflow state is in process memory rather than durable storage. The platform does not automatically commit, push, open a pull request, publish, or deploy changes.
 
-Primary activities:
+Detailed behavior belongs in `docs/agents/documentation/`.
 
--   Validate Markdown.
--   Validate documentation consistency.
--   Validate links and referenced files.
--   Validate MkDocs build.
--   Generate validation reports.
+## Phase 7 — Dashboard Framework
 
-Deliverables:
+### Objective
 
--   Validation Engine.
--   Documentation validation services.
--   Validation reporting.
+Provide a shared browser shell for Project0 services and registered agent interfaces.
 
----
+### Delivered capability
 
-### Phase 6 --- Workflow Integration
+- FastAPI application and executable factory;
+- Jinja2 shared layout;
+- navigation and shared status presentation;
+- home, agent-launch, health, and documentation routes;
+- static CSS mounting;
+- agent route registration; and
+- fallback handling for unavailable agent routes.
 
-Integrate all architectural components into the complete documentation
-workflow.
+### Current boundaries
 
-Primary activities:
+`/activity` and `/settings` are navigation-only links without implemented pages. The shared Dashboard has no authentication, durable workflow history, server-side telemetry store, dynamic plugin registration, or automatic documentation-server startup. The displayed project-phase label is hard-coded and currently stale.
 
--   Integrate component interactions.
--   Implement proposed documentation change review workflow.
--   Apply approved documentation changes.
--   Generate Git diffs.
--   Produce completion summaries.
+## Phase 8 — Documentation Agent User Interface
 
-Deliverables:
+### Objective
 
--   End-to-end documentation workflow.
--   Integrated review process.
--   Complete documentation update capability.
--   Documentation Workflow orchestration.
--   Repository Update Service.
--   Git Diff Service.
--   Comprehensive unit and integration test coverage.
+Expose the Documentation Workflow through a Dashboard-hosted, human-review interface.
 
----
+### Delivered capability
 
-### Phase 7 --- Dashboard Framework
+- request entry;
+- proposal and difference presentation;
+- validation presentation;
+- per-proposal approve, revise, reject, and skip decisions; and
+- completion-result presentation through an agent-owned router, UI service, view models, templates, and CSS.
 
-Implement the browser-based Project0 Dashboard Framework that provides
-the shared user interface for the Project0 platform and future AI
-agents.
+Detailed behavior and validation remain in `docs/agents/documentation/`.
 
-Primary activities:
+## Phase 9 — Testing and Verification
 
--   Implement the FastAPI Dashboard Framework.
--   Establish the shared dashboard layout.
--   Implement platform-level navigation.
--   Implement shared dashboard routes.
--   Provide platform status presentation.
--   Integrate access to Project0 documentation.
--   Establish agent launcher and extension points.
--   Validate Dashboard Framework startup and routing.
+### Objective
 
-Deliverables:
+Establish deterministic unit, integration, and acceptance validation across platform and agent behavior.
 
--   Functional Dashboard Framework.
--   Shared browser user interface.
--   Dashboard routing infrastructure.
--   Documentation integration.
--   Platform status presentation.
--   Unit and integration test coverage.
+### Delivered capability
 
----
+- unit-test organization for models and components;
+- integration tests for assembled platform and agent workflows;
+- browser acceptance sources for Dashboard-hosted agent interfaces;
+- deterministic stub paths; and
+- reusable commands in `TEST_COMMANDS.md` and testing guides.
 
-### Phase 8 --- Documentation Agent User Interface
+### Current boundaries
 
-Implement the Documentation Agent user interface within the Project0
-Dashboard Framework.
+Test-source presence is not a pass result. Browser tests depend on Playwright packages and browser fixtures not declared in `pyproject.toml`. The pinned audit environment lacked pytest and could not establish a current regression count. One source file also fails Python compilation, as recorded below.
 
-Primary activities:
+## Phase 10 — Platform Validation Consolidation
 
--   Implement documentation request interface.
--   Implement documentation review workflow.
--   Present validation results.
--   Display documentation differences.
--   Support user approval workflow.
--   Integrate Documentation Agent services.
+### Objective
 
-Deliverables:
+Separate reusable platform verification ownership from agent-specific verification and consolidate platform test guidance and results.
 
--   Documentation Agent browser interface.
--   Documentation review workflow.
--   Documentation validation presentation.
--   Documentation workflow completion interface.
+### Delivered capability
 
----
+- platform-level Testing Guide;
+- shared Project0 Test Results record;
+- platform versus agent testing boundaries;
+- platform integration coverage; and
+- documentation-consistency rules for required documents and roadmap/status phase references.
 
-### Phase 9 --- Testing and Verification
+### Current boundaries
 
-Verify that the Documentation Agent satisfies the Functional
-Specification, Architecture, and Component Design documents.
+The earlier roadmap listed a platform test-coverage matrix and separate Project0 Platform Test Plan as deliverables. No separate Platform Test Plan file exists in the repository. The current Testing Guide and test sources supply much of that operational coverage, but the absent deliverable must not be reported as complete.
 
-Primary activities:
+## Phase 11 — Research Agent Foundation and Functional Validation
 
--   Perform component testing.
--   Perform integration testing.
--   Validate end-to-end workflows.
--   Verify documentation quality.
--   Verify user approval workflows.
+### Objective
 
-Deliverables:
+Add a second specialized agent and demonstrate reusable platform composition beyond the Documentation Agent.
 
--   Tested Documentation Agent.
--   Validation results.
--   Verification report.
+### Delivered capability
 
----
+- Research models and protocols;
+- strategy, query, source, metadata, evaluation, artifact, and workflow services;
+- Semantic Scholar, OpenAlex, OpenReview, Crossref, arXiv, and stub source adapters;
+- Dashboard registration and agent-owned interface layers; and
+- agent-specific unit, integration, and browser acceptance sources.
 
-### Phase 10 --- Platform Validation Consolidation
+Detailed requirements, architecture, behavior, and test evidence remain in `docs/agents/research/`.
 
-Establish formal platform-level validation documentation and
-verification ownership before expanding Project0 beyond the initial
-Documentation Agent implementation.
+## Phase 12 — Documentation Agent Enhancement
 
-Primary activities:
+### Objective
 
--   Define platform testing ownership boundaries.
--   Create a Project0 platform test coverage matrix.
--   Map existing tests to reusable platform capabilities.
--   Identify platform capabilities currently validated indirectly
-    through agent testing.
--   Create the Project0 Platform Test Plan.
--   Create the Project0 Platform Test Results record.
--   Verify separation between platform validation and agent-specific
-    validation.
--   Confirm complete regression baseline remains passing.
+Improve source-grounded documentation maintenance and controlled, localized updates.
 
-Deliverables:
+### Delivered capability
 
--   Project0 platform test coverage matrix.
--   Project0 Platform Test Plan.
--   Project0 Platform Test Results.
--   Documented platform versus agent testing ownership model.
+- explicit source and target context;
+- two-stage gap and proposal reasoning for source-grounded work;
+- artifact-location discovery and validation;
+- localized proposal handling;
+- source-evidence and target-scope guards;
+- stale-content protection; and
+- deterministic enforcement outside model instructions.
 
----
+Detailed behavior remains in the dedicated Documentation Agent documentation.
 
-### Phase 11 --- Research Agent Foundation and Functional Validation
+## Phase 13 — Research Agent Context-Aware Literature Analysis
 
-Design, implement, and validate the second Project0 AI Agent to
-demonstrate reusable multi-agent development.
+### Objective
 
-Primary activities:
+Extend literature retrieval into evidence-aware analysis that can incorporate optional existing research context.
 
--   Define Research Agent charter.
--   Define Research Agent functional requirements.
--   Define Research Agent architecture.
--   Identify required platform capability extensions.
--   Define Research Agent interfaces and data models.
--   Define Research Agent testing strategy.
--   Implement Research Agent workflow, Dashboard integration, and
-    validation paths.
--   Validate Research Agent through unit, integration, and acceptance
-    testing.
+### Delivered capability
 
-Deliverables:
+- PDF, Markdown, and text context ingestion;
+- existing-context analysis with provenance;
+- context-aware strategy and multi-query retrieval;
+- bounded source and evaluation processing;
+- research-paper evidence acquisition;
+- per-paper analysis;
+- consolidated retained-paper evaluation;
+- cross-paper synthesis;
+- evidence-grounded Research Direction Analysis; and
+- workflow and Dashboard integration while preserving no-context execution.
 
--   Research Agent Charter.
--   Research Agent Functional Specification.
--   Research Agent Architecture Design.
--   Research Agent Interface Design.
--   Research Agent Data Models.
--   Research Agent Test Plan.
--   Research Agent Test Results.
--   Functional Research Agent implementation.
--   Validated Research Agent workflow integration.
--   Research Agent V1 validation results.
+Detailed behavior and limitations remain in the dedicated Research Agent documentation.
 
-### Phase 12 --- Documentation Agent Enhancement
+## Phase 14 — Project0 Agent Skills Foundation
 
-Improve Documentation Agent capabilities based on validation findings
-from controlled documentation maintenance workflows.
+### Objective
 
-Primary activities:
+Establish repository-local, reusable Agent Skills while preserving deterministic workflow enforcement.
 
--   Improve semantic document preservation.
--   Maintain minimal-diff documentation updates.
--   Validate existing document structure preservation.
+### Delivered capability
 
-Deliverables:
+- `skills/<skill-name>/SKILL.md` repository structure;
+- immutable skill metadata and loaded-definition models;
+- deterministic discovery, validation, and loading;
+- active-skill propagation through Reasoning Requests;
+- skill instructions and metadata in provider prompts;
+- Platform Dispatcher Skill Registry assembly;
+- source-grounded Documentation Workflow selection of `strict-documentation-editor`; and
+- skill-related unit and integration test source.
 
--   Enhanced Documentation Agent maintenance workflow.
--   Improved documentation artifact preservation.
+### Current boundaries
 
-### Phase 13 --- Research Agent Context-Aware Literature Analysis
+The Research Workflow does not receive or select from the shared Skill Registry. External skill discovery, installation, trust validation, approval, version management, and remote distribution are not implemented. Skills guide model behavior; deterministic workflow policy remains in Python.
 
-Extend the validated Research Agent foundation with context-aware
-literature analysis capabilities.
+## 4. Dependency Direction
 
-Primary activities:
+The implemented dependency direction is:
 
--   Support optional existing research context documents.
--   Analyze existing research context while preserving source
-    provenance.
--   Produce structured per-paper analysis.
--   Produce cross-paper synthesis.
--   Identify evidence-grounded candidate research directions.
--   Validate research analysis references and provenance.
--   Preserve existing Research Agent behavior when no context document
-    is provided.
+1. repository configuration and startup validation;
+2. shared models and protocol interfaces;
+3. repository, context, knowledge, reasoning-provider, artifact, skill, and validation services;
+4. generic and agent-specific workflow coordinators;
+5. Platform Dispatcher composition;
+6. agent UI services and routers; and
+7. Dashboard application composition and presentation.
 
-Deliverables:
+Key sequencing principles are:
 
--   Existing Research Context processing.
--   Structured per-paper analysis.
--   Research Direction Analysis.
--   Cross-paper synthesis.
--   Evidence-grounded candidate research directions.
--   Validated Research Agent context-aware literature analysis workflow.
+- repository access before repository analysis;
+- deterministic context/knowledge selection before source-grounded reasoning;
+- provider-neutral reasoning boundaries before agent-specific model use;
+- validation and controlled-update services before applying reviewed changes;
+- shared Dashboard infrastructure before agent UI integration; and
+- deterministic platform/agent testing before live-provider validation.
 
-Current progress:
+Agent workflows can depend on shared platform services. Shared platform services should not acquire agent-specific UI or domain responsibilities.
 
--   Existing Research Context processing completed and validated.
--   Context-aware Research Strategy integration completed and validated.
--   Existing Research Context Dashboard integration completed and
-    validated.
--   Structured per-paper analysis completed and validated.
--   Research Workflow per-paper analysis integration completed and
-    validated.
--   Research evaluation missing-paper retry behavior completed and
-    validated.
--   Research Direction Analysis and evidence validation completed and
-    validated.
--   Context-aware multi-query retrieval, bounded batch evaluation, and
-    consolidated retained-paper results completed and validated.
+## 5. Verification Strategy
 
-### Phase 14 --- Project0 Agent Skills Foundation
+Verification is continuous and layered:
 
-Establish a reusable platform-level Agent Skills capability using
-repository-local `SKILL.md` definitions.
+- focused unit tests for services, models, providers, routes, registries, and workflows;
+- integration tests for real assembled component boundaries;
+- browser acceptance tests for externally observable Dashboard-hosted behavior;
+- strict documentation builds;
+- source-compilation checks;
+- optional live-provider and runtime checks separated from deterministic regression; and
+- final source, documentation, and roadmap/status consistency review.
 
-Primary activities:
+Results must identify the exact source state and environment. Historical counts cannot establish the status of a later commit. Skips, unavailable tools, environment limitations, and failures must be reported rather than converted into implied success.
 
--   Define the Project0 Agent Skills platform contract.
--   Implement local skill discovery and registration.
--   Implement skill loading.
--   Load only skills applicable to the current agent request.
--   Integrate an initial Documentation Agent skill.
--   Preserve deterministic workflow enforcement outside skill
-    definitions.
--   Validate local skill selection and loading behavior.
+## 6. Current Corrective Priorities
 
-Deliverables:
+The following work is supported by verified repository gaps at commit `da217ae42f7ceeffc95a84c6baad3dc4376a18f9`:
 
--   Project0 Agent Skills design.
--   Repository-local `skills/<skill-name>/SKILL.md` structure.
--   Skill registry and loading capability.
--   Initial Documentation Agent skill.
--   Unit and integration test coverage.
+1. Remove Markdown fences from `src/project0/interfaces/knowledge_interfaces.py` and restore clean source compilation.
+2. Decide whether Documentation Consistency belongs in the default Documentation Workflow validator tuple; then align implementation, tests, and documentation.
+3. Replace or derive the Dashboard's hard-coded project-phase label from an authoritative status source.
+4. Declare the browser acceptance dependencies and browser-installation procedure, or maintain a clearly separate supported acceptance environment.
+5. Add substantive tests to effectively empty test modules or remove placeholders that imply coverage.
+6. Re-run Python compilation, the complete pytest suite, and `mkdocs build --strict` against the corrected commit and record the exact result.
+7. Add continuous integration only after its supported environment and required gates are defined.
 
-Current progress:
+These corrective items improve the current baseline; they are not evidence that the corresponding phases were absent.
 
--   Repository-local Agent Skill models implemented.
--   Skill discovery, validation, and loading implemented.
--   Reasoning requests support loaded Agent Skills.
--   Prompt construction includes active skill instructions and skill
-    metadata.
--   Platform Dispatcher configures the repository-local Skill Registry.
--   Source-grounded Documentation Workflows load the
-    `strict-documentation-editor` skill.
--   Deterministic source-grounded proposal guards remain enforced by the
-    Documentation Workflow.
--   Unit and integration coverage added for Agent Skills behavior.
+## 7. Roadmap Success Criteria
 
-## 4. Implementation Dependencies
+The current Project0 baseline is considered verified only when:
 
-Implementation phases depend upon the completion of earlier foundational
-capabilities.
+- implemented component interfaces operate according to their typed contracts;
+- deterministic platform, Documentation, and Research workflows pass their applicable tests;
+- repository-writing workflows preserve human review and safety constraints;
+- browser interfaces pass applicable acceptance scenarios in a supported environment;
+- documentation validation and source compilation complete without errors;
+- current status and test-result documents identify the validated commit and environment;
+- known gaps are resolved or explicitly accepted as limitations; and
+- implemented behavior remains aligned across source, tests, configuration, templates, and documentation.
 
-Key dependencies include:
-
--   Repository infrastructure before repository analysis.
--   Deterministic repository knowledge services before AI reasoning.
--   AI reasoning before workflow integration.
--   Workflow integration before end-to-end validation.
--   Validation services before final system verification.
--   Dashboard Framework before agent user interfaces.
--   Shared Dashboard Framework before Documentation Agent interface
-    implementation.
--   Platform validation before additional agent development.
-
----
-
-## 5. Validation Strategy
-
-Validation shall be performed throughout implementation to verify
-architectural consistency and functional correctness.
-
-Validation activities include:
-
--   Component verification.
--   Interface verification.
--   Documentation validation.
--   Documentation workflow verification.
--   End-to-end functional validation.
-
----
-
-## 6. Success Criteria
-
-Implementation is considered complete when:
-
--   All architectural components have been implemented.
--   Component interfaces operate correctly.
--   Documentation workflows execute successfully.
--   Documentation validation completes without errors.
--   Human approval workflows function as designed.
--   The implemented system satisfies the Documentation Agent Functional
-    Specification, Architecture, and Component Design documents.
--   The Dashboard Framework successfully hosts platform services and
-    registered AI agents.
-
----
+These are repository-wide verification criteria, not a claim that they were satisfied by the pinned audit commit.
 
 ## 8. Future Expansion
 
-Future implementation efforts may include:
+Potential future work, not current capability or a committed schedule:
 
--   Multi-agent collaboration.
--   Semantic repository services.
--   Embedding generation.
--   Vector-based repository search.
--   Additional AI reasoning providers.
--   Expanded validation capabilities.
--   Additional specialized AI agents.
--   External Agent Skills support.
-    -   Evaluate external `SKILL.md` compatibility or import as a future
-        extension.
-    -   Require a trust-validation and approval mechanism before external
-        skills are installed or used.
--   Dashboard plugin architecture.
--   Additional agent interface implementations.
+- semantic, embedding, or vector-based repository retrieval;
+- durable workflow, review, and audit storage;
+- asynchronous or distributed workflows;
+- additional reasoning providers;
+- expanded validation, security, and static analysis;
+- performance and benchmark testing;
+- additional specialized agents;
+- shared Research Agent skill selection;
+- external Agent Skill trust, approval, installation, and lifecycle management;
+- dynamic plugin and agent registration;
+- authentication and role-based access;
+- deployment automation; and
+- CI/CD workflows.
+
+Future phases should be added only when scope, ownership, dependencies, deliverables, and validation criteria are sufficiently defined.

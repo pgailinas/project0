@@ -1,319 +1,416 @@
 # Development Standards
 
-**Version:** 0.4  
+**Version:** 0.6  
 **Owner:** Project0  
-**Last Updated:** 2026-08-26
-
-------------------------------------------------------------------------
-
-## Purpose
-
-This document defines the engineering standards used for Project0 development.
-
-The goal is to establish consistent practices that support:
-
-- Maintainable architecture
-- Controlled complexity
-- Clear engineering decisions
-- Effective human and AI collaboration
-- Reliable software evolution
-
-These standards represent the principles used when designing, implementing, and maintaining Project0.
+**Last Updated:** 2026-09-11
 
 ---
 
-# Engineering Principles
+## 1. Purpose and Scope
 
-## 1. Reuse Proven Solutions
+This document defines the engineering standards for designing, implementing, testing, documenting, and reviewing Project0 changes. The standards apply to human- and AI-assisted work across the shared platform, Dashboard, Documentation Agent, Research Agent, tests, and repository documentation.
 
-Reuse proven solutions whenever practical.
+The goals are to support:
 
-Innovation should be introduced only when it provides measurable value.
+- maintainable architecture;
+- controlled complexity;
+- clear engineering decisions;
+- safe and minimal change;
+- effective human and AI collaboration;
+- deterministic validation; and
+- reliable software evolution.
 
-Project0 should avoid unnecessary complexity introduced by adopting new technologies, frameworks, or patterns without a clear benefit.
+Current repository source, tests, configuration, templates, and documentation provide the implementation context for these standards. Where a standard and the implementation differ, record the discrepancy rather than describing an unimplemented convention as current behavior.
 
----
+## 2. Core Engineering Principles
 
-## 2. Every Component Must Earn Its Place
+### 2.1 Reuse Proven Solutions
 
-Every component must provide a clear purpose.
+Reuse proven solutions whenever practical. Introduce novel technology, frameworks, patterns, or custom infrastructure only when they solve a demonstrated problem or provide measurable value.
 
-Before adding a new:
+### 2.2 Every Component Must Earn Its Place
 
-- Service
-- Library
-- Framework
-- Abstraction
-- Agent capability
-- Infrastructure dependency
+Before adding a service, library, abstraction, agent capability, provider, or infrastructure dependency, identify:
 
-identify:
+- the problem being solved;
+- why existing components are insufficient;
+- the expected benefit;
+- the integration and operational cost; and
+- how the new capability will be tested and maintained.
 
-- The problem being solved
-- Why existing components are insufficient
-- The measurable value provided
+Components without a clear responsibility or benefit increase coupling and maintenance cost.
 
-Components that do not provide sufficient value increase maintenance cost and architectural complexity.
+### 2.3 Select Technology on Engineering Merit
 
----
+Evaluate technology against Project0 requirements, maturity, maintainability, stability, community support, integration complexity, licensing, security, and operational impact. Prefer mature open-source components unless a commercial component offers a clear advantage that justifies its cost and dependency.
 
-## 3. Technology Selection
+### 2.4 Design Before Implementation
 
-Never adopt a tool simply because it is popular.
+Establish the design boundary before writing production code. The design should identify, at the level appropriate to the change:
 
-Technology decisions should consider:
+- responsibilities and ownership;
+- public interfaces and data contracts;
+- control and data flow;
+- dependencies;
+- error and degraded-mode behavior;
+- state and persistence boundaries;
+- security constraints; and
+- unit, integration, and acceptance validation.
 
-- Project requirements
-- Long-term maintainability
-- Stability
-- Community support
-- Integration complexity
-- Operational impact
+The amount of design should match the change. A localized defect does not require a new architecture document, while a new workflow or shared component requires an explicit contract.
 
-Prefer mature open-source components unless a commercial component provides a clear and measurable advantage.
+### 2.5 Maintain Shared Language
 
-### Runtime Configuration and Secrets
+Project0 uses AI-assisted engineering. Terms, model names, statuses, component ownership, and architectural decisions must be stated consistently in source and documentation. Shared language reduces ambiguity for both human contributors and AI tools.
 
-Runtime configuration should be externalized when values vary by environment or contain sensitive information.
+### 2.6 Prefer Explicit, Understandable Systems
 
-Project0 configuration should follow this precedence:
+Favor simple designs, typed contracts, explicit dependencies, bounded workflows, and readable implementations over implicit behavior or speculative abstraction. Complexity is acceptable only when its value is visible and testable.
 
-- Explicit shell environment variables
-- Conda environment variables
-- Application defaults
+## 3. Sources of Truth and Change Grounding
 
-Persistent local configuration should be associated with the dedicated Project0 Conda environment.
+### 3.1 Repository Ground Truth
 
-Secrets, including API keys, must not be:
+For implementation work, inspect the current target branch or supplied repository baseline before proposing changes. Source, tests, configuration, templates, and dependency declarations are authoritative for implemented behavior. Do not assume a class, route, option, provider, field, test, or workflow exists without verifying it.
 
-- Committed to Git
-- Embedded in source code
-- Embedded in tests
-- Written to logs
-- Displayed in the user interface
+For documentation synchronization, implementation and automated tests override stale prose. Historical documents can supply intent, but unsupported claims must not be preserved merely because they already exist.
 
-Tests should use non-sensitive dummy values when secret-dependent behavior must be validated.
+### 3.2 Supplied-File or Strict-Mode Ground Truth
 
----
+When a task explicitly supplies files as the modification baseline:
 
-## 4. Design Before Implementation
+- treat those exact files as authoritative within the task's stated scope;
+- do not silently substitute a different checkout or remembered version;
+- inspect all supplied dependencies needed to validate the requested change;
+- preserve unrelated content and existing structure; and
+- report when the supplied files are insufficient or conflict with the designated repository authority.
 
-Before creating code, establish a shared design concept.
+“Strict mode” does not make an isolated file globally authoritative over its actual dependencies. It constrains the edit baseline and scope while requiring verified compatibility with the evidence the user designated.
 
-The design should define:
+### 3.3 Evidence Before Assumption
 
-- Component responsibilities
-- Interfaces
-- Data flow
-- Dependencies
-- Error handling
-- Testing approach
+Before adding or changing code, verify:
 
-Implementation should follow an agreed design rather than allowing architecture to emerge accidentally through incremental coding.
+- referenced names exist and are in scope;
+- imports and package boundaries are correct;
+- parameters, return types, enums, and status values match their consumers;
+- routes, templates, CSS, and view models agree where UI behavior is involved;
+- environment variables and defaults match configuration source;
+- filesystem paths are resolved and validated consistently; and
+- tests exercise the relevant public behavior.
 
----
+If evidence is incomplete, state the uncertainty or request the missing source rather than inventing behavior.
 
-## 5. Shared Language With AI
+## 4. Architecture and Interface Standards
 
-Project0 development uses AI-assisted engineering.
+### 4.1 Single, Clear Responsibility
 
-Effective collaboration requires a shared language between human contributors and AI tools.
+Each component should own one coherent responsibility. Avoid duplicate behavior, hidden dependencies, cross-layer shortcuts, and excessive coupling.
 
-Project terminology, architectural concepts, component responsibilities, and design decisions should be explicitly documented.
+Keep shared platform responsibilities separate from agent-specific workflow and interface behavior. Agent-specific services belong in their agent package unless the capability is demonstrably reusable.
 
-This shared understanding reduces ambiguity and improves development consistency.
+### 4.2 Interface-First Boundaries
 
----
+Define behavior at public boundaries before binding callers to a concrete implementation. Project0 uses typed `Protocol` interfaces for workflow, repository, context, reasoning, validation, artifact, and Research services. New interfaces should be introduced when they establish a useful substitutable boundary—not merely to wrap one implementation without benefit.
 
-## 6. Interface-First Development
+Public interfaces should specify:
 
-Design the interface and delegate the implementation.
+- accepted inputs;
+- returned models;
+- observable state transitions;
+- expected failure behavior; and
+- ownership of side effects.
 
-Interfaces define:
+Implementation details remain internal unless callers depend on them.
 
-- Component responsibilities
-- Expected behavior
-- Integration boundaries
-- Testing contracts
+### 4.3 Dependency Injection
 
-Implementation details should remain internal unless they are part of the defined interface.
+Pass collaborators into services, workflows, and UI adapters where practical. Dependency injection should make deterministic substitutes possible and prevent production services from being constructed inside domain logic. Assembly belongs at composition boundaries such as the Platform Dispatcher and executable Dashboard factory.
 
----
+### 4.4 Data Models and Status Values
 
-# Code Modification Standards
+Use typed shared models for cross-component data. Follow current Project0 patterns where appropriate:
 
-## 7. Repository Source Is Authoritative
+- dataclasses for request, result, state, and value objects;
+- `frozen=True` and `slots=True` for stable shared records;
+- tuples for stable collections;
+- `StrEnum` for contract values; and
+- explicit optional fields rather than sentinel strings.
 
-When modifying existing code:
+Do not introduce a generic envelope or base model unless multiple implemented consumers need it. Preserve exact enum strings and field meanings because they are part of the contract.
 
-- The current repository file is the source of truth.
-- Existing implementation must be inspected before proposing changes.
-- Changes must respect existing structure, conventions, and architecture.
+### 4.5 Workflow Ownership and Observability
 
-Do not assume code exists that has not been verified.
+Do not assume every workflow uses the generic Workflow Engine. The generic context workflow, stateful Documentation Workflow, and Research Workflow have distinct orchestration and result contracts.
 
----
+Workflow implementations should make it possible to determine:
 
-## 8. Strict Mode Changes
+- the workflow identifier and status;
+- the current or terminal boundary;
+- completed and failed stages;
+- warnings and error information;
+- the expected next action when review or recovery is possible;
+- what state is retained; and
+- whether state is in-memory or durable.
 
-When a file is provided as the basis for a modification:
+Logs and result models should identify the first meaningful failure boundary rather than only presenting a final generic error.
 
-- Treat the file as authoritative.
-- Modify only the provided version.
-- Preserve existing imports, naming, and structure.
-- Avoid unrelated cleanup or refactoring.
-- Add only code required for the requested change.
+### 4.6 Incremental Capability Growth
 
----
+New functionality must build on current architecture, preserve unrelated behavior, include appropriate tests, update affected documentation, and record material design decisions. Avoid architecture changes hidden inside defect fixes.
 
-## 9. Validate Before Adding Code
+## 5. Code Standards
 
-Before introducing code:
+### 5.1 Python and Package Structure
 
-Verify:
+- Support Python 3.12 or later, as declared in `pyproject.toml`.
+- Keep production code under `src/project0/` and use absolute `project0...` imports across package boundaries.
+- Execute installed modules with `python -m ...`; do not rely on direct execution of files within the `src` tree.
+- Add new dependencies to `pyproject.toml` and install from repository metadata rather than documenting ad hoc manual installation as the normal path.
 
-- Referenced variables exist.
-- Variables are in scope.
-- Required imports are present.
-- Function parameters match usage.
-- Return values match expectations.
-- Existing patterns are followed.
+### 5.2 Source File Headers
 
-Code suggestions should be compatible with the current implementation, not an assumed implementation.
+Python source files must begin with the standard Project0 header identifying the owning component, filename, and concise purpose. Follow the exact header definition in [Documentation Standards](Documentation_Standards.md).
 
----
+### 5.3 Type Contracts
 
-## 10. Minimal Change Principle
+- Type public parameters and return values.
+- Use `Protocol` for meaningful substitutable service boundaries.
+- Prefer explicit domain types and enums over unvalidated string conventions.
+- Keep optionality accurate; do not claim a value is always present when failure or partial-result paths omit it.
+- Avoid `Any` unless the boundary is intentionally extensible, such as metadata or provider-defined payloads.
 
-Prefer the smallest change that solves the identified problem.
+### 5.4 Naming and Readability
 
-Avoid:
+- Use descriptive module, class, method, variable, and test names.
+- Keep terminology aligned with the corresponding model and documentation.
+- Prefer small cohesive methods and explicit control flow.
+- Add comments and docstrings to explain responsibility, contract, or non-obvious reasoning; do not restate self-explanatory code.
+- Preserve the repository's existing formatting and naming style in localized changes.
 
-- Unrelated refactoring
-- Introducing new abstractions without justification
-- Changing architecture during defect correction
+The repository currently does not declare a formatter, linter, type checker, or their configuration in `pyproject.toml`. Do not claim a specific tool's output as a required gate until it is adopted and configured.
 
-Each change should have a clearly identified purpose.
+### 5.5 Paths and Repository Safety
 
----
+- Accept repository-relative paths at repository/workflow boundaries where the current contract requires them.
+- Resolve and validate paths before reading or writing.
+- Reject traversal outside the configured repository root.
+- Restrict update operations to the artifact types and locations explicitly supported by the service.
+- Preserve unrelated files and user changes.
+- Prefer atomic or recoverable writes when modifying repository content.
 
-## 11. Diagnostic Changes
+### 5.6 Side Effects
 
-Temporary diagnostic changes should:
+Keep filesystem writes, network calls, model calls, process execution, and Git operations behind clear service boundaries. A method that performs a side effect should expose its success/failure contract and should not perform unrelated mutations.
 
-- Have a specific debugging purpose.
-- Be inserted only after verifying the correct location.
-- Follow existing project logging conventions.
-- Include a plan for removal or permanent adoption.
+## 6. Change-Implementation Standards
 
-Diagnostic code should be removed after the underlying issue is resolved unless it provides ongoing operational value.
+### 6.1 Minimal Change Principle
 
----
+Make the smallest coherent change that solves the verified problem. Avoid unrelated cleanup, broad renaming, dependency upgrades, speculative extensibility, or refactoring during a focused fix.
 
-## 12. Structured Debugging and Fault Isolation
+Minimal does not mean incomplete. Update every directly affected producer, consumer, interface, test, template, configuration item, and document required to keep the change internally consistent.
 
-Debugging should identify the first point where system behavior deviates from the expected design.
+### 6.2 Preserve Existing Behavior
 
-Use a structured fault isolation process:
+Identify the behavior that must remain stable and protect it with existing or new regression tests. Do not change public contracts incidentally. When a contract must change, update callers and document compatibility consequences explicitly.
 
-- Identify a known-good state.
-- Identify the observed failure state.
-- Narrow the failure boundary by examining intermediate states or components.
-- Verify assumptions at each boundary.
+### 6.3 Diagnostic Changes
 
-Avoid random inspection of individual code sections without first reducing the possible failure area.
+Temporary diagnostics must:
 
-For workflow-based systems, debugging should focus on state transitions and lifecycle behavior rather than only function execution.
+- answer a specific debugging question;
+- be placed at a verified failure boundary;
+- follow existing logging conventions;
+- avoid secrets and excessive payloads; and
+- include a removal or permanent-adoption decision.
 
----
+Remove temporary diagnostics after resolution unless they provide justified ongoing operational value.
 
-## 13. Testing Preservation
+### 6.4 Structured Fault Isolation
 
-Changes should preserve existing functionality.
+Debug from evidence:
 
-The development process should maintain confidence through:
+1. define expected and observed behavior;
+2. identify a known-good state;
+3. locate the first failing boundary;
+4. inspect relevant inputs, state transitions, and outputs;
+5. test the smallest plausible cause; and
+6. verify the correction at the failing boundary and through affected integrations.
 
-- Unit testing
-- Integration testing
-- Acceptance testing where applicable
+For workflows, trace lifecycle state and review/persistence boundaries. For UIs, trace route, service, view model, template, and stylesheet behavior together. For external providers, separate deterministic contract tests from live-service behavior.
 
-A successful change improves capability without reducing system reliability.
+### 6.5 No Silent Failure
 
----
+Do not discard errors or warnings without a defined reason. Follow the boundary's implemented contract:
 
-# Architecture Standards
+- return structured result errors where that service defines them;
+- convert expected provider or validator failures as designed;
+- raise an appropriate exception for invalid construction or unsupported calls; and
+- translate lower-level failures into clear user-facing messages at the UI boundary.
 
-## 14. Workflow State Observability
+Never expose secrets or unnecessary technical details in user-facing errors.
 
-Components that manage workflows should provide visibility into important lifecycle transitions and maintain clear workflow contracts.
+## 7. Configuration, Secrets, and Security
 
-Workflow debugging and maintenance should make it possible to determine:
+### 7.1 Runtime Configuration
 
-- Current workflow state
-- Expected next state
-- Completed transitions
-- Failed transitions
-- Persisted workflow information
-- Public workflow results versus internal workflow state boundaries
+Externalize values that vary by environment. `ProjectSettings` reads process environment variables at import time and applies source defaults when variables are absent.
 
-A failure should identify where the workflow stopped progressing rather than only reporting the final visible error.
+Shell exports and Conda environment variables do not form separate precedence layers inside Project0; both supply the process environment. The value visible to the launched process wins according to the shell/Conda environment setup.
 
----
+### 7.2 Secrets
 
-## 15. Clear Responsibilities
+Secrets and credentials must not be:
 
-Each component should have a well-defined responsibility.
+- committed to Git;
+- embedded in production source or documentation;
+- embedded as real values in tests or fixtures;
+- logged;
+- rendered in user interfaces; or
+- included in exceptions, diffs, or generated artifacts intended for sharing.
 
-Avoid:
+Use environment variables for supported local credentials. Tests must use clearly non-sensitive dummy values and must not contact live services unless the test is explicitly classified as live integration validation.
 
-- Duplicate functionality
-- Hidden dependencies
-- Excessive coupling
+### 7.3 External Content and Providers
 
-Components should communicate through defined interfaces.
+Treat repository files, uploaded content, remote metadata, model output, and provider responses as untrusted input at their boundaries. Validate shape, type, required fields, size, paths, and supported operations before use. Preserve evidence provenance where research or documentation claims depend on external material.
 
----
+### 7.4 Logging
 
-## 16. Controlled Complexity
+- Use module-level loggers obtained with `logging.getLogger(__name__)`.
+- Configure logging at executable composition boundaries.
+- Select an appropriate level: debug for diagnostic detail, info for lifecycle milestones, warning for degraded but continuing behavior, and error/exception for failures.
+- Avoid duplicate logging of the same exception at multiple layers unless each message adds distinct context.
+- Never log API keys, credentials, complete sensitive inputs, or unnecessary model/provider payloads.
 
-Complexity should be introduced only when it provides measurable value.
+## 8. Testing Standards
 
-Prefer:
+### 8.1 Test Every Material Change
 
-- Simple designs
-- Explicit interfaces
-- Clear workflows
-- Understandable implementations
+Production changes require tests at the lowest effective layer and at additional boundaries where integration or user-visible behavior could regress.
 
-over unnecessary abstraction.
+- Unit tests verify one component or contract in isolation.
+- Integration tests verify collaboration between production components.
+- Acceptance tests verify behavior through the intended external boundary, including browser UI behavior where applicable.
 
----
+Agent-specific behavior belongs in the corresponding agent test suite; shared service behavior belongs in platform tests. One does not replace the other.
 
-## 17. Incremental Capability Growth
+### 8.2 Determinism and Isolation
 
-Project0 should evolve through controlled capability additions.
+- Keep the regression suite independent of live networks, external AI services, and mutable external state whenever practical.
+- Use injected stubs with contract-correct deterministic outputs.
+- Keep tests isolated from each other and from the developer's real repository content or credentials.
+- Use temporary directories and explicit fixtures for filesystem behavior.
+- Do not use arbitrary sleep delays as synchronization or acceptance criteria.
 
-New functionality should:
+Live-provider checks must be clearly separated from deterministic regression testing.
 
-- Build on existing architecture.
-- Preserve prior behavior.
-- Include appropriate tests.
-- Update affected documentation.
-- Preserve architectural decisions in project documentation.
+### 8.3 Test Behavior, Not Incidental Implementation
 
----
+Assert observable results, state, side effects, error contracts, and user-visible output. Avoid tests coupled to private implementation details unless those details are themselves safety-critical invariants.
 
-# Summary
+Use focused names such as `test_<expected_behavior>`. Preserve stable scenario identifiers where the test plan maps one behavior across integration and UI layers.
 
-Project0 engineering follows these principles:
+### 8.4 Regression Gate
 
-- Reuse proven solutions.
-- Add components only when they provide value.
-- Choose tools based on engineering merit, not popularity.
-- Design before implementation.
-- Maintain a shared language between humans and AI.
-- Design interfaces before implementations.
-- Treat existing source files as authoritative.
-- Make minimal, validated changes.
-- Preserve system reliability through testing.
+Before considering a repository-wide change validated:
 
+- run the focused tests for the changed behavior;
+- run affected integration and acceptance suites;
+- run `python -m pytest` when the environment supports the complete suite;
+- run documentation validation when documentation changed; and
+- distinguish tests actually executed from tests merely inspected.
+
+Do not claim a pass count for a different commit or source state. Record skips, unavailable tools, environment limitations, and known source defects with the result.
+
+See [Testing Guide](Testing_Guide.md) and the root `TEST_COMMANDS.md` for executable commands.
+
+## 9. Documentation Standards
+
+### 9.1 Documentation Is Part of the Change
+
+Update affected documentation with the implementation. Documentation must distinguish:
+
+- implemented behavior;
+- project conventions;
+- historical evidence;
+- known limitations; and
+- planned or possible future work.
+
+Do not present planned behavior as implemented or preserve stale claims for narrative continuity.
+
+### 9.2 Single Purpose and Authoritative Location
+
+Each document should have one clear purpose. Define shared behavior once in the appropriate platform or project document and reference it from agent-specific documents rather than duplicating it. Markdown under `docs/` is the authoritative narrative format; generated site output is not source documentation.
+
+### 9.3 Source-Grounded Claims
+
+Every implementation claim should be supportable by current source, tests, configuration, or repository state. Use exact names and values where they form a contract. If a feature is incomplete or inconsistent, document the current behavior and limitation rather than smoothing over the discrepancy.
+
+### 9.4 Validation
+
+For documentation changes, inspect links and Markdown structure and run the applicable repository validators. Use `mkdocs build --strict` when MkDocs is available, and run source-compilation checks separately when the change affects Python. A tool that could not run must be reported as not run, not passed.
+
+Follow [Documentation Standards](Documentation_Standards.md) for document organization, ownership, headers, diagrams, and cross-document consistency.
+
+## 10. Human and AI Collaboration
+
+### 10.1 Bounded Tasks
+
+Provide AI tools with the target, authority, requested outcome, allowed scope, relevant dependencies, and validation expectation. Prefer bounded tasks that can be independently reviewed.
+
+### 10.2 Reviewable Deliverables
+
+AI-generated changes must be reviewable as ordinary engineering work. Provide complete replacement files or a clear diff as requested, identify validations performed, and do not commit, push, deploy, or mutate external systems unless the user explicitly authorizes that action.
+
+### 10.3 No Invented Completion
+
+Do not claim that code compiles, tests pass, documentation builds, a provider is reachable, or a change was persisted unless that action was actually completed against the stated source. Separate source inspection from execution evidence.
+
+### 10.4 Preserve User Work
+
+Assume existing uncommitted changes belong to the user. Do not overwrite, discard, reset, or reformat unrelated work. If the requested change overlaps ambiguous local modifications, stop and resolve the conflict with the user.
+
+## 11. Git and Review Standards
+
+- Inspect `git status --short` and relevant diffs before staging.
+- Stage specific intended files; avoid broad staging when unrelated changes may exist.
+- Use a concise commit message describing the completed behavior or documentation change.
+- Keep production changes, their tests, and directly affected documentation together when practical.
+- Do not rewrite shared history or use destructive recovery commands without explicit authorization.
+- Do not commit generated output, credentials, local environments, caches, or unrelated files.
+- Review the final diff for accidental scope growth, secret exposure, debug code, and stale documentation before committing.
+
+## 12. Definition of Done
+
+A change is complete when, as applicable:
+
+- the requested behavior is implemented at the correct ownership boundary;
+- public interfaces and shared models remain coherent;
+- affected tests are added or updated;
+- focused and regression validation has been executed or limitations are reported;
+- affected documentation is current and source-grounded;
+- error, logging, security, and path-safety behavior has been considered;
+- the final diff contains only intended changes; and
+- no result, pass count, external action, or deployment is claimed without evidence.
+
+## 13. Current Tooling Boundaries and Future Improvements
+
+The pinned repository declares pytest but does not configure a formatter, linter, type checker, coverage tool, security scanner, or continuous-integration workflow in `pyproject.toml`. Browser acceptance dependencies are also not declared in the test extra.
+
+Possible future improvements include:
+
+- automated formatting and linting;
+- static type checking;
+- coverage reporting;
+- dependency and security scanning;
+- continuous-integration regression and documentation builds;
+- dependency locking; and
+- documented performance and benchmark standards.
+
+These items are future work until they are implemented and adopted by the repository.
+
+## 14. Summary
+
+Project0 engineering requires source-grounded decisions, explicit interfaces, clear ownership, minimal coherent changes, deterministic testing, synchronized documentation, safe configuration, and evidence-based completion claims. The standard is not merely to make a change work in isolation, but to keep the platform understandable and reliable as it evolves.

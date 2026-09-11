@@ -1,224 +1,178 @@
 # Testing Guide
 
-**Version:** 0.6  
+**Version:** 0.8  
 **Owner:** Project0  
-**Last Updated:** 2026-08-26
+**Last Updated:** 2026-09-11
 
 ---
 
 ## 1. Purpose
 
-This document describes the testing strategy used throughout the Project0 platform and provides the standard procedures for executing, extending, and maintaining the automated test suite.
+This guide defines Project0's implemented test organization, ownership boundaries, environment requirements, execution commands, result-reporting rules, and standards for adding tests.
 
-Project0 emphasizes deterministic, repeatable testing. Every production component should include corresponding automated tests that execute without requiring external services, AI providers, or network connectivity whenever practical.
+Project0 uses unit, integration, and acceptance testing. Test-source presence shows intended coverage only; it does not establish that a test was collected, executed, or passed. Current execution evidence belongs in [Project0 Test Results](../platform/Project0_Test_Results.md).
 
----
+## 2. Testing Objectives
 
-## 2. Objectives
+Project0 testing is intended to:
 
-The Project0 testing strategy is intended to:
+- verify individual component behavior;
+- validate collaboration between production components;
+- confirm externally observable Dashboard and agent behavior;
+- detect regressions during incremental development;
+- support safe refactoring;
+- validate error, state, review, and safety contracts;
+- preserve deterministic behavior outside live-provider checks; and
+- provide commit-specific evidence before completion or release claims.
 
-* Verify correctness of individual components.
-* Detect regressions during ongoing development.
-* Support safe refactoring.
-* Validate component interactions.
-* Ensure deterministic platform behavior.
-* Provide confidence before Git commits and releases.
+## 3. Testing Principles
 
----
+- Test observable behavior and contracts rather than incidental implementation details.
+- Keep default regression tests deterministic and repeatable.
+- Use dependency injection and contract-correct stubs or fakes to isolate external systems.
+- Avoid live network, model, credential, and mutable external-state dependencies in the default regression path.
+- Test one coherent responsibility per test.
+- Prefer focused tests that fail at the closest meaningful boundary.
+- Keep tests isolated from the developer's real repository content, credentials, and previous runs.
+- Use temporary directories and explicit fixtures for filesystem behavior.
+- Do not use arbitrary sleep delays for synchronization or acceptance criteria.
+- Preserve a clear distinction between platform-owned and agent-owned verification.
+- Report what actually ran; never infer success from files, past counts, or a different commit.
 
-## 3. Testing Philosophy
-
-Project0 follows several fundamental testing principles.
-
-* Test behavior rather than implementation details.
-* Keep tests deterministic and repeatable.
-* Avoid unnecessary mocking whenever practical.
-* Use dependency injection to simplify testing.
-* Test one responsibility per test.
-* Prefer many focused tests over fewer complex tests.
-* Execute quickly enough to encourage frequent use.
-* Maintain complete isolation between tests.
-
----
-
-## 4. Test Organization
-
-The repository organizes automated tests into three primary categories.
+## 4. Repository Test Layout
 
 ```text
 tests/
 ├── unit/
-│
+│   ├── agents/
+│   ├── artifacts/
+│   ├── common/
+│   ├── config/
+│   ├── dashboard/
+│   ├── knowledge/
+│   ├── models/
+│   ├── platform/
+│   ├── reasoning/
+│   ├── repository/
+│   ├── skills/
+│   ├── validation/
+│   └── workflow/
 ├── integration/
-│
+│   ├── agents/
+│   └── platform/
 ├── acceptance/
-│
-└── resources/
+│   ├── agents/
+│   └── platform/
+└── test_data/
 ```
 
-### 4.1 Unit Tests
+The current repository uses `tests/test_data/`; it does not contain the `tests/resources/` directory shown in the older guide.
 
-Unit tests verify the behavior of a single component in isolation.
+## 5. Test Layers and Ownership
 
-Typical characteristics include:
+### 5.1 Unit Tests
 
-* Single class or module
-* Deterministic execution
-* No external dependencies
-* Fast execution
-* Focused assertions
+Unit tests exercise one service, model, provider adapter, route, UI service, registry, validator, or workflow coordinator with isolated collaborators.
 
-### 4.2 Integration Tests
+Typical characteristics:
 
-Integration tests verify interaction between multiple production components.
+- deterministic and fast;
+- no required live network or model;
+- focused inputs and assertions;
+- temporary or in-memory state; and
+- direct verification of success, warning, error, and edge cases.
 
-Typical characteristics include:
+### 5.2 Integration Tests
 
-* Multiple collaborating components
-* Real production implementations
-* Minimal mocking
-* Workflow validation
-* End-to-end execution of platform services
+Integration tests combine multiple production components across a real application or service boundary.
 
-### 4.3 Acceptance Tests
+Platform integration coverage includes repository/context, knowledge, dispatcher, reasoning, validation, Ollama request construction, and Dashboard flows. Agent integration suites validate each agent's use of shared services and remain owned by the corresponding agent documentation.
 
-Acceptance tests verify externally observable system behavior through the same boundary used by the intended user.
+Integration tests should use real internal collaborators where practical while replacing external or nondeterministic services at a defined boundary.
 
-Typical characteristics include:
+### 5.3 Acceptance Tests
 
-* User-visible workflow verification
-* Execution through the actual application boundary
-* Browser/UI automation for Dashboard-hosted agents
-* Validation of externally meaningful behavior
-* Separation from direct Python/service API integration testing
+Acceptance tests verify externally observable behavior through the intended user boundary. Current non-empty acceptance modules use browser automation for the Documentation and Research agent interfaces.
+
+These tests:
+
+- import Playwright;
+- rely on pytest browser fixtures;
+- target a separately running Dashboard at `http://127.0.0.1:8001`; and
+- exercise request, review, results, and end-to-end UI scenarios.
+
+`tests/acceptance/platform/test_ollama_acceptance.py` exists but is empty and provides no executable acceptance coverage.
 
 Acceptance testing complements rather than replaces unit and integration testing.
 
----
+### 5.4 Live Validation
 
-## 5. Current Test Coverage
+Live Ollama or research-source checks validate a particular external environment. They are not substitutes for deterministic regression and should not run implicitly as part of a reproducible default suite unless their prerequisites, isolation, markers, and result interpretation are formally defined.
 
-Current Project0 platform test categories include:
+## 6. Test Dependencies and Environment
 
-- Common
-- Configuration
-- Platform Dispatcher
-- Workflow Engine
-- Repository Services
-- Knowledge Services
-- Reasoning Services
-- Validation Services
-- Shared Models
-- Dashboard Framework
-- Platform Integration Workflows
-
-This guide defines testing for reusable Project0 platform components and the Dashboard Framework.
-
-Agent-specific behavior, workflows, acceptance criteria, integration scenarios, and browser/UI acceptance scenarios are documented in the applicable `<Agent>_Testing_Guide.md`.
-
-Shared Project0 services may also be exercised by agent integration tests. Those agent-level tests verify the agent's use of the shared service and do not replace the platform-level tests defined by this guide.
-
-As additional reusable platform services are implemented, corresponding test suites should be added.
-
----
-
-## 6. Running Tests
-
-All commands assume the current working directory is the Project0 repository root.
-
----
-
-### 6.1 Unit Tests
-
-### Repository
-
-Repository tests in this guide verify reusable Project0 repository infrastructure. Agent-specific tests may exercise these services as dependencies but should document agent-specific repository behavior in the applicable Agent Testing Guide.
+Install Project0 and its declared test extra from the repository root:
 
 ```bash
-python -m pytest tests/unit/repository/test_repository_service.py -v
-python -m pytest tests/unit/repository/test_repository_update_service.py -v
-python -m pytest tests/unit/repository/test_git_diff_service.py -v
+python -m pip install -e '.[test]'
 ```
 
-### Configuration
+The `test` extra declares pytest and httpx. Runtime dependencies are installed through the base package.
+
+Browser acceptance requires additional Playwright tooling and installed browser binaries. Neither Playwright nor its pytest integration is declared in the current `pyproject.toml`, so a clean `.[test]` installation is insufficient for browser-test collection and execution.
+
+At the pinned commit:
+
+- `pyproject.toml` contains no pytest-specific configuration section;
+- there is no `pytest.ini`, `setup.cfg`, or `tox.ini` supplying pytest configuration; and
+- no `.github/workflows/` continuous-integration definition is checked in.
+
+All commands in this guide assume the repository root as the current working directory and the intended Python environment is active.
+
+## 7. Standard Test Commands
+
+### 7.1 Complete Regression
 
 ```bash
-python -m pytest tests/unit/config/test_settings.py -v
+python -m pytest
 ```
 
-### Common
+This collects all applicable unit, integration, and acceptance tests. Because browser modules import Playwright and target a running Dashboard, the complete command requires the browser environment and Dashboard procedure described below.
+
+### 7.2 Test Layers
 
 ```bash
-python -m pytest tests/unit/common/test_logging_config.py -v
-python -m pytest tests/unit/common/test_startup_validation.py -v
+python -m pytest tests/unit -v
+python -m pytest tests/integration -v
+python -m pytest tests/acceptance -v
 ```
 
-### Workflow
+### 7.3 Reusable Platform Unit Suites
+
+```bash
+python -m pytest tests/unit/artifacts -v
+python -m pytest tests/unit/common -v
+python -m pytest tests/unit/config -v
+python -m pytest tests/unit/dashboard -v
+python -m pytest tests/unit/knowledge -v
+python -m pytest tests/unit/models -v
+python -m pytest tests/unit/platform -v
+python -m pytest tests/unit/reasoning -v
+python -m pytest tests/unit/repository -v
+python -m pytest tests/unit/skills -v
+python -m pytest tests/unit/validation -v
+```
+
+Generic workflow and shared review-coordinator units:
 
 ```bash
 python -m pytest tests/unit/workflow/test_workflow_engine.py -v
+python -m pytest tests/unit/workflow/test_review_coordinator.py -v
 ```
 
-### Knowledge
+The Documentation and Research workflow modules under `tests/unit/workflow/` are agent-specific even though they reside in the shared workflow test directory.
 
-```bash
-python -m pytest tests/unit/knowledge/test_context_builder.py -v
-python -m pytest tests/unit/knowledge/test_context_filters.py -v
-python -m pytest tests/unit/knowledge/test_context_rules.py -v
-python -m pytest tests/unit/knowledge/test_document_parser.py -v
-python -m pytest tests/unit/knowledge/test_document_index.py -v
-python -m pytest tests/unit/knowledge/test_document_selector.py -v
-python -m pytest tests/unit/knowledge/test_knowledge_service.py -v
-python -m pytest tests/unit/knowledge/test_context_formatter.py -v
-```
-
-### Platform
-
-```bash
-python -m pytest tests/unit/platform/test_platform_dispatcher.py -v
-```
-
-### Dashboard
-
-```bash
-python -m pytest tests/unit/dashboard/test_dashboard_app.py -v
-python -m pytest tests/unit/dashboard/test_dashboard_routes.py -v
-```
-
-### Models
-
-```bash
-python -m pytest tests/unit/models/test_context_models.py -v
-python -m pytest tests/unit/models/test_workflow_models.py -v
-python -m pytest tests/unit/models/test_knowledge_models.py -v
-python -m pytest tests/unit/models/test_reasoning_models.py -v
-python -m pytest tests/unit/models/test_validation_models.py -v
-```
-
-### Reasoning
-
-Reasoning tests in this guide verify reusable Project0 reasoning infrastructure, provider abstraction, and deterministic reasoning behavior. Agent-specific prompt behavior and interpretation of reasoning results belong in the applicable Agent Testing Guide.
-
-```bash
-python -m pytest tests/unit/reasoning/test_prompt_builder.py -v
-python -m pytest tests/unit/reasoning/test_reasoning_service.py -v
-python -m pytest tests/unit/reasoning/providers/test_stub_provider.py -v
-```
-
-### Validation
-
-```bash
-python -m pytest tests/unit/validation/test_markdown_validator.py -v
-python -m pytest tests/unit/validation/test_link_validator.py -v
-python -m pytest tests/unit/validation/test_mkdocs_validator.py -v
-python -m pytest tests/unit/validation/test_documentation_consistency_validator.py -v
-python -m pytest tests/unit/validation/test_validation_service.py -v
-```
-
----
-
-### 6.2 Integration Tests
+### 7.4 Platform Integration Suites
 
 ```bash
 python -m pytest tests/integration/platform/test_core_platform_flow.py -v
@@ -226,57 +180,43 @@ python -m pytest tests/integration/platform/test_context_builder_flow.py -v
 python -m pytest tests/integration/platform/test_platform_dispatcher_flow.py -v
 python -m pytest tests/integration/platform/test_knowledge_service_flow.py -v
 python -m pytest tests/integration/platform/test_reasoning_service_flow.py -v
+python -m pytest tests/integration/platform/test_ollama_reasoning_flow.py -v
 python -m pytest tests/integration/platform/test_validation_service_flow.py -v
 python -m pytest tests/integration/platform/test_dashboard_flow.py -v
 ```
 
-Agent-specific integration tests are maintained under the applicable agent integration directory and documented in the applicable `<Agent>_Testing_Guide.md`.
-
----
-
-### 6.3 Acceptance Tests
-
-Run all acceptance tests:
+Run the complete platform integration directory with:
 
 ```bash
-python -m pytest tests/acceptance
+python -m pytest tests/integration/platform -v
 ```
 
-Project0 browser acceptance infrastructure may define the custom pytest option `--ui-slowmo=<milliseconds>`. The option passes the requested delay to Playwright `slow_mo` for human observation. A value of `0` preserves full-speed execution.
-
-Shared interpretation of this option belongs in `tests/acceptance/conftest.py`. Slow-motion execution is an observation aid only; it shall not be used for synchronization or change acceptance criteria.
-
-Agent-specific acceptance commands and browser automation requirements are defined by the applicable `<Agent>_Testing_Guide.md`.
-
----
-
-### 6.4 Run Complete Test Suites
-
-Run all unit tests:
+### 7.5 Agent Suites
 
 ```bash
-python -m pytest tests/unit
+python -m pytest tests/unit/agents/documentation -v
+python -m pytest tests/integration/agents/documentation -v
+python -m pytest tests/acceptance/agents/documentation -v
+
+python -m pytest tests/unit/agents/research -v
+python -m pytest tests/integration/agents/research -v
+python -m pytest tests/acceptance/agents/research -v
 ```
 
-Run all integration tests:
+The agent testing guides contain the detailed scenarios, focused files, provider bounds, and acceptance criteria:
 
-```bash
-python -m pytest tests/integration
-```
+- [Documentation Agent Testing Guide](../agents/documentation/Documentation_Agent_Testing_Guide.md)
+- [Research Agent Testing Guide](../agents/research/Research_Agent_Testing_Guide.md)
 
-Run all acceptance tests:
+`TEST_COMMANDS.md` at the repository root is the concise command reference.
 
-```bash
-python -m pytest tests/acceptance
-```
+## 8. Browser Acceptance Procedure
 
-Run the complete Project0 test suite:
+Provision Playwright, its pytest fixtures, and required browser binaries in the test environment before collecting browser modules.
 
-```bash
-python -m pytest
-```
+Use deterministic providers unless a test explicitly targets live behavior.
 
-For regression execution that includes Dashboard-hosted browser acceptance tests, run the Dashboard in a separate terminal using deterministic stub providers:
+Terminal 1:
 
 ```bash
 export PROJECT0_REASONING_PROVIDER=stub
@@ -284,17 +224,28 @@ export PROJECT0_RESEARCH_SOURCE_PROVIDERS=stub
 python -m project0.dashboard.dashboard_app
 ```
 
-Then run the complete Project0 test suite from a second terminal:
+Confirm that the Dashboard is available at `http://127.0.0.1:8001`.
+
+Terminal 2:
 
 ```bash
-python -m pytest
+python -m pytest tests/acceptance/agents/documentation -v
+python -m pytest tests/acceptance/agents/research -v
 ```
 
-Live external research providers and production reasoning providers should not be used for deterministic regression execution. Provider-specific live validation should be performed separately from the complete regression suite.
+The acceptance suite does not start the Dashboard itself. The executable Dashboard factory must be used so both agent interfaces are registered.
 
----
+### Visible Browser and Slow Motion
 
-## 7. Frequently Used Pytest Options
+```bash
+python -m pytest \
+  tests/acceptance/agents/research/test_research_agent_ui_request_acceptance.py \
+  -v -s --headed --ui-slowmo=750
+```
+
+`tests/acceptance/conftest.py` defines `--ui-slowmo=<milliseconds>`, defaults it to `0`, and rejects negative values. Slow motion is an observation aid only; tests must rely on Playwright synchronization and assertions rather than the delay.
+
+## 9. Frequently Used Pytest Options
 
 Verbose output:
 
@@ -308,145 +259,169 @@ Stop after the first failure:
 python -m pytest -x
 ```
 
-Display the slowest tests:
+Show the slowest tests:
 
 ```bash
 python -m pytest --durations=10
 ```
 
-Run a specific test function:
+Run one file:
+
+```bash
+python -m pytest path/to/test_file.py -v
+```
+
+Run one test function:
 
 ```bash
 python -m pytest path/to/test_file.py::test_name -v
 ```
 
-Run browser acceptance tests visibly:
+Show captured output while running:
 
 ```bash
-python -m pytest tests/acceptance -v -s --headed
+python -m pytest -v -s
 ```
 
-Run browser acceptance tests visibly with a 750 millisecond observation delay:
+Browser options such as `--headed` require the externally provisioned Playwright pytest integration.
+
+## 10. Deterministic Versus Live Behavior
+
+- Ollama unit and integration tests replace or intercept HTTP behavior; they verify request/response handling, not availability of a local Ollama service or model.
+- Research source-provider tests use controlled responses or fakes; they do not prove that public APIs are reachable at test time.
+- Browser acceptance requires a real local Dashboard process but should use deterministic stub reasoning and source providers.
+- Credentials and real API keys must not be embedded in tests, fixtures, logs, or recorded outputs.
+- Provider-specific live checks should be run and reported separately with their exact environment, model/provider configuration, date, and scope.
+
+## 11. Additional Integrity and Documentation Checks
+
+Pytest does not replace source or documentation validation. Useful repository checks include:
 
 ```bash
-python -m pytest tests/acceptance -v -s --headed --ui-slowmo=750
+python -m compileall -q src
+mkdocs build --strict
 ```
 
----
+When documentation or controlled Markdown update behavior changes, also run the relevant Markdown, Link, MkDocs, and Documentation Consistency validator tests.
 
-## 8. Expected Results
+At commit `da217ae42f7ceeffc95a84c6baad3dc4376a18f9`, `python -m compileall -q src` fails because `src/project0/interfaces/knowledge_interfaces.py` begins and ends with Markdown code fences. This is a source-integrity failure, not a pytest result or test-environment problem.
 
-Successful Project0 platform test execution should report all applicable tests passing with no unexpected warnings or failures.
+## 12. Adding or Updating Tests
 
-Current Project0 validation expectations include:
+For each material production change:
 
-- Project0 platform unit tests passing.
-- Dashboard Framework unit and integration tests passing.
-- Shared platform integration workflows passing.
-- Complete Project0 regression suite passing.
-- No unexpected warnings or failures.
+1. identify the ownership boundary and observable behavior;
+2. add or update the closest focused unit tests;
+3. add integration coverage when production components interact;
+4. add browser acceptance coverage for material user-visible behavior;
+5. cover success, warning, failure, validation, and edge paths as applicable;
+6. run focused tests during implementation;
+7. run affected layer suites;
+8. run source and documentation checks where applicable;
+9. run the complete regression in a supported environment; and
+10. commit production code, tests, and directly affected documentation together when practical.
 
-Agent-specific validation results, behavioral acceptance criteria, and completion requirements are defined by the applicable `<Agent>_Testing_Guide.md`.
+Do not add an empty test file as evidence of coverage. A placeholder must be clearly identified as such or omitted until it contains executable tests.
 
-The complete Project0 regression suite includes both platform and agent tests. Passing the complete suite therefore remains required before repository-wide changes are considered validated.
+### Fixture and Stub Guidance
 
-As Project0 evolves, the total number of tests will continue to increase. Documentation should be updated periodically to reflect significant platform testing milestones.
+- Reuse shared fixtures only when they express a genuinely shared contract.
+- Keep fixture data minimal, explicit, and non-sensitive.
+- Use temporary repository roots for read/write tests.
+- Make stub responses conform to the real typed/provider contract.
+- Assert that the expected dependency boundary was called when interaction is part of the behavior.
+- Avoid mocks that merely reproduce implementation internals without proving an external effect.
 
----
+## 13. Test Naming Conventions
 
-## 9. Adding New Tests
+Test files use:
 
-Each new production component should include corresponding automated tests.
-
-Recommended practice:
-
-1. Implement the production component.
-2. Create unit tests.
-3. Execute unit tests.
-4. Add integration tests where appropriate.
-5. Add acceptance tests for externally meaningful user behavior where appropriate.
-6. Verify the complete test suite.
-7. Commit production code and tests together.
-
----
-
-## 10. Test Naming Conventions
-
-Recommended file naming:
-
-```
+```text
 test_<component>.py
 ```
 
-Recommended function naming:
+Ordinary test functions use descriptive behavior names:
 
-```
+```text
 test_<expected_behavior>()
 ```
 
 Examples:
 
-```
-test_repository_service.py
-
+```text
 test_repository_reads_markdown()
-
 test_missing_file_returns_error()
 ```
 
-Test names should describe observable behavior rather than implementation details.
+Test names should describe observable behavior, condition, and expected result where useful.
 
-For tests that provide evidence for a verification scenario defined by an agent test plan, the scenario identifier remains independent of the testing layer. The test function name adds a layer prefix.
-
-Integration scenario naming:
+For test-plan scenarios verified at multiple layers, preserve the plan's scenario identifier and add the layer prefix:
 
 ```text
 test_INT_<scenario_id>_<expected_behavior>()
-```
-
-Browser/UI acceptance scenario naming:
-
-```text
 test_UI_<scenario_id>_<expected_behavior>()
 ```
 
-For example:
+`INT` identifies assembled Python/service integration; `UI` identifies browser verification through the real application boundary. Scenario identifiers such as `DA-FUN-001` remain owned by the applicable agent test plan.
 
-```text
-test_INT_DA_FUN_001_documentation_request_processing()
+## 14. Result Interpretation and Reporting
 
-test_UI_DA_FUN_001_documentation_request_processing()
-```
+A valid test record must identify:
 
-Layer prefixes:
+- the exact commit or source state;
+- date and environment;
+- command and scope;
+- pass, fail, error, and skip counts;
+- relevant provider/model mode;
+- browser or external-service prerequisites;
+- excluded live checks; and
+- separate source-compilation and documentation-build results.
 
-* `INT` — integration verification through assembled Project0 Python/service boundaries.
-* `UI` — browser/UI acceptance verification through the actual application boundary.
+Do not:
 
-Scenario identifiers such as `DA-FUN-001` are owned by the applicable agent test plan and should remain stable when the same behavior is verified at multiple testing layers.
+- carry a pass count forward after source changes;
+- call an unavailable or unexecuted check passed;
+- treat collection as execution;
+- treat skipped tests as passed coverage;
+- treat a unit/provider stub test as live-provider validation; or
+- report test-file inventory as a regression result.
 
----
+`docs/platform/Project0_Test_Results.md` is manually maintained. The Dashboard parses its bold `Tests` and `Validation` fields for display; it does not run or independently verify the suite.
 
-## 11. Future Enhancements
+At the pinned audit commit, pytest and MkDocs were unavailable in the audit environment, so no current pytest count or strict documentation-build result was established. The historical `1265 passed, 11 skipped` record from 2026-09-09 was not tied to the pinned commit and remains historical only.
 
-Future improvements may include:
+## 15. Current Test Gaps
 
-* Automated code coverage reporting.
-* Continuous Integration (CI) execution.
-* GitHub Actions integration.
-* Performance and benchmark testing.
-* Repository health dashboards.
-* Static analysis integration.
-* Security scanning.
-* Scheduled regression testing.
+- Browser-test packages and browser-installation steps are not declared in project metadata.
+- No checked-in CI workflow executes regression or documentation validation.
+- `tests/acceptance/platform/test_ollama_acceptance.py` is empty.
+- `tests/unit/models/test_skill_models.py` is empty.
+- The source-compilation defect described above prevents a clean integrity result.
+- The current pinned-commit pytest and strict MkDocs status is not established.
 
----
+## 16. Completion Criteria
 
-## 12. Summary
+A repository-wide change is considered test-validated only when:
 
-The Project0 testing framework provides a deterministic, maintainable
-foundation for validating platform behavior. Unit, integration, and
-acceptance testing verify component behavior, shared Project0 service
-interactions, externally observable workflows, Dashboard Framework
-behavior, and overall regression stability while agent-specific testing
-remains defined by the applicable Agent Testing Guide.
+- focused tests for the changed behavior pass;
+- affected unit, integration, and acceptance suites pass;
+- the complete applicable regression passes in a supported environment;
+- source compilation and documentation validation pass where applicable;
+- unexpected warnings, errors, and collection failures are resolved;
+- skips and excluded live tests are understood and recorded; and
+- results are tied to the exact validated source state.
+
+Agent-specific requirements can add stricter criteria but cannot replace shared platform validation for affected shared services.
+
+## 17. Future Improvements
+
+Potential future work, not current capability:
+
+- declare and automate the Playwright browser-test environment;
+- add checked-in continuous integration;
+- add coverage measurement and thresholds;
+- add formatter, linter, and static type-checking gates;
+- add dependency and security scanning;
+- define opt-in live-provider test markers and prerequisites;
+- add performance and benchmark testing; and
+- publish automated repository-health results.

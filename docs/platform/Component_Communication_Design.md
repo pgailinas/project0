@@ -1,498 +1,327 @@
 # Component Communication Design
 
-**Version:** 0.6  
+**Version:** 0.8  
 **Owner:** Project0  
-**Last Updated:** 2026-09-10  
-
----
+**Last Updated:** 2026-09-11  
+**Source Baseline:** `main` at `da217ae42f7ceeffc95a84c6baad3dc4376a18f9`
 
 ## 1. Purpose
 
-This document defines how Project0 platform components communicate. It establishes the implemented communication patterns, execution flow, interface responsibilities, shared model usage, and event handling.
+This document describes how implemented Project0 platform components communicate: runtime composition, call paths, typed interfaces and models, lifecycle events, error propagation, state ownership, and repository-update boundaries.
 
-It complements, but does not replace, the **Shared Data Models and Error Contracts** document, which defines the communication objects themselves.
+Agent-specific algorithms remain in the Documentation Agent and Research Agent documentation sets. The companion **Shared Data Models and Error Contracts** document defines the communication objects in greater detail; this document defines how those objects move between components.
 
-## 2. Scope
+## 2. Scope and Design Principles
 
-This document applies to the following implemented components:
+The current communication foundation covers:
 
-* Platform Dispatcher
-* Workflow Engine
-* Context Builder
-* Context Rule Registry
-* Context Filter
-* Repository Service
-* Shared Interfaces
-* Shared Context Models
-* Shared Workflow Models
+- application and Dashboard entry paths;
+- `PlatformDispatcher`;
+- the generic `WorkflowEngine`;
+- repository, context, and knowledge services;
+- reasoning providers and `ReasoningService`;
+- validation services;
+- artifact location, review, repository update, and Git diff services;
+- the repository-local `SkillRegistry`;
+- Documentation and Research workflows; and
+- Dashboard and agent UI service boundaries.
 
-It also includes the following implemented components:
+The design favors:
 
-* Reasoning Service
-* Validation Service
-* Review Coordinator
-* Repository Update Service
-* Git Diff Service
-* Artifact Location Service
-* Skill Registry
-* Documentation Workflow
-* Research Workflow
+- synchronous, in-process request/response calls;
+- typed interfaces at component boundaries;
+- frozen dataclass result objects where defined;
+- repository-relative paths and containment checks;
+- deterministic services where model reasoning is unnecessary;
+- explicit human review before documentation changes are applied; and
+- dependency injection for provider, validator, workflow, and event-publisher implementations.
 
-The communication architecture provides the foundation for multiple specialized AI agents.
+Frozen dataclasses prevent field reassignment but do not make contained dictionaries or other mutable values deeply immutable.
 
-## 3. Design Objectives
+## 3. Runtime Composition
 
-The communication architecture shall:
+Project0 has two application entry paths.
 
-* Minimize component coupling.
-* Depend on typed interfaces rather than concrete implementations where practical.
-* Use shared immutable models for component communication.
-* Maximize reuse across future AI agents.
-* Provide workflow and task traceability.
-* Preserve deterministic behavior where AI reasoning is not required.
-* Support human approval before repository changes are applied.
-* Allow future distributed and asynchronous execution.
+### Command-line startup
 
-## 4. Communication Principles
+`python -m project0.main`:
 
-1. The Platform Dispatcher provides the platform-level entry point.
-2. The Workflow Engine owns workflow task execution.
-3. Components communicate through defined typed interfaces.
-4. Shared data models are the authoritative communication objects.
-5. Components do not directly access another component's internal state.
-6. The Context Builder coordinates context selection through the Context Rule Registry, Context Filter, and Repository Interface.
-7. Repository discovery operations are read-only.
-8. Repository modifications shall occur only through the Repository Update Service after successful validation and explicit user approval.
-9. Significant workflow and task state changes may generate events.
-10. Components shall not bypass the Workflow Engine for workflow execution control.
+1. configures logging;
+2. creates a `PlatformDispatcher`;
+3. asks the dispatcher to run one startup documentation-context workflow; and
+4. reports success or failure from the resulting `WorkflowExecutionResult`.
 
-## 5. Communication Model
+This startup path uses the generic `WorkflowEngine`. It does not invoke the Documentation or Research workflow.
 
-Project0 currently uses two communication patterns.
+### Dashboard startup
 
-### Synchronous Request/Response
+`python -m project0.dashboard.dashboard_app` starts the configured FastAPI application. Dashboard composition:
 
-Used when an immediate result is required.
+1. configures the selected reasoning provider;
+2. creates separate dispatcher instances for the Documentation and Research agent UI services so each receives its configured model name;
+3. creates the agent UI services;
+4. registers agent-specific routers before the platform fallback router; and
+5. mounts shared and agent-specific static assets when their directories exist.
 
-Implemented examples:
+All current workflow and reasoning calls are synchronous and in process. FastAPI route functions may be declared with `async`, but the platform has no message queue, background worker, distributed transport, or durable workflow store.
 
-* Dispatch a context workflow.
-* Execute a Workflow Task.
-* Request workflow-specific Context Filter criteria.
-* Discover repository documentation.
-* Read repository files.
-* Build a Context Package.
-* Return a Workflow Execution Result.
-
-### Workflow and Task Events
-
-Used to announce execution lifecycle changes when a Workflow Event Publisher is configured.
-
-Implemented events:
-
-* `WorkflowStarted`
-* `WorkflowCompleted`
-* `WorkflowFailed`
-* `TaskStarted`
-* `TaskCompleted`
-* `TaskFailed`
-
-Validation processing is implemented through the Validation Service. Documentation review, repository updates, and Git diff generation are implemented through the Documentation Workflow. Validation lifecycle events and audit events remain future enhancements.
-
-## 6. Implemented Communication Flow
+## 4. Top-Level Dispatch
 
 ```mermaid
 flowchart TD
-    UI["Dashboard Framework"]
-    A["Application Entry Point<br/><small>main.py</small>"]
-    B["Platform Dispatcher"]
-    C["Documentation Workflow"]
-    S["Skill Registry"]
-
-    D["Knowledge Service"]
-    E["Reasoning Service"]
-    F["Validation Service"]
-    G["Review Coordinator"]
-    H["Repository Update Service"]
-    I["Git Diff Service"]
-    J["Documentation Workflow Result"]
-
-    UI --> A
-    A --> B
-    B --> C
-    B --> S
-    S --> C
-    C --> D
-    D --> E
-    E --> F
-    F --> G
-
-    G -->|Approve| H
-    G -->|Reject / Skip| J
-    G -->|Revise| E
-
-    H --> F
-    F --> I
-    I --> J
+    Entry["CLI or Dashboard UI"] --> Dispatcher["Platform Dispatcher"]
+    Dispatcher --> Engine["Generic Workflow Engine"]
+    Engine --> Context["Context Builder"]
+    Dispatcher --> Documentation["Documentation Workflow"]
+    Dispatcher --> Research["Research Workflow"]
 ```
 
-The implemented sequence is:
+The important boundary is that the generic `WorkflowEngine` does **not** orchestrate the Documentation or Research workflows. It currently orchestrates generic task sequences and the startup/context path only. The dispatcher calls each agent workflow directly.
 
-1. `main.py` creates the Platform Dispatcher.
-2. The Platform Dispatcher dispatches the Documentation Workflow and provides the repository-local Skill Registry.
-3. For source-grounded documentation requests, the Documentation Workflow loads the `strict-documentation-editor` skill from the Skill Registry.
-4. The Documentation Workflow requests repository knowledge from the Knowledge Service for ordinary requests and uses only the requested target and authoritative source files for source-grounded requests, while coordinating artifact-based documentation modification through the Artifact Location Service.
-5. The Reasoning Service generates proposed documentation changes using any active skill instructions carried by the Reasoning Request.
-6. The Validation Service validates proposed documentation changes.
-7. The Review Coordinator processes each proposal individually.
-8. Approved changes are applied by the Repository Update Service.
-9. Revised changes return to the Reasoning Service.
-10. Rejected and skipped changes continue without repository modification.
-11. Approved repository updates undergo final validation.
-12. The Git Diff Service generates a repository diff.
-13. The Documentation Workflow returns a Documentation Workflow Result.
+`PlatformDispatcher` exposes these operations:
 
-## 7. Platform Responsibilities
+| Operation | Implemented execution path |
+| --- | --- |
+| `run_context_workflow(...)` | Wraps a Context Builder call in one `WorkflowTask`, then calls `WorkflowEngine.execute(...)`. |
+| `run_documentation_workflow(...)` | Builds a `DocumentationWorkflowRequest` and calls the configured Documentation Workflow directly. |
+| `run_research_workflow(...)` | Builds a `ResearchRequest` and calls the configured Research Workflow directly, optionally with uploaded context. |
+| `submit_documentation_review(...)` | Passes the review to the configured Documentation Workflow directly. |
+| `get_workflow_state(...)` | Returns in-memory Documentation Workflow state. |
+| `get_documentation_workflow_state(...)` | Backward-compatible alias for `get_workflow_state(...)`. |
 
-### Platform Dispatcher
+Dispatcher construction validates startup, creates the read-only Repository Service, Context Builder, generic Workflow Engine, and repository-local Skill Registry, and conditionally assembles the Documentation and Research workflows when their reasoning dependencies are supplied.
 
-* Assemble default platform services.
-* Create platform-level Workflow Tasks.
-* Dispatch tasks to the Workflow Engine.
-* Preserve supplied workflow identifiers or generate new identifiers.
-* Return Workflow Execution Results.
-* Avoid implementing repository, context, or workflow behavior directly.
-* Dispatch Documentation Workflows.
-* Return Documentation Workflow Results.
-* Dispatch Research Workflows.
-* Return Research Workflow Results.
-* Configure and expose the repository-local Skill Registry.
-* Provide the Skill Registry to the Documentation Workflow.
-* Provide workflow state access through platform interfaces.
+## 5. Generic Workflow Engine
 
-### Workflow Engine
+`WorkflowEngine.execute(...)`:
 
-* Validate workflow requests.
-* Execute tasks in supplied order.
-* Track workflow and task identifiers.
-* Capture task outputs and failures.
-* Stop execution after the first failed task.
-* Publish configured workflow and task events.
-* Return structured Task and Workflow Execution Results.
+- requires a non-empty workflow name and at least one task;
+- accepts or generates a workflow identifier;
+- executes `WorkflowTask` actions sequentially in supplied order;
+- records timezone-aware start and completion times;
+- converts a task exception into a failed `TaskExecutionResult`;
+- stops after the first failed task;
+- returns an immutable `WorkflowExecutionResult`; and
+- publishes lifecycle events only when an event publisher is injected.
 
-### Context Builder
+Implemented event names are:
 
-* Request workflow-specific selection criteria.
-* Apply deterministic Context Filters.
-* Read selected documents through the Repository Interface.
-* Preserve repository document metadata.
-* Return Context Packages.
-* Preserve partial results and communicate read warnings.
+| Scope | Events |
+| --- | --- |
+| Workflow | `WorkflowStarted`, `WorkflowCompleted`, `WorkflowFailed` |
+| Task | `TaskStarted`, `TaskCompleted`, `TaskFailed` |
 
-### Context Rule Registry
+The event publisher contract receives an event name, workflow identifier, and optional task identifier. Without an injected publisher, `_publish(...)` is a no-op. The events are notifications only; they are not persisted and do not control execution.
 
-* Resolve Context Rules by workflow type.
-* Convert Context Rules into Context Filter criteria.
-* Maintain default workflow-specific selection policies.
-* Report requests for unregistered workflow types.
+Validation, artifact, approval, and audit lifecycle events are not implemented.
 
-### Context Filter
-
-* Apply documentation, extension, path, and pattern criteria.
-* Normalize repository paths.
-* Return selected files in deterministic order.
-* Avoid reading repository content or defining workflow policy.
+## 6. Repository and Context Communication
 
 ### Repository Service
 
-* Discover supported repository files.
-* Discover Markdown documentation.
-* Read one or multiple repository files.
-* Validate repository-relative paths.
-* Prevent access outside the repository root.
-* Return structured repository results and errors.
+`RepositoryService` provides deterministic, read-only repository discovery and UTF-8 reads. Its default supported extensions are `.md`, `.yml`, `.yaml`, `.toml`, `.py`, and `.json`.
 
-## Skill Registry
+Callers provide repository-relative paths. The service resolves and validates those paths and prevents traversal outside the configured repository root. It returns typed list, single-read, and batch-read results with structured repository errors for invalid requests, missing files, unsupported types, path escapes, and read failures. Batch reads preserve successful partial results and collect errors.
 
-* Discover repository-local Agent Skills from `skills/<skill-name>/SKILL.md`.
-* Return skill metadata without loading full instructions during discovery.
-* Load full immutable Skill Definitions when requested.
-* Validate skill names, required frontmatter, and directory/name agreement.
-* Reject unknown skills and paths outside the configured skills root.
-* Preserve deterministic skill discovery order.
+Discovery excludes configured generated, cache, environment, and dependency directories; returns files in deterministic case-insensitive relative-path order; and supports Markdown-only discovery through `list_documentation_files()`.
 
-## Validation Service
+### Context Builder path
 
-* Coordinate configured validators.
-* Execute validators through the Validation Interface.
-* Aggregate Validator Results.
-* Return immutable Validation Results.
-* Isolate validator execution failures.
-* Support dependency injection for validator implementations.
+The Context Builder:
 
-## Review Coordinator
+1. obtains a workflow-specific `ContextRule` from the Context Rule Registry;
+2. converts that rule to deterministic Context Filter criteria;
+3. discovers repository documentation through the Repository Interface;
+4. filters repository metadata without reading content;
+5. reads the selected files through the Repository Interface; and
+6. returns a `ContextPackage`.
 
-* Coordinate user review.
-* Process Approve, Revise, Reject, and Skip decisions.
-* Produce immutable review results.
+A discovery error fails the package. Partial read errors become warnings while successful documents are preserved. An empty selection completes with warnings.
 
-## Repository Update Service
+### Knowledge Service path
 
-* Apply approved documentation changes using validated artifact locations.
-* Preserve repository integrity.
-* Produce immutable application results.
+`KnowledgeService` is a separate Markdown knowledge path used by ordinary Documentation Workflow requests. For each request it discovers `docs/**/*.md`, parses and indexes the documents in memory, selects at most `maximum_documents` (default five), formats the selected context, and returns a `KnowledgeResult`.
 
-## Git Diff Service
+Explicit requested paths suppress broad query matching. Baseline documents are optional and enabled by default at the service contract, although the default Documentation Workflow calls the service with baseline documents disabled.
 
-* Generate Git diffs for approved repository updates.
-* Restrict diffs to modified files.
-* Report Git execution failures.
+For source-grounded Documentation Workflow requests, the dispatcher-provided context function bypasses broad knowledge selection and reads only the requested target and authoritative source paths through `RepositoryService`.
 
-## Documentation Workflow
+## 7. Reasoning Communication
 
-* Coordinate Knowledge, Reasoning, Validation, Review, Repository Update, Artifact Location, and Git Diff services.
-* Load the `strict-documentation-editor` skill for source-grounded requests when a Skill Registry is configured.
-* Preserve deterministic source-grounded proposal enforcement independently of skill instructions.
-* Preserve internal workflow state.
-* Return immutable Documentation Workflow Results.
+`ReasoningService` is the shared boundary between workflows and a reasoning provider:
 
-## Research Workflow
+1. a caller supplies a `ReasoningRequest`;
+2. `PromptBuilder` converts it into a provider-neutral `ProviderRequest` with system instructions, user content, response schema, model name, and metadata;
+3. a `ReasoningProviderProtocol` implementation generates a `ProviderResponse`;
+4. the service validates and converts structured output; and
+5. the service returns a `ReasoningResult`.
 
-* Coordinate optional context ingestion/analysis, Research Strategy, Research Query, Research Source, Paper Metadata/evidence acquisition, Research Evaluation, Per-Paper Analysis, Research Direction Analysis, and Research Artifact services.
-* Preserve Research Agent workflow state and source/evidence statistics.
-* Isolate Research Direction Analysis failure as a completed result warning.
-* Return immutable Research Workflow Results.
+Provider, parsing, and structured-output validation errors handled by the service become failed results instead of escaping to the workflow.
 
-Research structured-output and grounding checks are implemented inside the research analysis/evaluation services. The Research Workflow does not call the reusable Markdown/Link/MkDocs Validation Service.
+Shared provider implementations are:
 
-### Shared Interfaces
+- `OllamaReasoningProvider`, which performs a synchronous `POST` to `<base-url>/api/chat` using `stream: false`, the requested JSON schema as `format`, and the provider instance's temperature; and
+- `StubReasoningProvider`, which records requests and either returns a configured response or raises a configured error.
 
-* Define stable component contracts.
-* Include Repository, Workflow, Context Builder, Knowledge, Validation, Validator, Documentation Workflow, Review Coordinator, Repository Update, and Git Diff interfaces.
-* Allow structural conformance without explicit inheritance.
-* Support dependency injection and isolated testing.
-* Allow alternate implementations without changing consumers.
+Dashboard composition accepts `ollama` and `stub` as shared reasoning-provider names. Agent-specific model names are selected when the Dashboard creates its dispatcher instances.
 
-### Shared Data Models
+Loaded local skills may be carried on `ReasoningRequest.skills`. `PromptBuilder` appends active skill instructions to the system instructions and records their names in provider-request metadata.
 
-* Define immutable communication objects.
-* Provide shared workflow and task statuses.
-* Provide Skill Metadata and Skill Definition models for repository-local Agent Skills.
-* Allow Reasoning Requests to carry loaded Agent Skills.
-* Provide Context Packages, Knowledge Results, Validation Results, Validator Results, Workflow Execution Results, Documentation Workflow Results, Documentation Reviews, Documentation Change Proposals, and Applied Documentation Changes.
-* Preserve identifiers, timestamps, outputs, warnings, and errors.
+## 8. Validation Communication
 
-### Planned Components
+`ValidationService` executes every configured validator in order. If a validator raises an exception, the service converts it to a failed `ValidatorResult` and continues executing the remaining validators.
 
-The following responsibilities remain planned:
+It aggregates validator issues and determines the combined status as follows:
 
-* Dashboard and audit storage
-* Persistent workflow history
-* Distributed communication
+| Condition | Validation status |
+| --- | --- |
+| Any validator failed | `failed` |
+| No failure and at least one warning result | `passed_with_warnings` |
+| Otherwise | `passed` |
 
-## 8. Communication Contracts
+Reusable validator implementations are Markdown, Link, MkDocs, and Documentation Consistency validators. The default Documentation Workflow created by `PlatformDispatcher` configures Markdown, Link, and MkDocs validators. Documentation Consistency is available and exercised explicitly by its integration tests, but is not in the default workflow tuple.
 
-Implemented communication objects include:
+The Research Workflow does not call this reusable Markdown/Link/MkDocs Validation Service. Research structured-output and grounding checks belong to its analysis and evaluation services.
 
-### Context Models
+## 9. Artifact Location and Controlled Modification
 
-* `ContextWorkflowType`
-* `ContextBuildStatus`
-* `ContextRequest`
-* `ContextDocument`
-* `ContextPackage`
+### Artifact discovery
 
-### Workflow Models
+`MarkdownLocator` produces section locations from Markdown headings, including line bounds and a content hash.
 
-* `WorkflowStatus`
-* `TaskStatus`
-* `WorkflowTask`
-* `TaskExecutionResult`
-* `WorkflowExecutionResult`
+`ArtifactLocationService.discover_locations(...)` supports Markdown artifacts and returns a location only when exactly one heading locator is explicitly mentioned in the request. Ambiguous or unmatched requests return no location. Its standalone `validate_location(...)` checks file existence and, when a start line is present, verifies only that the line remains within the file. Stronger stale-content protection occurs later.
 
-### Repository Results
+### Review and update boundary
 
-* Repository file metadata
-* Repository list results
-* Individual file read results
-* Batch file results
-* Structured repository errors
+The Documentation Workflow owns proposal validation and in-memory review state. `ReviewCoordinator` obtains and records one of the supported decisions: Approve, Revise, Reject, or Skip.
 
-Implemented validation communication objects include Validation Requests, Validation Results, Validator Results, Validation Issues, Validation Status, and Validation Severity. Additional approval and agent communication objects remain planned in **Shared_Data_Models_and_Error_Contracts.md**. Artifact communication objects are implemented through the artifact foundation.
+Only an approved proposal with a matching review identifier can be applied by `RepositoryUpdateService`. The update service:
 
-## 9. Event Categories
+- resolves the target beneath the repository root;
+- limits modifications to an existing `.md` file;
+- rejects stale proposals when current content differs from `original_content`;
+- applies an artifact-location or exact-anchor edit; and
+- writes through a temporary file followed by replacement.
 
-### Implemented Workflow Events
+Non-approved proposals are skipped. Application failures are returned as `AppliedDocumentationChange` values. The service does not commit, push, publish, or deploy changes.
 
-* `WorkflowStarted`
-* `WorkflowCompleted`
-* `WorkflowFailed`
+After approved updates, the Documentation Workflow performs final validation. `GitDiffService` then runs `git diff --no-ext-diff --` for validated repository-relative paths. It does not modify Git state and raises `RuntimeError` if Git returns a nonzero status.
 
-### Implemented Task Events
+## 10. Skill Communication
 
-* `TaskStarted`
-* `TaskCompleted`
-* `TaskFailed`
+`SkillRegistry` discovers repository-local definitions at `skills/<name>/SKILL.md` in deterministic directory-name order. Discovery validates each definition and returns metadata without instruction bodies. Invalid discovered definitions raise errors rather than being silently skipped.
 
-### Future Validation Events
+Loading validates the requested kebab-case name, path containment, YAML frontmatter, required fields, and directory/name agreement, then returns the full skill definition. The registry does not execute instructions or select skills.
 
-* `ValidationStarted`
-* `ValidationCompleted`
-* `ValidationFailed`
+The dispatcher exposes the shared registry and supplies it to the Documentation Workflow. Source-grounded documentation proposal generation explicitly loads `strict-documentation-editor`; ordinary documentation requests do not. The Research Workflow does not currently receive the registry.
 
-### Planned Artifact Events
+## 11. Agent Workflow Boundaries
 
-* `ArtifactProposed`
-* `ArtifactValidated`
-* `ArtifactApproved`
-* `ArtifactCommitted`
+### Documentation Workflow
 
-### Planned Approval Events
+At the platform communication level, the Documentation Workflow coordinates context acquisition, reasoning, artifact location, validation, review, repository update, and Git diff generation. It preserves its own workflow state in memory and returns typed state or result objects.
 
-* `ApprovalRequested`
-* `ApprovalGranted`
-* `ApprovalRejected`
+Source-grounded requests use a comparison-only gap-analysis reasoning call before proposal generation. The strict skill is applied to proposal generation, while deterministic workflow checks retain authority over source fidelity, target paths, proposal form, artifact placement, validation, and review.
 
-## 10. Error Handling
+Revision returns a proposal to reasoning. Rejection and Skip do not modify the repository. Approval may proceed to controlled application, final validation, and diff generation.
 
-Current errors are communicated through exceptions or structured result objects, depending on the component boundary.
+### Research Workflow
 
-Implemented behavior includes:
+At the platform communication level, the Research Workflow directly coordinates its strategy, query, source retrieval, metadata/evidence acquisition, evaluation, optional context ingestion and analysis, per-paper analysis, direction analysis, and artifact services. It preserves workflow state and evidence/source statistics in the returned `ResearchResult` rather than in the generic Workflow Engine.
 
-* Invalid workflow requests raise `ValueError`.
-* Task exceptions are converted into failed Task Execution Results.
-* A failed task produces a failed Workflow Execution Result.
-* Repository errors include an error code, message, and optional path.
-* Repository discovery failure produces a failed Context Package.
-* Partial repository reads produce a Context Package with warnings.
-* Empty context selection produces a completed-with-warnings Context Package.
+Research Direction Analysis failure is isolated as a completed-result warning. Detailed retrieval, evaluation, grounding, and artifact rules remain in the Research Agent documentation.
 
-Future shared error contracts may additionally identify:
+## 12. Dashboard Communication
 
-* originating component
-* workflow identifier
-* task identifier
-* severity
-* recovery recommendation
+The FastAPI application owns the shared shell, platform routes, system-status APIs, templates, and static assets. Documentation and Research routers are registered before the generic agent fallback, so implemented agent routes take precedence.
 
-## 11. Logging and Traceability
+Implemented platform routes are:
 
-Implemented communication is traceable through:
+| Route | Behavior |
+| --- | --- |
+| `GET /` | Renders the Dashboard home page. |
+| `GET /documentation` | Returns a 307 redirect to `http://127.0.0.1:8000`. |
+| `GET /agents/{agent_identifier}` | Renders the fallback page when no earlier agent-specific route matches. |
+| `GET /api/status` | Returns basic application availability and project-root information. |
+| `GET /api/system-status` | Returns configured provider/model and current NVIDIA GPU name, utilization, and VRAM information. |
+| `GET /api/docs` | Serves FastAPI's generated API documentation. |
 
-* workflow identifier
-* task identifier
-* context identifier
-* workflow and task names
-* timezone-aware timestamps
-* component logger name
-* workflow status
-* task status
-* context source count
-* structured warnings and errors
+The system-status endpoint accepts an optional agent selector for model reporting. It does not expose live workflow-stage telemetry or durable state.
 
-Persistent audit storage is not part of the current implementation.
+## 13. Interfaces and Communication Models
 
-## 12. Initial Implementation
+Project0 uses structural `Protocol` interfaces so implementations can be substituted without explicit inheritance. Implemented interface families include repository, workflow/event publisher, context builder, knowledge, reasoning/provider, validation/validator, artifact location, Documentation Workflow, review, repository update, Git diff, and Research Workflow/service contracts.
 
-The implemented Phase 7 communication foundation uses:
+Major communication-model families include:
 
-* Python structural `Protocol` interfaces
-* Python immutable dataclasses
-* String enumerations for statuses and workflow types
-* Synchronous in-process communication
-* Optional workflow event publishing
-* Structured application logging
-* Repository-relative file access
-* pytest unit and integration testing
-* End-to-end Documentation Workflow orchestration
-* Repository-local Agent Skill discovery and loading
-* Active Agent Skill propagation through Reasoning Requests
-* Repository update coordination
-* Git diff generation
+| Family | Representative objects |
+| --- | --- |
+| Context | `ContextWorkflowType`, `ContextBuildStatus`, `ContextRequest`, `ContextDocument`, `ContextPackage` |
+| Generic workflow | `WorkflowStatus`, `TaskStatus`, `WorkflowTask`, `TaskExecutionResult`, `WorkflowExecutionResult` |
+| Repository | `RepositoryQuery`, `RepositoryFile`, `RepositoryError`, `RepositoryListResult`, `FileReadResult`, `FileBatchResult` |
+| Knowledge | `KnowledgeRequest`, `KnowledgeResult` and document/index selection models |
+| Reasoning | `ReasoningRequest`, `ProviderRequest`, `ProviderResponse`, `ReasoningResult` and proposed-change/gap models |
+| Validation | `ValidationRequest`, `ValidationResult`, `ValidatorResult`, `ValidationIssue`, status and severity enums |
+| Artifacts | `ArtifactLocation` and artifact location types |
+| Skills | `SkillMetadata`, `SkillDefinition` |
+| Documentation | Requests, states, results, reviews, change proposals, applied changes, statuses and summaries |
+| Research | Requests, strategy/query/source/evidence/evaluation/analysis/artifact results, statistics, warnings and statuses |
 
-The current implementation does not yet use:
+The companion **Shared Data Models and Error Contracts** document is authoritative for model fields and detailed contracts.
 
-* Pydantic
-* persistent message queues
-* SQLite audit storage
-* distributed communication
-* asynchronous workflow execution
+## 14. Error Handling
 
-## 13. Future Evolution
+Project0 intentionally uses both exceptions and typed error results according to the boundary:
 
-The communication architecture is designed to support future enhancements including:
+- invalid generic workflow requests raise `ValueError`;
+- task exceptions become failed task and workflow results;
+- repository failures are normally represented by structured `RepositoryError` values;
+- repository discovery failure produces a failed `ContextPackage`;
+- partial repository reads produce warnings while preserving successful context;
+- validation exceptions become failed validator results;
+- reasoning provider, parsing, and output-validation failures handled by `ReasoningService` become failed reasoning results;
+- missing optional dispatcher workflows raise `RuntimeError` when invoked;
+- invalid dispatcher input raises `ValueError`;
+- Git command failure raises `RuntimeError`; and
+- workflow-specific services may convert local failures into their own typed state or result contracts.
 
-* Additional validation services
-* Persistent workflow state
-* Persistent audit storage
-* Distributed agents
-* Persistent message queues
-* Cloud execution
-* Multiple concurrent workflows
-* Additional AI agent types
-* External Agent Skills only after trust validation and approval
-* Enhanced dashboard monitoring
-* Asynchronous workflow execution
+Callers must therefore honor the contract of the invoked boundary rather than assuming either exception-only or result-only error handling.
 
-## 14. Relationship to Shared Data Models and Error Contracts
+## 15. State, Logging, and Traceability
 
-This document defines **how** Project0 platform components communicate.
+`configure_logging()` installs console logging at the level selected by `PROJECT0_LOG_LEVEL` and reduces verbose `httpx` and `httpcore` output. There is no persistent audit log.
 
-The companion document **Shared_Data_Models_and_Error_Contracts.md** defines **what** is communicated.
+Traceability is carried by the identifiers, names, statuses, timestamps, warnings, and errors present in the relevant models and log records. Depending on the path, this includes workflow, task, context, validation, proposal, review, and application identifiers.
 
-The two documents are intended to be used together:
+State remains process-local:
 
-  -----------------------------------------------------------------------
-  Document              Responsibility
-  --------------------- -------------------------------------------------
-  Shared Data Models    Defines shared model structures, identifiers,
-  and Error Contracts   statuses, results, and error contracts.
+- generic workflow state exists in returned results;
+- Documentation Workflow review state is stored in memory by its workflow instance;
+- Research state is returned in `ResearchResult`; and
+- restarting the process loses in-memory workflow state.
 
-  Component             Defines communication patterns, execution flow,
-  Communication Design  events, and component responsibilities.
-  -----------------------------------------------------------------------
+## 16. Verification Evidence
 
-Communication payloads shall conform to the shared models defined in the
-companion document or to implemented subsystem result contracts.
+The repository contains focused unit coverage for the dispatcher, generic Workflow Engine, repository services, Context Builder, Knowledge Service, reasoning service, validation service, artifact location, repository update, Git diff, Skill Registry, and Dashboard composition/routes. Integration coverage exercises dispatcher, context, knowledge, reasoning, validation, and Dashboard flows. Documentation and Research workflow tests cover their agent-specific orchestration and failure behavior.
 
-## 15. Implementation Status
+This document describes the checked-in implementation and test coverage at the stated source baseline. It does not claim that the test suite was executed as part of this document merge.
 
-The Phase 7 communication architecture has been implemented and
-validated through comprehensive unit and integration testing.
+## 17. Current Boundaries
 
-The validated end-to-end communication flow includes:
+The pinned implementation does not provide:
 
-1. Platform Dispatcher
-2. Workflow Engine
-3. Knowledge Service
-4. Skill Registry
-5. Reasoning Service
-6. Validation Service
-7. Review Coordinator
-8. Repository Update Service
-9. Git Diff Service
-10. Documentation Workflow
-11. Documentation Workflow Results
+- durable workflow, review, or audit storage;
+- asynchronous or distributed workflow execution;
+- message queues or background workers;
+- validation, artifact, approval, or audit event families;
+- automatic Git commit, push, pull request, publication, or deployment;
+- a general plugin architecture;
+- external skill installation or trust management;
+- automatic skill selection across workflows; or
+- CI workflows under `.github/workflows/`.
 
-The implemented Agent Skills communication path uses a repository-local
-Skill Registry, immutable skill models, Reasoning Request skill
-propagation, and Prompt Builder injection of active skill instructions.
-The current Documentation Workflow uses
-`strict-documentation-editor` for source-grounded requests while
-deterministic proposal guards remain workflow responsibilities.
+Future expansion may add durable state, richer events, concurrent or distributed execution, broader skill integration, and monitoring. Those capabilities should preserve the current boundaries between dispatch, workflow ownership, deterministic services, reasoning, human approval, and repository mutation.
 
-The Research Agent also uses the Platform Dispatcher to execute the
-implemented Research Workflow through reusable Project0 platform
-services while preserving Research Agent-specific workflow
-responsibilities.
+## 18. Summary
 
-The implemented Validation Service coordinates:
-
-* Markdown Validator
-* Link Validator
-* MkDocs Validator
-* Documentation Consistency Validator
-
-The next implementation phase will extend this communication foundation with semantic retrieval, embedding generation, vector search, and additional AI agent capabilities.
-
-
+Project0 uses synchronous, typed, in-process communication. The Platform Dispatcher assembles shared services and directly invokes the Documentation and Research workflows, while the generic Workflow Engine currently owns only generic task sequences and the startup/context path. Repository access, validation, artifact location, skill loading, review, controlled Markdown updates, and Git diff generation remain separate services with explicit responsibilities. Workflow state is in memory, lifecycle event publishing is optional, and no persistent or distributed transport is implemented.

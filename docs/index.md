@@ -2,148 +2,209 @@
 
 ## AI-Native Software Development Platform
 
-**Project0** is a foundational project for developing a modular, AI-assisted software engineering platform. It establishes the platform architecture, shared design standards, documentation framework, reusable workflows, validation infrastructure, and AI agent framework that will be reused across future software development projects.
+Project0 is a local-first, documentation-centered Python platform for building, evaluating, and maintaining specialized AI-assisted workflows. The current repository combines deterministic repository, context, knowledge, validation, and workflow services with provider-neutral reasoning, human-reviewed documentation updates, evidence-aware research workflows, repository-local Agent Skills, and a shared browser Dashboard.
 
-The project emphasizes:
-
-* AI-assisted software engineering
-* Modular agent-based architecture
-* Documentation-first development
-* Human-in-the-loop approval workflows
-* Reproducible project standards
-* Local-first development with Git-based version control
-
----
-
-## Documentation
-
-Project0 documentation is organized into the following categories.
-
-### Core Project Documentation
-
-| Document                                                   | Description                                                                                                                             |
-| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| [**Project Charter**](project/Project_Charter.md) | Defines the project vision, objectives, scope, deliverables, and success criteria. |
-| [**Project Directory Structure**](project/Project_Directory_Structure.md) | Defines the standard Project0 repository organization, directory layout, and purpose of each major project component. |
-| [**Development Environment**](project/Development_Environment.md) | Defines the standard Project0 development environment, installation, configuration, development workflow, and troubleshooting guidance. |
-| [**Development Standards**](project/Development_Standards.md) | Defines project-wide software development standards, coding practices, source organization, testing expectations, and implementation conventions. |
-| [**Documentation Standards**](project/Documentation_Standards.md) | Establishes project documentation conventions, organization, formatting, and maintenance standards. |
-| [**Testing Guide**](project/Testing_Guide.md) | Describes the Project0 testing strategy, test organization, execution procedures, naming conventions, and automated validation workflow for unit and integration testing. |
-| [**Implementation Roadmap**](project/Implementation_Roadmap.md) | Defines the planned implementation sequence, development phases, dependencies, deliverables, validation strategy, and success criteria. |
-| [**Implementation Status**](project/Implementation_Status.md) | Summarizes current implementation progress and provides access to the authoritative implementation status tracker. |
-
-### Platform Design
-
-| Document                                                   | Description                                                                                                           |
-| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| [**Dashboard Design**](platform/Dashboard_Design.md) | Defines the Project0 Dashboard Framework architecture, reusable browser interface, navigation, layout, shared user interface components, and integration model for future AI agents. |
-| [**Shared Data Models and Error Contracts**](platform/Shared_Data_Models_and_Error_Contracts.md) | Defines the shared information models and standard error contracts used for communication between Project0 platform components and future AI agents. |
-| [**Component Communication Design**](platform/Component_Communication_Design.md) | Defines the communication patterns, orchestration rules, message flow, event handling, error propagation, and interaction requirements used by Project0 platform components and AI agents. |
-| [**Agent Skills Design**](platform/Agent_Skills_Design.md) | Defines the repository-local Project0 Agent Skills model, registry, loading behavior, reasoning integration, and current Documentation Agent skill usage. |
-| [**Project0 Test Results**](platform/Project0_Test_Results.md) | Records the current Project0 platform regression test status, validation result, and most recent test run date. |
-
-### Documentation Agent
-
-| Document                                                   | Description                                                                                                           |
-| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| [**Documentation Agent Charter**](agents/documentation/Documentation_Agent_Charter.md) | Defines the mission, vision, scope, operating principles, authority boundaries, and success criteria of the Documentation Agent. |
-| [**Documentation Agent Functional Spec**](agents/documentation/Documentation_Agent_Functional_Spec.md) | Defines the required capabilities, behavior, inputs, outputs, and workflows of the Documentation Agent. |
-| [**Documentation Agent Architecture**](agents/documentation/Documentation_Agent_Architecture.md) | Describes the high-level architecture, workflow, and major system components. |
-| [**Documentation Agent Design**](agents/documentation/Documentation_Agent_Design.md) | Defines the detailed responsibilities, interfaces, inputs, outputs, and dependencies of each architectural component. |
-| [**Documentation Agent Interface Design**](agents/documentation/Documentation_Agent_Interface_Design.md) | Defines the Documentation Agent interface contracts, component boundaries, interaction responsibilities, and integration with reusable Project0 platform services. |
-| [**Documentation Agent Testing Guide**](agents/documentation/Documentation_Agent_Testing_Guide.md) | Defines Documentation Agent-specific testing, including workflow behavior, review decisions, repository safety, validation, local AI provider testing, browser acceptance testing, regression testing, and completion criteria. |
-| [**Documentation Agent Test Plan**](agents/documentation/Documentation_Agent_Test_Plan.md) | Defines Documentation Agent-specific acceptance criteria, including workflow behavior, review decisions, repository safety, validation requirements, local AI provider verification, browser acceptance testing, regression criteria, and completion requirements. |
-| [**Documentation Agent Test Results**](agents/documentation/Documentation_Agent_Test_Results.md) | Records Documentation Agent-specific test execution outcomes, including acceptance status, executed scenarios, regression results, discovered issues, resolutions, and final completion assessment. |
-
-### Research Agent
-
-| Document                                                   | Description                                                                                                           |
-| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| [**Research Agent Charter**](agents/research/Research_Agent_Charter.md) | Defines the mission, vision, scope, operating principles, authority boundaries, and success criteria of the Research Agent. |
-| [**Research Agent Functional Spec**](agents/research/Research_Agent_Functional_Spec.md) | Defines the required capabilities, behavior, inputs, outputs, and workflows of the Research Agent. |
-| [**Research Agent Architecture**](agents/research/Research_Agent_Architecture.md) | Describes the high-level architecture, workflow, and major system components. |
-| [**Research Agent Design**](agents/research/Research_Agent_Design.md) | Defines the detailed responsibilities, interfaces, inputs, outputs, and dependencies of each architectural component. |
-| [**Research Agent Interface Design**](agents/research/Research_Agent_Interface_Design.md) | Defines the Research Agent interface contracts, component boundaries, interaction responsibilities, and integration with reusable Project0 platform services. |
-| [**Research Agent Testing Guide**](agents/research/Research_Agent_Testing_Guide.md) | Provides current Research Agent test commands, live/stub configuration, expected bounds, manual checks, and troubleshooting guidance. |
-| [**Research Agent Test Plan**](agents/research/Research_Agent_Test_Plan.md) | Defines unit, integration, browser acceptance, live-provider, safety, grounding, and regression coverage for the implemented Research Agent. |
-| [**Research Agent Test Results**](agents/research/Research_Agent_Test_Results.md) | Records repository-supported Research Agent validation coverage and the limits of currently verifiable execution evidence. |
-
----
+Executable source, tests, templates, and configuration are authoritative for implemented behavior. Markdown records design, contracts, usage, plans, status, and results and must remain synchronized as the implementation changes.
 
 ## Project Goals
 
-Project0 aims to create an extensible AI-native software development platform that:
+Project0 aims to:
 
-* Provides reusable infrastructure for specialized AI agents.
-* Supports coordinated AI-assisted software engineering workflows.
-* Preserves human decision authority through explicit review and approval checkpoints.
-* Reuses shared platform services for repository access, knowledge retrieval, reasoning, validation, workflow execution, and user interaction.
-* Provides a unified browser-based Dashboard for interacting with Project0 platform services and AI agents.
-* Maintains clear architectural separation between reusable platform infrastructure and agent-specific behavior.
-* Supports deterministic processing whenever AI reasoning is unnecessary.
-* Provides a reusable foundation from which additional AI agents and future software-development capabilities can be created.
+- provide reusable infrastructure for specialized AI agents;
+- support coordinated AI-assisted software-engineering workflows;
+- preserve human authority through explicit review and approval boundaries;
+- reuse shared services for repository access, context, knowledge, reasoning, validation, workflow execution, skills, and presentation;
+- provide a consistent browser Dashboard for platform and agent interfaces;
+- keep reusable platform responsibilities separate from agent-specific behavior;
+- prefer deterministic processing whenever model reasoning is unnecessary; and
+- serve as a practical foundation for additional agents and development capabilities.
 
----
+## Current Architecture at a Glance
+
+Project0 is organized into distinct responsibility layers:
+
+| Layer | Current role |
+| --- | --- |
+| Configuration and common services | Environment settings, logging, and startup validation |
+| Shared models and protocols | Typed requests, results, state, value objects, and substitutable interfaces |
+| Repository, context, and knowledge | Safe repository access, deterministic context construction, Markdown parsing, selection, and formatting |
+| Reasoning and providers | Provider-neutral prompts/results with Ollama and deterministic stub implementations |
+| Validation and artifacts | Markdown/link/MkDocs/consistency validation plus controlled artifact locations and updates |
+| Workflow coordination | Generic task execution plus separate Documentation and Research workflow coordinators |
+| Platform composition | Service and workflow assembly through `PlatformDispatcher` |
+| Dashboard and agent interfaces | Shared FastAPI/Jinja2 shell with agent-owned routes, UI services, view models, templates, and styles |
+
+The generic Workflow Engine currently executes generic task lists and the context workflow. `PlatformDispatcher` invokes the stateful Documentation Workflow and the Research Workflow directly; neither agent workflow is converted into a generic task list.
+
+## Documentation
+
+### Project
+
+| Document | Purpose |
+| --- | --- |
+| [Project Charter](project/Project_Charter.md) | Project vision, scope, principles, stakeholders, and intended outcomes |
+| [Project Directory Structure](project/Project_Directory_Structure.md) | Repository organization, package ownership, and dependency boundaries |
+| [Development Environment](project/Development_Environment.md) | Installation, runtime configuration, startup, tools, and troubleshooting |
+| [Development Standards](project/Development_Standards.md) | Engineering, implementation, validation, review, and AI-collaboration standards |
+| [Documentation Standards](project/Documentation_Standards.md) | Documentation ownership, structure, source-grounding, and publishing conventions |
+| [Testing Guide](project/Testing_Guide.md) | Test layers, environment, commands, dependencies, naming, and reporting rules |
+| [Implementation Roadmap](project/Implementation_Roadmap.md) | Phase 1–14 history, delivered capabilities, boundaries, corrective work, and future expansion |
+| [Implementation Status](project/Implementation_Status.md) | Current implementation matrix, verification state, gaps, and operational limits |
+
+### Platform
+
+| Document | Purpose |
+| --- | --- |
+| [Dashboard Design](platform/Dashboard_Design.md) | Shared FastAPI shell, routes, layout, status presentation, and agent registration |
+| [Component Communication Design](platform/Component_Communication_Design.md) | Runtime composition, service interactions, workflow boundaries, events, and failure propagation |
+| [Shared Data Models and Error Contracts](platform/Shared_Data_Models_and_Error_Contracts.md) | Implemented model families, status values, repository errors, and boundary-specific failure behavior |
+| [Agent Skills Design](platform/Agent_Skills_Design.md) | Repository-local skill format, immutable models, registry behavior, reasoning integration, and limits |
+| [Project0 Test Results](platform/Project0_Test_Results.md) | Commit-specific regression/validation record and historical-result boundary |
+
+### Documentation Agent
+
+| Document | Purpose |
+| --- | --- |
+| [Documentation Agent Charter](agents/documentation/Documentation_Agent_Charter.md) | Mission, scope, operating principles, authority, and success criteria |
+| [Documentation Agent Functional Specification](agents/documentation/Documentation_Agent_Functional_Spec.md) | Required capabilities, inputs, outputs, constraints, and workflows |
+| [Documentation Agent Architecture](agents/documentation/Documentation_Agent_Architecture.md) | High-level components, dependencies, state, and workflow architecture |
+| [Documentation Agent Design](agents/documentation/Documentation_Agent_Design.md) | Detailed service responsibilities, behavior, and integration |
+| [Documentation Agent Interface Design](agents/documentation/Documentation_Agent_Interface_Design.md) | UI and service contracts, review boundaries, and platform integration |
+| [Documentation Agent Testing Guide](agents/documentation/Documentation_Agent_Testing_Guide.md) | Agent-specific test commands, environment, workflow validation, and troubleshooting |
+| [Documentation Agent Test Plan](agents/documentation/Documentation_Agent_Test_Plan.md) | Agent requirements mapped to unit, integration, acceptance, safety, and provider scenarios |
+| [Documentation Agent Test Results](agents/documentation/Documentation_Agent_Test_Results.md) | Recorded agent test executions, outcomes, issues, and evidence limits |
+
+### Research Agent
+
+| Document | Purpose |
+| --- | --- |
+| [Research Agent Charter](agents/research/Research_Agent_Charter.md) | Mission, scope, evidence principles, authority, and success criteria |
+| [Research Agent Functional Specification](agents/research/Research_Agent_Functional_Spec.md) | Required retrieval, analysis, evaluation, synthesis, and artifact behavior |
+| [Research Agent Architecture](agents/research/Research_Agent_Architecture.md) | High-level services, providers, workflows, evidence flow, and dependencies |
+| [Research Agent Design](agents/research/Research_Agent_Design.md) | Detailed component responsibilities, algorithms, boundaries, and results |
+| [Research Agent Interface Design](agents/research/Research_Agent_Interface_Design.md) | Request/results UI contracts, view models, routes, and Dashboard integration |
+| [Research Agent Testing Guide](agents/research/Research_Agent_Testing_Guide.md) | Agent-specific commands, live/stub configuration, expected bounds, and troubleshooting |
+| [Research Agent Test Plan](agents/research/Research_Agent_Test_Plan.md) | Unit, integration, browser, live-provider, safety, grounding, and regression coverage |
+| [Research Agent Test Results](agents/research/Research_Agent_Test_Results.md) | Recorded Research validation coverage, execution evidence, and verification limits |
+
+Agent-specific workflow, model, UI, and test semantics belong in these dedicated sets. Project and platform documents describe only shared composition, contracts, practices, status, and boundaries.
+
+## Implemented Platform Capabilities
+
+The shared platform currently provides:
+
+- safe repository-relative discovery and UTF-8 text reads;
+- deterministic documentation Context Builder and in-memory Markdown Knowledge Service;
+- generic synchronous sequential task execution with optional lifecycle event publication;
+- provider-neutral reasoning with Ollama and deterministic stub providers;
+- Markdown, local-link, strict MkDocs, and documentation-consistency validators;
+- controlled, human-reviewed Markdown updates and Git diff generation;
+- repository-local Agent Skill discovery, validation, loading, and reasoning-prompt integration;
+- FastAPI/Jinja2 Dashboard composition, shared routes, sidebar status, and agent extension points; and
+- registered Documentation and Research agent interfaces.
+
+The Documentation Agent includes source-grounded proposal generation, human review, controlled updates, validation, and completion reporting. The Research Agent includes multi-provider literature retrieval, optional existing-context processing, paper evidence and analysis, evaluation, synthesis, and evidence-grounded Research Direction Analysis.
+
+Detailed capability claims and verification evidence remain in the owning documents rather than this landing page.
+
+## Current Runtime
+
+Install Project0 in editable mode with its declared test dependencies:
+
+```bash
+python -m pip install -e '.[test]'
+```
+
+The repository provides two application entry paths:
+
+```bash
+python -m project0.main
+python -m project0.dashboard.dashboard_app
+```
+
+`project0.main` validates required repository structure and executes one general documentation-context workflow through the generic Workflow Engine. It does not start an interactive agent.
+
+`project0.dashboard.dashboard_app` starts the executable FastAPI Dashboard on `http://127.0.0.1:8001` with both agent interfaces registered.
+
+Serve the documentation separately:
+
+```bash
+mkdocs serve
+```
+
+The Dashboard's `/documentation` route redirects to `http://127.0.0.1:8000`, the default local MkDocs address. The Dashboard does not start or host MkDocs.
+
+## Configuration Summary
+
+Default Dashboard reasoning uses a local Ollama service and `qwen2.5:7b` unless model settings override it. The principal controls are:
+
+- `PROJECT0_REASONING_PROVIDER`
+- `PROJECT0_OLLAMA_MODEL`
+- `PROJECT0_RESEARCH_OLLAMA_MODEL`
+- `PROJECT0_DOCUMENTATION_OLLAMA_MODEL`
+- `PROJECT0_OLLAMA_BASE_URL`
+- `PROJECT0_OLLAMA_TIMEOUT_SECONDS`
+- `PROJECT0_RESEARCH_SOURCE_PROVIDERS`
+- `PROJECT0_ENABLE_RESEARCH_DIRECTION_ANALYSIS`
+
+`PROJECT0_REASONING_PROVIDER=stub` selects deterministic Dashboard reasoning behavior. Default Research sources are `semantic_scholar,arxiv`; supported configured source names are `semantic_scholar`, `openalex`, `openreview`, `crossref`, `arxiv`, and `stub`.
+
+See [Development Environment](project/Development_Environment.md) for exact defaults, credential variables, requirements, and troubleshooting.
 
 ## Development Principles
 
-Project0 follows several core principles:
+- Treat documentation as a first-class, version-controlled project artifact.
+- Treat implemented source, tests, templates, and configuration as authority for current behavior.
+- Prefer deterministic processing wherever model reasoning is unnecessary.
+- Keep model guidance separate from deterministic workflow enforcement.
+- Preserve human approval before Documentation Workflow changes are applied.
+- Communicate through explicit typed interfaces and shared models.
+- Keep shared platform services independent of agent-specific UI responsibilities.
+- Make the smallest coherent change and update affected tests and documentation together.
+- Tie completion and pass-count claims to the exact source state that was validated.
 
-* Documentation is treated as a first-class project artifact.
-* Markdown is the authoritative documentation format.
-* Repository documentation is the source of truth.
-* Deterministic processing is preferred whenever AI reasoning is unnecessary.
-* Human approval is required before documentation changes are applied.
-* Components communicate through clearly defined interfaces.
-* The Project0 Dashboard provides a consistent user experience across all platform capabilities.
-* Individual AI agents integrate into the Dashboard while maintaining consistent interface conventions.
+See [Development Standards](project/Development_Standards.md) and [Documentation Standards](project/Documentation_Standards.md) for the complete rules.
 
----
+## Current Status and Boundaries
 
-## Future Direction
+The latest named roadmap phase is Phase 14 — Project0 Agent Skills Foundation. Source corresponding to Phases 1–14 exists, including the Phase 12 Documentation Agent enhancements omitted from the older status list. Repository-wide verification is incomplete at the pinned audit commit.
 
-Project0 now provides a reusable AI-agent platform foundation, Dashboard Framework, and first reference agent through the Documentation Agent. The Research Agent V1 is complete and serves as the second reference implementation.
+Not implemented as shared platform capabilities:
 
-Future work will validate and extend the platform by introducing additional specialized AI agents and reusable infrastructure for areas such as:
+- durable workflow, review, research-session, or audit storage;
+- asynchronous or distributed workflow execution;
+- automatic Git commit, push, pull request, publication, or deployment;
+- continuous-integration or deployment workflows;
+- authentication or role-based access;
+- external Agent Skill installation and trust management;
+- semantic/vector repository retrieval; and
+- dynamic configuration-only agent registration.
 
-* Software Architecture
-* Design
-* Implementation
-* Testing and Validation
-* Code Review
-* Project Management
-* Multi-agent collaboration
+The Dashboard `/activity` and `/settings` entries are navigation placeholders. The shared project-phase label displayed by the Dashboard is hard-coded to an earlier phase and is not an authoritative current-status source.
 
-Development of additional agents will also be used to identify remaining agent-specific coupling and refine the generic Project0 agent-development model.
+## Verification Status
 
----
+This documentation synchronization is pinned to commit `da217ae42f7ceeffc95a84c6baad3dc4376a18f9`.
 
-## Current Platform Status
+- Pytest was unavailable in the audit environment, so no current regression count was established.
+- MkDocs was unavailable, so no current strict documentation-build result was established.
+- `python -m compileall -q src` failed because `src/project0/interfaces/knowledge_interfaces.py` contains Markdown code fences around the Python module.
+- The historical `1265 passed, 11 skipped` record from 2026-09-09 was not tied to the pinned commit and does not establish its status.
 
-The core Project0 platform has completed its Phase 9 Documentation Agent implementation and verification foundation, including:
-
-* Platform architecture and shared interfaces
-* Repository and Knowledge Services
-* Reasoning Service with local AI-provider integration
-* Validation Service
-* Documentation Workflow
-* Repository Update Service
-* Git Diff Service
-* Dashboard Framework
-* Documentation Agent User Interface
-* Human-in-the-loop documentation review and approval workflow
-* Preliminary and final documentation validation
-* Comprehensive automated unit and integration testing
-
-The Documentation Agent V1 is complete and serves as the first reference implementation of a Project0 AI Agent.
-
-The Research Agent V1 is complete and serves as the second reference implementation for validating reuse of Project0 infrastructure by additional specialized AI agents, including bounded multi-query retrieval, evidence-aware literature analysis, grounded Research Direction Analysis, and consolidated retained-paper results.
-
----
+See [Implementation Status](project/Implementation_Status.md), [Testing Guide](project/Testing_Guide.md), and [Project0 Test Results](platform/Project0_Test_Results.md) for the precise status, commands, gaps, and reporting rules.
 
 ## Getting Started
 
-Begin with the [**Project Charter**](project/Project_Charter.md) to understand the overall vision and objectives. Next, review the [**Development Environment**](project/Development_Environment.md) to configure a standard Project0 development workstation. After the environment is configured, review the [**Testing Guide**](project/Testing_Guide.md) to understand the Project0 testing strategy and validation workflow.
+1. Read the [Project Charter](project/Project_Charter.md) for vision and scope.
+2. Configure the [Development Environment](project/Development_Environment.md).
+3. Review the [Development Standards](project/Development_Standards.md) and [Documentation Standards](project/Documentation_Standards.md).
+4. Learn shared boundaries in [Component Communication Design](platform/Component_Communication_Design.md) and [Shared Data Models and Error Contracts](platform/Shared_Data_Models_and_Error_Contracts.md).
+5. Use the [Testing Guide](project/Testing_Guide.md) before treating a change as verified.
+6. Consult the dedicated Documentation or Research Agent set for agent-specific behavior.
+7. Check [Implementation Status](project/Implementation_Status.md) and [Project0 Test Results](platform/Project0_Test_Results.md) before relying on a milestone or pass claim.
 
-Then continue through the reusable platform documentation, beginning with the [**Dashboard Design**](platform/Dashboard_Design.md), followed by the [**Component Communication Design**](platform/Component_Communication_Design.md) and [**Shared Data Models and Error Contracts**](platform/Shared_Data_Models_and_Error_Contracts.md), before reviewing the Documentation Agent Charter, Functional Specification, Architecture, Design, Interface Design, and Testing Guide. Then review the Research Agent Charter, Functional Specification, Architecture, Design, Interface Design, and Test Plan.
+## Future Direction
 
+Project0 can be extended with additional specialized agents and reusable capabilities for software architecture, design, implementation, testing, code review, project management, and multi-agent collaboration. Potential platform work also includes durable state, semantic repository retrieval, additional reasoning providers, external skill lifecycle management, authentication, dynamic registration, and CI/CD.
+
+These are possible future directions, not implemented capabilities or committed schedules. New work should be added to the roadmap only when its ownership, dependencies, deliverables, and validation criteria are defined.
