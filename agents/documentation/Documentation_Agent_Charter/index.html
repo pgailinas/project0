@@ -920,6 +920,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="5. Scope">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#in-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        In Scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#out-of-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Out of Scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1557,6 +1585,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="5. Scope">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#in-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        In Scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#out-of-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Out of Scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1651,237 +1707,279 @@
 
 
 <h1 id="documentation-agent-charter">Documentation Agent Charter</h1>
-<p><strong>Version:</strong> 0.1<br />
+<p><strong>Version:</strong> 0.4<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-08-1</p>
+<strong>Last Updated:</strong> 2026-09-11</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <p>Establish the mission, scope, operating principles, authority
 boundaries, and success criteria for the Project0 Documentation Agent.</p>
-<p>The Documentation Agent exists to maintain synchronization between
-software repositories and their documentation while minimizing manual
+<p>The Documentation Agent exists to help synchronize Markdown
+documentation with repository implementation while minimizing manual
 effort and preserving documentation quality through controlled,
 reviewable updates.</p>
-<p>This charter defines the high-level intent of the Documentation Agent.
-Detailed functional behavior, architecture, component design, and
-interface contracts are defined in their respective authoritative
-documents.</p>
+<p>This charter defines the agent's high-level intent and governing
+boundaries. Detailed behavior, architecture, component design, and
+interfaces are defined in their respective authoritative documents.</p>
 <hr />
 <h2 id="2-mission">2. Mission</h2>
-<p>Provide an AI-assisted, human-controlled capability that identifies
-documentation impact, proposes accurate and minimal documentation
-updates, validates proposed changes, and applies only explicitly
-approved changes to repository documentation.</p>
+<p>Provide an AI-assisted, human-controlled capability that compares
+selected documentation with repository evidence, identifies material
+documentation gaps, proposes accurate and minimal updates, and applies
+only individually approved changes to existing Markdown files.</p>
 <p>The Documentation Agent supports Project0's broader mission of using
 specialized AI agents within structured development workflows while
 preserving human decision authority and professional software
-engineering quality.</p>
+engineering practices.</p>
 <hr />
 <h2 id="3-vision">3. Vision</h2>
 <p>Make accurate, current, repository-grounded documentation a normal and
 integrated part of software development rather than a separate manual
 maintenance activity.</p>
-<p>The Documentation Agent should demonstrate how a specialized Project0 AI
-agent can combine deterministic platform services, AI reasoning,
-continuous validation, and human approval checkpoints within a reusable
-AI-native development framework.</p>
+<p>The Documentation Agent demonstrates how a specialized Project0 agent
+can combine deterministic platform services, structured AI reasoning,
+validation, and human approval checkpoints within a reusable AI-native
+development framework.</p>
 <hr />
 <h2 id="4-objectives">4. Objectives</h2>
 <p>The Documentation Agent shall:</p>
 <ul>
-<li>Maintain synchronization between repository state and project
-  documentation.</li>
-<li>Reduce the manual effort required to identify and perform
-  documentation updates.</li>
-<li>Use repository content as the authoritative source of project
-  knowledge.</li>
-<li>Identify documentation affected by repository changes or explicit
-  documentation requests.</li>
-<li>Produce accurate, minimal, style-preserving documentation proposals.</li>
-<li>Explain the rationale for proposed documentation changes.</li>
-<li>Validate proposed changes before human approval.</li>
-<li>Present proposed changes clearly for individual human review.</li>
-<li>Apply only explicitly approved documentation changes.</li>
-<li>Perform final validation after approved changes are applied.</li>
-<li>Provide a final Git diff so applied repository changes remain
-  reviewable and traceable.</li>
-<li>Reuse generic Project0 platform services and interfaces wherever
+<li>Use supplied repository content as authoritative evidence for
+  source-grounded documentation synchronization.</li>
+<li>Treat target documentation as a controlled artifact rather than
+  regenerating it without regard for its existing structure.</li>
+<li>Identify material gaps between selected documentation and selected
+  authoritative source files.</li>
+<li>Produce concrete, minimal, style-preserving Markdown proposals.</li>
+<li>Explain the rationale for each proposed documentation change.</li>
+<li>Restrict proposals to permitted, existing Markdown target files.</li>
+<li>Present focused differences and workflow warnings for human review.</li>
+<li>Support approve, revise, reject, and skip decisions for each
+  proposal.</li>
+<li>Apply only individually approved changes.</li>
+<li>Validate affected documentation at the implemented workflow stages.</li>
+<li>Provide a final Git diff for applied changes.</li>
+<li>Reuse generic Project0 platform services and interfaces where
   practical.</li>
-<li>Preserve architectural separation between reusable Project0
-  infrastructure and Documentation Agent-specific behavior.</li>
+<li>Preserve separation between reusable Project0 infrastructure and
+  Documentation Agent-specific behavior.</li>
 </ul>
 <hr />
 <h2 id="5-scope">5. Scope</h2>
-<p><strong>In Scope</strong>: The Documentation Agent is responsible for:</p>
+<h3 id="in-scope">In Scope</h3>
+<p>The current Documentation Agent supports:</p>
 <ul>
-<li>Markdown documentation maintained in a local Git repository.</li>
-<li>Documentation impact analysis.</li>
-<li>Repository-grounded documentation context.</li>
-<li>AI-assisted documentation reasoning.</li>
+<li>Existing Markdown documentation in the configured local Git
+  repository.</li>
+<li>A required documentation request with optional target-document and
+  authoritative-source paths.</li>
+<li>Repository-grounded context construction.</li>
+<li>Provider-neutral, structured AI reasoning.</li>
+<li>A two-stage gap-analysis and proposal process when authoritative
+  source paths are supplied.</li>
+<li>A single proposal-generation stage when no source paths are supplied.</li>
+<li>Source-grounded proposal safeguards, including path, content-form,
+  location, section-alignment, anchor, and Python-declaration checks.</li>
 <li>File-by-file documentation proposals.</li>
-<li>Human review of proposed documentation changes.</li>
-<li>Approve, revise, reject, and skip review decisions.</li>
-<li>Application of approved documentation changes through controlled repository services.</li>
-<li>Markdown, link, MkDocs, and documentation consistency validation.</li>
-<li>Final Git diff generation.</li>
-<li>Documentation workflow results and activity reporting.</li>
-<li>Interaction through the reusable Project0 Dashboard Framework.</li>
+<li>Preliminary validation of proposal target paths before review.</li>
+<li>Individual human review of each proposal.</li>
+<li>Controlled and atomic application of approved updates.</li>
+<li>Final validation of successfully applied paths.</li>
+<li>Git diff generation for applied paths.</li>
+<li>Workflow summaries, warnings, errors, and Dashboard presentation.</li>
 </ul>
-<p><strong>Out of Scope</strong>: The Documentation Agent SHALL NOT:</p>
+<h3 id="out-of-scope">Out of Scope</h3>
+<p>The current Documentation Agent does not:</p>
 <ul>
-<li>Modify application source code.</li>
-<li>Commit, push, merge, or open pull requests.</li>
-<li>Override human review decisions.</li>
-<li>Apply documentation changes without required approval.</li>
-<li>Modify files outside the approved documentation scope.</li>
-<li>Treat AI model memory or retrieved excerpts as more authoritative
-  than repository content.</li>
-<li>Invent unsupported project information.</li>
-<li>Operate as a continuously monitoring autonomous repository service.</li>
-<li>Own or embed Documentation Agent business logic within the Dashboard
+<li>Create or delete documentation files through the executable
+  proposal workflow.</li>
+<li>Modify application source code, tests, configuration, or other
+  non-Markdown files.</li>
+<li>Apply a proposal without an explicit approve decision.</li>
+<li>Modify paths outside the configured repository or explicit target
+  scope.</li>
+<li>Commit, push, merge, create branches, or open pull requests.</li>
+<li>Persist workflow review state across process restarts.</li>
+<li>Provide transactional rollback when final validation fails.</li>
+<li>Automatically regenerate a revised proposal after a revise decision.</li>
+<li>Operate as a continuously monitoring repository service.</li>
+<li>Treat model memory or unsupported inference as repository evidence.</li>
+<li>Place Documentation Agent business logic inside the shared Dashboard
   Framework.</li>
-<li>Replace deterministic repository, workflow, or validation operations
-  with AI reasoning when deterministic processing is sufficient.</li>
 </ul>
+<p>Although shared reasoning models can represent create and delete
+operations, the current Documentation Workflow accepts only updates to
+existing <code>.md</code> files.</p>
 <hr />
 <h2 id="6-operating-principles">6. Operating Principles</h2>
-<p>The Documentation Agent shall follow these principles:</p>
+<p>The Documentation Agent follows these principles:</p>
 <ul>
 <li>
-<p><strong>Repository Grounding</strong>: Repository documentation and repository content are the authoritative sources of project knowledge. AI-generated proposals remain non-authoritative until approved and applied.</p>
+<p><strong>Repository Grounding</strong>: For source-grounded work, explicitly
+  supplied source paths are read-only authoritative evidence and target
+  Markdown is the controlled artifact. Model output is not itself
+  authoritative.</p>
 </li>
 <li>
-<p><strong>Human-in-the-Loop</strong>: Human authority is preserved for documentation changes. Proposed changes shall be reviewable, and required approval shall occur before repository modification.</p>
+<p><strong>Human-in-the-Loop</strong>: Every accepted proposal requires an individual
+  review decision. Only approval authorizes a repository write.</p>
 </li>
 <li>
-<p><strong>Minimum Necessary Change</strong>: Documentation updates should make the smallest change necessary to satisfy the request while preserving unrelated content, document structure, terminology, and style.</p>
+<p><strong>Minimum Necessary Change</strong>: Updates should preserve unrelated
+  content, structure, terminology, and formatting.</p>
 </li>
 <li>
-<p><strong>Deterministic Before AI</strong>: Repository access, workflow coordination, context handling, validation, and repository modification should use deterministic services whenever
-AI reasoning is not required.</p>
+<p><strong>Fail-Closed Synchronization</strong>: A source-grounded proposal is skipped
+  with a warning when its scope, location, semantics, content form, or
+  reproduced source declaration cannot be established reliably.</p>
 </li>
 <li>
-<p><strong>Continuous Validation</strong>: Proposed documentation changes shall be validated before approval, and applied changes shall undergo final validation before workflow completion.</p>
+<p><strong>Deterministic Before AI</strong>: Repository access, path enforcement,
+  proposal safeguards, validation, application, and diff generation use
+  deterministic services. AI reasoning is used where interpretation or
+  documentation wording is required.</p>
 </li>
 <li>
-<p><strong>Modular Architecture</strong>: Documentation Agent-specific behavior shall remain separate from reusable Project0 platform infrastructure and shall communicate through
-defined interfaces and shared models.</p>
+<p><strong>Explicit Validation Boundaries</strong>: Preliminary validation evaluates
+  the current proposal target paths before review. Final validation
+  evaluates successfully applied paths after writing. Final validation
+  reports defects but does not roll back a completed write.</p>
 </li>
 <li>
-<p><strong>Reuse Before Build</strong>: Existing Project0 services, established open-source tools, and reusable framework capabilities shall be used whenever practical rather than duplicated within the Documentation Agent.</p>
+<p><strong>Modular Architecture</strong>: Agent-specific workflow and presentation
+  behavior remain separate from shared platform services and communicate
+  through defined interfaces and models.</p>
 </li>
 <li>
-<p><strong>Local-First and Vendor-Neutral</strong>: Local and open technologies are preferred where practical, and AI
-reasoning capabilities shall remain abstracted so that provider implementations can change without redefining the agent.</p>
+<p><strong>Provider Abstraction</strong>: Documentation reasoning uses a
+  provider-neutral service contract. Current runtime configuration may
+  select local Ollama or deterministic stub behavior without redefining
+  the agent's charter.</p>
 </li>
 <li>
-<p><strong>Documentation by Default</strong>: Documentation is living project knowledge and shall remain synchronized
-with the repository state while following Project0 Documentation Standards.</p>
+<p><strong>Documentation by Default</strong>: Documentation is living project
+  knowledge and should remain aligned with implementation under the
+  Project0 Documentation Standards.</p>
 </li>
 </ul>
 <hr />
 <h2 id="7-relationship-to-project0">7. Relationship to Project0</h2>
-<p>The Documentation Agent is a specialized AI agent operating within the
+<p>The Documentation Agent is a specialized agent operating within the
 Project0 AI-native software development framework.</p>
-<p>Project0 provides reusable platform capabilities such as repository
-access, workflow execution, knowledge retrieval, AI reasoning
-abstraction, validation, shared models and interfaces, platform
-dispatch, and the Dashboard Framework.</p>
-<p>The Documentation Agent composes these capabilities into a
-documentation-specific workflow. It shall not redefine generic platform
-responsibilities solely to satisfy agent-specific requirements.</p>
-<p>The Dashboard Framework provides the shared application shell,
-navigation, context, and Work Area hosting. The Documentation Agent owns
-only its agent-specific workflow interactions and presentation within
-the Dashboard Work Area.</p>
-<p>The Documentation Agent also serves as the first reference
-implementation for evaluating whether Project0 infrastructure can
-support additional specialized AI agents through reusable platform
-contracts.</p>
+<p>Project0 supplies reusable repository access, context construction,
+reasoning abstraction, artifact location, validation, workflow,
+repository-update, Git-diff, platform-dispatch, skill-registry, and
+Dashboard capabilities. The Documentation Agent composes these services
+into a documentation-specific workflow rather than redefining their
+shared responsibilities.</p>
+<p>The Dashboard Framework owns the common application shell, navigation,
+and Work Area hosting. Documentation Agent routes, view models, UI
+mapping, and agent-specific presentation remain within the Documentation
+Agent package.</p>
+<p>The Documentation Agent serves as Project0's initial reference
+implementation for a human-reviewed specialized-agent workflow. This
+role does not make Documentation Agent-specific behavior a requirement
+for every later Project0 agent.</p>
 <hr />
 <h2 id="8-human-authority-and-repository-safety">8. Human Authority and Repository Safety</h2>
 <p>Repository modification is a controlled action.</p>
-<p>The Documentation Agent shall:</p>
+<p>For each proposal:</p>
 <ul>
-<li>Present proposed documentation changes before they are applied.</li>
-<li>Require the defined human approval decision before applying a
-  proposal.</li>
-<li>Apply only approved documentation changes.</li>
-<li>Preserve unrelated repository content.</li>
-<li>Restrict modifications to approved repository paths.</li>
-<li>Use controlled repository update services for documentation
-  modification.</li>
-<li>Perform validation after repository changes are applied.</li>
-<li>Provide a final Git diff for human inspection.</li>
-<li>Report failures rather than silently continuing when repository
-  integrity or validation cannot be established.</li>
+<li><code>approve</code> authorizes immediate application of that proposal;</li>
+<li><code>reject</code> records the decision and performs no write;</li>
+<li><code>skip</code> records the decision and performs no write; and</li>
+<li><code>revise</code> retains workflow state and returns the original request
+  fields for user revision and resubmission.</li>
 </ul>
-<p>AI reasoning may recommend documentation changes but does not
-independently possess authority to modify the repository.</p>
+<p>The agent additionally shall:</p>
+<ul>
+<li>Restrict executable proposals to existing Markdown files within the
+  repository and, when supplied, the explicit target allowlist.</li>
+<li>Preserve a snapshot of the original document in each proposal.</li>
+<li>Refuse an approved change if the document has changed since proposal
+  creation.</li>
+<li>Apply successful changes through a temporary file and atomic
+  replacement.</li>
+<li>Leave rejected, skipped, revised, invalid, and out-of-scope proposals
+  unapplied.</li>
+<li>Report skipped proposals, application failures, and validation
+  failures rather than silently treating them as success.</li>
+<li>Generate a final Git diff when at least one path is successfully
+  applied.</li>
+</ul>
+<p>Approval occurs one proposal at a time. Earlier approved proposals may
+already be written while later proposals remain under review. The
+workflow is therefore human-controlled but not transactional across the
+complete proposal set.</p>
+<p>AI reasoning recommends documentation changes but does not independently
+possess authority to modify the repository.</p>
 <hr />
 <h2 id="9-success-criteria">9. Success Criteria</h2>
 <p>The Documentation Agent is successful when it can:</p>
 <ul>
-<li>Correctly determine documentation impact from repository changes or
-  explicit user requests.</li>
-<li>Select appropriate repository documentation and context.</li>
-<li>Generate accurate, relevant, and minimal documentation proposals.</li>
-<li>Preserve unrelated document content and established documentation
-  style.</li>
-<li>Explain why each proposed change is appropriate.</li>
-<li>Present sufficient information for an informed human review
-  decision.</li>
-<li>Apply only individually approved documentation changes.</li>
-<li>Leave rejected, skipped, unrelated, and out-of-scope content
-  unchanged.</li>
-<li>Detect documentation defects through deterministic validation.</li>
-<li>Complete final validation after repository modification.</li>
-<li>Produce an accurate Git diff of applied changes.</li>
-<li>Fail safely when a requested change cannot be applied reliably.</li>
-<li>Operate through Project0's reusable platform architecture without
-  embedding Documentation Agent-specific responsibilities into shared
-  platform components.</li>
+<li>Distinguish material documentation gaps from unsupported or
+  non-material observations.</li>
+<li>Generate concrete edits only for gaps established by supplied source
+  evidence during source-grounded synchronization.</li>
+<li>Keep proposal paths within the permitted Markdown scope.</li>
+<li>Preserve unrelated document content and established style.</li>
+<li>Provide a clear rationale and focused difference for each proposal.</li>
+<li>Require and correctly honor every supported review decision.</li>
+<li>Apply only approved and non-stale proposals.</li>
+<li>Fail closed when a proposal cannot be located or grounded reliably.</li>
+<li>Report preliminary and final validation results at their actual
+  implemented boundaries.</li>
+<li>Produce an accurate Git diff for applied documentation paths.</li>
+<li>Surface warnings and failures without claiming unsupported success.</li>
+<li>Operate through reusable Project0 services without transferring
+  Documentation Agent responsibilities into shared platform components.</li>
 </ul>
+<p>Success does not require automatic publication, autonomous repository
+monitoring, persistent workflow recovery, or rollback behavior that the
+current implementation does not provide.</p>
 <hr />
 <h2 id="10-future-direction">10. Future Direction</h2>
 <p>Future evolution may improve the Documentation Agent without changing
-this charter's core human-controlled and repository-grounded principles.</p>
-<p>Potential directions include:</p>
+its repository-grounded and human-controlled principles. Potential
+directions include:</p>
 <ul>
-<li>Improved documentation impact analysis.</li>
-<li>Semantic repository retrieval.</li>
+<li>Durable workflow and review-state persistence.</li>
+<li>More capable revision and proposal-regeneration workflows.</li>
+<li>Transactional or explicit rollback support.</li>
+<li>Controlled creation and deletion of documentation files.</li>
+<li>Improved documentation impact analysis and semantic retrieval.</li>
 <li>Larger coordinated multi-document updates.</li>
-<li>Additional AI reasoning providers.</li>
-<li>Improved proposal and diff presentation.</li>
-<li>Additional deterministic validators.</li>
-<li>More sophisticated revision workflows.</li>
-<li>Repository event awareness.</li>
-<li>Optional automation around documentation workflows while preserving
-    defined human authority.</li>
-<li>Lessons and reusable patterns that support development of additional
-    Project0 AI agents.</li>
+<li>Additional reasoning providers and deterministic validators.</li>
+<li>Improved proposal, validation, and diff presentation.</li>
+<li>Optional repository-event awareness and automation that retains
+  defined human authority.</li>
 </ul>
-<p>Future capabilities shall be introduced through the appropriate
-functional, architectural, and design documents rather than being
-assumed by this charter.</p>
+<p>These are possible future capabilities, not claims about the current
+implementation. They require corresponding implementation, tests, and
+updates to the appropriate specification and design documents before
+being treated as available behavior.</p>
 <hr />
 <h2 id="11-document-authority">11. Document Authority</h2>
-<p>This charter defines the high-level purpose, mission, scope, principles,
-and authority boundaries of the Documentation Agent.</p>
-<p>Detailed requirements and implementation-independent behavior are
-defined by the <strong>Documentation Agent Functional Specification</strong>.</p>
-<p>The high-level component organization is defined by the <strong>Documentation
-Agent Architecture</strong>.</p>
-<p>Internal component responsibilities and interactions are defined by the
-<strong>Documentation Agent Component Design</strong> and related interface design
-documentation.</p>
-<p>Repository-wide documentation requirements are defined by
-<strong>Documentation Standards</strong>.</p>
-<p>Project-wide mission, vision, principles, and objectives remain governed
-by the <strong>Project Charter</strong>.</p>
-<p>Where lower-level Documentation Agent documents conflict with this
-charter, the conflict should be resolved explicitly rather than silently
-redefining the agent's mission or authority boundaries.</p>
+<p>This charter governs the high-level purpose, mission, scope, operating
+principles, and authority boundaries of the Documentation Agent.</p>
+<p>The <strong>Documentation Agent Functional Specification</strong> defines detailed
+supported behavior and requirements.</p>
+<p>The <strong>Documentation Agent Architecture</strong> defines high-level component
+organization and responsibility boundaries.</p>
+<p>The <strong>Documentation Agent Design</strong> and <strong>Documentation Agent Interface
+Design</strong> define internal behavior, interactions, models, and interfaces.</p>
+<p>The <strong>Documentation Agent Test Plan</strong>, <strong>Test Results</strong>, and <strong>Testing
+Guide</strong> define intended coverage, recorded evidence, and verification
+procedures without superseding implementation or tests.</p>
+<p>Repository-wide documentation requirements are governed by
+<strong>Documentation Standards</strong>, and project-wide mission and principles are
+governed by the <strong>Project Charter</strong>.</p>
+<p>For statements about current executable behavior, source code and
+automated tests are authoritative. Conflicts among implementation,
+tests, and documentation should be identified and resolved explicitly
+rather than silently redefining the agent's behavior or authority.</p>
+<hr />
+<p><strong>End of Document</strong></p>
 
 
 
