@@ -2371,9 +2371,9 @@
 
 
 <h1 id="component-communication-design">Component Communication Design</h1>
-<p><strong>Version:</strong> 0.5<br />
+<p><strong>Version:</strong> 0.6<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-09  </p>
+<strong>Last Updated:</strong> 2026-09-10  </p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <p>This document defines how Project0 platform components communicate. It establishes the implemented communication patterns, execution flow, interface responsibilities, shared model usage, and event handling.</p>
@@ -2609,10 +2609,12 @@
 </ul>
 <h2 id="research-workflow">Research Workflow</h2>
 <ul>
-<li>Coordinate Research Strategy, Research Query, Research Source, Paper Metadata, Research Evaluation, Per-Paper Analysis, Research Direction Analysis, Validation, and Research Artifact services.</li>
-<li>Preserve Research Agent workflow state.</li>
-<li>Return Research Workflow Results.</li>
+<li>Coordinate optional context ingestion/analysis, Research Strategy, Research Query, Research Source, Paper Metadata/evidence acquisition, Research Evaluation, Per-Paper Analysis, Research Direction Analysis, and Research Artifact services.</li>
+<li>Preserve Research Agent workflow state and source/evidence statistics.</li>
+<li>Isolate Research Direction Analysis failure as a completed result warning.</li>
+<li>Return immutable Research Workflow Results.</li>
 </ul>
+<p>Research structured-output and grounding checks are implemented inside the research analysis/evaluation services. The Research Workflow does not call the reusable Markdown/Link/MkDocs Validation Service.</p>
 <h3 id="shared-interfaces">Shared Interfaces</h3>
 <ul>
 <li>Define stable component contracts.</li>

@@ -2161,9 +2161,9 @@
 
 
 <h1 id="dashboard-design">Dashboard Design</h1>
-<p><strong>Version:</strong> 0.6<br />
+<p><strong>Version:</strong> 0.7<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-02</p>
+<strong>Last Updated:</strong> 2026-09-10</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
 <h3 id="objective">Objective</h3>
@@ -2201,7 +2201,7 @@
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    ▼
 </span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>Project0 Platform Services
 </span></code></pre></div>
-<p>FastAPI is the selected application framework for the Project0 Dashboard. Jinja2 templates will provide the initial browser interface, and Uvicorn will host the local ASGI application.</p>
+<p>FastAPI implements the Project0 Dashboard, Jinja2 renders the browser interface, and Uvicorn hosts the local ASGI application.</p>
 <hr />
 <h2 id="4-navigation-model">4. Navigation Model</h2>
 <p>The Dashboard Framework provides persistent application navigation while the active page is displayed in the Work Area.</p>
@@ -2373,9 +2373,8 @@ Dashboard integration model:</p>
 <li>User approval before repository modification.</li>
 <li>Final validation, Git diff generation, and completion reporting.</li>
 </ul>
-<p>The Research Agent provides a second implemented agent integration,
-including context-document selection, research request controls, and
-consolidated retained-paper results within the Dashboard Work Area.</p>
+<p>The Research Agent provides a second implemented agent integration. Its Work Area includes an optional Existing Research Context upload, research-question and guidance controls, a Maximum Results selector, client-side processing feedback, workflow warnings, consolidated evidence-reviewed paper cards, embedded structured paper analysis, optional Research Direction Analysis, summary counts, and browser-side Markdown saving.</p>
+<p>The shared system-status panel reports the active agent, operation, elapsed time, configured reasoning provider/model, and GPU information. During a Research request the page polls <code>/api/system-status?agent=research</code> every two seconds. This polling reports system configuration and GPU state; it is not server-side workflow-stage telemetry.</p>
 <p>The Dashboard Framework continues to own the shared application shell,
 navigation, context toolbar region, and Work Area hosting.
 Agent-specific features such as documentation review, validation
@@ -2472,10 +2471,17 @@ applicable Agent Interface Design document.</p>
 <li>Validation-result presentation</li>
 <li>Agent workflow state presentation</li>
 </ul>
-<p>Future implementation includes:</p>
+<p>The current implementation also includes:</p>
 <ul>
-<li>Production LLM integration</li>
-<li>Improved automated documentation generation quality</li>
+<li>Research Agent request and result routes</li>
+<li>Agent-specific Research and Documentation Ollama model selection</li>
+<li>Shared provider/model and GPU status presentation</li>
+<li>Consolidated Research Agent result cards and Save Results control</li>
+</ul>
+<p>Future implementation may include:</p>
+<ul>
+<li>Improved model-output quality</li>
+<li>Asynchronous progress reporting</li>
 <li>Additional AI agents</li>
 </ul>
 <hr />

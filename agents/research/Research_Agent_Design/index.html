@@ -1238,14 +1238,36 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="1. Purpose">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-composition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Composition
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-request-and-context-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Request and Context Design
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Request and Context Design">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#objective" class="md-nav__link">
+  <a href="#browser-request" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Objective
+        Browser request
       
     </span>
   </a>
@@ -1253,10 +1275,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#scope" class="md-nav__link">
+  <a href="#context-ingestion" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Scope
+        Context ingestion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#context-structured-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context structured output
       
     </span>
   </a>
@@ -1269,1883 +1302,47 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-component-design-principles" class="md-nav__link">
+  <a href="#4-strategy-design" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Component Design Principles
+        4. Strategy Design
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#3-component-overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Component Overview
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#4-component-specifications" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Component Specifications
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4. Component Specifications">
+    <nav class="md-nav" aria-label="4. Strategy Design">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#41-platform-dispatcher" class="md-nav__link">
+  <a href="#ordered-concepts" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4.1 Platform Dispatcher
+        Ordered concepts
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="4.1 Platform Dispatcher">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#interfaces" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Interfaces
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Interfaces">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#provides" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Provides
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#consumes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Consumes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Outputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#required-services" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Required Services
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#future-considerations" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Future Considerations
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#42-dashboard-framework" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.2 Dashboard Framework
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.2 Dashboard Framework">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#43-workflow-engine" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.3 Workflow Engine
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.3 Workflow Engine">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#44-knowledge-service" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.4 Knowledge Service
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.4 Knowledge Service">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#future-considerations_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Future Considerations
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#45-reasoning-service" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.5 Reasoning Service
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.5 Reasoning Service">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#interfaces_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Interfaces
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Interfaces">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#provides_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Provides
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#consumes_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Consumes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#required-services_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Required Services
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#future-considerations_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Future Considerations
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#46-validation-service" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.6 Validation Service
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.6 Validation Service">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#future-considerations_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Future Considerations
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#47-shared-interfaces" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.7 Shared Interfaces
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.7 Shared Interfaces">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#initial-research-interfaces" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Initial Research Interfaces
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#48-shared-data-models" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.8 Shared Data Models
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.8 Shared Data Models">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#initial-research-models" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Initial Research Models
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#49-context-document-ingestion" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.9 Context Document Ingestion
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.9 Context Document Ingestion">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Outputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#410-existing-research-context-analysis" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.10 Existing Research Context Analysis
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.10 Existing Research Context Analysis">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_9" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#interfaces_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Interfaces
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Interfaces">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#provides_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Provides
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#consumes_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Consumes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_9" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Outputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#required-services_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Required Services
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#411-per-paper-analysis" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.11 Per-Paper Analysis
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.11 Per-Paper Analysis">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_10" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#interfaces_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Interfaces
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Interfaces">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#provides_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Provides
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#consumes_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Consumes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_10" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Outputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#required-services_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Required Services
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#412-research-direction-analysis" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.12 Research Direction Analysis
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.12 Research Direction Analysis">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_11" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_9" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#interfaces_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Interfaces
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Interfaces">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#provides_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Provides
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#consumes_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Consumes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_11" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Outputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#required-services_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Required Services
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#413-research-strategy-service" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.13 Research Strategy Service
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.13 Research Strategy Service">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_12" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_10" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#interfaces_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Interfaces
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Interfaces">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#provides_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Provides
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#consumes_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Consumes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_12" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Outputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#required-services_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Required Services
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#future-considerations_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Future Considerations
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#410-research-query-service" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.10 Research Query Service
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.10 Research Query Service">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_13" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_11" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_13" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Outputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#414-research-source-service" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.14 Research Source Service
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.14 Research Source Service">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_14" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_12" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#interfaces_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Interfaces
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Interfaces">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#provides_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Provides
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#consumes_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Consumes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_14" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs_7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs_7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Outputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#external-dependencies" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        External Dependencies
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#future-considerations_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Future Considerations
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#415-paper-metadata-service" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.15 Paper Metadata Service
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.15 Paper Metadata Service">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_15" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_13" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#interfaces_7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Interfaces
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Interfaces">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#provides_7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Provides
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#consumes_7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Consumes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_15" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs_8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs_8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Outputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#future-considerations_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Future Considerations
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#416-research-evaluation-service" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.16 Research Evaluation Service
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.16 Research Evaluation Service">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_16" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_14" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#interfaces_8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Interfaces
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Interfaces">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#provides_8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Provides
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#consumes_8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Consumes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_16" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs_9" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs_9" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Outputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#required-services_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Required Services
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#future-considerations_7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Future Considerations
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#417-research-artifact-service" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.17 Research Artifact Service
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.17 Research Artifact Service">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_17" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_15" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#interfaces_9" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Interfaces
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Interfaces">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#provides_9" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Provides
-      
-    </span>
-  </a>
-  
 </li>
         
           <li class="md-nav__item">
-  <a href="#consumes_9" class="md-nav__link">
+  <a href="#constraints-and-sub-questions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Consumes
+        Constraints and sub-questions
       
     </span>
   </a>
   
 </li>
         
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_17" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs_10" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs_10" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Outputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#future-considerations_8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Future Considerations
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#418-research-workflow" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.18 Research Workflow
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.18 Research Workflow">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_18" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_16" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_18" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#research-source-provider-design" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Research Source Provider Design
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Research Source Provider Design">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_19" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_19" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#revision-workflow-support" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Revision Workflow Support
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Revision Workflow Support">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_17" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
           <li class="md-nav__item">
-  <a href="#design-notes_20" class="md-nav__link">
+  <a href="#seeds" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Design Notes
+        Seeds
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -3155,10 +1352,243 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-interface-design-principles" class="md-nav__link">
+  <a href="#5-query-design" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. Interface Design Principles
+        5. Query Design
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Query Design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#construction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Construction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bounds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bounds
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-provider-and-retrieval-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Provider and Retrieval Design
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Provider and Retrieval Design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#provider-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provider behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dispatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dispatch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#duplicate-identity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Duplicate identity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eligibility-profile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Eligibility profile
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#balanced-pool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Balanced pool
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-metadata-and-evidence-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Metadata and Evidence Design
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Metadata and Evidence Design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata-normalization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata normalization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shortlist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shortlist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evidence-acquisition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evidence acquisition
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-evaluation-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Evaluation Design
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Evaluation Design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#batch-identity-and-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Batch identity and schema
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#relevance-rubric" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Relevance rubric
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recovery
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#final-result-selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Final result selection
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-paper-analysis-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Paper Analysis Design
       
     </span>
   </a>
@@ -3166,10 +1596,99 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#7-component-interactions" class="md-nav__link">
+  <a href="#10-research-direction-analysis-design" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7. Component Interactions
+        10. Research Direction Analysis Design
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Research Direction Analysis Design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#input" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-artifact-and-presentation-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Artifact and Presentation Design
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. Artifact and Presentation Design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#in-memory-artifacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        In-memory artifacts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consolidated-cards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consolidated cards
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#saved-markdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Saved Markdown
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-status-logging-and-diagnostics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Status, Logging, and Diagnostics
       
     </span>
   </a>
@@ -3177,10 +1696,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#7-design-constraints" class="md-nav__link">
+  <a href="#13-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7. Design Constraints
+        13. Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-known-implementation-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Known Implementation Constraints
       
     </span>
   </a>
@@ -3350,14 +1880,36 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="1. Purpose">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-composition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Composition
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-request-and-context-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Request and Context Design
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Request and Context Design">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#objective" class="md-nav__link">
+  <a href="#browser-request" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Objective
+        Browser request
       
     </span>
   </a>
@@ -3365,10 +1917,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#scope" class="md-nav__link">
+  <a href="#context-ingestion" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Scope
+        Context ingestion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#context-structured-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context structured output
       
     </span>
   </a>
@@ -3381,1883 +1944,47 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-component-design-principles" class="md-nav__link">
+  <a href="#4-strategy-design" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Component Design Principles
+        4. Strategy Design
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#3-component-overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Component Overview
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#4-component-specifications" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Component Specifications
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4. Component Specifications">
+    <nav class="md-nav" aria-label="4. Strategy Design">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#41-platform-dispatcher" class="md-nav__link">
+  <a href="#ordered-concepts" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4.1 Platform Dispatcher
+        Ordered concepts
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="4.1 Platform Dispatcher">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#interfaces" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Interfaces
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Interfaces">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#provides" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Provides
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#consumes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Consumes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Outputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#required-services" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Required Services
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#future-considerations" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Future Considerations
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#42-dashboard-framework" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.2 Dashboard Framework
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.2 Dashboard Framework">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#43-workflow-engine" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.3 Workflow Engine
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.3 Workflow Engine">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#44-knowledge-service" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.4 Knowledge Service
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.4 Knowledge Service">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#future-considerations_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Future Considerations
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#45-reasoning-service" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.5 Reasoning Service
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.5 Reasoning Service">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#interfaces_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Interfaces
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Interfaces">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#provides_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Provides
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#consumes_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Consumes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#required-services_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Required Services
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#future-considerations_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Future Considerations
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#46-validation-service" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.6 Validation Service
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.6 Validation Service">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#future-considerations_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Future Considerations
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#47-shared-interfaces" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.7 Shared Interfaces
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.7 Shared Interfaces">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#initial-research-interfaces" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Initial Research Interfaces
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#48-shared-data-models" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.8 Shared Data Models
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.8 Shared Data Models">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#initial-research-models" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Initial Research Models
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#49-context-document-ingestion" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.9 Context Document Ingestion
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.9 Context Document Ingestion">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Outputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#410-existing-research-context-analysis" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.10 Existing Research Context Analysis
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.10 Existing Research Context Analysis">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_9" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#interfaces_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Interfaces
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Interfaces">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#provides_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Provides
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#consumes_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Consumes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_9" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Outputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#required-services_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Required Services
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#411-per-paper-analysis" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.11 Per-Paper Analysis
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.11 Per-Paper Analysis">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_10" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#interfaces_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Interfaces
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Interfaces">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#provides_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Provides
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#consumes_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Consumes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_10" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Outputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#required-services_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Required Services
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#412-research-direction-analysis" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.12 Research Direction Analysis
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.12 Research Direction Analysis">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_11" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_9" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#interfaces_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Interfaces
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Interfaces">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#provides_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Provides
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#consumes_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Consumes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_11" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Outputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#required-services_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Required Services
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#413-research-strategy-service" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.13 Research Strategy Service
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.13 Research Strategy Service">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_12" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_10" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#interfaces_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Interfaces
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Interfaces">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#provides_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Provides
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#consumes_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Consumes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_12" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Outputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#required-services_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Required Services
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#future-considerations_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Future Considerations
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#410-research-query-service" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.10 Research Query Service
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.10 Research Query Service">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_13" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_11" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_13" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Outputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#414-research-source-service" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.14 Research Source Service
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.14 Research Source Service">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_14" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_12" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#interfaces_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Interfaces
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Interfaces">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#provides_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Provides
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#consumes_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Consumes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_14" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs_7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs_7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Outputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#external-dependencies" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        External Dependencies
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#future-considerations_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Future Considerations
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#415-paper-metadata-service" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.15 Paper Metadata Service
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.15 Paper Metadata Service">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_15" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_13" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#interfaces_7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Interfaces
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Interfaces">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#provides_7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Provides
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#consumes_7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Consumes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_15" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs_8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs_8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Outputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#future-considerations_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Future Considerations
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#416-research-evaluation-service" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.16 Research Evaluation Service
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.16 Research Evaluation Service">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_16" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_14" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#interfaces_8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Interfaces
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Interfaces">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#provides_8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Provides
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#consumes_8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Consumes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_16" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs_9" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs_9" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Outputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#required-services_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Required Services
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#future-considerations_7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Future Considerations
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#417-research-artifact-service" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.17 Research Artifact Service
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.17 Research Artifact Service">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_17" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_15" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#interfaces_9" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Interfaces
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Interfaces">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#provides_9" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Provides
-      
-    </span>
-  </a>
-  
 </li>
         
           <li class="md-nav__item">
-  <a href="#consumes_9" class="md-nav__link">
+  <a href="#constraints-and-sub-questions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Consumes
+        Constraints and sub-questions
       
     </span>
   </a>
   
 </li>
         
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_17" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inputs_10" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#outputs_10" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Outputs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#future-considerations_8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Future Considerations
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#418-research-workflow" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4.18 Research Workflow
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4.18 Research Workflow">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_18" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_16" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_18" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#research-source-provider-design" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Research Source Provider Design
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Research Source Provider Design">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#purpose_19" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Purpose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#design-notes_19" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Design Notes
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#revision-workflow-support" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Revision Workflow Support
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Revision Workflow Support">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#responsibilities_17" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Responsibilities
-      
-    </span>
-  </a>
-  
-</li>
-        
           <li class="md-nav__item">
-  <a href="#design-notes_20" class="md-nav__link">
+  <a href="#seeds" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Design Notes
+        Seeds
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -5267,10 +1994,243 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-interface-design-principles" class="md-nav__link">
+  <a href="#5-query-design" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. Interface Design Principles
+        5. Query Design
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Query Design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#construction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Construction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bounds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bounds
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-provider-and-retrieval-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Provider and Retrieval Design
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Provider and Retrieval Design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#provider-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provider behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dispatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dispatch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#duplicate-identity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Duplicate identity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eligibility-profile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Eligibility profile
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#balanced-pool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Balanced pool
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-metadata-and-evidence-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Metadata and Evidence Design
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Metadata and Evidence Design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata-normalization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata normalization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shortlist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shortlist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evidence-acquisition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evidence acquisition
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-evaluation-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Evaluation Design
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Evaluation Design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#batch-identity-and-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Batch identity and schema
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#relevance-rubric" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Relevance rubric
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recovery
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#final-result-selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Final result selection
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-paper-analysis-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Paper Analysis Design
       
     </span>
   </a>
@@ -5278,10 +2238,99 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#7-component-interactions" class="md-nav__link">
+  <a href="#10-research-direction-analysis-design" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7. Component Interactions
+        10. Research Direction Analysis Design
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Research Direction Analysis Design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#input" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-artifact-and-presentation-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Artifact and Presentation Design
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. Artifact and Presentation Design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#in-memory-artifacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        In-memory artifacts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consolidated-cards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consolidated cards
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#saved-markdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Saved Markdown
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-status-logging-and-diagnostics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Status, Logging, and Diagnostics
       
     </span>
   </a>
@@ -5289,10 +2338,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#7-design-constraints" class="md-nav__link">
+  <a href="#13-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7. Design Constraints
+        13. Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-known-implementation-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Known Implementation Constraints
       
     </span>
   </a>
@@ -5325,1044 +2385,488 @@
 
 
 <h1 id="research-agent-design">Research Agent Design</h1>
-<p><strong>Version:</strong> 0.3<br />
+<p><strong>Version:</strong> 0.5<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-02</p>
+<strong>Last Updated:</strong> 2026-09-10</p>
 <hr />
 <h2 id="1-purpose">1. Purpose</h2>
-<h3 id="objective">Objective</h3>
-<p>Define the internal design of the major Research Agent components
-required to implement the Research Agent Functional Specification.</p>
-<h3 id="scope">Scope</h3>
-<p>Describe the purpose, responsibilities, interfaces, inputs, outputs,
-dependencies, and future considerations for Research Agent components.
-Architectural implementation boundaries and service abstractions are
-included where required to define component responsibilities.</p>
+<p>This document records the current detailed design of the Research Agent. It is
+descriptive of the implementation at the documented revision; it does not
+define unimplemented intentions.</p>
 <hr />
-<h2 id="2-component-design-principles">2. Component Design Principles</h2>
+<h2 id="2-composition">2. Composition</h2>
+<p><code>create_project0_dashboard_app()</code> creates a Research Agent dispatcher with:</p>
 <ul>
-<li>Each component has a single responsibility.</li>
-<li>Components communicate through well-defined typed interfaces.</li>
-<li>Shared immutable data models define information exchanged between
-    components.</li>
-<li>Components depend on interfaces rather than concrete implementations
-    where practical.</li>
-<li>Deterministic processing shall be used whenever AI reasoning is not
-    required.</li>
-<li>Components shall be independently testable.</li>
-<li>Minimize coupling between components.</li>
-<li>Maximize reuse across future AI agents.</li>
-<li>Research outputs shall preserve identifiable source and citation
-    information.</li>
-<li>Research-specific behavior shall remain separate from reusable
-    Project0 platform services.</li>
+<li><code>ResearchStrategyService</code>;</li>
+<li><code>ResearchQueryService</code>;</li>
+<li><code>ResearchSourceService</code> and configured providers;</li>
+<li><code>PaperMetadataService</code>;</li>
+<li><code>ResearchEvaluationService</code>;</li>
+<li><code>ResearchArtifactService</code>;</li>
+<li><code>ResearchContextIngestionService</code>;</li>
+<li><code>ExistingResearchContextAnalysisService</code>;</li>
+<li><code>PaperAnalysisService</code>; and</li>
+<li><code>ResearchDirectionAnalysisService</code>.</li>
 </ul>
+<p>The dispatcher passes the selected provider names into both Strategy Service
+and Provider Factory. It passes the Research Agent model name to every
+reasoning-backed research service.</p>
+<p>The <code>ResearchWorkflow</code> constructor defaults its direction-analysis flag from
+the module-level <code>SETTINGS.research_direction_analysis_enabled</code>. The dispatcher
+does not explicitly forward a custom <code>ProjectSettings</code> value for this flag.
+Normal application startup imports <code>SETTINGS</code> from the environment, so the
+documented environment override applies; isolated callers supplying a different
+settings object to <code>create_platform_dispatcher</code> do not currently override this
+constructor default.</p>
 <hr />
-<h2 id="3-component-overview">3. Component Overview</h2>
-<p>The Research Agent reuses the existing Project0 platform foundation and
-adds research-specific components required to transform research
-questions into structured, evidence-grounded research artifacts. The
-Research Agent is hosted within the reusable Dashboard Framework, which
-provides the browser interface while remaining architecturally separate
-from the agent services.</p>
-<p>Existing Project0 platform components reused by the Research Agent
-include:</p>
+<h2 id="3-request-and-context-design">3. Request and Context Design</h2>
+<h3 id="browser-request">Browser request</h3>
+<p>The POST route accepts:</p>
+<table>
+<thead>
+<tr>
+<th>Form field</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>question</code></td>
+<td>text</td>
+<td>empty; rejected by UI</td>
+</tr>
+<tr>
+<td><code>guidance</code></td>
+<td>text</td>
+<td>empty</td>
+</tr>
+<tr>
+<td><code>max_results</code></td>
+<td>integer</td>
+<td>10</td>
+</tr>
+<tr>
+<td><code>context_document</code></td>
+<td>optional upload</td>
+<td>none</td>
+</tr>
+</tbody>
+</table>
+<p>The UI trims question/guidance and retains the normalized filename for display.
+It forwards file bytes without storing a copy.</p>
+<h3 id="context-ingestion">Context ingestion</h3>
+<p>Markdown and text are decoded as UTF-8 without rewriting their content. PDF
+pages are read with pypdf; non-empty extracted page strings are joined with two
+newlines. The resulting <code>ResearchContextDocument</code> includes a UUID, source
+filename, type, extraction method, status, and PDF page count where applicable.</p>
+<p>The service does not preserve page boundaries in <code>extracted_text</code> and does not
+chunk the document. Context findings can cite a recognizable section string,
+but page-number provenance is not requested or stored for context findings.</p>
+<h3 id="context-structured-output">Context structured output</h3>
+<p>The provider must return:</p>
 <ul>
-<li>Dashboard Framework</li>
-<li>Platform Dispatcher</li>
-<li>Workflow Engine</li>
-<li>Knowledge Service</li>
-<li>Reasoning Service</li>
-<li>Validation Service</li>
-<li>Artifact Services</li>
-<li>Shared Interfaces</li>
-<li>Shared Data Models</li>
+<li>optional <code>research_problem</code>;</li>
+<li>arrays for prior work, implemented approaches, findings, limitations,
+  unresolved questions, and stated future work; and</li>
+<li><code>inferred_solution_search_concepts</code>.</li>
 </ul>
-<p>Initial Research Agent-specific components include:</p>
-<ul>
-<li>Research Workflow</li>
-<li>Research Strategy Service</li>
-<li>Research Query Service</li>
-<li>Research Source Service</li>
-<li>Research Source Provider Interface</li>
-<li>Paper Metadata Service</li>
-<li>Research Evaluation Service</li>
-<li>Context Document Ingestion</li>
-<li>Existing Research Context Analysis</li>
-<li>Per-Paper Analysis</li>
-<li>Research Direction Analysis</li>
-<li>Research Artifact Service</li>
-</ul>
-<p>The Platform Dispatcher provides the platform-level entry point. It
-creates workflow tasks and submits them to the Workflow Engine. The
-Research Workflow coordinates the research-specific services and
-existing Project0 platform services required to produce structured
-research results.</p>
+<p>Each ordinary finding requires non-empty content and a string-or-null section.
+The service attaches the uploaded document UUID to every finding.</p>
+<p>When a research question is supplied, exactly three solution concepts are
+required. Each item has non-empty source, target, and mechanism fields; all
+three mechanisms must differ. Fields are combined with duplicate words removed.
+Question tokens that look like acronyms or include <code>encoder</code>/<code>decoder</code> become
+required anchors and are prepended when absent. Retryable structured-output or
+field errors receive one retry; provider exceptions are not retried here.</p>
 <hr />
-<h2 id="4-component-specifications">4. Component Specifications</h2>
-<h3 id="41-platform-dispatcher">4.1 Platform Dispatcher</h3>
-<h4 id="purpose">Purpose</h4>
-<p>Provide the platform-level entry point for assembling services and
-dispatching Research Agent workflows.</p>
-<h4 id="responsibilities">Responsibilities</h4>
-<ul>
-<li>Assemble the Research Workflow.</li>
-<li>Create research workflow tasks.</li>
-<li>Dispatch Research Workflows.</li>
-<li>Return structured research workflow results.</li>
-<li>Preserve separation between platform routing and Research Agent
-    behavior.</li>
-</ul>
-<h4 id="interfaces">Interfaces</h4>
-<h5 id="provides">Provides</h5>
-<ul>
-<li>Run research workflow.</li>
-</ul>
-<h5 id="consumes">Consumes</h5>
-<ul>
-<li>Workflow Interface.</li>
-<li>Research Workflow Interface.</li>
-<li>Research workflow models.</li>
-</ul>
-<h4 id="design-notes">Design Notes</h4>
-<ul>
-<li>Coordinates platform services without implementing research behavior
-    directly.</li>
-<li>Uses existing Project0 platform dispatch patterns.</li>
-<li>Provides a common entry point for the Documentation Agent, Research
-    Agent, and future agents.</li>
-</ul>
-<h4 id="inputs">Inputs</h4>
-<ul>
-<li>Research workflow request</li>
-</ul>
-<h4 id="outputs">Outputs</h4>
-<ul>
-<li>Research workflow result</li>
-</ul>
-<h4 id="required-services">Required Services</h4>
-<ul>
-<li>Workflow Interface</li>
-<li>Research Workflow Interface</li>
-</ul>
-<h4 id="future-considerations">Future Considerations</h4>
-<ul>
-<li>Additional agent routing</li>
-<li>Multi-agent workflow coordination</li>
-</ul>
-<hr />
-<h3 id="42-dashboard-framework">4.2 Dashboard Framework</h3>
-<h4 id="purpose_1">Purpose</h4>
-<p>Provide the reusable browser-based user interface for Project0 services
-and AI agents.</p>
-<h4 id="responsibilities_1">Responsibilities</h4>
-<ul>
-<li>Host Research Agent pages within the shared framework.</li>
-<li>Provide shared navigation, context, and Work Area hosting.</li>
-<li>Provide the Dashboard Work Area for Research Agent interaction.</li>
-<li>Remain independent of Research Agent business logic.</li>
-</ul>
-<h4 id="design-notes_1">Design Notes</h4>
-<ul>
-<li>Reuses the existing Dashboard Framework.</li>
-<li>Research Agent-specific pages render within the Dashboard Work Area.</li>
-<li>Research Agent UI behavior remains separate from shared Dashboard
-    Framework behavior.</li>
-</ul>
-<hr />
-<h3 id="43-workflow-engine">4.3 Workflow Engine</h3>
-<h4 id="purpose_2">Purpose</h4>
-<p>Execute Project0 workflow tasks and return structured execution results.</p>
-<h4 id="responsibilities_2">Responsibilities</h4>
-<ul>
-<li>Execute Research Agent workflow tasks.</li>
-<li>Preserve workflow identifiers.</li>
-<li>Capture task outputs.</li>
-<li>Convert task exceptions into failed task results.</li>
-<li>Return structured workflow execution results.</li>
-</ul>
-<h4 id="design-notes_2">Design Notes</h4>
-<ul>
-<li>Reuses the existing Project0 Workflow Engine.</li>
-<li>Does not implement research-specific behavior.</li>
-<li>Research workflow coordination remains the responsibility of the
-    Research Workflow.</li>
-</ul>
-<hr />
-<h3 id="44-knowledge-service">4.4 Knowledge Service</h3>
-<h4 id="purpose_3">Purpose</h4>
-<p>Provide Project0 repository knowledge relevant to Research Agent
-requests.</p>
-<h4 id="responsibilities_3">Responsibilities</h4>
-<ul>
-<li>Retrieve existing project research documentation.</li>
-<li>Retrieve existing research artifacts when applicable.</li>
-<li>Provide repository-grounded project context to research workflows.</li>
-</ul>
-<h4 id="design-notes_3">Design Notes</h4>
-<ul>
-<li>Reuses the existing deterministic Knowledge Service.</li>
-<li>Does not perform external literature discovery.</li>
-<li>External research sources remain separate from repository knowledge
-    retrieval.</li>
-</ul>
-<h4 id="future-considerations_1">Future Considerations</h4>
-<ul>
-<li>Semantic retrieval</li>
-<li>Embedding generation</li>
-<li>Vector search</li>
-</ul>
-<hr />
-<h3 id="45-reasoning-service">4.5 Reasoning Service</h3>
-<h4 id="purpose_4">Purpose</h4>
-<p>Perform AI-assisted research reasoning.</p>
-<h4 id="responsibilities_4">Responsibilities</h4>
-<ul>
-<li>Analyze research questions.</li>
-<li>Assist research strategy generation.</li>
-<li>Analyze technical paper information.</li>
-<li>Analyze Existing Research Context document content.</li>
-<li>Perform structured per-paper interpretation.</li>
-<li>Compare research methods and approaches.</li>
-<li>Perform cross-paper synthesis for Research Direction Analysis.</li>
-<li>Identify potential research gaps.</li>
-<li>Generate experiment planning suggestions.</li>
-<li>Generate structured research artifact content.</li>
-</ul>
-<h4 id="interfaces_1">Interfaces</h4>
-<h5 id="provides_1">Provides</h5>
-<ul>
-<li>Analyze research request.</li>
-<li>Evaluate research information.</li>
-<li>Generate research analysis.</li>
-</ul>
-<h5 id="consumes_1">Consumes</h5>
-<ul>
-<li>Research question.</li>
-<li>Research source information.</li>
-<li>Paper metadata.</li>
-<li>Optional Existing Research Context.</li>
-<li>Project knowledge.</li>
-</ul>
-<h4 id="design-notes_4">Design Notes</h4>
-<ul>
-<li>Performs only tasks requiring AI-assisted reasoning.</li>
-<li>Does not directly access external research sources.</li>
-<li>Does not independently establish scientific validity.</li>
-<li>Distinguishes source information from generated analysis.</li>
-</ul>
-<h4 id="required-services_1">Required Services</h4>
-<ul>
-<li>AI Reasoning Provider</li>
-</ul>
-<h4 id="future-considerations_2">Future Considerations</h4>
-<ul>
-<li>Multiple reasoning providers</li>
-<li>Model routing</li>
-<li>Context-size management</li>
-</ul>
-<hr />
-<h3 id="46-validation-service">4.6 Validation Service</h3>
-<h4 id="purpose_5">Purpose</h4>
-<p>Coordinate validation of Research Agent workflow outputs.</p>
-<h4 id="responsibilities_5">Responsibilities</h4>
-<ul>
-<li>Validate required research artifact structure.</li>
-<li>Validate required source and citation information.</li>
-<li>Validate referenced context items and paper identifiers.</li>
-<li>Validate candidate research direction context motivation and
-    literature evidence unless explicitly marked speculative.</li>
-<li>Reject unknown source identifiers.</li>
-<li>Aggregate validation results.</li>
-<li>Preserve structured validation warnings and errors.</li>
-</ul>
-<h4 id="design-notes_5">Design Notes</h4>
-<ul>
-<li>Reuses the existing Project0 Validation Service where practical.</li>
-<li>Research-specific validators may be added through existing
-    validation interfaces.</li>
-<li>Validation does not determine scientific correctness.</li>
-</ul>
-<h4 id="future-considerations_3">Future Considerations</h4>
-<ul>
-<li>Citation validator</li>
-<li>Research artifact validator</li>
-<li>Metadata consistency validator</li>
-</ul>
-<hr />
-<h3 id="47-shared-interfaces">4.7 Shared Interfaces</h3>
-<h4 id="purpose_6">Purpose</h4>
-<p>Define stable public contracts between Project0 and Research Agent
-components.</p>
-<h4 id="initial-research-interfaces">Initial Research Interfaces</h4>
-<ul>
-<li>Research Workflow Interface</li>
-<li>Research Strategy Interface</li>
-<li>Research Source Interface</li>
-<li>Paper Metadata Interface</li>
-<li>Research Evaluation Interface</li>
-<li>Existing Research Context Analysis Interface</li>
-<li>Per-Paper Analysis Interface</li>
-<li>Research Direction Analysis Interface</li>
-<li>Research Artifact Interface</li>
-</ul>
-<h4 id="design-notes_6">Design Notes</h4>
-<ul>
-<li>Interfaces use Python structural protocols.</li>
-<li>Components depend on required capabilities rather than specific
-    implementations.</li>
-<li>Research-specific interfaces shall remain separate from generic
-    platform interfaces.</li>
-<li>Interfaces shall remain small and aligned with implemented component
-    capabilities.</li>
-</ul>
-<hr />
-<h3 id="48-shared-data-models">4.8 Shared Data Models</h3>
-<h4 id="purpose_7">Purpose</h4>
-<p>Define immutable information exchanged between Research Agent
-components.</p>
-<h4 id="initial-research-models">Initial Research Models</h4>
-<ul>
-<li>Research Request</li>
-<li>Research Result</li>
-<li>Research Strategy</li>
-<li>Research Source Reference</li>
-<li>Paper Reference</li>
-<li>Paper Metadata</li>
-<li>Research Evaluation</li>
-<li>Existing Research Context</li>
-<li>Paper Analysis</li>
-<li>Research Direction Analysis</li>
-<li>Research Artifact</li>
-</ul>
-<h4 id="design-notes_7">Design Notes</h4>
-<ul>
-<li>Models use immutable dataclasses where practical.</li>
-<li>Result models preserve structured outputs, warnings, and errors.</li>
-<li>Source and citation information shall remain associated with
-    research outputs.</li>
-<li>Shared models prevent component-specific communication formats.</li>
-</ul>
-<hr />
-<h3 id="49-context-document-ingestion">4.9 Context Document Ingestion</h3>
-<h4 id="purpose_8">Purpose</h4>
-<p>Provide controlled ingestion and text extraction for an optional
-Existing Research Context document.</p>
-<h4 id="responsibilities_6">Responsibilities</h4>
-<ul>
-<li>Accept a context document through a simple file-selection/upload
-    interaction.</li>
-<li>Support text-based PDF, Markdown, and plain-text documents.</li>
-<li>Extract source content without storing a copy of the source document.</li>
-<li>Preserve page- or section-level provenance.</li>
-<li>Process large documents using bounded chunking with implementation
-    limits to be defined.</li>
-<li>Clearly report extraction failures.</li>
-<li>Reject image-only or scanned PDF documents requiring OCR.</li>
-</ul>
-<h4 id="design-notes_8">Design Notes</h4>
-<ul>
-<li>File handling and text extraction remain separate from research
-    reasoning.</li>
-<li>OCR support is deferred to a future enhancement.</li>
-<li>A selected context document that cannot be extracted shall not
-    silently revert to the no-context workflow.</li>
-</ul>
-<h4 id="inputs_1">Inputs</h4>
-<ul>
-<li>Optional Existing Research Context document</li>
-</ul>
-<h4 id="outputs_1">Outputs</h4>
-<ul>
-<li>Extracted context document content</li>
-<li>Source provenance</li>
-<li>Extraction warnings or errors</li>
-</ul>
-<hr />
-<h3 id="410-existing-research-context-analysis">4.10 Existing Research Context Analysis</h3>
-<h4 id="purpose_9">Purpose</h4>
-<p>Transform extracted context document content into structured Existing
-Research Context.</p>
-<h4 id="responsibilities_7">Responsibilities</h4>
-<ul>
-<li>Identify the research problem.</li>
-<li>Identify prior work.</li>
-<li>Identify implemented approaches.</li>
-<li>Identify findings and limitations.</li>
-<li>Identify unresolved questions.</li>
-<li>Identify stated future work.</li>
-<li>Preserve source references for extracted context findings.</li>
-</ul>
-<h4 id="interfaces_2">Interfaces</h4>
-<h5 id="provides_2">Provides</h5>
-<ul>
-<li>Analyze Existing Research Context.</li>
-</ul>
-<h5 id="consumes_2">Consumes</h5>
-<ul>
-<li>Extracted context document content.</li>
-<li>Reasoning Service.</li>
-</ul>
-<h4 id="design-notes_9">Design Notes</h4>
-<ul>
-<li>Context findings are source-derived.</li>
-<li>Source-derived context findings remain distinguishable from generated
-    analysis.</li>
-<li>Context provenance is preserved at page- or section-level.</li>
-<li>Context analysis failures are clearly reported.</li>
-</ul>
-<h4 id="inputs_2">Inputs</h4>
-<ul>
-<li>Extracted context document content</li>
-<li>Source provenance</li>
-</ul>
-<h4 id="outputs_2">Outputs</h4>
-<ul>
-<li>Existing Research Context</li>
-</ul>
-<h4 id="required-services_2">Required Services</h4>
-<ul>
-<li>Reasoning Service</li>
-</ul>
-<hr />
-<h3 id="411-per-paper-analysis">4.11 Per-Paper Analysis</h3>
-<h4 id="purpose_10">Purpose</h4>
-<p>Produce structured technical analysis for each retained paper.</p>
-<h4 id="responsibilities_8">Responsibilities</h4>
-<ul>
-<li>Identify the paper problem and approach.</li>
-<li>Identify representations and modalities.</li>
-<li>Identify the learning or alignment objective.</li>
-<li>Identify datasets or tasks.</li>
-<li>Identify findings and limitations.</li>
-<li>Explain relevance to the current research.</li>
-<li>Preserve evidence references.</li>
-<li>Identify analysis derived from metadata and abstract information.</li>
-</ul>
-<h4 id="interfaces_3">Interfaces</h4>
-<h5 id="provides_3">Provides</h5>
-<ul>
-<li>Analyze retained paper.</li>
-</ul>
-<h5 id="consumes_3">Consumes</h5>
-<ul>
-<li>Research Request.</li>
-<li>Research Strategy.</li>
-<li>Paper Metadata.</li>
-<li>Research Evaluation.</li>
-<li>Reasoning Service.</li>
-</ul>
-<h4 id="design-notes_10">Design Notes</h4>
-<ul>
-<li>Per-paper analysis is source-derived interpretation.</li>
-<li>Missing source information shall not be invented.</li>
-<li>Evidence references remain associated with analysis findings.</li>
-</ul>
-<h4 id="inputs_3">Inputs</h4>
-<ul>
-<li>Research Request</li>
-<li>Research Strategy</li>
-<li>Paper Metadata</li>
-<li>Research Evaluation</li>
-</ul>
-<h4 id="outputs_3">Outputs</h4>
-<ul>
-<li>Paper Analysis</li>
-</ul>
-<h4 id="required-services_3">Required Services</h4>
-<ul>
-<li>Reasoning Service</li>
-</ul>
-<hr />
-<h3 id="412-research-direction-analysis">4.12 Research Direction Analysis</h3>
-<h4 id="purpose_11">Purpose</h4>
-<p>Analyze retained paper analyses together with optional Existing Research
-Context to identify evidence-grounded research directions.</p>
-<h4 id="responsibilities_9">Responsibilities</h4>
-<ul>
-<li>Perform cross-paper comparison.</li>
-<li>Produce structured synthesis findings including themes, comparisons,
-    shared limitations, and unresolved questions.</li>
-<li>Identify candidate research directions.</li>
-<li>Ground candidate directions in context motivation and literature
-    evidence unless explicitly marked speculative.</li>
-<li>Preserve provenance for supporting context and paper evidence.</li>
-</ul>
-<h4 id="interfaces_4">Interfaces</h4>
-<h5 id="provides_4">Provides</h5>
-<ul>
-<li>Analyze research directions.</li>
-</ul>
-<h5 id="consumes_4">Consumes</h5>
-<ul>
-<li>Research Request.</li>
-<li>Research Strategy.</li>
-<li>Optional Existing Research Context.</li>
-<li>Paper Analyses.</li>
-<li>Reasoning Service.</li>
-</ul>
-<h4 id="design-notes_11">Design Notes</h4>
-<ul>
-<li>Cross-paper synthesis is functionality within Research Direction
-    Analysis rather than a separate service.</li>
-<li>Research directions are Research Agent inference grounded in
-    source-derived context and per-paper interpretation.</li>
-<li>Referenced context items and paper identifiers are validated before
-    analysis results are returned.</li>
-</ul>
-<h4 id="inputs_4">Inputs</h4>
-<ul>
-<li>Research Request</li>
-<li>Research Strategy</li>
-<li>Optional Existing Research Context</li>
-<li>Paper Analyses</li>
-</ul>
-<h4 id="outputs_4">Outputs</h4>
-<ul>
-<li>Synthesis findings</li>
-<li>Candidate research directions</li>
-</ul>
-<h4 id="required-services_4">Required Services</h4>
-<ul>
-<li>Reasoning Service</li>
-</ul>
-<hr />
-<h3 id="413-research-strategy-service">4.13 Research Strategy Service</h3>
-<h4 id="purpose_12">Purpose</h4>
-<p>Transform a research question into a structured research strategy.</p>
-<h4 id="responsibilities_10">Responsibilities</h4>
-<ul>
-<li>Analyze the research request.</li>
-<li>Incorporate optional Existing Research Context when provided.</li>
-<li>Support open-ended research requests when Existing Research Context
-    is available.</li>
-<li>Identify the research objective and relevant research concepts.</li>
-<li>Identify explicit research sub-questions when present.</li>
-<li>Identify optional constraints and focus areas.</li>
-<li>Produce a structured Research Strategy.</li>
-</ul>
-<h4 id="interfaces_5">Interfaces</h4>
-<h5 id="provides_5">Provides</h5>
-<ul>
-<li>Generate research strategy.</li>
-</ul>
-<h5 id="consumes_5">Consumes</h5>
-<ul>
-<li>Research Request.</li>
-<li>Optional Existing Research Context.</li>
-<li>Reasoning Service.</li>
-</ul>
-<h4 id="design-notes_12">Design Notes</h4>
-<ul>
-<li>Research strategy generation may use AI reasoning.</li>
-<li>The service does not execute external research searches.</li>
-<li>Search-term generation remains the responsibility of the Research
-    Query Service.</li>
-<li>Search execution remains the responsibility of the Research Source
-    Service.</li>
-</ul>
-<h4 id="inputs_5">Inputs</h4>
-<ul>
-<li>Research Request</li>
-</ul>
-<h4 id="outputs_5">Outputs</h4>
-<ul>
-<li>Research Strategy</li>
-</ul>
-<h4 id="required-services_5">Required Services</h4>
-<ul>
-<li>Reasoning Service</li>
-</ul>
-<h4 id="future-considerations_4">Future Considerations</h4>
-<ul>
-<li>Strategy refinement</li>
-<li>Search history awareness</li>
-<li>User-defined strategy templates</li>
-</ul>
-<hr />
-<h3 id="410-research-query-service">4.10 Research Query Service</h3>
-<h4 id="purpose_13">Purpose</h4>
-<p>Transform a structured Research Strategy into deterministic,
-provider-ready research search terms.</p>
-<h4 id="responsibilities_11">Responsibilities</h4>
-<ul>
-<li>Convert research concepts into focused search terms.</li>
-<li>Generate a complementary, bounded set of queries from the Research
-    Strategy, optional Existing Research Context, and user guidance.</li>
-<li>Preserve deterministic query ordering.</li>
-<li>Remove duplicate query terms.</li>
-<li>Return an enriched Research Strategy containing provider-ready
-    search terms.</li>
-</ul>
-<h4 id="design-notes_13">Design Notes</h4>
-<ul>
-<li>The service remains independent from external research source
-    providers.</li>
-<li>The Research Strategy Service determines what should be researched.</li>
-<li>The Research Query Service determines how that research intent is
-    expressed as searchable terms.</li>
-</ul>
-<h4 id="inputs_6">Inputs</h4>
-<ul>
-<li>Research Strategy</li>
-</ul>
-<h4 id="outputs_6">Outputs</h4>
-<ul>
-<li>Research Strategy</li>
-</ul>
-<hr />
-<h3 id="414-research-source-service">4.14 Research Source Service</h3>
-<h4 id="purpose_14">Purpose</h4>
-<p>Provide controlled access to supported external research sources.</p>
-<h4 id="responsibilities_12">Responsibilities</h4>
-<ul>
-<li>Execute research searches using a Research Strategy.</li>
-<li>Query configured external research source providers.</li>
-<li>Combine results from multiple configured research source providers.</li>
-<li>Deduplicate source references returned across provider queries.</li>
-<li>Normalize returned research source references.</li>
-<li>Preserve source identifiers and locations.</li>
-<li>Return structured source results and errors.</li>
-</ul>
-<h4 id="interfaces_6">Interfaces</h4>
-<h5 id="provides_6">Provides</h5>
-<ul>
-<li>Search research sources.</li>
-<li>Retrieve research source information.</li>
-</ul>
-<h5 id="consumes_6">Consumes</h5>
-<ul>
-<li>Research Strategy.</li>
-<li>External research source adapters.</li>
-</ul>
-<h4 id="design-notes_14">Design Notes</h4>
-<ul>
-<li>External source access is isolated behind a typed interface.</li>
-<li>Multiple configured providers may contribute source references to a
-    single research workflow.</li>
-<li>The service does not perform research relevance evaluation.</li>
-<li>Source-specific behavior shall remain isolated from the Research
-    Workflow.</li>
-<li>Initial implementation should support the minimum number of external
-    sources required to provide useful research output.</li>
-</ul>
-<h4 id="inputs_7">Inputs</h4>
-<ul>
-<li>Research Strategy</li>
-</ul>
-<h4 id="outputs_7">Outputs</h4>
-<ul>
-<li>Research Source References</li>
-</ul>
-<h4 id="external-dependencies">External Dependencies</h4>
-<ul>
-<li>Supported external research sources</li>
-</ul>
-<h4 id="future-considerations_5">Future Considerations</h4>
-<ul>
-<li>Additional research sources</li>
-<li>Source-specific adapters</li>
-<li>Search result caching</li>
-<li>Rate-limit handling</li>
-</ul>
-<hr />
-<h3 id="415-paper-metadata-service">4.15 Paper Metadata Service</h3>
-<h4 id="purpose_15">Purpose</h4>
-<p>Retrieve and normalize available metadata for candidate research papers.</p>
-<h4 id="responsibilities_13">Responsibilities</h4>
-<ul>
-<li>Retrieve available paper metadata.</li>
-<li>Normalize title, author, publication year, abstract, and source
-    identifiers.</li>
-<li>Preserve external source references.</li>
-<li>Return structured metadata results and errors.</li>
-</ul>
-<h4 id="interfaces_7">Interfaces</h4>
-<h5 id="provides_7">Provides</h5>
-<ul>
-<li>Retrieve paper metadata.</li>
-</ul>
-<h5 id="consumes_7">Consumes</h5>
-<ul>
-<li>Research Source References.</li>
-<li>External research source adapters.</li>
-</ul>
-<h4 id="design-notes_15">Design Notes</h4>
-<ul>
-<li>Performs deterministic metadata normalization where practical.</li>
-<li>Does not evaluate paper relevance.</li>
-<li>Missing metadata shall be reported rather than invented.</li>
-</ul>
-<h4 id="inputs_8">Inputs</h4>
-<ul>
-<li>Research Source References</li>
-</ul>
-<h4 id="outputs_8">Outputs</h4>
-<ul>
-<li>Paper Metadata</li>
-</ul>
-<h4 id="future-considerations_6">Future Considerations</h4>
-<ul>
-<li>DOI enrichment</li>
-<li>Citation metadata</li>
-<li>Publication venue normalization</li>
-</ul>
-<hr />
-<h3 id="416-research-evaluation-service">4.16 Research Evaluation Service</h3>
-<h4 id="purpose_16">Purpose</h4>
-<p>Evaluate candidate research papers against the research question and
-research strategy.</p>
-<h4 id="responsibilities_14">Responsibilities</h4>
-<ul>
-<li>Evaluate paper relevance using a bounded relevance scale.</li>
-<li>Distinguish direct research-question alignment from partial,
-    adjacent, or topical relevance.</li>
-<li>Apply consistent relevance criteria across evaluated papers.</li>
-<li>Explain relevance to the research question.</li>
-</ul>
-<h4 id="interfaces_8">Interfaces</h4>
-<h5 id="provides_8">Provides</h5>
-<ul>
-<li>Evaluate candidate paper.</li>
-<li>Rank candidate papers.</li>
-</ul>
-<h5 id="consumes_8">Consumes</h5>
-<ul>
-<li>Research Request.</li>
-<li>Research Strategy.</li>
-<li>Paper Metadata.</li>
-<li>Reasoning Service.</li>
-</ul>
-<h4 id="design-notes_16">Design Notes</h4>
-<ul>
-<li>Uses AI reasoning where semantic evaluation is required.</li>
-<li>Relevance evaluation shall preserve the distinction between source
-    facts and generated analysis.</li>
-<li>Evaluation results shall preserve references to supporting papers.</li>
-<li>Valid provider relevance scores are normalized for downstream use.</li>
-<li>Candidate papers are evaluated in bounded batches and validated
-    batch results are combined into the complete evaluation result.</li>
-<li>Evaluation provider responses within a batch that violate required
-    source traceability or coverage constraints may be retried once
-    before the evaluation is reported as failed.</li>
-<li>Human research judgment remains authoritative.</li>
-</ul>
-<h4 id="inputs_9">Inputs</h4>
-<ul>
-<li>Research Request</li>
-<li>Research Strategy</li>
-<li>Paper Metadata</li>
-</ul>
-<h4 id="outputs_9">Outputs</h4>
-<ul>
-<li>Research Evaluations</li>
-</ul>
-<h4 id="required-services_6">Required Services</h4>
-<ul>
-<li>Reasoning Service</li>
-</ul>
-<h4 id="future-considerations_7">Future Considerations</h4>
-<ul>
-<li>Improved evaluation scoring</li>
-<li>Configurable ranking criteria</li>
-<li>Cross-paper evidence analysis</li>
-</ul>
-<hr />
-<h3 id="417-research-artifact-service">4.17 Research Artifact Service</h3>
-<h4 id="purpose_17">Purpose</h4>
-<p>Create structured, reusable research artifacts from validated Research
-Agent outputs.</p>
-<h4 id="responsibilities_15">Responsibilities</h4>
-<ul>
-<li>Generate paper summary artifacts.</li>
-<li>Generate literature comparison artifacts.</li>
-<li>Generate research gap artifacts.</li>
-<li>Generate experiment planning artifacts.</li>
-<li>Generate saved research packages containing the request, context
-    summary, research strategy, retained papers, per-paper analyses,
-    synthesis findings, candidate directions, provenance, and validation
-    status.</li>
-<li>Preserve citation and source references.</li>
-<li>Return structured Research Artifacts.</li>
-</ul>
-<h4 id="interfaces_9">Interfaces</h4>
-<h5 id="provides_9">Provides</h5>
-<ul>
-<li>Generate research artifact.</li>
-</ul>
-<h5 id="consumes_9">Consumes</h5>
-<ul>
-<li>Research Evaluations.</li>
-<li>Paper Metadata.</li>
-<li>Research Request.</li>
-<li>Optional Existing Research Context.</li>
-<li>Paper Analyses.</li>
-<li>Research Direction Analysis.</li>
-</ul>
-<h4 id="design-notes_17">Design Notes</h4>
-<ul>
-<li>Research artifacts preserve source provenance.</li>
-<li>Artifact generation shall not modify repository documentation
-    directly.</li>
-<li>Repository preservation of approved research artifacts may be
-    coordinated with the Documentation Agent or existing artifact
-    services.</li>
-</ul>
-<h4 id="inputs_10">Inputs</h4>
-<ul>
-<li>Research Evaluations</li>
-<li>Paper Metadata</li>
-<li>Research Request</li>
-<li>Optional Existing Research Context</li>
-<li>Paper Analyses</li>
-<li>Research Direction Analysis</li>
-</ul>
-<h4 id="outputs_10">Outputs</h4>
-<ul>
-<li>Research Artifacts</li>
-</ul>
-<h4 id="future-considerations_8">Future Considerations</h4>
-<ul>
-<li>Expanded research artifact types</li>
-<li>Artifact persistence policies</li>
-<li>Cross-project research artifacts</li>
-</ul>
-<hr />
-<h3 id="418-research-workflow">4.18 Research Workflow</h3>
-<h4 id="purpose_18">Purpose</h4>
-<p>Coordinate the complete Research Agent execution pipeline.</p>
-<h4 id="responsibilities_16">Responsibilities</h4>
-<ul>
-<li>Coordinate Research Strategy, Research Query, Research Source, Paper
-    Metadata, Knowledge, Reasoning, Research Evaluation, Validation, and
-    Research Artifact services.</li>
-<li>Preserve internal workflow state.</li>
-<li>Preserve existing workflow semantics when no Existing Research
-    Context document is provided.</li>
-<li>Coordinate context ingestion and analysis when an Existing Research
-    Context document is provided.</li>
-<li>Clearly report requested context extraction or analysis failures
-    without silently reverting to the no-context workflow.</li>
-<li>Rank evaluated papers by relevance and retain the configured maximum
-    number of results.</li>
-<li>Preserve all discovered source references for traceability.</li>
-<li>Generate per-paper analyses from retained evaluations.</li>
-<li>Coordinate Research Direction Analysis across retained paper
-    analyses and optional Existing Research Context.</li>
-<li>Generate research artifacts from retained evaluations and analyses.</li>
-<li>Produce immutable Research Results.</li>
-<li>Preserve source and citation information.</li>
-<li>Support human review of research outputs.</li>
-</ul>
-<h4 id="design-notes_18">Design Notes</h4>
-<ul>
-<li>Research Workflow execution is initiated through the Platform
-    Dispatcher.</li>
-<li>Research Agent UI interactions are hosted by the Dashboard
-    Framework.</li>
-<li>External source access occurs only through the Research Source
-    Service.</li>
-<li>AI reasoning does not directly access external research sources.</li>
-<li>Research artifacts remain reviewable outputs rather than
-    authoritative research conclusions.</li>
-</ul>
-<hr />
-<h3 id="research-source-provider-design">Research Source Provider Design</h3>
-<h4 id="purpose_19">Purpose</h4>
-<p>Define the provider-based design used to isolate external research
-source implementations from Research Agent workflow components.</p>
-<h4 id="design-notes_19">Design Notes</h4>
-<p>The Research Source Service communicates through a typed provider
-interface rather than depending directly on a specific external research
-source implementation.</p>
-<p>Research source providers are responsible for retrieving research source
-references while preserving source identifiers and locations.</p>
-<p>Initial provider implementations include:</p>
-<ul>
-<li>Semantic Scholar Source Provider<ul>
-<li>Provides production research source access.</li>
-<li>Retrieves identifiable research references from Semantic
-    Scholar.</li>
-</ul>
-</li>
-<li>arXiv Source Provider<ul>
-<li>Provides research source access through the arXiv API.</li>
-<li>Retrieves identifiable academic paper references from arXiv.</li>
-</ul>
-</li>
-<li>Crossref Source Provider<ul>
-<li>Provides research source access through the Crossref API.</li>
-<li>Retrieves identifiable research references from Crossref.</li>
-</ul>
-</li>
-<li>OpenAlex Source Provider<ul>
-<li>Provides research source access through the OpenAlex API.</li>
-<li>Retrieves identifiable research references from OpenAlex.</li>
-</ul>
-</li>
-<li>OpenReview Source Provider<ul>
-<li>Provides research source access through the OpenReview API.</li>
-<li>Retrieves identifiable research references from OpenReview.</li>
-</ul>
-</li>
-<li>Stub Research Source Provider<ul>
-<li>Provides deterministic research source behavior.</li>
-<li>Supports automated testing, demonstrations, and acceptance
-    validation without requiring external research source
-    availability.</li>
-</ul>
-</li>
-</ul>
-<p>The provider abstraction allows Research Agent workflows to remain
-unchanged when external research sources are added, replaced, configured
-together, or tested through deterministic implementations.</p>
-<p>Initial provider interaction:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Research Workflow
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>        |
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        v
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>Research Source Service
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        |
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        v
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Research Source Provider Interface
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        |
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        +---------------------------------------------------------------+
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        |              |              |              |              |
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        v              v              v              v              v
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>Semantic Scholar  arXiv Provider  Crossref       OpenAlex       OpenReview
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>Provider          (external       Provider       Provider       Provider
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>(production       source)         (external      (external      (external
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>source)                           source)        source)        source)
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>        |
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        v
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>Stub Provider
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>(deterministic validation)
-</span></code></pre></div>
-<p>The provider design follows the Project0 principle that components
-depend on interfaces rather than concrete implementations.</p>
-<hr />
-<h3 id="revision-workflow-support">Revision Workflow Support</h3>
-<p>The Research Workflow supports a revision path when a user requests
-changes to a generated research request or research output.</p>
-<h4 id="responsibilities_17">Responsibilities</h4>
-<ul>
-<li>Preserve the original research request.</li>
-<li>Preserve optional research constraints.</li>
-<li>Accept appended or modified revision instructions.</li>
-<li>Resume normal research processing after resubmission.</li>
-<li>Preserve source and citation information during revision.</li>
-</ul>
-<h4 id="design-notes_20">Design Notes</h4>
-<ul>
-<li>Revision creates a new research reasoning cycle.</li>
-<li>Existing source evidence should remain available when applicable.</li>
-<li>Revised research direction may trigger additional source discovery.</li>
-</ul>
-<hr />
-<h2 id="5-interface-design-principles">5. Interface Design Principles</h2>
-<ul>
-<li>Interfaces shall remain technology independent.</li>
-<li>Components communicate only through public typed interfaces.</li>
-<li>Components shall not directly access another component's internal
-    state.</li>
-<li>Components shall depend on interfaces rather than concrete
-    implementations where practical.</li>
-<li>Interface contracts shall remain backward compatible whenever
-    practical.</li>
-<li>Shared data models shall define information exchanged between
-    components.</li>
-<li>Concrete implementations may satisfy interfaces through structural
-    typing.</li>
-<li>Interfaces shall remain small and aligned with implemented component
-    capabilities.</li>
-<li>External research source implementations shall remain isolated
-    behind Research Source interfaces.</li>
-</ul>
-<hr />
-<h2 id="7-component-interactions">7. Component Interactions</h2>
-<p>The Platform Dispatcher provides the platform-level entry point and
-submits Research Agent workflow tasks to the Workflow Engine.</p>
-<p>The initial Research Workflow follows this sequence:</p>
+<h2 id="4-strategy-design">4. Strategy Design</h2>
+<p>The Strategy Service is deterministic.</p>
+<h3 id="ordered-concepts">Ordered concepts</h3>
+<p>Concepts are appended in this order:</p>
 <ol>
-<li>The user submits a Research Request through the Dashboard Framework.</li>
-<li>The Platform Dispatcher creates and dispatches the Research
-    Workflow.</li>
-<li>When provided, the selected Existing Research Context document is
-    ingested and analyzed.</li>
-<li>The Research Strategy Service analyzes the Research Request and
-    optional Existing Research Context.</li>
-<li>The Reasoning Service assists with research concept and strategy
-    generation when required.</li>
-<li>The Research Strategy Service returns a Research Strategy.</li>
-<li>The Research Query Service enriches the Research Strategy with
-    deterministic provider-ready search terms.</li>
-<li>The Research Source Service searches configured external research
-    source providers.</li>
-<li>External source results from configured providers are combined and
-    normalized into Research Source References.</li>
-<li>The Paper Metadata Service retrieves and normalizes available
-    metadata.</li>
-<li>The Knowledge Service retrieves relevant existing Project0 research
-    context when applicable.</li>
-<li>The Research Evaluation Service evaluates candidate papers against
-    the Research Request and Research Strategy.</li>
-<li>The Reasoning Service performs semantic research evaluation where
-    required.</li>
-<li>Candidate papers are ranked by relevance and the configured maximum
-    number of results is retained.</li>
-<li>Per-Paper Analysis produces structured technical analysis from
-    available metadata and abstract information for each retained paper.</li>
-<li>Research Direction Analysis performs cross-paper comparison and
-    identifies candidate research directions.</li>
-<li>The Research Artifact Service generates structured research
-    artifacts from retained evaluations and analyses.</li>
-<li>Citation and source references are preserved with the generated
-    artifacts.</li>
-<li>The Validation Service validates required artifact structure and
-    source information.</li>
-<li>The Research Workflow returns a structured Research Result.</li>
-<li>Research results are presented for human review through the
-    Dashboard Framework.</li>
+<li>explicit <code>focus_areas</code> from programmatic requests;</li>
+<li>non-constraint, non-question guidance items;</li>
+<li>the normalized question concept;</li>
+<li>context-inferred solution concepts;</li>
+<li>context unresolved questions;</li>
+<li>context stated future work;</li>
+<li>context limitations;</li>
+<li>context findings; and</li>
+<li>the context research problem.</li>
 </ol>
-<p>The Dashboard Framework remains responsible for the shared application
-shell, including navigation, context, and Work Area hosting. The
-Research Agent provides only agent-specific workflow interactions within
-the Dashboard Work Area.</p>
-<p>Research Agent-specific behavior remains isolated from reusable Project0
-platform services. External research source behavior remains isolated
-behind the Research Source Service and its interfaces.</p>
+<p>Implemented approaches and prior work from context are not directly appended as
+strategy concepts. Exact duplicate strings are removed while preserving first
+occurrence.</p>
+<h3 id="constraints-and-sub-questions">Constraints and sub-questions</h3>
+<p>Programmatic constraints are followed by guidance items beginning with
+<code>prefer</code>, <code>focus</code>, <code>avoid</code>, or <code>require</code>. Guidance constraints receive a trailing
+period. Guidance items ending in a question mark become sub-questions.</p>
+<h3 id="seeds">Seeds</h3>
+<p>The first three unique quoted titles, arXiv identifiers, or DOI identifiers in
+guidance become <code>seed_terms</code>. Quoted text is treated as a seed even if it is not
+actually a publication title.</p>
 <hr />
-<h2 id="7-design-constraints">7. Design Constraints</h2>
+<h2 id="5-query-design">5. Query Design</h2>
+<p>The Query Service does not call a model or provider.</p>
+<h3 id="construction">Construction</h3>
+<ol>
+<li>Normalize and deduplicate seeds.</li>
+<li>Build compact queries from inferred context solution concepts.</li>
+<li>Convert strategy concepts and <code>Focus on ...</code> constraints into candidate
+   dimensions.</li>
+<li>Detect directive guidance and research roles.</li>
+<li>When suitable, derive distinct direct, mechanism, transfer, and application
+   role queries.</li>
+<li>Remove exact and high-overlap candidates.</li>
+<li>Select at most three discovery queries.</li>
+<li>Remove discovery queries with 60% or greater term-stem overlap with a seed.</li>
+<li>Return seeds followed by discovery queries.</li>
+</ol>
+<p>Substantial overlap among discovery candidates is defined as at least 75%
+relative to the smaller meaningful-term set.</p>
+<h3 id="bounds">Bounds</h3>
 <ul>
-<li>Preserve modularity.</li>
-<li>Use deterministic processing whenever AI reasoning is not required.</li>
-<li>Maintain vendor neutrality.</li>
-<li>Support future extensibility.</li>
-<li>Use typed interfaces between platform and Research Agent components.</li>
-<li>Use shared immutable models for component communication.</li>
-<li>Depend on interfaces rather than concrete implementations where
-    practical.</li>
-<li>Preserve source and citation information throughout the research
-    workflow.</li>
-<li>External research source access shall occur through defined service
-    interfaces.</li>
-<li>Missing source or metadata information shall not be invented.</li>
-<li>Existing Research Context source documents shall not be copied into
-    Project0 storage by the Research Agent.</li>
-<li>Existing Research Context provenance shall be preserved at page- or
-    section-level.</li>
-<li>Image-only or scanned PDF context documents requiring OCR are outside
-    the current implementation scope.</li>
-<li>AI-generated analysis shall remain distinguishable from source
-    information.</li>
-<li>Source-derived context findings, source-derived per-paper
-    interpretation, and Research Agent inference shall remain
-    distinguishable.</li>
-<li>Research evaluation does not independently establish scientific
-    correctness.</li>
-<li>Human research judgment remains authoritative.</li>
-<li>Initial implementation shall avoid semantic retrieval, vector
-    search, and multi-agent research workflows unless later requirements
-    demonstrate the need.</li>
+<li>Strategy Service: at most three seeds.</li>
+<li>Query Service: at most three discovery dimensions.</li>
+<li>Generated discovery query: normally at most eight words.</li>
+<li>Total current search terms: at most six.</li>
+</ul>
+<p>Seeds are preserved as entered after whitespace normalization and are not
+subject to the eight-word discovery-query limit.</p>
+<hr />
+<h2 id="6-provider-and-retrieval-design">6. Provider and Retrieval Design</h2>
+<h3 id="configuration">Configuration</h3>
+<p>The supported names are <code>semantic_scholar</code>, <code>openalex</code>, <code>openreview</code>,
+<code>crossref</code>, <code>arxiv</code>, and <code>stub</code>. Names are selected from a comma-separated
+environment value without case normalization. Unsupported names fail provider
+construction.</p>
+<p>Default selection is:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>semantic_scholar,arxiv
+</span></code></pre></div>
+<h3 id="provider-behavior">Provider behavior</h3>
+<table>
+<thead>
+<tr>
+<th>Provider</th>
+<th>Endpoint family</th>
+<th style="text-align: right;">Per-call result bound</th>
+<th>Notable behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Semantic Scholar</td>
+<td>Graph API paper search/detail</td>
+<td style="text-align: right;">10</td>
+<td>Optional API key; search retries; detail fallback to search metadata.</td>
+</tr>
+<tr>
+<td>OpenAlex</td>
+<td><code>/works</code></td>
+<td style="text-align: right;">10</td>
+<td>Provider class supports an API key, but application settings do not wire one.</td>
+</tr>
+<tr>
+<td>OpenReview</td>
+<td>API2 <code>/notes/search</code></td>
+<td style="text-align: right;">10 retained</td>
+<td>Requests up to 50 notes, then keeps submission-like forum notes and filters reviews/DBLP records.</td>
+</tr>
+<tr>
+<td>Crossref</td>
+<td><code>/works</code></td>
+<td style="text-align: right;">10</td>
+<td>Optional contact <code>mailto</code>; invalid individual items are skipped.</td>
+</tr>
+<tr>
+<td>arXiv</td>
+<td>public Atom API</td>
+<td style="text-align: right;">10</td>
+<td>60-second default timeout; returns normalized Atom entries.</td>
+</tr>
+<tr>
+<td>stub</td>
+<td>in-memory</td>
+<td style="text-align: right;">configured tuple</td>
+<td>Records strategies and can raise a configured error.</td>
+</tr>
+</tbody>
+</table>
+<p>External providers use up to three attempts for transient request errors,
+HTTP 429, and server failures. They honor numeric <code>Retry-After</code> where
+implemented and otherwise use exponential delays. Exact error messages and
+delay caps differ by provider.</p>
+<h3 id="dispatch">Dispatch</h3>
+<p>The Source Service converts each search term into a one-term strategy and calls
+providers in this nested order:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>for provider in configured providers:
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    for query in strategy.search_terms:
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>        provider.search(one-query strategy)
+</span></code></pre></div>
+<p>Crossref is not called for a one-term query that is only an arXiv identifier or
+arXiv URL.</p>
+<h3 id="duplicate-identity">Duplicate identity</h3>
+<p>Two references are duplicates when they share provider/source ID, a normalized
+DOI/arXiv identifier, or a normalized title with compatible year and authors.
+Title matching ignores accents, case, and punctuation. When both records have
+authors, at least one normalized author must overlap.</p>
+<p>Canonical richness is ordered by abstract length, author count, metadata-field
+count, presence of year, then presence of URL. Missing/blank metadata fields
+from the alternate record are merged into the canonical record.</p>
+<h3 id="eligibility-profile">Eligibility profile</h3>
+<p>The Source Service enables its alignment profile when strategy concepts and
+queries collectively contain visual, language, and mechanism terms. Direct and
+transferable candidates are identified from title plus abstract tokens.
+Explicit seeds bypass profile exclusion. Candidates with no profile vocabulary
+can remain, while candidates exposing incompatible language/task or
+representation-synthesis vocabulary can be excluded.</p>
+<p>This profile and the Evidence Candidate tiers in <code>ResearchWorkflow</code> contain
+hard-coded visual/video-language representation-learning vocabulary. They are
+not dynamically derived from arbitrary research domains.</p>
+<h3 id="balanced-pool">Balanced pool</h3>
+<p>Within each provider/query group, candidates are sorted by a tuple of:</p>
+<ol>
+<li>title overlap with terms repeated across strategy queries;</li>
+<li>title/abstract overlap with repeated anchor terms;</li>
+<li>title overlap with that group's query; and</li>
+<li>title/abstract overlap with that query.</li>
+</ol>
+<p>Seeds enter first. The selector then takes one candidate from each group per
+round, skipping duplicates, until the default <code>evaluation_candidate_limit</code> of
+24 is reached. Candidate statistics and trace records are diagnostic state,
+not fields on the strategy.</p>
+<hr />
+<h2 id="7-metadata-and-evidence-design">7. Metadata and Evidence Design</h2>
+<h3 id="metadata-normalization">Metadata normalization</h3>
+<p>All supported provider names map to <code>PaperMetadata</code>. Missing optional fields
+remain null/empty. Semantic Scholar is the only provider for which the metadata
+service makes a separate detail request.</p>
+<h3 id="shortlist">Shortlist</h3>
+<p>The workflow-level evidence candidate limit is eight. If metadata contains
+more than eight papers:</p>
+<ol>
+<li><code>rank_candidates</code> performs preliminary metadata evaluation;</li>
+<li>Evidence Candidate tiers put direct video-language-representation transfer
+   candidates before transferable visual-language candidates;</li>
+<li>unrelated or excluded candidates receive tier 2 and are not eligible;</li>
+<li>scores order candidates within a tier; and</li>
+<li>at most eight eligible papers proceed.</li>
+</ol>
+<p>If eight or fewer papers exist, all proceed directly to evidence acquisition;
+the workflow-specific tier filter is not applied at that point.</p>
+<h3 id="evidence-acquisition">Evidence acquisition</h3>
+<p>For each shortlisted paper:</p>
+<ul>
+<li>add a non-empty abstract as <code>ResearchPaperEvidenceSection("Abstract", ...)</code>;</li>
+<li>inspect paper and source-reference metadata for
+  <code>open_access_pdf_url</code>/<code>pdf_url</code>;</li>
+<li>for arXiv, convert an <code>/abs/</code> URL to <code>/pdf/</code>;</li>
+<li>retrieve and validate PDF content;</li>
+<li>extract Abstract, Method/Methodology/Approach/Model, and
+  Experiment/Results/Evaluation sections only when a matching heading occurs
+  on a page; and</li>
+<li>take at most 8,000 characters after each heading and 24,000 characters total.</li>
+</ul>
+<p>Evidence records preserve the heading page, not a complete page range.
+Duplicate evidence sections are removed. Any non-empty evidence yields
+<code>available</code>; otherwise status is <code>discovery_only</code>.</p>
+<p>The workflow's <code>discovery_only_count</code> counts papers with no evidence sections.
+Its warning is added before final selection. The final default evidence path
+then removes those papers from displayed results.</p>
+<hr />
+<h2 id="8-evaluation-design">8. Evaluation Design</h2>
+<h3 id="batch-identity-and-schema">Batch identity and schema</h3>
+<p>Batches contain at most three papers. External source IDs are replaced with
+<code>paper-NNN</code> handles scoped to the batch. The schema requires exactly one item
+per paper with score, summary, strengths, limitations, connections, and
+warnings.</p>
+<h3 id="relevance-rubric">Relevance rubric</h3>
+<p>The provider prompt defines:</p>
+<ul>
+<li>90–100: direct application/task and central-problem alignment;</li>
+<li>75–89: a major technical dimension plus application alignment or a concrete
+  supported transfer path;</li>
+<li>50–74: related mechanism with an incomplete transfer path;</li>
+<li>25–49: background/adjacent work without a specific mapping; and</li>
+<li>0–24: weakly related or off-topic.</li>
+</ul>
+<p>Scores of at least 50 require an explicit mechanism-to-question connection.
+Scores of at least 75 receive additional contradiction checks. The returned
+integer is divided by 100; integer-valued floats are accepted, but booleans,
+fractional scores, and out-of-range values are rejected.</p>
+<h3 id="recovery">Recovery</h3>
+<p>On retryable identity, coverage, or high-score defects:</p>
+<ul>
+<li>valid items are retained;</li>
+<li>unknown/duplicate/invalid items are ignored for partial recovery;</li>
+<li>only unresolved papers are retried once; and</li>
+<li>persistent unresolved papers receive a null score and explicit warnings.</li>
+</ul>
+<p>Other malformed field types and provider exceptions propagate.</p>
+<h3 id="final-result-selection">Final result selection</h3>
+<p>The default evidence path keeps evaluations whose papers have evidence
+sections, sorts descending by score with null last, and takes
+<code>max(1, max_results)</code>. It does not apply the 0.75 threshold as an exclusion.
+Recommendation is a presentation property derived from <code>score &gt;= 0.75</code>.</p>
+<hr />
+<h2 id="9-paper-analysis-design">9. Paper Analysis Design</h2>
+<p>One provider request is made per retained paper. Abstract evidence is added to
+the evidence-section list if the paper has an abstract and no explicit
+<code>Abstract</code> section.</p>
+<p>The response does not return paper IDs. Required <code>problem</code> and <code>approach</code> and
+all optional findings are bound to the paper already being processed. Each
+finding must cite a supplied section and exact page number when one exists.
+When abstract evidence exists and the model supplies both section and page as
+null, the service normalizes the citation to <code>Abstract</code>.</p>
+<p>Missing structured output and provider-field validation errors are retried
+once. Persistent structural failure skips the paper. Provider exceptions
+propagate. A discovery-only paper without abstract content is skipped without a
+provider call.</p>
+<hr />
+<h2 id="10-research-direction-analysis-design">10. Research Direction Analysis Design</h2>
+<h3 id="input">Input</h3>
+<p>Direction Analysis runs for at least two valid analyses and truncates input to
+the first three. Context and paper findings are cataloged with deterministic
+internal paths, then exposed to the provider as sequential
+<code>context-NNN</code>/<code>literature-NNN</code> handles.</p>
+<h3 id="output-rules">Output rules</h3>
+<p>The schema requires synthesis arrays and candidate directions.</p>
+<ul>
+<li>Themes, comparisons, and shared limitations require cited evidence from at
+  least two distinct papers.</li>
+<li>Unresolved questions require at least one paper.</li>
+<li>Evidence lists must contain known, unique handles of the expected source
+  type and may not exceed the distinct literature-source count.</li>
+<li>Explicit better/worse/higher/lower/outperform/underperform-style comparisons
+  are accepted only when cited literature findings contain matching
+  performance polarity.</li>
+<li>Non-speculative directions always require literature evidence and also
+  context evidence when context exists.</li>
+<li>A speculative direction requires at least one evidence anchor.</li>
+</ul>
+<p>Ordinary invalid synthesis findings are caught, logged, and omitted. The
+performance-comparison guard raises a semantic grounding error that invalidates
+the response. Invalid candidate directions also invalidate the response. The
+whole request is retried once with the first validation error included as
+feedback. A second failure propagates to the workflow, which converts it to a
+warning and omits Direction Analysis.</p>
+<hr />
+<h2 id="11-artifact-and-presentation-design">11. Artifact and Presentation Design</h2>
+<h3 id="in-memory-artifacts">In-memory artifacts</h3>
+<p>When evaluations exist, <code>ResearchArtifactService</code> returns:</p>
+<ul>
+<li>Literature Comparison;</li>
+<li>Research Gap Analysis; and</li>
+<li>Experiment Proposal.</li>
+</ul>
+<p>They are deterministic compatibility artifacts, omit source references, and
+are counted in the workflow summary string. The current page model does not
+carry them, and template artifact markup is disabled with <code>{% if false %}</code>.</p>
+<h3 id="consolidated-cards">Consolidated cards</h3>
+<p>The UI joins papers, evaluations, source references, and paper analyses by
+source ID. Each displayed card includes one title link at most, source details,
+abstract/fallback text, relevance fields, and optional structured analysis.
+Evaluation warnings are deduplicated into the displayed Relevance Limitations;
+the card-level warning tuple is cleared.</p>
+<h3 id="saved-markdown">Saved Markdown</h3>
+<p>On a completed page, <strong>Save Results</strong> builds
+<code>project0_research_results.md</code> in JavaScript. It includes the request, optional
+context filename and findings, consolidated paper results, available analyses,
+Direction Analysis, and a generation timestamp. The browser uses the File
+System Access API when available and otherwise downloads a Blob.</p>
+<p>This saved file is not a server-side <code>ResearchArtifact</code> and is not written to
+the repository.</p>
+<hr />
+<h2 id="12-status-logging-and-diagnostics">12. Status, Logging, and Diagnostics</h2>
+<p><code>completed_with_warnings</code> is returned for:</p>
+<ul>
+<li>no source references;</li>
+<li>incomplete metadata count;</li>
+<li>discovery-only evidence-shortlist members;</li>
+<li>no recommended evidence-reviewed papers; or</li>
+<li>isolated Direction Analysis failure.</li>
+</ul>
+<p>The source service logs aggregate selection counts at INFO and candidate traces
+at DEBUG. Direction Analysis may write its Ollama request payload to
+<code>/tmp/project0_direction_analysis_request.json</code> through request metadata.</p>
+<p>The browser system-status panel polls <code>/api/system-status?agent=research</code> every
+two seconds during a submitted request. It reports configured provider/model
+and NVIDIA GPU information; it is operational status, not true workflow-stage
+telemetry.</p>
+<hr />
+<h2 id="13-configuration">13. Configuration</h2>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Reasoning provider</td>
+<td><code>ollama</code></td>
+</tr>
+<tr>
+<td>Research model</td>
+<td><code>qwen2.5:7b</code></td>
+</tr>
+<tr>
+<td>Ollama base URL</td>
+<td><code>http://127.0.0.1:11434</code></td>
+</tr>
+<tr>
+<td>Ollama timeout</td>
+<td>600 seconds</td>
+</tr>
+<tr>
+<td>Active source providers</td>
+<td><code>semantic_scholar</code>, <code>arxiv</code></td>
+</tr>
+<tr>
+<td>Evaluation candidate pool</td>
+<td>24</td>
+</tr>
+<tr>
+<td>Evidence shortlist</td>
+<td>8</td>
+</tr>
+<tr>
+<td>Evaluation batch</td>
+<td>3</td>
+</tr>
+<tr>
+<td>Direction input</td>
+<td>first 3 paper analyses</td>
+</tr>
+<tr>
+<td>Direction Analysis</td>
+<td>enabled</td>
+</tr>
+<tr>
+<td>Recommendation threshold</td>
+<td>0.75</td>
+</tr>
+</tbody>
+</table>
+<p>Environment-variable names and fallback rules are listed in the Functional
+Specification and Testing Guide.</p>
+<hr />
+<h2 id="14-known-implementation-constraints">14. Known Implementation Constraints</h2>
+<ul>
+<li>Context is sent in one reasoning request; there is no chunk limit.</li>
+<li>PDF section extraction is heading- and page-dependent and is not a complete
+  paper parser.</li>
+<li>The current candidate profile and evidence tiers include domain-specific
+  visual/video-language terminology.</li>
+<li>Partial source-query failures are not surfaced when another group succeeds.</li>
+<li>The optional OpenAlex provider API key is not configurable through
+  <code>ProjectSettings</code>.</li>
+<li>A caller-supplied <code>ProjectSettings.research_direction_analysis_enabled</code> is
+  not explicitly forwarded by the dispatcher; normal environment-based global
+  settings remain effective.</li>
+<li>Legacy artifacts are not the browser-saved result package.</li>
 </ul>
 
 
