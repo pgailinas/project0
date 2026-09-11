@@ -1,8 +1,8 @@
-# Documentation Agent Component Design
+# Documentation Agent Design
 
 **Version:** 0.7  
 **Owner:** Project0  
-**Last Updated:** 2026-09-09
+**Last Updated:** 2026-09-11
 
 ---
 
@@ -10,1091 +10,615 @@
 
 ### Objective
 
-Define the internal design of each major Documentation Agent component
-identified in the Architecture document.
+Define the detailed component responsibilities, interactions, data
+handling, enforcement rules, review behavior, and failure boundaries of
+the Project0 Documentation Agent.
 
 ### Scope
 
-Describe the purpose, responsibilities, interfaces, inputs, outputs,
-dependencies, and future considerations for each component.
-Implementation details are intentionally excluded.
+This document describes how the current components implement the
+Documentation Agent Architecture and Functional Specification. It
+covers both source-grounded and ordinary documentation requests,
+browser review, controlled repository mutation, and validation.
+
+Exact public field declarations and HTTP form contracts belong in the
+Documentation Agent Interface Design. Test procedures belong in the
+Documentation Agent Test Plan and Testing Guide.
 
 ---
 
 ## 2. Component Design Principles
 
-* Each component has a single responsibility.
-* Components communicate through well-defined typed interfaces.
-* Shared immutable data models define information exchanged between components.
-* Components depend on interfaces rather than concrete implementations where practical.
-* Deterministic processing shall be used whenever AI reasoning is not required.
-* Components shall be independently testable.
-* Minimize coupling between components.
-* Maximize reuse across future AI agents.
+- Each component has a focused responsibility.
+- Components communicate through typed protocols and immutable models
+  where practical.
+- Model output is structured but remains untrusted until deterministic
+  workflow checks pass.
+- Explicit source paths are authoritative, read-only evidence.
+- Target Markdown is an existing controlled artifact.
+- Repository access, scope enforcement, location resolution,
+  validation, file application, and diff generation are deterministic.
+- Source-grounded synchronization fails closed when evidence or target
+  location is ambiguous.
+- Each proposal requires a separate human decision.
+- Only approved proposals may modify repository files.
+- Agent presentation remains separate from workflow and repository
+  behavior.
+- The implementation favors minimal localized edits over document
+  regeneration.
+- Current behavior is distinguished from possible future capability.
 
 ---
 
 ## 3. Component Overview
 
-The implemented Phase 7 and Phase 8 platform foundation consists of the following
-primary components. The Documentation Agent is hosted within the
-reusable Dashboard Framework, which provides the browser interface while
-remaining architecturally separate from the agent services. The Dashboard
-Framework provides the shared user interface shell, while the Documentation
-Agent provides agent-specific workflows and interactions within the Dashboard
-Work Area:
+The Documentation Agent uses these primary components:
 
-* Dashboard Framework
-* Platform Dispatcher
-* Workflow Engine
-* Repository Service
-* Context Builder
-* Context Rule Registry
-* Context Filter
-* Knowledge Service
-* Document Parser
-* Document Index
-* Document Selector
-* Context Formatter
-* Shared Interfaces
-* Shared Data Models
-* Validation Service
-* Reasoning Service
-* Skill Registry
-* Review Coordinator
-* Repository Update Service
-* Git Diff Service
-* Artifact Location Service
-* Documentation Workflow
+- Dashboard Framework
+- Documentation Agent routes
+- Documentation Agent UI Service and view models
+- Platform Dispatcher
+- Repository Service
+- Knowledge Service and its parser, index, selector, and formatter
+- Prompt Builder
+- Reasoning Service and Reasoning Provider
+- Skill Registry
+- Artifact Location Service
+- Documentation Workflow
+- Validation Service with Markdown, link, and MkDocs validators
+- Repository Update Service
+- Git Diff Service
+- Shared interfaces and data models
 
-The Platform Dispatcher provides the platform-level entry point. It creates workflow tasks and submits them to the Workflow Engine. The Workflow Engine executes those tasks and returns structured workflow results.
+The Platform Dispatcher also exposes a generic Context Builder and
+Workflow Engine for platform context workflows. Those services are not
+the execution engine for `run_documentation_workflow()`. The current
+Documentation Workflow is invoked directly by the dispatcher.
 
-The Context Builder assembles workflow-specific repository context for deterministic workflow execution.
-
-The Knowledge Service provides deterministic repository knowledge retrieval. It coordinates repository document parsing, indexing, document selection, and context formatting while preserving structured warnings and metadata.
-
-The Validation Service, Reasoning Service, Review Coordinator, Repository Update Service, Git Diff Service, and Documentation Workflow are implemented platform components. Together they provide an end-to-end documentation update workflow coordinated through the Platform Dispatcher.
+The factory injects a Review Coordinator into the Documentation
+Workflow, but interactive browser decisions are submitted directly to
+`DocumentationWorkflow.submit_review()` through the Platform
+Dispatcher. The stored coordinator is not invoked by that path.
 
 ---
 
 ## 4. Component Specifications
 
-### 4.1 Platform Dispatcher
+### 4.1 Dashboard Framework
 
 #### Purpose
 
-Provide the platform-level entry point for assembling services and dispatching workflows.
+Provide the reusable Project0 browser shell in which the Documentation
+Agent Work Area is rendered.
 
 #### Responsibilities
 
-* Validate platform startup through the configured settings.
-* Assemble the default Repository Service, Context Builder, and Workflow Engine.
-* Create workflow tasks.
-* Dispatch tasks to the Workflow Engine.
-* Return structured workflow execution results.
-* Assemble the Documentation Workflow.
-* Configure the repository-local Skill Registry.
-* Dispatch Documentation Workflows.
+- Provide shared layout, navigation, system status, and template
+  resources.
+- Register the Documentation Agent router before the generic agent
+  placeholder route.
+- Mount Documentation Agent-specific static resources when present.
+- Display the effective Documentation reasoning model in agent context.
+- Remain independent of Documentation Workflow business rules.
 
-#### Interfaces
+#### Inputs and outputs
 
-##### Provides
+The Dashboard receives FastAPI requests and renders HTML responses. It
+passes shared shell context and the Documentation Agent page model to
+the Jinja2 template.
 
-* Create default platform dispatcher.
-* Run context workflow.
-* Run documentation workflow.
-
-##### Consumes
-
-* Repository Interface.
-* Context Builder Interface.
-* Workflow Interface.
-* Context workflow models.
-* Workflow task and result models.
-
-#### Design Notes
-
-* Coordinates platform services without implementing their internal behavior.
-* Depends on typed interfaces for injected services.
-* Uses concrete implementations only in the default factory.
-* Startup workflows remain read-only.
-* Documentation workflows coordinate reasoning, validation, review, repository updates, artifact location, and Git diff generation through dedicated services.
-* Does not implement component behavior directly.
-* Provides workflow state access through platform interfaces.
-
-#### Inputs
-
-* Context identifier
-* Context workflow type
-* Optional workflow name
-* Optional workflow identifier
-* Documentation workflow request
-
-#### Outputs
-
-* Workflow Execution Result
-* Documentation Workflow Result
-
-#### Required Services
-
-* Repository Interface
-* Context Builder Interface
-* Knowledge Interface
-* Workflow Interface
-
-#### Future Considerations
-
-* Additional workflow dispatch
-* Additional agent and service routing
-* Multi-agent workflow coordination
-
----
-
-### 4.2 Dashboard Framework
+### 4.2 Documentation Agent Routes
 
 #### Purpose
 
-Provide the reusable browser-based user interface for Project0 services
-and AI agents.
+Translate HTTP form submissions into UI-service calls.
 
 #### Responsibilities
 
-* Provide the common dashboard layout.
-* Host Documentation Agent pages within the shared framework.
-* Render reusable templates.
-* Provide shared navigation, sidebar, context toolbar, and work area.
-* Keep the Sidebar focused on Agent and Workspace navigation.
-* Display Project0 status in the Project Overview Work Area.
-* Allow agent status, controls, and content to be displayed in the Work Area for the selected agent.
-* Provide the Dashboard Work Area for Documentation Agent interaction.
-* Remain independent of Documentation Agent business logic.
+- Render the ready page at `GET /agents/documentation`.
+- Accept `user_request`, `source_paths`, and `target_paths` at
+  `POST /agents/documentation/request`.
+- Parse source and target paths as trimmed, nonblank, newline-separated
+  repository paths.
+- Accept workflow ID, proposal ID, decision, and optional feedback at
+  `POST /agents/documentation/review`.
+- Convert supported decision strings to `ReviewDecision` values.
+- Execute synchronous UI-service work in the Starlette thread pool.
+- Render unsupported decisions as failed page state.
 
-#### Design Notes
-
-* Implemented using FastAPI and Jinja2 templates.
-* The Project Overview is the default platform-level Work Area and contains Project0 status information.
-* The Context Toolbar and Work Area reflect the currently selected platform or agent context.
-* Project0 status is not displayed persistently in the Sidebar.
-* The Documentation Agent is the first implemented agent hosted within the Dashboard Framework.
-* Agent-specific pages render within the Dashboard Work Area rather than operating as independent applications.
-* Serves as reusable platform infrastructure for future AI agents.
-
----
-
-### 4.3 Workflow Engine
+### 4.3 Documentation Agent UI Service
 
 #### Purpose
 
-Execute Project0 workflow tasks sequentially and return structured execution results.
+Adapt browser requests and domain workflow results without owning
+workflow or repository policy.
 
 #### Responsibilities
 
-* Validate workflow requests.
-* Assign or preserve workflow identifiers.
-* Execute workflow tasks in supplied order.
-* Capture task outputs.
-* Convert task exceptions into failed task results.
-* Stop execution after the first failed task.
-* Publish workflow and task lifecycle events when an event publisher is configured.
-* Return a structured Workflow Execution Result.
+- Normalize request values.
+- Reject blank documentation requests before dispatch.
+- Invoke the Documentation Workflow port.
+- Construct `DocumentationReview` objects with UTC timestamps.
+- Retrieve workflow state after a revise decision so the original
+  request, sources, and targets can be repopulated.
+- Map workflow objects or mappings to immutable presentation models.
+- Convert exceptions into displayable failure pages.
+- Derive page status, validation summaries, warning lists, and workflow
+  counters.
 
-#### Interfaces
+#### Difference presentation
 
-##### Provides
+For each proposal, the service calls the shared
+`apply_documentation_change()` helper against the proposal's original
+snapshot to construct a candidate full-document result. It compares the
+original and candidate with `ndiff`, assigns old and new line numbers,
+and shows changed lines with three surrounding context lines.
 
-* Execute workflow.
-* Return workflow status.
-* Return task execution results.
-* Publish workflow and task events.
+Difference construction is presentation-only. It does not write a file
+and does not replace repository validation. A difference-construction
+error is attached to that proposal's view rather than failing the whole
+page.
 
-##### Consumes
-
-* Workflow Task models.
-* Workflow Event Publisher Interface.
-
-#### Design Notes
-
-* Uses synchronous, in-process execution.
-* Does not directly access repository content.
-* Does not perform context selection.
-* Stops workflow execution after the first task failure.
-* Returns immutable workflow and task result models.
-* Supports an optional event publisher through a typed interface.
-
-#### Inputs
-
-* Workflow name
-* Workflow tasks
-* Optional workflow identifier
-
-#### Outputs
-
-* Workflow Execution Result
-* Task Execution Results
-* Workflow and task lifecycle events
-
-#### Required Services
-
-* None
-
-#### Future Considerations
-
-* Conditional workflow paths
-* Retry policies
-* Persistent workflow state
-* Asynchronous execution
-* User review workflows
-
----
-
-### 4.4 Repository Service
+### 4.4 Platform Dispatcher
 
 #### Purpose
 
-Provide deterministic, read-only access to repository content.
+Assemble services and expose platform-level Documentation Agent entry
+points.
 
 #### Responsibilities
 
-* Discover supported repository files.
-* Discover Markdown documentation files.
-* Read individual repository files.
-* Read multiple repository files.
-* Exclude generated, hidden, unsupported, and backup content.
-* Preserve repository file metadata.
-* Return structured repository results and errors.
+- Validate startup settings.
+- Build shared repository, context, workflow-engine, and skill-registry
+  services.
+- Assemble the Documentation Workflow when a reasoning provider is
+  supplied.
+- Validate nonblank user requests and workflow identifiers.
+- Construct `DocumentationWorkflowRequest` objects.
+- Delegate workflow execution, review submission, and state lookup.
 
-#### Interfaces
+#### Design notes
 
-##### Provides
+`run_documentation_workflow()` calls `DocumentationWorkflow.execute()`
+directly. The dispatcher's generic `WorkflowEngine` is used by the
+separate context-workflow API, not by the current Documentation
+Workflow path.
 
-* List repository files.
-* List documentation files.
-* Read one repository file.
-* Read multiple repository files.
-
-##### Consumes
-
-* Local repository.
-* Local file system.
-
-#### Design Notes
-
-* Performs deterministic repository operations only.
-* Does not make documentation decisions.
-* Does not modify repository content.
-* Normalizes and validates repository-relative paths.
-* Prevents access outside the configured repository root.
-* Returns partial batch results when some files cannot be read.
-* Implements the Repository Interface structurally.
-
-#### Inputs
-
-* Repository-relative paths
-* Optional extension filters
-* Repository query criteria
-
-#### Outputs
-
-* Repository file metadata
-* Repository list results
-* File read results
-* Batch file results
-* Structured repository errors
-
-#### External Dependencies
-
-* Local file system
-
-#### Future Considerations
-
-* Git status inspection
-* Additional version-control systems
-
----
-
-### 4.5 Context Builder
+### 4.5 Repository Service
 
 #### Purpose
 
-Assemble workflow-specific repository documentation into a structured Context Package.
+Provide deterministic, read-only repository discovery and file access.
 
 #### Responsibilities
 
-* Discover available documentation through the Repository Interface.
-* Obtain workflow-specific criteria from the Context Rule Registry.
-* Apply deterministic document selection through the Context Filter.
-* Read selected repository documents.
-* Preserve repository file metadata.
-* Package documents into an immutable Context Package.
-* Preserve successful partial reads.
-* Convert repository read errors into context warnings.
+- Normalize and validate repository-relative paths.
+- Prevent reads outside the configured repository root.
+- Discover supported files and Markdown documentation.
+- Read one or multiple repository files.
+- Return structured file metadata, content, and errors.
 
-#### Interfaces
+#### Source-grounded use
 
-##### Provides
+The Documentation Workflow factory uses Repository Service directly to
+read the union of requested target and source paths. Any batch read
+error causes source-grounded context construction to fail rather than
+silently proceeding with partial authority.
 
-* Build documentation context.
-
-##### Consumes
-
-* Repository Interface.
-* Context Rule Registry.
-* Context Filter.
-* Context and workflow models.
-
-#### Design Notes
-
-* Depends on the Repository Interface rather than Repository Service directly.
-* Does not perform semantic ranking.
-* Does not generate documentation changes.
-* Uses deterministic workflow-specific selection.
-* Returns failed context packages when repository discovery fails.
-* Returns completed-with-warning packages for empty selections or partial reads.
-
-#### Inputs
-
-* Context identifier
-* Context workflow type
-
-#### Outputs
-
-* Context Package
-
-#### Required Services
-
-* Repository Interface
-* Context Rule Registry
-
-#### Future Considerations
-
-* Semantic retrieval
-* Relevance ranking
-* Context-size limits
-* Integration with semantic repository search
-
----
-
-### 4.6 Context Rule Registry
+### 4.6 Knowledge Service
 
 #### Purpose
 
-Define and resolve workflow-specific document-selection policies.
+Build deterministic repository-document context for requests that do
+not include authoritative source paths.
 
 #### Responsibilities
 
-* Maintain Context Rules by workflow type.
-* Resolve a Context Rule for a requested workflow.
-* Convert Context Rules into Context Filter criteria.
-* Provide default rules for supported workflow types.
-* Report requests for unregistered workflow types.
+- Discover Markdown documents.
+- Parse document metadata, headings, and links.
+- Build an in-memory document index.
+- Select documents using the user request and optional requested paths.
+- Format selected content into prompt context.
+- Preserve warnings in a structured result.
 
-#### Interfaces
+The Documentation Workflow calls Knowledge Service with
+`include_baseline_documents=False`. Empty target paths permit ordinary
+knowledge discovery; they do not implicitly force baseline documents.
 
-##### Provides
+#### Knowledge collaborators
 
-* Retrieve Context Rule.
-* Retrieve Context Filter criteria.
+- **Document Parser** converts Markdown into immutable document records.
+- **Document Index** provides path-based lookup and deterministic
+  ordering while rejecting duplicate paths.
+- **Document Selector** handles explicit paths and deterministic
+  relevance criteria.
+- **Context Formatter** produces ordered provider context without
+  changing repository content.
 
-##### Consumes
+### 4.7 Context Builder, Rule Registry, and Context Filter
 
-* Context workflow type.
-* Context Rule definitions.
+These are shared Project0 components used by the dispatcher's generic
+context-workflow API. They select repository files from workflow rules
+and produce `ContextPackage` objects. They remain relevant platform
+dependencies but are not called by the current
+`DocumentationWorkflow.execute()` path, which uses either the direct
+source-grounded context builder closure or Knowledge Service.
 
-#### Design Notes
-
-* Uses deterministic rules.
-* Separates context policy from context assembly.
-* Preserves the order of required and optional patterns.
-* Returns copied default-rule dictionaries to prevent accidental global modification.
-
-#### Inputs
-
-* Context workflow type
-
-#### Outputs
-
-* Context Rule
-* Context Filter criteria
-
-#### Future Considerations
-
-* Project-specific rule configuration
-* User-defined workflow rules
-* Rule versioning
-* Rule validation
-
----
-
-### 4.7 Context Filter
+### 4.8 Prompt Builder
 
 #### Purpose
 
-Apply deterministic file-selection criteria to discovered repository files.
+Convert typed reasoning requests into provider instructions, user
+prompts, schemas, and metadata.
 
 #### Responsibilities
 
-* Filter documentation and non-documentation files.
-* Filter by extension.
-* Apply included and excluded paths.
-* Apply included and excluded patterns.
-* Normalize slash and backslash path formats.
-* Return selected files in deterministic order.
+- Build separate schemas for documentation gap analysis and update
+  generation.
+- Restrict structured document paths to supplied target paths when
+  available.
+- Extract eligible headings from target-document context.
+- Exclude level-one target titles as source-grounded update sections.
+- Enumerate permitted existing sections without inventing headings.
+- State source-grounding, minimal-change, concrete-content, anchor, and
+  confidence rules.
+- Append active skill instructions and record active skill names.
 
-#### Interfaces
+#### Structured stages
 
-##### Provides
+`documentation_gap_analysis` requires a summary, gap records,
+assumptions, and warnings. Each gap identifies a target document,
+optional exact section, gap description, source evidence, and optional
+confidence.
 
-* Match one repository file.
-* Apply criteria to repository files.
-* Return filtered repository files.
+`documentation_update` requires a summary, impacts, proposed changes,
+assumptions, and warnings. Proposed changes include document path,
+operation, rationale, concrete proposed content, optional documentation
+meaning, optional exact section and anchor, edit type, and confidence.
 
-##### Consumes
-
-* Repository file metadata.
-* Context Filter criteria.
-
-#### Design Notes
-
-* Does not read repository files.
-* Does not determine workflow policy.
-* Applies criteria supplied by the Context Rule Registry.
-* Produces deterministic ordering for repeatable context packages.
-
-#### Inputs
-
-* Repository files
-* Context Filter criteria
-
-#### Outputs
-
-* Selected repository files
-
-#### Future Considerations
-
-* File-size criteria
-* Modified-date criteria
-* Metadata-based selection
-* Relevance scoring
-
----
-
-### 4.8 Knowledge Service
+### 4.9 Reasoning Service and Provider
 
 #### Purpose
 
-Coordinate deterministic repository knowledge retrieval.
+Execute schema-constrained reasoning and convert provider output to
+typed results.
 
 #### Responsibilities
 
-* Discover repository Markdown documentation.
-* Parse repository documents.
-* Build the in-memory document index.
-* Select repository documents relevant to a Knowledge Request.
-* Delegate context formatting.
-* Preserve structured warnings.
-* Return immutable Knowledge Results.
+- Ask Prompt Builder for a provider request.
+- Invoke the configured provider.
+- Require structured object output.
+- Parse gaps for gap-analysis requests.
+- Parse impacts and proposed changes for update requests.
+- Normalize supported confidence forms to 0.0–1.0.
+- Combine provider and response warnings.
+- Convert handled provider, parsing, type, and value exceptions into a
+  failed `ReasoningResult`.
 
-#### Interfaces
+The service never reads or writes repository files directly.
 
-##### Provides
+The Ollama provider posts a non-streaming request to `/api/chat`, passes
+the response schema through `format`, uses temperature 0.0, and parses
+the returned message content as a JSON object. Stub mode provides
+deterministic structured output.
 
-* Build repository knowledge.
-
-##### Consumes
-
-* Document Parser.
-* Document Index.
-* Document Selector.
-* Context Formatter.
-* Knowledge models.
-
-#### Design Notes
-
-* Coordinates knowledge components without implementing their internal behavior.
-* Uses dependency injection for parser, index, selector, and formatter.
-* Performs deterministic processing only.
-* Returns immutable Knowledge Results.
-
-#### Inputs
-
-* Knowledge Request
-
-#### Outputs
-
-* Knowledge Result
-
-#### Required Services
-
-* Document Parser
-* Document Index
-* Document Selector
-* Context Formatter
-
-#### Future Considerations
-
-* Semantic retrieval
-* Embedding generation
-* Vector search
-
----
-
-### 4.9 Document Parser
+### 4.10 Skill Registry
 
 #### Purpose
 
-Parse Markdown documentation into structured repository models.
+Discover and load validated repository-local Agent Skills.
 
 #### Responsibilities
 
-* Parse Markdown documents.
-* Extract document metadata.
-* Extract headings.
-* Extract document links.
-* Preserve repository paths.
-* Return immutable Document Records.
+- Discover skill directories containing `SKILL.md`.
+- Validate required metadata and safe skill paths.
+- Return metadata separately from complete loaded instructions.
+- Preserve immutable skill definitions and deterministic discovery.
 
-#### Interfaces
+When source paths are present and a registry is configured, the
+Documentation Workflow loads `strict-documentation-editor` for Stage 2
+proposal generation. Stage 1 gap analysis receives no active skill.
+Deterministic workflow safeguards remain effective whether or not a
+skill is loaded.
 
-##### Provides
-
-* Parse repository document.
-
-##### Consumes
-
-* Repository Markdown.
-
-#### Design Notes
-
-* Performs deterministic parsing.
-* Does not perform document selection.
-* Does not perform semantic analysis.
-
----
-
-### 4.10 Document Index
+### 4.11 Artifact Location Service
 
 #### Purpose
 
-Maintain deterministic access to parsed repository documents.
+Resolve a proposed documentation edit to a precise existing target
+location.
 
 #### Responsibilities
 
-* Build the document index.
-* Retrieve documents by repository path.
-* Preserve deterministic ordering.
-* Detect duplicate repository paths.
+- Discover exact Markdown section locations.
+- Support other artifact-location forms used by repository updates.
+- Return line ranges and content identity used by proposals.
 
-#### Interfaces
+The workflow first attempts the proposed exact section and then the
+proposal rationale. More than one location is ambiguous. For
+source-grounded changes, no location is acceptable only when one exact,
+unique anchor text is supplied.
 
-##### Provides
-
-* Build document index.
-* Retrieve indexed documents.
-* Retrieve document by path.
-
-##### Consumes
-
-* Parsed Document Records.
-
----
-
-### 4.11 Document Selector
+### 4.12 Documentation Workflow
 
 #### Purpose
 
-Select repository documentation relevant to a Knowledge Request.
+Coordinate the complete proposal, review, application, and completion
+life cycle.
+
+#### Request and context behavior
+
+The workflow records start time and obtains context from its injected
+context provider. A request with source paths activates source-grounded
+behavior. Target paths are converted to path objects for the reasoning
+schema and retained as exact allowlist strings for proposal filtering.
+
+#### Source-grounded Stage 1
+
+The first reasoning call uses `documentation_gap_analysis`. Failure
+returns a failed workflow result. A successful response with no gaps
+creates retained workflow state with no proposals and returns review
+state. Otherwise, exact normalized duplicates are removed using document
+path, optional section, whitespace-normalized gap text, and
+whitespace-normalized source evidence.
+
+The deduplicated gap list is appended to context with an instruction
+that Stage 2 must not introduce additional gaps or design changes.
+
+#### Proposal generation
+
+The second source-grounded call, or the sole ordinary call, uses
+`documentation_update`. Reasoning failure returns a failed workflow
+result. Reasoning warnings are selected according to workflow mode and
+the proposed changes are converted individually.
+
+#### Universal proposal checks
+
+Each accepted proposal must:
+
+- use an explicitly allowed target path when a target list exists;
+- use the `update` operation;
+- resolve inside the repository;
+- target an existing regular `.md` file; and
+- retain the target's complete original content snapshot.
+
+Unsupported proposals are skipped with warnings.
+
+#### Source-grounded content checks
+
+Source-grounded proposals additionally:
+
+- reject directive or meta-instruction text instead of concrete
+  Markdown;
+- reject newly introduced fenced Python where the affected target
+  section does not already use that form, unless valid prose from
+  `documentation_meaning` can safely substitute;
+- canonicalize fenced Python declarations when exactly one matching
+  authoritative declaration is available;
+- reject declarations that do not exactly match authoritative source;
+- require a unique resolved location or exact unique anchor;
+- reject an explicitly selected section that is semantically unrelated
+  to the rationale and content;
+- recover to another existing subsection only when one candidate has a
+  uniquely highest positive token-overlap score; and
+- reject absent, duplicate, ambiguous, or weakly aligned targets.
+
+When a source-grounded replace targets an entire section but the
+proposed content does not begin with the exact existing heading, the
+workflow narrows the location so the heading is preserved and content is
+localized beneath it.
+
+#### Preliminary validation
+
+After proposal construction, the workflow validates the distinct
+proposal paths through its configured Validation Service. The request
+contains target paths and workflow ID. This checks current repository
+files; it does not first stage proposed candidate documents.
+
+A failed preliminary result is returned as failed workflow state with
+proposals retained for inspection. A warnings result adds a workflow
+warning. Otherwise the workflow returns review-required state.
+
+#### Review processing
+
+Workflow states are held in an in-memory dictionary keyed by workflow
+ID. `submit_review()` rejects missing workflows, unknown proposals, and
+duplicate reviews.
+
+Revise appends the review and returns retained review-required state. It
+does not call the reasoning service. The UI repopulates the request so a
+user may modify and resubmit it as a new reasoning cycle.
+
+Approve, reject, and skip are passed with the selected proposal to the
+Repository Update Service. Only approve can apply content. If proposals
+remain unreviewed, updated state is retained. After all proposals are
+reviewed, completion begins.
+
+#### Completion
+
+Successfully applied paths receive final validation. Validation failure
+or warnings are recorded, but no rollback is attempted. A Git diff is
+generated only when at least one path was applied; otherwise it is an
+empty string.
+
+The final result contains request identity, source and target paths,
+reasoning, proposals, reviews, application records, both validation
+stages, diff, summary counts, warnings, status, and an optional error.
+The completed state is then removed from memory.
+
+### 4.13 Validation Service and Validators
+
+#### Purpose
+
+Aggregate deterministic validator results without allowing one
+unexpected validator exception to terminate the remaining validation
+sequence.
 
 #### Responsibilities
 
-* Match explicit repository paths.
-* Discover relevant documentation when explicit repository paths are
-  not provided.
-* Match deterministic search terms.
-* Match required tags.
-* Match changed repository paths.
-* Include baseline project documentation only when requested by the
-  workflow configuration.
-* Rank selected documents.
-* Preserve deterministic ordering.
+- Invoke configured validators in order.
+- Convert an unexpected exception into a failed validator result and an
+  error issue.
+- Combine all issues and execution errors.
+- Return passed, passed-with-warnings, or failed status.
 
-#### Interfaces
+The default Documentation Workflow factory configures Markdown,
+internal-link, and MkDocs validators. A Documentation Consistency
+Validator exists in the repository but is not included in this default
+workflow tuple.
 
-##### Provides
-
-* Select repository documents.
-
-##### Consumes
-
-* Knowledge Request.
-* Document Records.
-
----
-
-### 4.12 Context Formatter
+### 4.14 Review Coordinator
 
 #### Purpose
 
-Format selected repository documents into deterministic context.
+Provide a reusable abstraction for obtaining a decision for a proposal.
+
+The factory injects either a supplied decision provider or an
+interactive guard that raises if automatic review is attempted. In the
+current interactive Documentation Workflow, the coordinator is stored
+but `submit_review()` processes browser-supplied `DocumentationReview`
+objects directly. Accordingly, the coordinator is independently tested
+but is not the mediator for the Dashboard review path.
+
+### 4.15 Repository Update Service
+
+#### Purpose
+
+Apply a single individually approved Markdown proposal safely.
 
 #### Responsibilities
 
-* Format repository documents.
-* Preserve supplied document ordering.
-* Produce deterministic context.
-* Preserve repository content.
+- Verify that review and proposal IDs match.
+- Return skipped status for non-approve decisions.
+- Enforce repository containment, `.md` extension, and file existence.
+- Read current content and compare it with the proposal snapshot.
+- Apply either an artifact-location or unique-anchor change.
+- Write UTF-8 content to a temporary file in the target directory.
+- Atomically replace the target and clean up temporary content.
+- Return applied, skipped, or failed status with an optional error.
 
-#### Interfaces
+The snapshot comparison is optimistic concurrency control. It prevents
+application of a proposal based on a stale target document.
 
-##### Provides
-
-* Format repository context.
-
-##### Consumes
-
-* Selected Document Records.
-
----
-
-### 4.13 Shared Interfaces
+### 4.16 Git Diff Service
 
 #### Purpose
 
-Define stable public contracts between Project0 components.
-
-#### Implemented Interfaces
-
-* Repository Interface
-* Workflow Interface
-* Workflow Event Publisher Interface
-* Context Builder Interface
-* Knowledge Interface
-* Validation Interface
-* Validator Interface
-* Documentation Workflow Interface
-* Review Coordinator Interface
-* Repository Update Interface
-* Artifact Location Interface
-* Git Diff Interface
-
-#### Design Notes
-
-* Interfaces use Python structural protocols.
-* Concrete implementations do not require explicit inheritance.
-* Components depend on required capabilities rather than specific implementations.
-* Interfaces improve test isolation and future implementation replacement.
-
----
-
-### 4.14 Shared Data Models
-
-#### Purpose
-
-Define immutable information exchanged between Project0 components.
-
-#### Context Models
-
-* Context Workflow Type
-* Context Build Status
-* Context Request
-* Context Document
-* Context Package
-
-#### Knowledge Models
-
-* Knowledge Request
-* Document Heading
-* Document Link
-* Document Record
-* Document Reference
-* Document Selection
-* Knowledge Result
-
-#### Validation Models
-
-* Validation Request
-* Validation Issue
-* Validator Result
-* Validation Result
-* Validation Status
-* Validation Severity
-
-#### Workflow Models
-
-* Workflow Status
-* Task Status
-* Workflow Task
-* Task Execution Result
-* Workflow Execution Result
-
-#### Documentation Workflow Models
-
-* Documentation Workflow Request
-* Documentation Workflow Result
-* Documentation Workflow Status
-* Documentation Workflow Summary
-* Documentation Change Proposal
-* Documentation Review
-* Applied Documentation Change
-
-#### Design Notes
-
-* Models use immutable dataclasses where practical.
-* Status values use string enumerations.
-* Timestamps are timezone-aware.
-* Result models preserve structured outputs, warnings, and errors.
-* Shared models prevent component-specific communication formats.
-
----
-
-### 4.15 Validation Service
-
-#### Purpose
-
-Coordinate deterministic repository validation through independently testable validators.
-
-#### Responsibilities
-
-* Coordinate configured validators.
-* Aggregate validator results.
-* Preserve validator execution order.
-* Isolate validator execution failures.
-* Return immutable Validation Results.
-
-#### Interfaces
-
-##### Provides
-
-* Execute repository validation.
-* Aggregate validator results.
-* Return Validation Results.
-
-##### Consumes
-
-* Validation Interface.
-* Validator Interface.
-* Validation models.
-
-#### Design Notes
-
-* Coordinates validation components without implementing validation logic.
-* Uses dependency injection for configured validators.
-* Continues validation even if an individual validator fails unexpectedly.
-* Returns immutable Validation Results and Validator Results.
-* Supports future validator expansion without modifying service logic.
-
-#### Inputs
-
-* Validation Request
-
-#### Outputs
-
-* Validation Result
-
-#### Required Services
-
-* Markdown Validator
-* Link Validator
-* MkDocs Validator
-* Documentation Consistency Validator
-
-#### Implementation Status
-
-Implemented in Phase 5.
-
-#### Future Considerations
-
-* Semantic Validator
-* Repository Structure Validator
-* Git Validator
-* Style Guide Validator
-* Additional deterministic validators
-
----
-
-### 4.16 Reasoning Service
-
-#### Purpose
-
-Perform AI-assisted documentation reasoning.
-
-#### Responsibilities
-
-* Analyze repository changes and documentation impact.
-* Generate proposed documentation updates.
-* Explain proposed documentation changes.
-
-#### Interfaces
-
-##### Provides
-
-* Analyze documentation impact.
-* Generate proposed documentation updates.
-* Explain proposed documentation changes.
-
-##### Consumes
-
-* Repository context.
-* User requests.
-* Documentation standards.
-
-#### Design Notes
-
-* Performs only tasks requiring AI-assisted reasoning.
-* Does not directly read or write repository files.
-* Produces proposed changes for validation and user review.
-* Uses repository context supplied by the Knowledge Service.
-* Reasoning Requests may include loaded Agent Skills.
-* Prompt construction appends active skill instructions to the provider
-  system instructions and records active skill names in provider
-  metadata.
-
-#### Inputs
-
-* Repository context
-* User requests
-* Optional loaded Agent Skills
-
-#### Outputs
-
-* Proposed documentation updates
-* Documentation impact explanations
-
-#### Required Services
-
-* Knowledge Service
-* AI Reasoning Provider
-
-#### External Dependencies
-
-* AI reasoning provider
-
-#### Implementation Status
-
-Implemented in Phase 4 and integrated into the Documentation Workflow in Phase 6.
-
-#### Future Considerations
-
-* Multiple reasoning providers
-* Model routing
-* Context-size management
-
----
-
-### 4.17 Skill Registry
-
-#### Purpose
-
-Discover and load repository-local Project0 Agent Skills.
-
-#### Responsibilities
-
-* Discover skill directories containing `SKILL.md`.
-* Validate required skill name and description metadata.
-* Preserve additional skill metadata.
-* Load full skill instructions only when a skill is requested.
-* Reject invalid skill names, missing skills, and paths outside the
-  configured skills root.
-* Preserve deterministic skill discovery order.
-
-#### Inputs
-
-* Repository-local `skills/` directory
-* Skill name
-
-#### Outputs
-
-* Skill Metadata
-* Skill Definition
-
-#### Design Notes
-
-* Skill definitions are repository-local.
-* Discovery returns metadata without loading full instructions.
-* Loaded skills are immutable shared models.
-* The current Documentation Workflow loads
-  `strict-documentation-editor` only for source-grounded requests.
-
----
-
-### Revision Workflow Support
-
-The Documentation Workflow supports a revision path when a user requests changes to a generated proposal before approval.
-
-#### Responsibilities
-
-* Preserve the original documentation request context.
-* Preserve the original target documentation paths.
-* Return the user to an editable request state.
-* Accept appended or modified user instructions.
-* Resume normal reasoning and validation processing after resubmission.
-
-#### Design Notes
-
-* Revision does not apply the previous proposal.
-* Revision creates a new documentation reasoning cycle.
-* The original target documentation path remains the active scope unless future UI functionality explicitly allows modification.
-
-
-### 4.18 Review Coordinator
-
-#### Purpose
-
-Coordinate user review of individual documentation changes.
-
-#### Responsibilities
-
-* Process Approve, Revise, Reject, and Skip decisions.
-* Produce immutable review results.
-
-#### Interfaces
-
-##### Provides
-
-* Review documentation proposal.
-
-##### Consumes
-
-* Documentation Workflow models.
-
----
-
-### 4.19 Repository Update Service
-
-#### Purpose
-
-Apply approved documentation changes.
-
-#### Responsibilities
-
-* Apply approved Markdown updates using validated artifact locations.
-* Preserve repository integrity.
-* Return immutable application results.
-
----
-
-### 4.20 Git Diff Service
-
-#### Purpose
-
-Generate Git diffs for approved documentation updates.
-
-#### Responsibilities
-
-* Generate repository diffs.
-* Restrict output to modified files.
-* Report Git execution failures.
-
----
-
-### 4.21 Documentation Workflow
-
-#### Purpose
-
-Coordinate the complete Documentation Agent execution pipeline.
-
-#### Responsibilities
-
-* Coordinate Knowledge, Reasoning, Validation, Review, Repository
-* Update, Artifact Location, and Git Diff services.
-* Load the `strict-documentation-editor` skill for source-grounded
-  documentation requests when a Skill Registry is configured.
-* Preserve deterministic source-grounded proposal guards independently
-  of skill instructions.
-* Preserve internal workflow state.
-* Produce immutable Documentation Workflow Results.
-* Support human-in-the-loop review before applying documentation
-  changes.
-
-#### Design Notes
-
-* Documentation Workflow execution is initiated through the Platform
-  Dispatcher.
-* Documentation Agent UI interactions are hosted by the Dashboard
-  Framework.
-* Source-grounded requests use only requested target and authoritative
-  source files for context.
-* Source-grounded proposals fail closed for unsupported paths,
-  unresolvable locations, meta-instruction content, semantically
-  misaligned sections, and authoritative Python declaration mismatches.
-* Proposed documentation changes are reviewed before repository
-  updates are applied.
+Return the Git working-tree difference for successfully applied paths.
+
+It does not stage, commit, branch, merge, push, or publish repository
+changes.
+
+### 4.17 Shared Interfaces and Models
+
+Interfaces use structural protocols so implementations can be replaced
+in tests or future runtime composition. Relevant contracts cover
+repository access, context building, knowledge, reasoning provider and
+service behavior, validation, documentation workflow, review,
+repository update, artifact location, Git diff, and generic workflows.
+
+Documentation workflow models include:
+
+- workflow statuses: pending, running, review required, completed,
+  completed with warnings, and failed;
+- decisions: approve, revise, reject, and skip;
+- anchor modes: replace and insert after;
+- application statuses: pending, applied, skipped, and failed;
+- requests, proposals, reviews, applied changes, retained state,
+  summaries, and results.
+
+Browser models separately define ready, processing, review-required,
+revision-required, completed, completed-with-warnings, and failed page
+states plus proposal, difference, validation, and summary views.
 
 ---
 
 ## 5. Interface Design Principles
 
-* Interfaces shall remain technology independent.
-* Components communicate only through public typed interfaces.
-* Components shall not directly access another component's internal
-  state.
-* Components shall depend on interfaces rather than concrete
-  implementations where practical.
-* Interface contracts shall remain backward compatible whenever
-  practical.
-* Shared data models shall define information exchanged between
-  components.
-* Concrete implementations may satisfy interfaces through structural
-  typing.
-* Interfaces shall remain small and aligned with implemented component
-  capabilities.
+- Interfaces remain small and aligned with current capabilities.
+- Agent components do not depend on browser form structures.
+- Browser presentation does not determine repository authorization.
+- Repository paths remain repository-relative at public boundaries and
+  are resolved and checked before filesystem use.
+- Provider-specific response details remain behind the reasoning
+  provider abstraction.
+- Structured schemas constrain model output but do not replace runtime
+  validation.
+- Immutable request and result models preserve reviewability and test
+  isolation.
+- Backward-compatible aliases may be retained where implemented, but
+  documentation identifies the primary current operation.
+- Errors and warnings remain explicit fields rather than being encoded
+  only in prose summaries.
 
 ---
 
 ## 6. Component Interactions
 
-The Platform Dispatcher provides the platform-level entry point and submits workflow tasks to the Workflow Engine.
+### 6.1 Source-grounded request
 
-The implemented context workflow follows this sequence:
+1. A browser request supplies user text, target paths, and source paths.
+2. Routes normalize path lines and call the UI Service.
+3. The UI Service calls the Platform Dispatcher.
+4. The dispatcher constructs a Documentation Workflow Request.
+5. The context provider reads exactly the requested targets and sources.
+6. The Reasoning Service performs structured gap analysis.
+7. The Documentation Workflow deduplicates established gaps.
+8. The Skill Registry loads the strict documentation skill.
+9. The Reasoning Service generates proposals bounded to the gaps.
+10. The Documentation Workflow applies deterministic proposal guards.
+11. The Validation Service validates current accepted target paths.
+12. The UI Service renders focused differences and review controls.
+13. Each decision is submitted separately.
+14. Approved proposals are applied immediately and atomically.
+15. After all decisions, applied paths receive final validation and Git
+    diff generation.
+16. The UI Service renders completion, warnings, or failure.
 
-1. The Platform Dispatcher creates a Workflow Task.
-2. The Workflow Engine begins workflow execution.
-3. The task invokes the Context Builder through the Context Builder Interface.
-4. The Context Builder requests criteria from the Context Rule Registry.
-5. The Context Rule Registry converts the applicable Context Rule into Context Filter criteria.
-6. The Context Filter selects eligible repository files.
-7. The Context Builder reads selected files through the Repository Interface.
-8. The Repository Service returns structured file results.
-9. The Context Builder creates a Context Package.
-10. The Workflow Engine invokes the Knowledge Service when structured repository knowledge is required.
-11. The Knowledge Service parses repository documents.
-12. Parsed documents are indexed.
-13. The Document Selector identifies the relevant repository documents.
-14. The Context Formatter produces deterministic repository context.
-15. The Knowledge Service returns a Knowledge Result.
-16. The Workflow Engine invokes the Validation Service when repository validation is requested.
-17. The Validation Service coordinates the configured validators.
-18. Individual validators perform deterministic validation.
-19. The Validation Service aggregates Validator Results into a Validation Result.
-20. The Workflow Engine returns a Workflow Execution Result.
+### 6.2 Ordinary request
 
-The Documentation Workflow extends this interaction model by coordinating the Knowledge Service, Reasoning Service, Validation Service, Review Coordinator, Repository Update Service, Artifact Location Service, and Git Diff Service into a complete documentation update pipeline.
+The sequence is the same except that Knowledge Service supplies context,
+there is no gap-analysis stage, and the strict documentation skill and
+source-grounded-only guards are not activated. Universal Markdown,
+scope, operation, containment, existence, review, and stale-snapshot
+checks still apply.
 
-The completed Phase 8 Documentation Agent User Interface provides a human-in-the-loop workflow hosted within the Dashboard Framework. The workflow supports documentation request submission, AI-generated documentation proposals, preliminary validation, individual proposal review, approval decisions, repository application, final validation, Git diff generation, and completion reporting.
+### 6.3 Revision interaction
 
-The Dashboard Framework remains responsible for the shared application shell, including navigation, context, and Work Area hosting. The Documentation Agent provides only agent-specific workflow interactions within the Dashboard Work Area. Documentation Agent UI styling and behavior remain isolated from Dashboard Framework presentation components.
-
-Approved documentation changes are applied only through the Repository Update Service. The UI review representation may provide focused diffs for readability while preserving the complete candidate document and repository update behavior.
+A revise decision records the review, performs no write, and returns
+revision-required presentation. The UI reloads the original request,
+source paths, and target paths from retained state. The user must edit
+and resubmit; no automatic provider call occurs as a direct consequence
+of the revise decision.
 
 ---
 
 ## 7. Design Constraints
 
-* Preserve modularity.
-* Use deterministic processing whenever AI reasoning is not required.
-* Maintain vendor neutrality.
-* Support future extensibility.
-* Use typed interfaces between platform components.
-* Use shared immutable models for component communication.
-* Depend on interfaces rather than concrete implementations where
-  practical.
-* Preserve deterministic ordering of selected repository content.
-* Empty documentation target paths shall trigger repository knowledge
-  discovery rather than implicit baseline document inclusion.
-* Repository discovery remains read-only.
-* Documentation modifications shall occur only through the Repository
-  Update Service using validated artifact locations.
-* Human approval is required before documentation changes are applied.
-* Proposed documentation changes shall be processed individually
-  through the review workflow.
-* Approved documentation changes shall undergo final validation before
-  completion.
+- The Documentation Workflow is synchronous and process-local.
+- Workflow review state is not durable across restarts.
+- Only updates to existing Markdown files are executable.
+- Source-grounded requests require every requested target and source
+  file to be readable.
+- Proposal path allowlisting uses exact repository-path strings.
+- Source-grounded location and semantic ambiguity fails closed.
+- Preliminary validation checks current target files rather than a
+  staged candidate repository.
+- Decisions are processed one proposal at a time.
+- Approval can mutate a file while other proposals remain under review.
+- Atomic replacement protects one file write but does not create a
+  multi-proposal transaction.
+- Final validation does not roll back an applied change.
+- The default validation tuple does not include Documentation
+  Consistency Validator.
+- Intermediate warning status can be exposed while workflow state still
+  exists; consumers should inspect outstanding proposal decisions as
+  well as the status value.
+- The current workflow performs no Git publication operation.
+- Live reasoning quality depends on the selected provider and model;
+  deterministic schemas and guards constrain but do not eliminate that
+  variability.
+
+---
+
+**End of Document**

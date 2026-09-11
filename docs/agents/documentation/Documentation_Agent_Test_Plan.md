@@ -1,1164 +1,442 @@
 # Documentation Agent Test Plan
 
-**Version:** 0.6  
+**Version:** 1.0  
 **Owner:** Project0  
-**Last Updated:** 2026-08-17
+**Last Updated:** 2026-09-11
 
 ---
 
 ## Executive Summary
 
-This document defines the verification criteria and test strategy for the Project0 Documentation Agent across unit, integration, browser acceptance, and exploratory AI testing.
+This plan defines the verification strategy and acceptance criteria for the
+Project0 Documentation Agent. It covers deterministic unit tests, assembled
+service integration, Dashboard browser acceptance, repository-safety checks,
+and separate exploratory evaluation of live reasoning providers.
 
-The purpose of this test plan is to demonstrate that the Documentation Agent can safely identify documentation impact, generate repository-grounded documentation proposals, validate proposed changes, and apply only explicitly approved updates while preserving repository integrity.
+The principal safety claim is that AI output remains a proposal until a human
+reviews it, and that only an individually approved, current, valid proposal may
+modify an existing Markdown file. Tests must establish both intended behavior
+and required non-mutation.
 
-The Documentation Agent is the first reference implementation of a Project0 AI Agent. Successful completion of this test plan establishes a reusable layered testing approach for future Project0 agents.
-
----
+This document defines what must be verified. Exact commands and environment
+setup belong in the **Documentation Agent Testing Guide**; observed outcomes
+belong in **Documentation Agent Test Results**.
 
 ## 1. Purpose
 
-The Documentation Agent Test Plan establishes the required verification activities before the Documentation Agent can be considered complete.
+The test plan verifies that the Documentation Agent:
 
-This document defines:
+- accepts and normalizes documentation requests through its browser interface;
+- distinguishes target documentation from authoritative source material;
+- produces structured, repository-grounded update proposals;
+- rejects unsupported, ambiguous, or out-of-scope proposals;
+- validates proposal targets before review;
+- preserves an independent human decision for each proposal;
+- applies only approved, non-stale changes;
+- validates applied paths and reports a final difference;
+- presents status, warnings, errors, differences, and counters accurately; and
+- remains separated from reusable Project0 platform services.
 
-* verification objectives
-* functional verification scenarios
-* safety requirements
-* AI reasoning verification
-* documentation compliance requirements
-* browser acceptance requirements
-* completion criteria
+## 2. Scope
 
-Detailed test execution procedures are defined in the **Documentation Agent Testing Guide**.
+### 2.1 In scope
 
-Verification scenario identifiers such as `DA-FUN-001`, `DA-SAF-001`, and `DA-AI-001` identify the behavior being verified and are independent of the testing layer used to provide evidence.
+- Documentation workflow and domain models
+- Request, context, reasoning, and proposal processing
+- Source-grounded two-stage reasoning
+- Ordinary single-stage documentation reasoning
+- Structured-output parsing and failure handling
+- Proposal allowlisting, containment, location, and semantic guards
+- Preliminary and final validation
+- Review coordination and retained in-memory state
+- Repository application, stale-snapshot protection, and atomic replacement
+- Git difference generation
+- Documentation Agent routes, UI service, view models, and templates
+- Dashboard registration and effective-model display
+- Reasoning-provider construction and Ollama request contract
+- Deterministic stub-based regression testing
+- Browser acceptance and live-provider exploratory checks
 
-Automated test names add a testing-layer prefix when a scenario is implemented at a specific layer:
+### 2.2 Out of scope
 
-* `INT` — integration verification through assembled Project0 Python/service boundaries
-* `UI` — browser acceptance verification through the Dashboard/UI boundary
+- General-purpose model benchmarking
+- A guarantee that any local model will produce useful prose for every request
+- Creation or deletion of documentation files
+- Multi-proposal transactions or rollback
+- Durable workflow recovery across process restart
+- Git commit, push, pull-request, or publication behavior
+- Other agents except where shared platform regression is relevant
 
-For example, `DA-FUN-001` may be verified by both `INT-DA-FUN-001` and `UI-DA-FUN-001` without creating separate requirement identifiers.
+## 3. Verification Principles
 
----
+### 3.1 Repository grounding
 
-## 2. Test Objectives
+Repository content and tests are authoritative. Tests must not accept a proposal
+merely because model output asserts that it is correct. Source-grounded updates
+must be traceable to supplied authoritative source content and must pass the
+workflow's deterministic checks.
 
-The Documentation Agent shall demonstrate the ability to:
+### 3.2 Human authority
 
-* Process documentation requests through the Project0 workflow.
-* Use repository content as the authoritative source of project knowledge.
-* Generate accurate and minimal documentation proposals.
-* Preserve unrelated documentation content.
-* Support human review and approval decisions.
-* Prevent unauthorized repository modification.
-* Validate proposed and applied documentation changes.
-* Validate artifact-based documentation modification behavior.
-* Operate within Project0 platform boundaries.
+Every accepted proposal requires an independent `approve`, `revise`, `reject`,
+or `skip` decision. Tests must demonstrate that only `approve` can authorize a
+write and that review of one proposal does not silently decide another.
 
----
+### 3.3 Deterministic enforcement
 
-## 3. Test Scope
+Containment, target allowlisting, file type, operation type, location
+resolution, source-fidelity checks, validation, stale-content detection, and
+repository application must be tested deterministically. Prompt instructions
+and optional skills do not replace these checks.
 
-### 3.1 In Scope
+### 3.4 Safe mutation
 
-This test plan covers:
+Any test capable of writing files must use a temporary repository or dedicated
+disposable fixture. It must assert intended content, unrelated-content
+preservation, and the absence of unauthorized writes.
 
-* Documentation request processing
-* Documentation impact analysis
-* Repository context usage
-* Documentation proposal generation
-* Documentation validation
-* Review and approval workflows
-* Repository update behavior
-* Git difference generation
-* Documentation Agent dashboard interaction
-* Local reasoning provider integration
-* Documentation standards compliance
+### 3.5 Repeatability
 
----
+Automated regression tests should use stub providers or controlled reasoning
+fixtures. Live Ollama tests and qualitative model evaluation must be selected
+explicitly and reported separately from deterministic suite results.
 
-### 3.2 Out of Scope
+### 3.6 Evidence-based reporting
 
-This test plan does not evaluate:
+No aggregate pass/skip count is current unless the named suite was executed
+against the identified commit. A test plan lists required evidence; it does not
+claim that the evidence has passed.
 
-* General AI model capability
-* AI model benchmarking
-* General documentation writing quality
-* Future Project0 agents
-* Autonomous repository operation without human approval
+## 4. Test Levels and Current Test Locations
 
----
+### 4.1 Direct Documentation Agent unit tests
 
-## 4. Verification Principles
+| Area | Principal test path |
+|---|---|
+| Routes and form parsing | `tests/unit/agents/documentation/test_documentation_agent_routes.py` |
+| UI mapping and focused differences | `tests/unit/agents/documentation/test_documentation_agent_ui_service.py` |
+| Presentation models | `tests/unit/agents/documentation/test_documentation_agent_view_models.py` |
 
-### Repository Grounding
+### 4.2 Workflow and model unit tests
 
-Documentation Agent proposals shall be based on repository content and configured documentation context.
+| Area | Principal test path |
+|---|---|
+| Workflow orchestration and proposal guards | `tests/unit/workflow/test_documentation_workflow.py` |
+| Review coordination | `tests/unit/workflow/test_review_coordinator.py` |
+| Workflow models | `tests/unit/models/test_documentation_workflow_models.py` |
+| Reasoning models and structured parsing | `tests/unit/models/test_reasoning_models.py`, `tests/unit/reasoning/test_reasoning_service.py` |
+| Validation models | `tests/unit/models/test_validation_models.py` |
 
-AI-generated content shall remain non-authoritative until reviewed and approved.
+### 4.3 Supporting-service unit tests
 
----
+| Area | Principal test path |
+|---|---|
+| Prompt schemas and grounding instructions | `tests/unit/reasoning/test_prompt_builder.py` |
+| Ollama and stub providers | `tests/unit/reasoning/providers/test_ollama_provider.py`, `tests/unit/reasoning/providers/test_stub_provider.py` |
+| Repository application and stale protection | `tests/unit/repository/test_repository_update_service.py` |
+| Git difference generation | `tests/unit/repository/test_git_diff_service.py` |
+| Artifact and Markdown location | `tests/unit/artifacts/test_artifact_location_service.py`, `tests/unit/artifacts/test_markdown_locator.py` |
+| Validation aggregation and validators | `tests/unit/validation/` |
+| Context construction and selection | `tests/unit/knowledge/` |
+| Dispatcher composition and delegation | `tests/unit/platform/test_platform_dispatcher.py` |
+| Dashboard composition and model display | `tests/unit/dashboard/test_dashboard_app.py`, `tests/unit/dashboard/test_dashboard_routes.py` |
+| Strict skill discovery and loading | `tests/unit/skills/test_skill_registry.py` |
 
-### Human Authority
+### 4.4 Integration tests
 
-The Documentation Agent shall preserve human decision authority.
+Relevant assembled-service coverage is located in:
 
-The agent may recommend documentation changes but shall not independently authorize repository modification.
+- `tests/integration/platform/test_dashboard_flow.py`;
+- `tests/integration/platform/test_reasoning_service_flow.py`;
+- `tests/integration/platform/test_ollama_reasoning_flow.py`;
+- `tests/integration/platform/test_knowledge_service_flow.py`;
+- `tests/integration/platform/test_validation_service_flow.py`; and
+- `tests/integration/platform/test_platform_dispatcher_flow.py`.
 
----
+Historical paths under `tests/integration/agents/documentation/` are not part of
+the current repository and must not be cited as executable coverage.
 
-### Minimum Necessary Change
+### 4.5 Browser acceptance tests
 
-Documentation updates shall modify only the content necessary to satisfy the approved request.
+The current browser suites are:
 
-Unrelated content, document structure, terminology, and formatting shall be preserved.
+- `tests/acceptance/agents/documentation/test_documentation_agent_ui_request_acceptance.py`;
+- `tests/acceptance/agents/documentation/test_documentation_agent_ui_review_acceptance.py`; and
+- `tests/acceptance/agents/documentation/test_documentation_agent_ui_approval_acceptance.py`.
 
----
-
-### Deterministic Before AI
-
-Repository access, validation, workflow coordination, and repository modification shall use deterministic processing whenever AI reasoning is not required.
-
----
-
-### Repository Safety
-
-The Documentation Agent shall fail safely when:
-
-* requirements are unclear
-* validation fails
-* repository state cannot be verified
-* generated changes are unreliable
-
----
-
-### Platform Separation
-
-Documentation Agent functionality shall remain separate from reusable Project0 platform infrastructure.
-
-Agent-specific responsibilities shall not be embedded into shared platform components.
-
----
+Browser acceptance verifies the actual Dashboard boundary. It does not replace
+workflow, repository, or provider unit tests.
 
 ## 5. Functional Verification Scenarios
 
----
+### DA-FUN-001 — Request processing
 
-### 5.1 DA-FUN-001: Documentation Request Processing
+Verify that the ready route renders, a valid request reaches the Documentation
+Workflow, request text is trimmed, newline-separated source and target paths
+are split and trimmed, and blank path lines are removed. A blank request must
+produce a failed page with a useful error. Route parsing is not required to
+deduplicate paths.
 
-#### Verification Layers
+**Pass criteria:** The resulting workflow request preserves the normalized
+inputs in the correct source/target roles, and invalid input produces no
+repository mutation.
 
-* Integration
-* UI Acceptance where applicable
+### DA-FUN-002 — Context selection
 
-#### Objective
+For an ordinary request, verify that Knowledge Service receives the request and
+optional targets with baseline inclusion disabled. Empty targets may use the
+implemented deterministic documentation discovery behavior.
 
-Verify that a user can submit a documentation request through the Documentation Agent interface.
+For a source-grounded request, verify that only explicitly requested source and
+target files are read, the two groups remain distinctly labeled, and any
+source-grounded read failure ends context construction safely.
 
-#### Expected Behavior
+**Pass criteria:** Context reflects the supplied repository files without
+conflating authoritative sources and editable documentation.
 
-The system shall:
+### DA-FUN-003 — Reasoning mode selection
 
-* accept the request
-* process the workflow
-* generate a reviewable result
+Verify that requests without source paths use the ordinary single-stage update
+path. Verify that requests with source paths first perform
+`documentation_gap_analysis`, deduplicate exact normalized gaps, and invoke
+`documentation_update` only for established gaps. No-gap output must retain a
+valid workflow result with no proposals.
 
-#### Pass Criteria
+**Pass criteria:** The correct structured schema is used at each stage, Stage 1
+failure stops safely, and Stage 2 cannot introduce work beyond established
+gaps.
 
-A valid documentation request completes successfully and produces a proposal.
+### DA-FUN-004 — Structured proposal construction
 
----
+Verify that valid reasoning output produces proposals containing repository
+path, complete original snapshot, concrete proposed content, rationale,
+proposal ID, and any supported location/anchor data. Instructions to write
+content are not a substitute for concrete Markdown.
 
-### 5.2 DA-FUN-002: Documentation Proposal Generation
+**Pass criteria:** Accepted proposal objects are complete, deterministic guards
+run before review, and malformed reasoning output fails or is skipped as the
+implementation specifies.
 
-#### Verification Layers
+### DA-FUN-005 — Preliminary validation
 
-* Integration
-* UI Acceptance where applicable
+Verify that the distinct accepted proposal paths are validated before review
+using the configured Markdown, link, and MkDocs validators. Confirm that the
+Documentation Consistency Validator is not assumed to be in the default tuple.
 
-#### Objective
+**Pass criteria:** Passed, warning, and failed results map correctly; validation
+failure preserves proposals for inspection but does not present them as
+validated changes.
 
-Verify that the Documentation Agent generates repository-grounded documentation proposals.
+### DA-FUN-006 — Individual review workflow
 
-#### Test Scenario
+Verify one decision per proposal and reject unknown workflows, unknown
+proposals, unsupported decisions, and duplicate reviews. Approve, reject, and
+skip must be forwarded with the selected proposal to the repository-update
+boundary. Revise must retain state, repopulate the original request and paths,
+and require user resubmission rather than automatically generating a proposal.
 
-Submit a request to update known project documentation.
+**Pass criteria:** Decisions affect only their selected proposal, and outstanding
+proposals remain reviewable.
 
-#### Expected Behavior
+### DA-FUN-007 — Application and completion
 
-The proposal identifies:
+Verify that approval is applied immediately for one proposal, even if other
+proposals remain undecided. After every proposal receives a decision, verify
+final validation of successfully applied paths, final Git difference
+generation, completion status, summary counters, warnings, and error fields.
 
-* appropriate documentation targets
-* relevant changes
-* required supporting context
+**Pass criteria:** Applied content exactly matches the reviewed proposal,
+non-approved proposals do not write, and completion evidence reflects actual
+application records.
 
-#### Pass Criteria
+### DA-FUN-008 — Presentation mapping
 
-The proposed changes satisfy the request without unsupported content.
+Verify ready, processing, review-required, revision-required, completed,
+completed-with-warnings, and failed page states. Verify proposal rationale,
+focused differences, prior decision state, validation messages, and all summary
+counters. Difference-generation failure must remain local to the affected
+proposal view.
 
----
-
-### 5.3 DA-FUN-003: Surgical Documentation Editing
-
-#### Verification Layers
-
-* Integration
-* UI Acceptance where applicable
-
-#### Objective
-
-Verify that documentation changes preserve existing content.
-
-#### Test Scenario
-
-Request an insertion or update within an existing documentation section.
-
-#### Expected Behavior
-
-The agent:
-
-* preserves existing anchors
-* inserts or updates only required content
-* maintains document structure
-
-#### Pass Criteria
-
-The generated difference contains only the intended modification.
-
----
-
-### 5.4 DA-FUN-004: Explicit Target Documentation Path Workflow
-
-#### Verification Layers
-
-* Integration
-* UI Acceptance where applicable
-
-#### Objective
-
-Verify that when a user explicitly provides one or more target documentation paths, the Documentation Agent uses those documents as the knowledge context source.
-
-#### Test Scenario
-
-Submit a documentation request with one or more valid target documentation paths.
-
-#### Expected Behavior
-
-The Documentation Agent shall:
-
-* preserve the user-provided target documentation paths
-* use the specified documents as the requested knowledge context
-* generate a repository-grounded documentation proposal
-* display the target documents during review
-
-#### Pass Criteria
-
-The generated proposal is based on the specified target documentation paths and no unrelated documents are introduced as modification targets.
-
----
-
-### 5.5 DA-FUN-005: Minimal Change Verification
-
-#### Verification Layers
-
-* Integration
-* UI Acceptance where applicable
-
-#### Objective
-
-Verify adherence to the minimum necessary change principle.
-
-#### Expected Behavior
-
-The generated difference:
-
-* contains required changes only
-* preserves unrelated sections
-* avoids unnecessary formatting changes
-
-#### Pass Criteria
-
-No unrelated modifications appear in the final Git difference.
-
----
-
-### 5.6 DA-FUN-006: Documentation Discovery Without Target Paths
-
-#### Verification Layers
-
--   Integration
--   UI Acceptance where applicable
-
-#### Objective
-
-Verify that the Documentation Agent can identify relevant documentation
-when the user does not provide target documentation paths.
-
-#### Test Scenario
-
-Submit a documentation request with no target documentation paths.
-
-#### Expected Behavior
-
-The Documentation Agent shall:
-
--   accept the request without requiring target documentation paths
--   use repository knowledge discovery to identify candidate
-    documentation
--   generate proposals based on discovered repository documentation
-
-#### Pass Criteria
-
-Relevant documentation is identified through discovery and the workflow
-completes without requiring manually supplied document paths.
-
----
-
-### 5.7 DA-FUN-008: Documentation Request Revision Workflow
-
-#### Verification Layers
-
-* Unit
-* UI Acceptance where applicable
-
-#### Objective
-
-Verify that a user can revise a generated documentation proposal by returning to an editable documentation request while preserving the original request context and target documentation paths.
-
-#### Test Scenario
-
-Submit a documentation request with an explicit target documentation path, generate a reviewable proposal, select Revise, update the request text, and resubmit.
-
-#### Expected Behavior
-
-The Documentation Agent shall:
-
-* return the user to an editable documentation request state
-* preserve the original documentation request
-* preserve the original target documentation paths
-* allow the user to modify or append request instructions
-* process the revised request through the normal documentation workflow
-* avoid applying the original proposal before revised approval
-
-#### Pass Criteria
-
-The revised request completes a new reasoning and validation cycle, produces a reviewable proposal, and preserves explicit target-document scoping.
-
-
----
+**Pass criteria:** The browser presents the workflow result without inventing
+state or hiding actionable warnings and errors.
 
 ## 6. Safety Verification Scenarios
 
----
+### DA-SAF-001 — Target and repository boundaries
 
-### 6.1 DA-SAF-001: Rejected Proposal Protection
+Verify rejection or omission of proposals that target paths outside an
+explicit target allowlist, outside the repository root, missing files,
+non-Markdown files, or operations other than update.
 
-#### Verification Layers
+**Pass criteria:** No unsupported target is written, and each skipped proposal
+produces the implemented warning or failure evidence.
 
-* Integration
-* UI Acceptance where applicable
+### DA-SAF-002 — Source-grounded fail-closed behavior
 
-#### Objective
+Verify rejection of unsupported source claims, ambiguous or missing locations,
+absent or repeated anchors, invalid section alignment, unrecognized edit types,
+and unsupported Python declarations. Verify that the top-level document title
+is not treated as an editable target section.
 
-Verify repository protection when a reviewer rejects a proposal.
+**Pass criteria:** Model output cannot bypass target, grounding, location,
+semantic, or declaration checks.
 
-#### Expected Behavior
+### DA-SAF-003 — Rejected, skipped, and revised proposals
 
-Rejected changes shall not modify repository content.
+Capture repository content before each decision and verify that `reject`,
+`skip`, and `revise` leave it unchanged.
 
-#### Pass Criteria
+**Pass criteria:** File bytes and unrelated repository state remain unchanged.
 
-Repository state remains unchanged.
+### DA-SAF-004 — Stale proposal protection
 
----
+Modify a target after proposal creation and before approval. Verify that the
+Repository Update Service compares current content with the proposal's original
+snapshot and refuses the stale application.
 
-### 6.2 DA-SAF-002: Unauthorized Modification Prevention
+**Pass criteria:** Concurrent or intervening edits are preserved and the failed
+application is reported.
 
-#### Verification Layers
+### DA-SAF-005 — Minimum necessary change
 
-* Integration
-* UI Acceptance where applicable
+Apply an approved proposal in a temporary repository and compare original and
+final content, focused UI difference, and final Git difference.
 
-#### Objective
+**Pass criteria:** The intended content changes, unrelated content and files are
+preserved, and the reported difference corresponds to the resulting file.
 
-Verify that the Documentation Agent modifies only approved documentation scope.
+### DA-SAF-006 — Non-transactional proposal set
 
-#### Expected Behavior
+Use multiple proposals and approve only one while another remains undecided or
+is later rejected.
 
-The agent shall not modify:
+**Pass criteria:** The approved proposal may be present immediately, the other
+proposal remains unchanged, and tests do not assume rollback or an all-or-none
+transaction.
 
-* unrelated source files
-* unrelated configuration
-* unrelated documentation
+## 7. Reasoning Provider Verification
 
-#### Pass Criteria
+### DA-AI-001 — Provider abstraction
 
-All modifications remain within approved scope.
+Verify dispatcher and provider construction from
+`PROJECT0_REASONING_PROVIDER`, including deterministic stub operation and the
+current Ollama path.
 
----
+### DA-AI-002 — Ollama request contract
 
-### 6.3 DA-SAF-003: Invalid Change Handling
+Verify the effective Documentation model fallback, configured base URL and
+timeout, `/api/chat` request, `stream: false`, temperature zero, and JSON-schema
+structured-output format.
 
-#### Verification Layers
+### DA-AI-003 — Response parsing and failure behavior
 
-* Integration
-* UI Acceptance where applicable
+Verify valid structured gap/update responses, invalid JSON, schema-invalid
+objects, provider errors, and timeout behavior. Unsupported free-form content
+must not become an accepted proposal.
 
-#### Objective
+### DA-AI-004 — Exploratory grounding quality
 
-Verify that invalid documentation changes are detected.
+With a live local model, manually assess factual grounding, gap relevance,
+proposal usefulness, rationale quality, minimality, and hallucination risk.
+Record the model and configuration used. Qualitative observations must remain
+separate from deterministic pass counts.
 
-#### Expected Behavior
+## 8. Dashboard and Browser Acceptance
 
-Validation failure prevents unsafe completion.
+Browser acceptance must cover, at minimum:
 
-#### Pass Criteria
+1. The Documentation Agent page renders within the shared Dashboard shell.
+2. The form accepts request, source-path, and target-path input.
+3. Invalid requests are reported safely.
+4. A deterministic workflow result presents proposals and preliminary
+   validation.
+5. Proposal cards display path, rationale, and focused differences.
+6. Reject and skip leave the repository unchanged.
+7. Revise restores editable request data and does not auto-regenerate.
+8. Approval in a disposable repository applies the visible proposal.
+9. Multi-proposal review preserves independent decisions.
+10. Final validation, Git difference, status, warnings, and counters are shown.
+11. Unrelated files remain unchanged.
+12. Dashboard system status reports the effective Documentation model.
 
-Invalid changes are reported and not applied.
+The acceptance suite should rely on Playwright automatic waiting. Slow-motion
+or headed modes are observation aids, not synchronization mechanisms.
 
----
-
-### 6.4 DA-SAF-004: Baseline Documentation Handling
-
-#### Verification Layers
-
-* Integration
-* UI Acceptance where applicable
-
-#### Objective
-
-Verify that repository baseline documents remain optional context.
-
-#### Expected Behavior
-
-The Documentation Agent shall operate correctly without requiring
-specific repository baseline files. Baseline documents shall not be
-automatically included when target documentation paths are omitted
-unless explicitly requested by workflow configuration.
-
-#### Pass Criteria
-
-Missing baseline documents do not cause reusable framework failure.
-
----
-
-## 7. AI Reasoning Verification Scenarios
-
----
-
-### 7.1 DA-AI-001: Reasoning Provider Integration
-
-#### Verification Layers
-
-* Integration
-* UI Acceptance where applicable
-
-#### Objective
-
-Verify integration between Documentation Agent workflows and the configured reasoning provider.
-
-#### Expected Behavior
-
-The system obtains reasoning results through the Project0 reasoning abstraction.
-
-#### Pass Criteria
-
-A valid reasoning response is returned and processed.
-
----
-
-### 7.2 DA-AI-002: Unsupported Information Prevention
-
-#### Verification Layers
-
-* Integration
-* UI Acceptance where applicable
-
-#### Objective
-
-Verify that the Documentation Agent does not invent unsupported project information.
-
-#### Test Scenario
-
-Request documentation for a nonexistent feature.
-
-#### Expected Behavior
-
-The agent identifies insufficient repository evidence.
-
-#### Pass Criteria
-
-Unsupported information is not included in approved documentation.
-
----
-
-### 7.3 DA-AI-003: Invalid AI Output Handling
-
-#### Verification Layers
-
-* Integration
-* UI Acceptance where applicable
-
-#### Objective
-
-Verify safe handling of unusable AI responses.
-
-#### Expected Behavior
-
-Invalid or incomplete responses are detected.
-
-#### Pass Criteria
-
-Repository modification does not occur.
-
----
-
-## 8. Documentation Compliance Verification
-
----
-
-### 8.1 DA-DOC-001: Documentation Standards Compliance
-
-#### Verification Layers
-
-* Integration
-* UI Acceptance where applicable
-
-#### Objective
-
-Verify that Documentation Agent updates follow Project0 Documentation Standards.
-
-#### Expected Behavior
-
-Updated documentation maintains:
-
-* Markdown authority
-* document ownership
-* single-purpose documents
-* repository consistency
-
-#### Pass Criteria
-
-Documentation changes conform to established standards.
+## 9. Platform Boundary and Regression Verification
+
+Verify that:
+
+- Documentation routes are registered before any generic placeholder route;
+- the UI service calls the Documentation dispatcher port;
+- the dispatcher invokes `DocumentationWorkflow` directly;
+- agent-specific mapping and business behavior are not embedded in shared
+  Dashboard routes;
+- shared reasoning, knowledge, validation, repository, artifact, and skill
+  services remain reusable; and
+- Documentation Agent changes do not regress the complete Project0 suite.
+
+The full repository suite must run before making a repository-wide pass/skip
+claim. Results must identify the tested commit, command, environment, and any
+intentional skips.
+
+## 10. Test Data and Environment
+
+Deterministic tests should use:
+
+- temporary repository roots;
+- small Markdown and Python fixtures with explicit expected content;
+- controlled reasoning responses for valid, malformed, unsupported, ambiguous,
+  duplicate, and no-gap cases;
+- validator doubles for pass, warning, and failure paths;
+- multiple proposals for decision-order and counter checks; and
+- stale-content fixtures for concurrency protection.
+
+Live Ollama testing additionally requires a reachable configured service and an
+installed effective model. The relevant configuration surface is:
+
+| Variable | Purpose | Default or fallback |
+|---|---|---|
+| `PROJECT0_REASONING_PROVIDER` | Select reasoning provider | `ollama` |
+| `PROJECT0_DOCUMENTATION_OLLAMA_MODEL` | Documentation model override | Shared model or `gemma3:4b` |
+| `PROJECT0_OLLAMA_MODEL` | Shared model fallback | `qwen2.5:7b` |
+| `PROJECT0_OLLAMA_BASE_URL` | Ollama service URL | `http://127.0.0.1:11434` |
+| `PROJECT0_OLLAMA_TIMEOUT_SECONDS` | Provider timeout | 120 seconds |
+| `PROJECT0_LOG_LEVEL` | Runtime logging | Platform default |
+
+## 11. Entry and Exit Criteria
+
+### 11.1 Entry criteria
+
+- The implementation and tests under review identify a specific repository
+  commit.
+- Dependencies for the selected test levels are installed.
+- Writable scenarios use disposable repositories.
+- Live-provider prerequisites are documented when those tests are selected.
+
+### 11.2 Exit criteria
+
+- Focused Documentation Agent unit suites pass.
+- Relevant platform integration suites pass.
+- Required browser acceptance suites pass or documented environment skips are
+  reviewed.
+- Safety scenarios demonstrate both correct writes and required non-writes.
+- Live-provider results, if run, are reported separately.
+- No unresolved failure is hidden by an aggregate count.
+- Test Results records the exact commands, commit, outcomes, and known gaps.
+
+## 12. Known Coverage Considerations
+
+- In-memory workflow state is not durable and should not be described as
+  restart recovery.
+- Status tests must inspect outstanding proposal decisions because a general
+  warning can yield `completed_with_warnings` while review state still exists.
+- Source-grounded Stage 2 may use the strict documentation skill when available;
+  tests must still prove deterministic enforcement independently of that skill.
+- Live Ollama behavior is environment-dependent and cannot substitute for stub
+  regression coverage.
+- The plan intentionally records no aggregate pass count. Current counts belong
+  only in a Test Results document backed by an executed suite.
 
 ---
 
-### 8.2 DA-DOC-002: Source Documentation Compliance
-
-#### Verification Layers
-
-* Integration
-* UI Acceptance where applicable
-
-#### Objective
-
-Verify compliance with Project0 source documentation requirements.
-
-#### Expected Behavior
-
-Modified Python source files maintain required file header standards.
-
-#### Pass Criteria
-
-Source files contain required ownership and purpose information.
-
----
-
-
-## 9. Browser Acceptance Testing
-
-Browser acceptance testing verifies that a real user can successfully operate the Documentation Agent through the Project0 Dashboard.
-
-Acceptance tests shall enter through the actual browser/UI boundary rather than directly calling Project0 Python APIs such as `create_platform_dispatcher()`, `run_documentation_workflow()`, or `submit_documentation_review()`.
-
-The intended browser automation tool is Playwright for Python with pytest. Initial coverage should use Chromium only.
-
-Acceptance automation should be introduced incrementally. Individual UI test cases use a case identifier while remaining mapped to the stable verification scenario.
-
-### 9.1 UI-DA-FUN-001-A: Documentation Agent Page Renders
-
-#### Verification Scenario
-
-`DA-FUN-001`
-
-#### Purpose
-
-Verify that the Documentation Agent request interface is accessible through the Project0 Dashboard.
-
-#### Preconditions
-
-* Project0 Dashboard is running at `127.0.0.1:8001`.
-* Playwright for Python is installed.
-* Playwright Chromium browser support is installed.
-
-#### Test Steps
-
-1. Open `/agents/documentation` through Chromium.
-2. Locate the Documentation Agent heading.
-3. Locate the Documentation Request field.
-4. Locate the Target Documentation Paths field.
-5. Locate the Submit Documentation Request button.
-
-#### Expected Results
-
-* Documentation Agent page loads successfully.
-* Documentation Agent heading is visible.
-* Documentation Request field is visible.
-* Target Documentation Paths field is visible.
-* Submit Documentation Request button is visible.
-* No browser or application error prevents use of the request interface.
-
-#### Automation File
-
-```text
-test_documentation_agent_ui_request_acceptance.py
-```
-
-#### Automation
-
-```text
-test_UI_DA_FUN_001_documentation_agent_page_renders
-```
-
-### 9.2 UI-DA-FUN-001-B: Documentation Request Form Accepts Input
-
-#### Verification Scenario
-
-`DA-FUN-001`
-
-#### Purpose
-
-Verify that a user can enter a documentation request and target documentation path through the Documentation Agent interface.
-
-#### Preconditions
-
-* Project0 Dashboard is running at `127.0.0.1:8001`.
-* Playwright for Python is installed.
-* Playwright Chromium browser support is installed.
-* Documentation Agent request page is available.
-
-#### Test Steps
-
-1. Open `/agents/documentation` through Chromium.
-2. Enter a documentation request in the Documentation Request field.
-3. Optionally enter a repository-relative documentation path in the Target Documentation Paths field.
-4. Read both field values through the browser.
-
-#### Expected Results
-
-* Documentation Request field accepts the entered request.
-* Target Documentation Paths field accepts the entered path.
-* Entered values remain unchanged in their respective fields.
-* No browser or application error prevents user input.
-
-#### Automation File
-
-```text
-test_documentation_agent_ui_request_acceptance.py
-```
-
-#### Automation
-
-```text
-test_UI_DA_FUN_001_documentation_request_form_accepts_input
-```
-
-### 9.3 UI-DA-FUN-001-C: Documentation Request Submission Starts Processing
-
-#### Verification Scenario
-
-`DA-FUN-001`
-
-#### Purpose
-
-Verify that a user can submit a valid Documentation Agent request through the browser interface.
-
-#### Preconditions
-
-* Project0 Dashboard is running at `127.0.0.1:8001`.
-* Documentation Agent request page is available.
-* A valid documentation request and target documentation path are available.
-* The configured reasoning provider is available when required by the running workflow.
-
-#### Test Steps
-
-1. Open `/agents/documentation`.
-2. Enter a valid documentation request.
-3. Enter a valid target documentation path.
-4. Click Submit Documentation Request.
-5. Observe the request interface immediately after submission.
-
-#### Expected Results
-
-* The submit action is accepted.
-* The Submit Documentation Request button changes to the Processing state where implemented.
-* The visible processing indicator is displayed where implemented.
-* The browser remains within the Documentation Agent workflow.
-* No immediate browser or application error is displayed.
-
-#### Automation File
-
-```text
-test_documentation_agent_ui_request_acceptance.py
-```
-
-#### Automation
-
-```text
-test_UI_DA_FUN_001_documentation_request_submission_starts_processing
-```
-
-### 9.4 UI-DA-FUN-002-A: Review Proposal Is Presented
-
-#### Verification Scenario
-
-`DA-FUN-002`
-
-#### Purpose
-
-Verify that a submitted documentation request produces a reviewable proposal through the browser interface.
-
-#### Preconditions
-
-* Project0 Dashboard is running.
-* A valid Documentation Agent request can be processed.
-* The configured reasoning provider is available.
-* The requested documentation target exists.
-
-#### Test Steps
-
-1. Submit a valid documentation request through the browser.
-2. Wait for the Documentation Agent workflow to reach the review state.
-3. Inspect the review page.
-
-#### Expected Results
-
-* A reviewable documentation proposal is displayed.
-* The target documentation path is displayed.
-* Proposed documentation changes are displayed.
-* Preliminary validation status is displayed.
-* Repository difference information is displayed when available.
-* Review controls are available.
-
-#### Automation File
-
-```text
-test_documentation_agent_ui_review_acceptance.py
-```
-
-#### Automation
-
-```text
-test_UI_DA_FUN_002_review_proposal_is_presented
-```
-
-### 9.5 UI-DA-SAF-001-A: Rejected Proposal Leaves Repository Unchanged
-
-#### Verification Scenario
-
-`DA-SAF-001`
-
-#### Purpose
-
-Verify through the browser workflow that rejecting a proposal does not apply repository changes.
-
-#### Preconditions
-
-* Project0 Dashboard is running.
-* A reviewable Documentation Agent proposal has been generated.
-* The target file content is known before the test.
-
-#### Test Steps
-
-1. Submit a valid documentation request through the browser.
-2. Wait for the review page.
-3. Record or verify the target repository content before review completion.
-4. Select Reject.
-5. Submit the review decision.
-6. Inspect the visible workflow result.
-7. Verify the target repository content.
-
-#### Expected Results
-
-* The rejection decision is accepted.
-* The workflow reports rejection or equivalent non-applied completion state.
-* The proposed documentation change is not applied.
-* Target repository content remains unchanged.
-
-#### Automation File
-
-```text
-test_documentation_agent_ui_approval_acceptance.py
-```
-
-#### Automation
-
-```text
-test_UI_DA_SAF_001_rejected_proposal_leaves_repository_unchanged
-```
-
-### 9.6 UI-DA-FUN-005-A: Approved Change Matches Visible Proposal
-
-#### Verification Scenario
-
-`DA-FUN-005`
-
-#### Purpose
-
-Verify that an approved browser workflow applies only the proposed documentation change.
-
-#### Preconditions
-
-* Project0 Dashboard is running.
-* A reviewable Documentation Agent proposal has been generated.
-* The target repository content is known before approval.
-
-#### Test Steps
-
-1. Submit a valid documentation request through the browser.
-2. Wait for the review page.
-3. Inspect the proposed change and repository difference.
-4. Select Approve.
-5. Submit the review decision.
-6. Wait for workflow completion.
-7. Inspect the resulting repository content and final difference.
-
-#### Expected Results
-
-* Approval is accepted.
-* The intended documentation change is applied.
-* Unrelated document content remains unchanged.
-* The final repository difference matches the approved change.
-* The workflow reports successful completion or the applicable completed-with-warning state.
-
-#### Automation File
-
-```text
-test_documentation_agent_ui_approval_acceptance.py
-```
-
-#### Automation
-
-```text
-test_UI_DA_FUN_005_approved_change_matches_visible_proposal
-```
-
-### 9.7 UI-DA-SAF-002-A: Approved Workflow Does Not Modify Unrelated Files
-
-#### Verification Scenario
-
-`DA-SAF-002`
-
-#### Purpose
-
-Verify through the browser workflow that approval does not modify files outside the approved documentation scope.
-
-#### Preconditions
-
-* Project0 Dashboard is running.
-* A reviewable Documentation Agent proposal has been generated.
-* Unrelated repository files are available for comparison.
-
-#### Test Steps
-
-1. Record the content or repository state of unrelated files.
-2. Submit and approve a valid Documentation Agent request through the browser.
-3. Wait for workflow completion.
-4. Compare unrelated repository files with their pre-test state.
-
-#### Expected Results
-
-* Only the approved documentation scope is modified.
-* Unrelated source files remain unchanged.
-* Unrelated configuration remains unchanged.
-* Unrelated documentation remains unchanged.
-
-#### Automation File
-
-```text
-test_documentation_agent_ui_approval_acceptance.py
-```
-
-#### Automation
-
-```text
-test_UI_DA_SAF_002_approved_workflow_preserves_unrelated_files
-```
-
-### 9.8 UI-DA-SAF-003-A: Invalid Request Is Reported Safely
-
-#### Verification Scenario
-
-`DA-SAF-003`
-
-#### Purpose
-
-Verify that invalid browser input is reported safely and does not result in an unintended repository modification.
-
-#### Preconditions
-
-* Project0 Dashboard is running.
-* Documentation Agent request page is available.
-
-#### Test Steps
-
-1. Open `/agents/documentation`.
-2. Submit invalid or incomplete request input.
-3. Observe the resulting browser state.
-4. Verify repository state where applicable.
-
-#### Expected Results
-
-* Invalid input is rejected or reported to the user.
-* The workflow does not enter an inappropriate successful completion state.
-* No unintended repository modification occurs.
-* The Documentation Agent remains usable after the error.
-
-#### Automation File
-
-```text
-test_documentation_agent_ui_request_acceptance.py
-```
-
-#### Automation
-
-```text
-test_UI_DA_SAF_003_invalid_request_is_reported_safely
-```
-
-### 9.9 UI-DA-FUN-004-A: Multi-Document Proposal Is Presented
-
-#### Verification Scenario
-
-`DA-FUN-004`
-
-#### Purpose
-
-Verify that a request affecting multiple documentation targets can be represented correctly through the browser review workflow.
-
-#### Preconditions
-
-* Project0 Dashboard is running.
-* Multiple valid target documentation files are available.
-* The configured reasoning behavior supports a multi-document proposal.
-
-#### Test Steps
-
-1. Submit a documentation request affecting multiple target paths.
-2. Wait for the review state.
-3. Inspect the proposed changes and target-path presentation.
-
-#### Expected Results
-
-* All relevant target documents are represented.
-* Proposed changes are associated with the correct target documents.
-* Review information remains understandable for multiple documentation changes.
-* No unrelated target is introduced.
-
-#### Automation File
-
-```text
-test_documentation_agent_ui_review_acceptance.py
-```
-
-#### Automation
-
-```text
-test_UI_DA_FUN_004_multi_document_proposal_is_presented
-```
-
-### 9.10 UI-DA-AI-002-A: Unsupported Feature Request Does Not Produce Unsupported Approved Content
-
-#### Verification Scenario
-
-`DA-AI-002`
-
-#### Purpose
-
-Verify through the browser workflow that a request for unsupported project information does not result in unsupported documentation being applied.
-
-#### Preconditions
-
-* Project0 Dashboard is running.
-* A request can be constructed for a feature not supported by repository evidence.
-* The configured reasoning provider is available.
-
-#### Test Steps
-
-1. Submit a request to document a nonexistent or unsupported feature.
-2. Wait for the resulting review or error state.
-3. Inspect the generated proposal or reported limitation.
-4. Do not approve unsupported content.
-5. Verify repository state.
-
-#### Expected Results
-
-* Unsupported project information is not silently applied.
-* Insufficient evidence, warning, validation failure, or equivalent safe behavior is visible where applicable.
-* Repository content remains free of unsupported approved documentation.
-
-#### Automation File
-
-```text
-test_documentation_agent_ui_review_acceptance.py
-```
-
-#### Automation
-
-```text
-test_UI_DA_AI_002_unsupported_feature_request_fails_safely
-```
-
-### 9.11 UI-DA-FUN-001-D: Visible Workflow Result Is Presented
-
-#### Verification Scenario
-
-`DA-FUN-001`
-
-#### Purpose
-
-Verify that the browser displays a clear final workflow result after a completed review decision.
-
-#### Preconditions
-
-* Project0 Dashboard is running.
-* A Documentation Agent request has reached the review state.
-* A supported review decision can be submitted.
-
-#### Test Steps
-
-1. Submit a valid documentation request.
-2. Wait for the review page.
-3. Submit a supported review decision.
-4. Wait for the workflow result page or completed state.
-5. Inspect the visible completion information.
-
-#### Expected Results
-
-* A clear workflow result is displayed.
-* The result corresponds to the submitted review decision.
-* Completion status and summary information are visible where implemented.
-* The browser does not remain indefinitely in the Processing state.
-
-#### Automation File
-
-```text
-test_documentation_agent_ui_request_acceptance.py
-```
-
-#### Automation
-
-```text
-test_UI_DA_FUN_001_visible_workflow_result_is_presented
-```
-
-Playwright automatic waiting should be preferred over arbitrary sleep calls because local reasoning execution time may vary. Project0 `--ui-slowmo` may be used to slow headed browser actions for human observation, but it shall not be used for synchronization or alter expected results.
-
----
-
-## 10. Exploratory AI Testing
-
-Real local-model testing remains separate from deterministic automated acceptance testing.
-
-Exploratory AI testing may require human judgment for:
-
-* factual grounding
-* proposal usefulness
-* appropriateness of edits
-* unsupported information
-* hallucination detection
-* rationale quality
-
-Real Ollama/qwen2.5:7b execution should therefore complement, rather than replace, deterministic unit, integration, and browser acceptance testing.
-
----
-
-## 11. Platform Boundary Tests
-
----
-
-### 11.1 DA-ARCH-001: Agent and Platform Separation
-
-#### Verification Layers
-
-* Integration
-* UI Acceptance where applicable
-
-#### Objective
-
-Verify that Documentation Agent responsibilities remain separate from Project0 platform responsibilities.
-
-#### Expected Behavior
-
-The Documentation Agent uses reusable Project0 services without redefining platform ownership.
-
-#### Pass Criteria
-
-No Documentation Agent-specific responsibilities are embedded into shared platform components.
-
----
-
-## 12. Regression Criteria
-
-The Documentation Agent is considered stable when:
-
-* automated unit tests pass
-* integration tests pass
-* required browser acceptance scenarios pass
-* documentation builds successfully
-* repository safety behavior is verified
-
-Current regression baseline:
-
-```text
-python -m pytest
-
-691 passed, 7 skipped
-```
-
-The seven currently implemented high-level Documentation Agent workflow scenarios are integration tests because they exercise the assembled platform through Python APIs rather than through the browser/UI boundary. Seven additional scenarios remain explicitly skipped/deferred.
-
----
-
-## 13. Completion Criteria
-
-The Documentation Agent may be considered complete when:
-
-### Functional
-
-* Documentation requests process successfully.
-* Proposed changes are accurate and minimal.
-* Review and revision workflows operate correctly.
-
-### Safety
-
-* Repository modifications require approval.
-* Invalid changes are blocked.
-* Rejected changes leave the repository unchanged.
-
-### Architecture
-
-* Platform boundaries are preserved.
-* Agent responsibilities remain isolated.
-
-### Documentation
-
-* Documentation set is complete.
-* Documentation standards are followed.
-* Acceptance results are recorded.
-
----
-
-## 14. Future Extensions
-
-Future versions may include:
-
-* Expanded Playwright browser acceptance testing
-* Documentation quality metrics
-* Expanded AI evaluation scenarios
-* Additional reasoning providers
-* Automated acceptance execution
-* Agent comparison testing
-
+**End of Document**

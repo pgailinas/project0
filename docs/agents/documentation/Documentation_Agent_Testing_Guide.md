@@ -1,596 +1,550 @@
 # Documentation Agent Testing Guide
 
-**Version:** 0.5  
+**Version:** 0.6  
 **Owner:** Project0  
-**Last Updated:** 2026-08-13
+**Last Updated:** 2026-09-11
 
 ---
 
 ## 1. Purpose
 
-This document defines the testing strategy, test coverage, execution
-procedures, and acceptance testing guidance specific to the Project0
+Define the testing strategy, current test organization, execution
+commands, browser checks, local-provider checks, repository-safety
+requirements, and troubleshooting procedures for the Project0
 Documentation Agent.
 
-The Documentation Agent follows the repository-wide testing principles
-and conventions defined by `Testing_Guide.md`. This document supplements
-that guide with Documentation Agent-specific unit, integration,
-workflow, UI, reasoning-provider, repository-safety, and browser
-acceptance testing.
-
-The objective is to verify that the Documentation Agent performs
-documentation work accurately, predictably, safely, and under human
-control.
+This guide supplements the repository-wide Project0 Testing Guide. It
+does not record a test run or replace the Documentation Agent Test Plan
+and Test Results documents.
 
 ---
 
 ## 2. Objectives
 
-Documentation Agent testing is intended to:
+Documentation Agent testing verifies that:
 
-- Verify Documentation Agent-specific component behavior.
-- Validate the complete documentation workflow.
-- Confirm AI-generated proposals are correctly translated into
-  controlled documentation operations.
-- Verify preliminary and final validation behavior.
-- Confirm human review decisions control repository modification.
-- Ensure approved changes are applied correctly and unrelated content
-  remains unchanged.
-- Verify repository failures and invalid proposals fail safely.
-- Validate Dashboard-hosted Documentation Agent interaction.
-- Detect regressions in previously corrected workflow behavior.
-- Verify document discovery behavior when target documentation paths
-  are not provided.
-- Provide confidence before declaring the Documentation Agent
-  complete.
+- request, source-path, and target-path input is handled correctly;
+- source-grounded and ordinary context paths remain distinct;
+- structured reasoning output is parsed and constrained safely;
+- source-grounded gap analysis bounds proposal generation;
+- invalid, ambiguous, or unsupported proposals fail closed;
+- preliminary validation occurs at its actual pre-review boundary;
+- each review decision produces the correct repository effect;
+- approved changes preserve unrelated content and reject stale targets;
+- final validation and Git diff reporting occur after application;
+- Dashboard-hosted request and review flows remain usable;
+- provider failures and repository failures are reported safely; and
+- Documentation Agent changes do not regress shared Project0 services.
 
 ---
 
 ## 3. Testing Principles
 
-Documentation Agent testing follows the general principles defined by `Testing_Guide.md` and additionally emphasizes:
-
-- Test repository effects, not only returned workflow status.
-- Verify that rejected and skipped proposals do not modify repository content.
-- Verify that approved proposals modify only the intended content.
-- Preserve realistic Markdown structure in repository-update tests.
-- Exercise deterministic components independently of AI providers whenever practical.
-- Use stub or fake reasoning providers for deterministic automated tests.
-- Test real local AI-provider behavior separately from deterministic regression tests.
-- Treat browser-based workflow testing as acceptance testing rather than a replacement for automated unit and integration tests.
-- Add regression tests when exploratory or browser testing exposes a defect.
+- Use deterministic unit and integration tests for executable
+  contracts.
+- Use stub providers or controlled fixtures for repeatable reasoning
+  output.
+- Keep live Ollama evaluation separate from deterministic regression
+  claims.
+- Use temporary repositories or dedicated test fixtures for all tests
+  that can write files.
+- Assert both intended mutations and required non-mutations.
+- Test public behavior through the narrowest appropriate boundary.
+- Add focused regression coverage for every reproducible defect.
+- Treat browser acceptance, provider-quality evaluation, and unit tests
+  as complementary rather than interchangeable evidence.
+- Do not report historical aggregate pass counts as current unless the
+  referenced suite was run against the stated commit.
 
 ---
 
 ## 4. Test Organization
 
-Documentation Agent-specific tests use the Project0 test organization defined by `Testing_Guide.md`.
+### 4.1 Direct Documentation Agent tests
 
-Documentation Agent tests may be located in agent-specific directories or alongside shared Project0 components when the test verifies Documentation Agent-specific use of those components.
+~~~text
+tests/unit/agents/documentation/
+    test_documentation_agent_routes.py
+    test_documentation_agent_ui_service.py
+    test_documentation_agent_view_models.py
 
-Relevant locations include:
+tests/acceptance/agents/documentation/
+    test_documentation_agent_ui_request_acceptance.py
+    test_documentation_agent_ui_review_acceptance.py
+    test_documentation_agent_ui_approval_acceptance.py
+~~~
 
-```text
-tests/
-├── unit/
-│   ├── agents/
-│   │   └── documentation/
-│   ├── models/
-│   ├── reasoning/
-│   ├── repository/
-│   ├── validation/
-│   └── workflow/
-│
-├── integration/
-│   ├── agents/
-│   │   └── documentation/
-│   └── platform/
-│
-└── acceptance/
-    └── agents/
-        └── documentation/
-```
+### 4.2 Workflow and model tests
 
-Documentation Agent acceptance tests are maintained separately from unit and integration tests under `tests/acceptance/agents/documentation/`.
+~~~text
+tests/unit/workflow/test_documentation_workflow.py
+tests/unit/workflow/test_review_coordinator.py
+tests/unit/models/test_documentation_workflow_models.py
+tests/unit/models/test_reasoning_models.py
+tests/unit/models/test_validation_models.py
+~~~
 
-Acceptance tests verify Documentation Agent behavior through the actual browser/UI boundary. They should interact with the Dashboard-hosted Documentation Agent as a user would, rather than calling Project0 Python APIs such as the platform dispatcher or Documentation Workflow directly.
+### 4.3 Supporting service tests
 
-Documentation Agent UI acceptance tests are separated by user-facing workflow responsibility:
+~~~text
+tests/unit/reasoning/test_prompt_builder.py
+tests/unit/reasoning/test_reasoning_service.py
+tests/unit/reasoning/providers/test_ollama_provider.py
+tests/unit/reasoning/providers/test_stub_provider.py
+tests/unit/repository/test_repository_update_service.py
+tests/unit/repository/test_git_diff_service.py
+tests/unit/artifacts/test_artifact_location_service.py
+tests/unit/artifacts/test_markdown_locator.py
+tests/unit/validation/
+tests/unit/knowledge/
+tests/unit/platform/test_platform_dispatcher.py
+tests/unit/dashboard/test_dashboard_app.py
+tests/unit/dashboard/test_dashboard_routes.py
+tests/unit/skills/test_skill_registry.py
+~~~
 
-- `test_documentation_agent_ui_request_acceptance.py` — request entry and general browser workflow.
-- `test_documentation_agent_ui_review_acceptance.py` — proposal and review presentation.
-- `test_documentation_agent_ui_approval_acceptance.py` — approval, rejection, and repository-change behavior.
+### 4.4 Integration tests
 
-High-level workflow tests that assemble real Project0 services but enter through Python APIs belong under `tests/integration/agents/documentation/`.
+Documentation behavior is integrated through current platform modules:
 
-### 4.1 Verification Scenario and Test Naming
+~~~text
+tests/integration/platform/test_dashboard_flow.py
+tests/integration/platform/test_reasoning_service_flow.py
+tests/integration/platform/test_ollama_reasoning_flow.py
+tests/integration/platform/test_knowledge_service_flow.py
+tests/integration/platform/test_validation_service_flow.py
+tests/integration/platform/test_platform_dispatcher_flow.py
+~~~
 
-Documentation Agent verification scenario identifiers describe the behavior being verified and do not identify a testing layer.
-
-Examples:
-
-```text
-DA-FUN-001
-DA-SAF-001
-DA-AI-001
-```
-
-Automated tests that provide evidence for a scenario add a testing-layer prefix to the test function name:
-
-```text
-test_INT_DA_FUN_001_documentation_request_processing
-test_UI_DA_FUN_001_documentation_request_processing
-```
-
-The supported layer prefixes are:
-
-- `INT` — integration tests that exercise assembled Project0 and Documentation Agent components through Python/service boundaries.
-- `UI` — browser acceptance tests that exercise the Documentation Agent through the Dashboard/UI boundary.
-
-This convention allows one verification scenario to receive evidence from more than one testing layer without creating duplicate scenario identifiers.
-
-Individual browser acceptance cases that provide evidence for the same scenario use documented case suffixes such as `UI-DA-FUN-001-A` and `UI-DA-FUN-001-B`. The suffix distinguishes documented UI cases without changing the stable `DA-*` scenario identifier. Python test function names remain descriptive and do not require the case suffix.
-
-Each documented UI acceptance case shall define its test ID, test name, purpose, preconditions, test steps, expected results, and automated test function.
+The older paths under `tests/integration/agents/documentation/` are not
+present in the pinned repository and must not be used in test commands.
 
 ---
 
 ## 5. Documentation Agent Test Coverage
 
-Current Documentation Agent testing includes the following areas.
+### 5.1 Request and UI behavior
 
-### 5.1 Documentation Agent UI
+Verify:
 
-Tests verify:
+- the ready page and Documentation Agent route render;
+- blank requests produce a failed page with a useful message;
+- request text is trimmed;
+- source and target paths are parsed from newline-separated values;
+- empty path lines are discarded;
+- workflow exceptions become failed page state;
+- page statuses, warnings, errors, summaries, and validation messages
+  map correctly;
+- focused differences include changed lines and limited context; and
+- diff-generation failure is isolated to the proposal view.
 
-- Ready-page creation.
-- Documentation request validation and normalization.
-- Mapping workflow results into Documentation Agent view models.
-- Proposal and validation presentation.
-- Repository difference generation.
-- Focused difference presentation.
-- Insert-after difference behavior.
-- Surgical anchored difference behavior.
-- Multiple difference hunks.
-- Completed workflow presentation.
-- Completed-with-warning presentation.
-- Preliminary validation failure presentation.
-- Explicit workflow failure presentation.
-- Workflow exception handling.
-- Review-decision normalization and result mapping.
-- Safe handling of unknown mapped values.
+### 5.2 Context selection
 
-### 5.1.1 Documentation Discovery Behavior
+For requests without source paths, verify Knowledge Service receives the
+request and optional targets with baseline inclusion disabled. Empty
+targets may trigger ordinary deterministic discovery.
 
-Tests should verify optional target documentation path behavior:
+For source-grounded requests, verify:
 
-- A documentation request may be submitted without target
-  documentation paths.
-- Repository knowledge discovery identifies candidate documentation
-  when paths are omitted.
-- Explicit target documentation paths continue to be supported.
-- Baseline documentation is not automatically included solely because
-  target paths are empty.
-- Discovery behavior produces reviewable workflow results.
+- only explicitly requested target and source paths are read;
+- context labels targets and authoritative sources separately;
+- any source-grounded read error fails context construction;
+- target headings, not authoritative-source headings, constrain update
+  sections; and
+- level-one document titles are excluded as update sections.
 
-These tests should verify repository effects and workflow results where
-applicable.
+### 5.3 Two-stage source-grounded reasoning
 
-### 5.2 Documentation Workflow
+Verify:
 
-Documentation Agent workflow tests verify the agent-specific coordination of reusable Project0 services and Documentation Agent workflow components, including:
+- Stage 1 uses `documentation_gap_analysis`;
+- failure in Stage 1 ends the workflow safely;
+- no established gaps produces no proposals;
+- exact normalized duplicate gaps are removed;
+- Stage 2 receives only established gaps;
+- Stage 2 uses `documentation_update`;
+- the strict documentation skill is loaded for Stage 2 when available;
+- Stage 1 does not receive the skill; and
+- unsupported Stage 2 output cannot bypass deterministic checks.
 
-- Knowledge Service.
-- Reasoning Service.
-- Validation Service.
-- Review Coordinator.
-- Repository Update Service.
-- Git Diff Service.
+### 5.4 Proposal guards
 
-These tests verify that the Documentation Agent composes the required services correctly to perform its documentation workflow.
+Verify universal rejection of:
 
-Generic correctness of reusable Project0 services remains covered by the Project0-wide `Testing_Guide.md`.
+- paths outside an explicit target list;
+- paths outside the repository;
+- missing targets;
+- non-Markdown targets; and
+- operations other than update.
 
-Documentation Agent workflow tests should verify both structured workflow results and repository effects where applicable.
+For source-grounded proposals, also verify:
 
-### 5.3 Review Decisions
+- meta-instructions are rejected instead of applied as prose;
+- inappropriate new fenced Python blocks are rejected or converted to
+  valid documentation meaning only when supported;
+- uniquely matched Python declarations are canonicalized from source;
+- mismatched or ambiguous declarations are rejected;
+- missing, duplicate, and ambiguous anchors fail closed;
+- semantically unrelated sections are rejected;
+- subsection recovery occurs only for one uniquely best positive match;
+- a localized section replacement preserves the existing heading; and
+- warnings identify each skipped proposal.
 
-Tests should verify each supported human review decision:
+### 5.5 Review decisions
 
-- Approve.
-- Revise.
-- Reject.
-- Skip.
+Test approve, revise, reject, and skip independently.
 
-Approval shall be the only review path that permits the applicable
-repository change to be applied.
+- Approve may invoke a repository write immediately.
+- Reject and skip produce no write.
+- Revise records the decision, retains workflow state, and allows the UI
+  to repopulate the request for user resubmission.
+- Revise does not automatically generate a replacement proposal.
+- Unknown workflows, unknown proposals, and duplicate reviews fail.
+- Completion occurs only after every proposal has a decision.
 
-### 5.4 Repository Update Behavior
+The Review Coordinator has its own unit tests, but the current browser
+path submits reviews directly to `DocumentationWorkflow.submit_review()`.
 
-Tests verify controlled documentation modification, including:
+### 5.6 Repository update behavior
 
-- Approved Markdown updates.
-- Anchored insert behavior.
-- Anchored replacement behavior.
-- Preservation of anchor content when required.
-- Preservation of unrelated document content.
-- Repository path safety.
-- Failure behavior when a requested update cannot be applied reliably.
+Use temporary files to verify:
 
-### 5.5 Validation
+- proposal and review identifiers must match;
+- only approve applies content;
+- containment, `.md` type, and file existence are enforced;
+- changed content since proposal creation fails the application;
+- replace and insert-after modes produce the intended content;
+- artifact locations and unique anchors are applied correctly;
+- unrelated content is preserved;
+- writes use atomic replacement; and
+- failures return application records rather than false success.
 
-Documentation Agent testing verifies:
+### 5.7 Validation behavior
 
-- Preliminary validation before approval.
-- Final validation after approved repository changes.
-- Markdown validation.
-- Link validation.
-- MkDocs validation.
-- Documentation consistency validation.
-- Proper workflow handling when validation fails.
+The default Documentation Workflow uses Markdown, link, and MkDocs
+validators. Documentation Consistency Validator is tested independently
+but is not in the default workflow validator tuple.
 
-### 5.6 Documentation Reasoning Behavior
+Verify that:
 
-Documentation Agent reasoning tests verify agent-specific reasoning behavior, including:
+- preliminary validation receives accepted proposal paths before
+  review;
+- preliminary validation checks current repository files, not staged
+  candidate content;
+- preliminary failure is visible with proposals retained for review;
+- final validation receives only successfully applied paths;
+- no applied paths means no final validation;
+- validator exceptions become failed validator results;
+- final warnings and failures affect workflow reporting; and
+- final validation failure does not roll back an applied file.
 
-- Construction of documentation-specific prompts.
-- Inclusion of appropriate repository and documentation context.
-- Conversion of reasoning results into Documentation Agent proposals.
-- Documentation edit intent such as insert and replace behavior.
-- Selection and preservation of appropriate anchors.
-- Safe handling of invalid, incomplete, or unsupported reasoning output.
+### 5.8 Status, state, and completion
 
-Generic Reasoning Service behavior, provider abstraction, and provider-independent reasoning infrastructure are tested according to `Testing_Guide.md`.
+Verify workflow statuses, summary counters, warnings, and error fields.
+Review state is process-local and should not be tested as durable across
+restart. Because warnings can produce a completed-with-warnings public
+status while state still exists, UI and workflow tests should also
+inspect outstanding proposal decisions.
 
-Real AI-provider behavior should be evaluated separately from deterministic automated tests because model output may vary.
+### 5.9 Dashboard integration
 
-### 5.7 Dashboard Integration
-
-Tests verify:
-
-- Documentation Agent routes integrate with the Dashboard Framework.
-- Documentation Agent content renders inside the Dashboard Work Area.
-- Dashboard ownership of the shared application shell and navigation is preserved.
-- Documentation Agent workflow interaction does not require a separate application shell.
-
-### 5.8 End-to-End Workflow
-
-Integration testing should exercise the complete path:
-
-``` text
-Documentation Request
-        ↓
-Platform Dispatcher
-        ↓
-Documentation Workflow
-        ↓
-Knowledge / Context
-        ↓
-Reasoning
-        ↓
-Preliminary Validation
-        ↓
-Human Review Decision
-        ↓
-Repository Update
-        ↓
-Final Validation
-        ↓
-Git Diff
-        ↓
-Workflow Result
-```
+Verify that the agent router is registered, its template uses the shared
+Dashboard shell, static assets are mounted, and system status reports
+the Documentation-specific model. Confirm that agent-specific business
+logic remains in the agent UI service and workflow rather than shared
+Dashboard routes.
 
 ---
 
 ## 6. Running Documentation Agent Tests
 
-All commands assume the current working directory is the Project0
-repository root.
+All commands assume the repository root and the configured Project0
+Python environment.
 
-### 6.1 Documentation Agent UI Unit Tests
+### 6.1 Documentation Agent UI unit tests
 
-``` bash
-python -m pytest tests/unit/agents/documentation/test_documentation_agent_ui_service.py -v
-```
+~~~bash
+python -m pytest tests/unit/agents/documentation -v
+~~~
 
-Run other Documentation Agent unit test modules in the same directory as
-applicable.
+### 6.2 Documentation Workflow tests
 
-### 6.2 Documentation Workflow Unit Tests
-
-``` bash
-python -m pytest tests/unit/workflow/test_review_coordinator.py -v
+~~~bash
 python -m pytest tests/unit/workflow/test_documentation_workflow.py -v
-```
+python -m pytest tests/unit/workflow/test_review_coordinator.py -v
+python -m pytest tests/unit/models/test_documentation_workflow_models.py -v
+~~~
 
-### 6.3 Repository Update and Git Diff Tests
+### 6.3 Repository update, diff, and location tests
 
-``` bash
+~~~bash
 python -m pytest tests/unit/repository/test_repository_update_service.py -v
 python -m pytest tests/unit/repository/test_git_diff_service.py -v
-```
+python -m pytest tests/unit/artifacts -v
+~~~
 
-### 6.4 Documentation Workflow Models
+### 6.4 Reasoning tests
 
-``` bash
-python -m pytest tests/unit/models/test_documentation_workflow_models.py -v
-```
+~~~bash
+python -m pytest tests/unit/reasoning/test_prompt_builder.py -v
+python -m pytest tests/unit/reasoning/test_reasoning_service.py -v
+python -m pytest tests/unit/reasoning/providers -v
+~~~
 
-### 6.5 Documentation Reasoning Tests
+### 6.5 Validation and knowledge tests
 
-Run Documentation Agent-specific prompt, proposal, and reasoning-integration tests applicable to the change being validated.
+~~~bash
+python -m pytest tests/unit/validation -v
+python -m pytest tests/unit/knowledge -v
+~~~
 
-Generic Reasoning Service and provider infrastructure tests are defined by `Testing_Guide.md` and are exercised again by the complete Project0 regression suite.
+### 6.6 Dispatcher and Dashboard tests
 
-Provider-specific Documentation Agent behavior should also be evaluated when validating a configured reasoning provider.
+~~~bash
+python -m pytest tests/unit/platform/test_platform_dispatcher.py -v
+python -m pytest tests/unit/dashboard -v
+~~~
 
-### 6.6 Documentation Validation Tests
+### 6.7 Relevant integration tests
 
-Run tests that verify Documentation Agent-specific use of preliminary validation, final validation, and documentation validators applicable to the workflow being changed.
+~~~bash
+python -m pytest tests/integration/platform/test_dashboard_flow.py -v
+python -m pytest tests/integration/platform/test_reasoning_service_flow.py -v
+python -m pytest tests/integration/platform/test_knowledge_service_flow.py -v
+python -m pytest tests/integration/platform/test_validation_service_flow.py -v
+python -m pytest tests/integration/platform/test_platform_dispatcher_flow.py -v
+~~~
 
-Documentation Agent testing should verify that:
+The Ollama integration module has separate live-provider prerequisites:
 
-- Preliminary validation occurs before approval where required.
-- Validation results are correctly represented in the review workflow.
-- Final validation occurs after approved repository modification.
-- Validation failures produce the appropriate Documentation Agent workflow state.
+~~~bash
+python -m pytest tests/integration/platform/test_ollama_reasoning_flow.py -v
+~~~
 
-Generic Validation Service infrastructure is tested according to `Testing_Guide.md` and is exercised again by the complete Project0 regression suite.
+### 6.8 Browser acceptance tests
 
-### 6.7 Integration Tests
-
-Run Documentation Agent-specific integration tests:
-
-```bash
-python -m pytest tests/integration/agents/documentation/test_documentation_workflow_flow.py -v
-python -m pytest tests/integration/agents/documentation/test_documentation_agent_ui_flow.py -v
-python -m pytest tests/integration/agents/documentation/test_documentation_agent_end_to_end_flow.py -v
-python -m pytest tests/integration/agents/documentation -v
-```
-
-The `test_documentation_agent_end_to_end_flow.py` module contains high-level Documentation Agent workflow scenarios that exercise real Project0 service composition through Python APIs. These scenarios are integration tests because they enter through the platform/workflow API boundary rather than through a browser.
-
-Scenario-oriented test functions in this module use the `INT` layer prefix, for example:
-
-```text
-test_INT_DA_FUN_001_documentation_request_processing
-```
-
-Additional Documentation Agent integration modules should be included as they are added.
-
-Documentation Agent integration with the Dashboard Framework should be verified through agent-specific integration scenarios. Project0-wide Dashboard Framework integration testing is governed by `Testing_Guide.md`.
-
-### 6.8 Documentation Agent Acceptance Tests
-
-Documentation Agent acceptance tests belong under:
-
-```text
-tests/acceptance/agents/documentation/
-```
-
-Acceptance tests shall verify Documentation Agent behavior through the actual Dashboard/browser boundary.
-
-The intended acceptance automation tool is Playwright for Python with pytest. Initial automated browser coverage should use Chromium only.
-
-Scenario-oriented Playwright test functions shall use the `UI` layer prefix, for example:
-
-```text
-test_UI_DA_FUN_001_documentation_request_processing
-```
-
-Acceptance automation should be introduced incrementally. Initial scenarios should verify:
-
-- Documentation Agent page renders.
-- Documentation request field is available.
-- Target documentation path field is available as an optional input.
-- Submit Documentation Request button is available.
-- Documentation requests without target paths are accepted and
-  processed through discovery where supported.
-- Request submission produces the visible Processing state.
-- Review/proposal UI is presented.
-- Reject workflow operates correctly.
-- Approve workflow operates correctly.
-- Repository effects are verified where applicable.
-
-Playwright automatic waiting should be preferred over arbitrary sleep calls because local reasoning execution time may vary.
-
-Shared Project0 acceptance infrastructure belongs in `tests/acceptance/conftest.py`. It may provide `--ui-slowmo=<milliseconds>` to pass a human-observation delay to Playwright `slow_mo`. This delay shall not be used for synchronization.
-
-Standard execution modes include:
-
-```bash
+~~~bash
 python -m pytest tests/acceptance/agents/documentation -v
+~~~
+
+For interactive browser observation, use the options supported by the
+repository's acceptance-test configuration, for example:
+
+~~~bash
 python -m pytest tests/acceptance/agents/documentation -v -s --headed
 python -m pytest tests/acceptance/agents/documentation -v -s --headed --ui-slowmo=750
 PWDEBUG=1 python -m pytest tests/acceptance/agents/documentation -v -s --headed
-```
+~~~
 
-The acceptance suite is distinct from unit and integration testing:
+Playwright automatic waiting must provide synchronization; `slow_mo`
+is only for human observation.
 
-- Unit tests verify individual component behavior.
-- Integration tests verify cooperation between assembled Project0 and Documentation Agent components.
-- Acceptance tests verify that a real user can successfully operate the Documentation Agent through the browser/UI boundary.
+### 6.9 Full regression suite
 
-Acceptance scenarios that are not yet automated shall not be treated as passed acceptance requirements.
+~~~bash
+python -m pytest -v
+~~~
 
-### 6.9 Complete Project0 Regression Test
-
-After Documentation Agent-specific tests pass, run the complete Project0 suite:
-
-```bash
-python -m pytest
-```
-
-This final regression run verifies that Documentation Agent changes have not introduced regressions into shared Project0 platform services, the Dashboard Framework, other agents, or integration workflows.
-
-The complete Project0 regression suite is governed by `Testing_Guide.md`.
+Run the complete suite before making a current repository-wide pass/skip
+claim.
 
 ---
 
-## 7. Browser Acceptance and Exploratory AI Testing
+## 7. Browser Acceptance and Exploratory Testing
 
-Automated unit and integration tests are necessary but do not fully evaluate the user-visible workflow or the quality of AI-generated documentation proposals.
+The current Documentation acceptance directory contains request, review,
+and approval modules. Use them to verify the actual Dashboard boundary,
+not merely the Python workflow API.
 
-Browser acceptance testing should therefore verify the user workflow through the actual Dashboard-hosted Documentation Agent interface.
+Manual or exploratory scenarios should include:
 
-Exploratory AI testing should remain a separate qualitative activity because real Ollama/qwen2.5:7b output may vary and may require human judgment for factual grounding, proposal quality, hallucination detection, rationale usefulness, and appropriateness of edits.
+- submit an ordinary request with and without target paths;
+- submit a source-grounded request with explicit target and source
+  paths;
+- confirm source and target filenames remain visible in the form;
+- inspect focused differences and proposal rationales;
+- reject and skip proposals and confirm no repository change;
+- choose revise and confirm the original request can be edited and
+  resubmitted;
+- approve in a disposable repository and inspect the resulting file;
+- inspect preliminary and final validation presentation;
+- verify final Git diff and workflow counters;
+- verify warnings for rejected proposal content; and
+- confirm unrelated files remain unchanged.
 
-Representative browser and exploratory scenarios include:
-
-- Insert a new bullet beneath an existing section or anchor.
-- Replace an existing sentence.
-- Update an existing paragraph.
-- Add content beneath a Markdown heading.
-- Exercise multiple target documentation paths.
-- Review a proposal before approval.
-- Approve a proposal and verify the repository result.
-- Reject a proposal and verify no repository change.
-- Skip a proposal and verify no repository change.
-- Revise a proposal and verify regenerated output.
-- Exercise preliminary validation failure.
-- Exercise final validation behavior.
-- Verify the final Git diff.
-- Verify completion status and workflow summary.
-- Verify that unrelated files remain unchanged.
-- Verify that empty target documentation paths do not cause unintended
-  baseline document inclusion.
-
-Observed browser behavior should be compared with the actual repository
-content. Presentation artifacts shall not be assumed to represent
-repository corruption without verifying the resulting file content.
+Presentation artifacts should be compared with the actual resulting
+file before concluding that repository content is damaged.
 
 ---
 
 ## 8. Local AI Provider Testing
 
-The Documentation Agent may use a local AI reasoning provider through
-the Project0 Reasoning Service.
+### Configuration
 
-Local-provider testing should verify:
+| Variable | Purpose | Default |
+|---|---|---|
+| `PROJECT0_REASONING_PROVIDER` | Select `ollama` or deterministic `stub` | `ollama` |
+| `PROJECT0_DOCUMENTATION_OLLAMA_MODEL` | Documentation model override | shared model or `gemma3:4b` |
+| `PROJECT0_OLLAMA_MODEL` | Shared model fallback | `qwen2.5:7b` |
+| `PROJECT0_OLLAMA_BASE_URL` | Ollama service base URL | `http://127.0.0.1:11434` |
+| `PROJECT0_OLLAMA_TIMEOUT_SECONDS` | Provider timeout | 120 seconds |
+| `PROJECT0_LOG_LEVEL` | Runtime log level | configured platform default |
 
-- Provider configuration is loaded correctly.
-- The configured model can be reached.
-- Prompt construction includes the required repository context and user request.
-- Reasoning results are converted into valid Documentation Agent proposals.
-- Edit intent is interpreted correctly.
-- Anchors are sufficiently precise for controlled repository updates.
-- Invalid or incomplete AI output fails safely.
-- Repository modification remains subject to validation and human approval regardless of model output.
+### Dashboard startup
 
-Because model responses may vary, local-provider testing is primarily
-behavioral and exploratory. Deterministic unit tests should continue to
-use controlled providers or fixtures where practical.
+~~~bash
+export PROJECT0_REASONING_PROVIDER=ollama
+export PROJECT0_DOCUMENTATION_OLLAMA_MODEL=gemma3:4b
+python -m project0.main
+~~~
+
+Open `/agents/documentation` in the Dashboard. Use
+`PROJECT0_REASONING_PROVIDER=stub` for deterministic development flow.
+
+### Live-provider checks
+
+Verify that:
+
+- Ollama is reachable at the configured base URL;
+- the selected model is installed;
+- provider requests include the expected model and JSON schema;
+- the timeout is adequate for the request;
+- returned content is a structured JSON object;
+- gap analysis identifies only source-established gaps;
+- proposals contain concrete Markdown rather than writing instructions;
+- warnings and failures are intelligible; and
+- no model output bypasses review or deterministic proposal guards.
+
+Live output quality is qualitative evidence and must not be combined
+with deterministic automated-test counts.
 
 ---
 
 ## 9. Repository Safety Acceptance Tests
 
-Before declaring the Documentation Agent complete, verify that:
+Before approving a release, verify in a disposable repository that:
 
-- Only approved files are modified.
-- Only approved content is applied.
-- Rejected proposals leave repository content unchanged.
-- Skipped proposals leave repository content unchanged.
-- Missing anchors fail safely.
-- Ambiguous anchors fail safely where deterministic application cannot be established.
-- Invalid repository paths are rejected.
-- Paths outside the configured repository root cannot be modified.
-- Unrelated files remain unchanged.
-- Validation failure does not result in an inappropriate successful completion state.
-- Final Git diff accurately reflects applied changes.
+- paths outside the root cannot be read or modified;
+- non-Markdown and missing targets are rejected;
+- proposals outside the explicit target list are skipped;
+- missing or ambiguous anchors fail safely;
+- unrelated or semantically misaligned sections fail closed;
+- source declarations cannot be altered when reproduced in fenced
+  Python documentation;
+- reject, skip, and revise cause no write;
+- approve is the only decision that can write;
+- stale original content prevents application;
+- one approved file update is atomic;
+- unrelated files and content remain unchanged;
+- final diff includes only applied paths; and
+- failed final validation is reported without being misrepresented as a
+  rollback.
 
-Repository safety failures are release-blocking defects.
+Any defect that permits unauthorized or unintended repository mutation
+is release-blocking.
 
 ---
 
-## 10. Documentation Agent Completion Criteria
+## 10. Completion Criteria
 
-The Documentation Agent may be considered complete for its current
-version when:
+The Documentation Agent is ready for its current release when:
 
-- Documentation Agent unit tests pass.
-- Documentation workflow integration tests pass.
-- Required Documentation Agent acceptance scenarios pass.
-- Documentation Agent integration with the Dashboard Framework has been verified.
-- Complete Project0 regression tests pass.
-- Representative insert and replace operations have been verified.
-- Approve, revise, reject, and skip behavior has been verified.
-- Repository safety scenarios have been verified.
-- Preliminary and final validation behavior has been verified.
-- Real local reasoning-provider behavior has been exercised with varied documentation requests.
-- Browser-based review and completion workflows are usable.
-- Known non-critical presentation issues are documented separately from functional defects.
-- No known defect permits unauthorized or unintended repository modification.
-- Documentation accurately reflects the validated system behavior.
+- focused Documentation Agent unit tests pass;
+- relevant platform integration tests pass;
+- browser request, review, and approval acceptance tests pass;
+- approve, revise, reject, and skip semantics are verified;
+- source-grounded two-stage behavior and proposal guards are verified;
+- ordinary discovery behavior is verified;
+- repository safety and stale-content protection are verified;
+- preliminary and final validation behavior is verified at its actual
+  boundaries;
+- representative live-provider behavior has been reviewed separately;
+- the full Project0 regression suite passes; and
+- documentation matches the validated implementation.
+
+Record the exact commit, commands, environment, date, and pass/skip
+results in the Test Results document. Do not copy historical counts
+forward without rerunning the applicable suite.
 
 ---
 
 ## 11. Regression Testing
 
-When a Documentation Agent defect is discovered:
+When a defect is discovered:
 
-1. Reproduce the defect in the smallest practical environment.
-2. Determine whether the defect belongs to reasoning, workflow, repository update, validation, or presentation behavior.
-3. Add or update a focused automated test when the behavior can be tested deterministically.
+1. Reproduce it in the smallest safe environment.
+2. Classify it as route, UI mapping, context, prompt, provider parsing,
+   workflow, location, validation, repository update, or diff behavior.
+3. Add or update a focused deterministic test when practical.
 4. Implement the correction.
 5. Run the focused test.
-6. Run the applicable component test suite.
-7. Run Documentation Agent integration tests.
-8. Run applicable Documentation Agent acceptance tests.
-9. Run the complete Project0 regression suite.
-10. Repeat the relevant browser or local-provider scenario when applicable.
-
-Previously corrected defects should remain represented by regression
-tests whenever practical.
+6. Run the owning component suite.
+7. Run the relevant integration and browser acceptance tests.
+8. Run the full Project0 regression suite.
+9. Repeat any affected live-provider scenario separately.
+10. Record verified results without overstating unexecuted coverage.
 
 ---
 
 ## 12. Current Validation Baseline
 
-At the time of this update, the Documentation Agent-specific validation baseline includes:
+The repository contains automated unit, platform-integration, and
+Documentation Agent browser-acceptance coverage for the areas listed in
+this guide. Test presence identifies available coverage; it does not
+establish that the tests passed on a particular commit.
 
-- Documentation Agent UI unit tests passing.
-- Documentation workflow unit tests passing.
-- Documentation Agent workflow integration tests passing.
-- High-level Documentation Agent end-to-end workflow integration scenarios passing.
-- Documentation Agent integration with the Dashboard Work Area verified.
-- Human review workflow behavior exercised.
-- Controlled repository update behavior verified.
-- Preliminary and final validation behavior verified.
-- Local reasoning-provider behavior exercised through Documentation Agent workflows.
-- Seven implemented high-level workflow scenarios passing as integration tests; seven additional scenarios remain explicitly skipped/deferred.
-- Playwright-based Chromium browser acceptance automation established; initial page-render scenario passing.
-- Complete Project0 regression baseline: 648 passed, 7 skipped.
-
-The complete Project0 regression suite must also pass before Documentation Agent changes are committed.
-
-Project0-wide test counts, Dashboard Framework validation status, and shared platform testing requirements are governed by `Testing_Guide.md` and should not be duplicated in this document.
+No new suite was run as part of the documentation audit that produced
+this guide. Therefore, this document intentionally contains no current
+aggregate passed/skipped count. The Documentation Agent Test Results
+document should record future executions.
 
 ---
 
-## 13. Future Testing Enhancements
+## 13. Troubleshooting and Future Testing Enhancements
 
-Future Documentation Agent testing may include:
+### Troubleshooting
 
-- Expanded automated browser coverage.
-- Additional multi-document workflow scenarios.
-- Automated repository integrity fixtures.
-- AI-provider evaluation datasets.
-- Proposal-quality scoring.
-- Additional revision-workflow tests.
-- Performance testing for larger documentation repositories.
-- Continuous Integration execution of Documentation Agent regression suites.
-- Automated acceptance-test reporting.
+- **Ollama unreachable**: Confirm the service, base URL, selected model,
+  and timeout.
+- **Structured parsing failure**: Inspect debug output and verify that
+  the model follows the supplied JSON schema.
+- **No proposals**: Determine whether gap analysis found no material
+  gap or all proposals were filtered; inspect warnings and reasoning
+  status.
+- **Every proposal skipped**: Check target allowlisting, Markdown type,
+  location ambiguity, semantic alignment, fenced-code form, and source
+  declaration fidelity.
+- **Approval failure**: Check repository containment, file existence,
+  permissions, and whether the file changed since proposal creation.
+- **Workflow ID missing**: Determine whether the process restarted;
+  review state is in memory.
+- **Final validation failed**: Inspect the written file and validation
+  messages directly; no automatic rollback occurs.
+- **Acceptance collection failure**: Confirm Playwright and its Chromium
+  browser dependency are installed and use repository-supported pytest
+  options.
+
+### Future enhancements
+
+Potential additions include candidate-tree validation, restart-recovery
+tests, multi-proposal transaction tests if such behavior is implemented,
+larger repository fixtures, provider-quality datasets, performance
+tests, additional browser scenarios, and CI result publication.
+
+These are testing opportunities, not claims that the corresponding
+product capabilities exist.
 
 ---
 
 ## 14. Summary
 
-Documentation Agent testing verifies the behavior required to demonstrate that the agent performs AI-assisted documentation work accurately, safely, predictably, and under human control.
+Documentation Agent testing combines deterministic component tests,
+platform integration tests, browser acceptance tests, repository-safety
+checks, and separately reported live-provider evaluation. Together they
+verify that documentation proposals are grounded, bounded, reviewable,
+and safely applied without confusing available test coverage with an
+executed validation result.
 
-This includes documentation-specific reasoning, proposal generation, review decisions, controlled repository modification, preliminary and final validation, repository safety, Dashboard-hosted interaction, and end-to-end Documentation Agent workflow behavior.
+---
 
-Project0-wide testing principles, shared service correctness, Dashboard Framework testing, and complete repository regression testing remain governed by `Testing_Guide.md`.
-
-Together, the Project0 Testing Guide and Documentation Agent Testing Guide provide complementary validation without duplicating ownership of platform and agent testing responsibilities.
+**End of Document**
