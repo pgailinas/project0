@@ -1,342 +1,75 @@
 # Research Agent Test Plan
 
-**Version:** 0.8  
+**Version:** 0.9  
 **Owner:** Project0  
-**Last Updated:** 2026-09-10
+**Last Updated:** 2026-09-11
 
----
+## 1. Purpose and Scope
 
-## 1. Purpose
+This plan defines verification of the implemented Research Agent across deterministic unit, assembled integration, browser acceptance, live-provider, and repository regression boundaries. It covers requests/context, strategy/query bounds, all configured providers, balancing/deduplication, metadata/evidence, evaluation, paper and Direction Analysis, UI/save behavior, configuration, safety, and failure handling.
 
-This plan defines verification of the implemented Project0 Research Agent
-across unit, integration, browser acceptance, live-provider, and regression
-boundaries.
+Live Ollama and research APIs provide environment-dependent evidence and do not replace deterministic regression. The Dashboard's built-in Research stub is not a complete integration oracle because later analysis fixtures are not fully aligned with current schemas.
 
----
+## 2. Verification Strategy
 
-## 2. Objectives
+- **Unit:** Isolate provider parsing, deterministic services, workflow decisions, models, UI mapping, routes, settings, and reasoning-provider behavior.
+- **Integration:** Assemble production components with controlled external boundaries and verify handoffs, consolidation, upload forwarding, rendering, and dispatcher behavior.
+- **Browser acceptance:** Exercise the local Dashboard form, processing state, consolidated results, unsupported-information safeguards, and end-to-end outcomes through Playwright.
+- **Live checks:** Evaluate Ollama and configured APIs separately, recording environmental failures, rate limits, rankings, and model variability independently from deterministic counts.
+- **Regression:** Run the complete Project0 suite so Research changes do not break shared platform or other-agent behavior.
 
-Testing shall establish that:
+Repository content and tests are authoritative. Missing evidence must remain absent or explicitly warned; model output, inventory, and historical results do not establish current correctness.
 
-- request and upload interfaces fail safely;
-- strategies and queries are deterministic and bounded;
-- every supported source provider normalizes its external response;
-- provider/query dispatch, balancing, deduplication, and candidate tracing
-  preserve required identity and order;
-- metadata and evidence fallbacks do not invent content;
-- evaluation and analysis structured output is validated and recovered only
-  through documented retry rules;
-- unsupported synthesis findings are omitted or cause Direction Analysis to be
-  withheld;
-- the default configuration and environment overrides are honored;
-- consolidated UI cards and saved-result controls match workflow data; and
-- Research Agent changes do not regress the broader Project0 suite.
+## 3. Test Coverage and Scenarios
 
----
+### Requests and context
 
-## 3. Test Levels
+Verify route registration, ready state, normalization and multiline preservation, blank-question rejection without execution, paired filename/bytes, supported Markdown/text/PDF ingestion, safe failure for invalid or non-extractable content, provenance, exactly three distinct solution concepts, preservation of model anchors, and one retry for invalid structured output.
 
-### Unit
+### Strategy, queries, and providers
 
-Unit tests isolate provider parsing, service algorithms, workflow decisions,
-model properties, UI mapping, route delegation, settings, and reasoning
-provider behavior.
+Verify ordered concepts/constraints/sub-questions, seed extraction and ordering, context-derived concepts, objective deduplication, at most three complementary discovery dimensions, overlap removal, eight-word compaction, role diversity, deterministic empty input, and all six provider-factory entries.
 
-### Integration
+Provider scenarios shall cover request construction, parsing, credentials, retries/failures, independent provider/query dispatch, Crossref omission for arXiv-only queries, multi-provider aggregation, partial and aggregate failure, 24-candidate bound, round-robin balance, query-anchor priority, seed preservation, DOI/arXiv/title-author-year identity, richest-version merge, trace reasons, and alignment-profile inclusion/exclusion.
 
-Integration tests assemble real Project0 components with deterministic fakes or
-stubs. They verify service handoffs, provider-version consolidation, request
-upload forwarding, consolidated result rendering, and dispatcher integration.
-The Dashboard's built-in reasoning stub is not itself the integration oracle:
-only its evaluation identifier behavior is directly covered, and its later
-analysis fixtures are not aligned with the current schemas.
+### Metadata, evidence, and evaluation
 
-### Browser acceptance
-
-Playwright tests exercise the local Dashboard through the rendered Research
-Agent interface. They verify the request form, processing state, visible source
-metadata/evaluation/artifact-equivalent results, unsupported-information
-safety, and end-to-end outcomes.
-
-### Live external/provider checks
-
-Ollama and external research APIs are environment-dependent. Live checks
-complement deterministic tests but are not a substitute for them. A provider
-failure, rate limit, changed ranking, or model wording can be environmental
-rather than a deterministic regression.
-
----
-
-## 4. Authoritative Test Inventory
-
-### Research Agent unit tests
-
-~~~text
-tests/unit/agents/research/test_arxiv_source_provider.py
-tests/unit/agents/research/test_crossref_source_provider.py
-tests/unit/agents/research/test_existing_research_context_analysis_service.py
-tests/unit/agents/research/test_openalex_source_provider.py
-tests/unit/agents/research/test_openreview_source_provider.py
-tests/unit/agents/research/test_paper_analysis_service.py
-tests/unit/agents/research/test_paper_metadata_service.py
-tests/unit/agents/research/test_research_agent_routes.py
-tests/unit/agents/research/test_research_agent_ui_service.py
-tests/unit/agents/research/test_research_agent_view_models.py
-tests/unit/agents/research/test_research_artifact_service.py
-tests/unit/agents/research/test_research_context_ingestion_service.py
-tests/unit/agents/research/test_research_direction_analysis_service.py
-tests/unit/agents/research/test_research_evaluation_service.py
-tests/unit/agents/research/test_research_query_service.py
-tests/unit/agents/research/test_research_source_provider.py
-tests/unit/agents/research/test_research_source_provider_factory.py
-tests/unit/agents/research/test_research_source_service.py
-tests/unit/agents/research/test_research_strategy_service.py
-tests/unit/agents/research/test_semantic_scholar_source_provider.py
-tests/unit/agents/research/test_stub_research_source_provider.py
-~~~
-
-Cross-cutting unit coverage includes:
-
-~~~text
-tests/unit/config/test_settings.py
-tests/unit/dashboard/test_dashboard_app.py
-tests/unit/dashboard/test_dashboard_routes.py
-tests/unit/models/test_research_models.py
-tests/unit/platform/test_platform_dispatcher.py
-tests/unit/reasoning/providers/test_ollama_provider.py
-tests/unit/reasoning/test_prompt_builder.py
-tests/unit/reasoning/test_reasoning_service.py
-tests/unit/workflow/test_research_workflow.py
-~~~
-
-### Integration tests
-
-~~~text
-tests/integration/agents/research/test_research_agent_end_to_end_flow.py
-tests/integration/agents/research/test_research_agent_ui_flow.py
-tests/integration/agents/research/test_research_workflow_flow.py
-tests/integration/platform/test_dashboard_flow.py
-tests/integration/platform/test_ollama_reasoning_flow.py
-tests/integration/platform/test_platform_dispatcher_flow.py
-~~~
-
-### Browser acceptance tests
-
-~~~text
-tests/acceptance/agents/research/test_research_agent_ui_request_acceptance.py
-tests/acceptance/agents/research/test_research_agent_ui_results_acceptance.py
-tests/acceptance/agents/research/test_research_agent_ui_end_to_end_acceptance.py
-~~~
-
-There are no files named
-`test_research_paper_acquisition_service.py` or
-`test_research_paper_ingestion_service.py` in the current repository.
-Evidence acquisition is covered by `test_paper_metadata_service.py`.
-
----
-
-## 5. Functional Coverage
-
-### Request and context
-
-Verify:
-
-- ready page and route registration;
-- form-value normalization and multiline preservation;
-- blank-question rejection without workflow execution;
-- filename/byte forwarding;
-- Markdown, text, and PDF ingestion;
-- invalid/empty/unsupported/scanned-style input failure;
-- context provenance;
-- exactly three distinct inferred solution concepts for a supplied question;
-- explicit model-anchor preservation; and
-- one validation retry followed by failure on persistent invalid output.
-
-Primary tests:
-
-~~~text
-test_research_agent_routes.py
-test_research_agent_ui_service.py
-test_research_context_ingestion_service.py
-test_existing_research_context_analysis_service.py
-test_research_agent_ui_flow.py
-~~~
-
-### Strategy and bounded multi-query generation
-
-Verify:
-
-- ordered concept/constraint/sub-question extraction;
-- seed extraction and seed-first ordering;
-- preservation of context-derived solution concepts;
-- exclusion of the objective duplicate;
-- at most three complementary discovery dimensions;
-- overlap removal;
-- eight-word compaction for generated dimensions;
-- distinct role selection; and
-- deterministic empty-input behavior.
-
-Primary tests:
-
-~~~text
-test_research_strategy_service.py
-test_research_query_service.py
-test_research_workflow.py
-~~~
-
-### Providers, balancing, and deduplication
-
-Verify:
-
-- all six provider factory entries;
-- provider request construction, parsing, optional credentials, retry, and
-  failure behavior;
-- independent provider/query dispatch;
-- Crossref omission for arXiv-only queries;
-- multi-provider aggregation;
-- continued operation after partial runtime failure;
-- aggregate failure when all groups fail;
-- 24-candidate bound;
-- group-balanced selection and query-anchor priority;
-- seed preservation;
-- DOI/arXiv/title-author-year duplicate matching;
-- richest-version choice and complementary metadata merge;
-- candidate trace selection reasons; and
-- alignment-profile inclusion/exclusion behavior.
-
-Primary tests:
-
-~~~text
-test_*_source_provider.py
-test_research_source_provider_factory.py
-test_research_source_service.py
-test_research_workflow_flow.py
-~~~
-
-### Metadata, evidence, evaluation, and retained selection
-
-Verify:
-
-- provider-specific metadata normalization;
-- Semantic Scholar detail fallback;
-- abstract evidence;
-- PDF validation and page-preserving section extraction;
-- 8-paper and 24,000-character bounds;
-- discovery-only classification;
-- preliminary ranking before evidence acquisition;
-- evaluation batches of three;
-- opaque ID validation;
-- 0–100 integer score normalization;
-- high-score transfer-path guard;
-- partial retention and one retry for unresolved evaluations;
-- unscored persistent retryable defects;
-- evidence-path retention across recommendation thresholds; and
-- final score ordering and Maximum Results.
-
-Primary tests:
-
-~~~text
-test_paper_metadata_service.py
-test_research_evaluation_service.py
-test_research_workflow.py
-test_research_workflow_flow.py
-~~~
+Verify provider normalization, Semantic Scholar fallback, abstract evidence, PDF/type validation, page-preserving section extraction, eight-paper and 24,000-character limits, discovery-only state, preliminary ranking, three-paper batches, opaque IDs, integer 0–100 normalization, high-score transfer checks, partial recovery plus one retry, persistent unscored defects, threshold-independent evidence retention, score ordering, and Maximum Results.
 
 ### Paper and Direction Analysis
 
-Verify:
+Verify evidence-limited prompts, exact section/page citations, abstract versus full-paper basis, discovery-only skip, one structural retry and per-paper skip, Direction minimum two and maximum three papers, literature grounding, two-paper support for themes/comparisons/shared limitations, one-paper unresolved questions, direction context/literature requirements, handle type/uniqueness/count, speculative anchors, performance-order rejection, omission of ordinary invalid synthesis items, and full retry for semantic or candidate-direction failure.
 
-- evidence-limited paper prompts;
-- exact section/page provenance;
-- abstract/full-paper analysis basis;
-- discovery-only skip;
-- one paper-analysis retry and per-paper skip after persistent structural
-  failure;
-- Direction Analysis minimum/two-paper and maximum/three-paper bounds;
-- literature-only synthesis grounding;
-- two-paper support for themes/comparisons/shared limitations;
-- single-paper support for unresolved questions;
-- candidate context/literature requirements;
-- evidence-handle type, uniqueness, and count validation;
-- speculative evidence anchoring;
-- unsupported performance-ordering rejection;
-- individual omission of ordinary invalid synthesis items; and
-- full retry for invalid candidate or semantic grounding errors.
+### UI, save, and safety
 
-Primary tests:
+Verify consolidated cards, one title URL, recommended versus reviewed counts, warning/error states, context filename in form and analysis, Direction display, hidden legacy artifacts, completion-gated **Save Results**, and saved filename/content.
 
-~~~text
-test_paper_analysis_service.py
-test_research_direction_analysis_service.py
-test_research_workflow.py
-~~~
+A test must fail if the agent executes a blank question; accepts unsupported context; invents metadata/evidence; confuses source IDs with model handles; accepts unknown/wrong-type evidence; presents unsupported performance comparisons or ungrounded non-speculative directions; scores evidence-free records as final evidence results; exceeds documented bounds; or writes to the Project0 repository.
 
-### UI and save behavior
+Primary coverage resides under `tests/unit/agents/research/`, `tests/unit/workflow/test_research_workflow.py`, Research models/configuration/dispatcher/Dashboard/reasoning tests, `tests/integration/agents/research/`, relevant platform integration, and `tests/acceptance/agents/research/`. Evidence acquisition belongs to `test_paper_metadata_service.py`; no separate acquisition or ingestion service test files exist.
 
-Verify:
+## 4. Environment and Test Data
 
-- consolidated source/paper/evaluation/analysis card;
-- one visible title URL per paper;
-- recommended versus reviewed counts;
-- page warning/error status;
-- Existing Research Context filename in the form and analysis;
-- Direction Analysis display;
-- hidden legacy artifact panel;
-- **Save Results** availability after completion; and
-- saved Markdown content/filename behavior through browser tests where
-  practical.
+Deterministic tests shall use contract-correct stubs/fakes, controlled provider responses, supported context fixtures, malformed and provenance-invalid structured output, duplicate/identity cases, and explicit expected bounds. Browser acceptance requires a separately running Dashboard and Playwright. Live checks require configured Ollama/model and external-provider access.
 
-Primary tests:
+Execution groups are:
 
-~~~text
-test_research_agent_view_models.py
-test_research_agent_ui_service.py
-test_research_agent_ui_flow.py
-test_research_agent_ui_*_acceptance.py
-~~~
-
----
-
-## 6. Safety and Failure Criteria
-
-A test must fail if the implementation:
-
-- starts a workflow for a blank browser question;
-- silently accepts unsupported context input;
-- invents paper metadata or evidence;
-- confuses external source IDs with batch-local model handles;
-- accepts unknown or wrong-type evidence handles;
-- presents an unsupported performance comparison as grounded;
-- presents a non-speculative direction without its required evidence;
-- scores evidence-free discovery records as final evidence-based results;
-- exceeds documented query/evaluation/evidence/direction bounds; or
-- writes to the Project0 repository from the Research Agent workflow.
-
----
-
-## 7. Execution
-
-~~~bash
+```bash
 python -m pytest tests/unit/agents/research tests/unit/workflow/test_research_workflow.py tests/unit/models/test_research_models.py tests/unit/config/test_settings.py -v
 python -m pytest tests/integration/agents/research -v
 python -m pytest tests/acceptance/agents/research -v
 python -m pytest
-~~~
+```
 
-Browser acceptance requires the repository's Playwright test setup. Live
-Ollama validation additionally requires the configured service/model.
+## 5. Entry and Exit Criteria
 
----
+Entry requires an identified commit, installed dependencies for selected levels, deterministic fixtures, browser prerequisites when applicable, and documented live-provider configuration.
 
-## 8. Completion Criteria
+Exit requires that every command names current files; deterministic unit/integration suites pass; applicable browser acceptance passes; the complete Project0 regression passes; skips and environmental exclusions are understood; and Test Results records the exact command, revision, date, environment, outcomes, and limitations.
 
-Documentation synchronization is complete only when:
+## 6. Known Gaps
 
-- every command names files present in the repository;
-- deterministic Research Agent unit and integration suites pass;
-- applicable browser acceptance tests pass;
-- the complete Project0 regression suite passes;
-- any skipped tests are understood and recorded;
-- environment-dependent checks are labeled separately; and
-- the Test Results document records the exact command, revision, date, result,
-  and limitations of an actual run.
+- Built-in Dashboard stubs do not fully represent current context, paper-analysis, and Direction schemas.
+- Live providers and models remain variable and cannot establish deterministic regression.
+- Evidence acquisition is covered within `PaperMetadataService`, not a separately named acquisition service.
+- This plan records required coverage, not a current aggregate pass count.
