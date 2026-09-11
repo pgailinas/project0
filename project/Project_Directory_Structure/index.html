@@ -424,10 +424,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
+  <a href="#purpose-and-authority" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Overview
+        Purpose and Authority
       
     </span>
   </a>
@@ -435,54 +435,60 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#repository-structure" class="md-nav__link">
+  <a href="#reference-content" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Repository Structure
+        Reference Content
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Reference Content">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#high-level-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        High-level structure
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#directory-purposes" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#directory-responsibilities" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Directory Purposes
+        Directory responsibilities
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#research-agent-source-boundaries" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#agent-and-platform-boundaries" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Research Agent Source Boundaries
+        Agent and platform boundaries
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#documentation-and-generated-output" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Documentation and Generated Output
-      
-    </span>
-  </a>
+        
+      </ul>
+    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#important-notes" class="md-nav__link">
+  <a href="#constraints-and-notes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Important Notes
+        Constraints and Notes
       
     </span>
   </a>
@@ -1450,10 +1456,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
+  <a href="#purpose-and-authority" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Overview
+        Purpose and Authority
       
     </span>
   </a>
@@ -1461,54 +1467,60 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#repository-structure" class="md-nav__link">
+  <a href="#reference-content" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Repository Structure
+        Reference Content
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Reference Content">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#high-level-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        High-level structure
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#directory-purposes" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#directory-responsibilities" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Directory Purposes
+        Directory responsibilities
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#research-agent-source-boundaries" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#agent-and-platform-boundaries" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Research Agent Source Boundaries
+        Agent and platform boundaries
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#documentation-and-generated-output" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Documentation and Generated Output
-      
-    </span>
-  </a>
+        
+      </ul>
+    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#important-notes" class="md-nav__link">
+  <a href="#constraints-and-notes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Important Notes
+        Constraints and Notes
       
     </span>
   </a>
@@ -1541,226 +1553,180 @@
 
 
 <h1 id="project-directory-structure">Project Directory Structure</h1>
-<p><strong>Version:</strong> 0.7<br />
+<p><strong>Version:</strong> 0.8<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-10</p>
+<strong>Last Updated:</strong> 2026-09-11</p>
 <hr />
-<h2 id="overview">Overview</h2>
-<p>Project0 is organized as a documentation-first AI-native software development
-platform. The repository contains authoritative Markdown documentation,
-reusable platform code, specialized agent packages, repository-local skills,
-and unit, integration, and browser acceptance tests.</p>
-<p>This page describes the current high-level structure. It intentionally omits
-generated caches and individual files outside the areas needed to understand
-the architecture.</p>
-<hr />
-<h2 id="repository-structure">Repository Structure</h2>
+<h2 id="purpose-and-authority">Purpose and Authority</h2>
+<p>This reference describes Project0's intentional repository architecture and
+directory responsibilities. It omits generated caches and exhaustive file
+inventory. Source, tests, configuration, and private repository contents are
+implementation authority; generated MkDocs/GitHub Pages output is not.</p>
+<h2 id="reference-content">Reference Content</h2>
+<h3 id="high-level-structure">High-level structure</h3>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>project0/
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── docs/
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│   ├── index.md
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│   ├── agents/
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│   │   ├── documentation/
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│   │   │   ├── Documentation_Agent_Charter.md
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│   │   │   ├── Documentation_Agent_Functional_Spec.md
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│   │   │   ├── Documentation_Agent_Architecture.md
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│   │   │   ├── Documentation_Agent_Design.md
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│   │   │   ├── Documentation_Agent_Interface_Design.md
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│   │   │   ├── Documentation_Agent_Testing_Guide.md
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│   │   │   ├── Documentation_Agent_Test_Plan.md
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│   │   │   └── Documentation_Agent_Test_Results.md
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│   │   └── research/
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│   │       ├── Research_Agent_Charter.md
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│   │       ├── Research_Agent_Functional_Spec.md
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│   │       ├── Research_Agent_Architecture.md
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│   │       ├── Research_Agent_Design.md
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>│   │       ├── Research_Agent_Interface_Design.md
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>│   │       ├── Research_Agent_Testing_Guide.md
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│   │       ├── Research_Agent_Test_Plan.md
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>│   │       └── Research_Agent_Test_Results.md
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│   │   └── research/
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│   ├── platform/
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│   └── project/
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>├── skills/
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│   └── strict-documentation-editor/
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│       └── SKILL.md
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>├── src/project0/
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│   ├── agents/
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│   │   ├── documentation/
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│   │   └── research/
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│   ├── artifacts/
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│   ├── common/
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│   ├── config/
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>│   ├── dashboard/
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>│   ├── interfaces/
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│   ├── knowledge/
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>│   ├── models/
 </span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>│   ├── platform/
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>│   │   ├── Agent_Skills_Design.md
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>│   │   ├── Component_Communication_Design.md
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>│   │   ├── Dashboard_Design.md
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>│   │   ├── Project0_Test_Results.md
-</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>│   │   └── Shared_Data_Models_and_Error_Contracts.md
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>│   └── project/
-</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>│       ├── Development_Environment.md
-</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>│       ├── Development_Standards.md
-</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>│       ├── Documentation_Standards.md
-</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>│       ├── Implementation_Roadmap.md
-</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>│       ├── Implementation_Status.md
-</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>│       ├── Project_Charter.md
-</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>│       ├── Project_Directory_Structure.md
-</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>│       └── Testing_Guide.md
-</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>├── skills/
-</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>│   └── strict-documentation-editor/
-</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>│       └── SKILL.md
-</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>├── src/project0/
-</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>│   ├── agents/
-</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>│   │   ├── documentation/
-</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>│   │   │   ├── css/
-</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>│   │   │   ├── templates/
-</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a>│   │   │   ├── documentation_agent_routes.py
-</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a>│   │   │   ├── documentation_agent_ui_service.py
-</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a>│   │   │   └── documentation_agent_view_models.py
-</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a>│   │   └── research/
-</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a>│   │       ├── css/
-</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a>│   │       ├── templates/
-</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a>│   │       ├── *_source_provider.py
-</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a>│   │       ├── existing_research_context_analysis_service.py
-</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a>│   │       ├── paper_analysis_service.py
-</span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a>│   │       ├── paper_metadata_service.py
-</span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a>│   │       ├── research_agent_routes.py
-</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a>│   │       ├── research_agent_ui_service.py
-</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a>│   │       ├── research_agent_view_models.py
-</span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a>│   │       ├── research_artifact_service.py
-</span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a>│   │       ├── research_context_ingestion_service.py
-</span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a>│   │       ├── research_direction_analysis_service.py
-</span><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a>│   │       ├── research_evaluation_service.py
-</span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a>│   │       ├── research_query_service.py
-</span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a>│   │       ├── research_source_provider.py
-</span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>│   │       ├── research_source_provider_factory.py
-</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>│   │       ├── research_source_service.py
-</span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a>│   │       └── research_strategy_service.py
-</span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a>│   ├── artifacts/
-</span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a>│   ├── common/
-</span><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a>│   ├── config/
-</span><span id="__span-0-71"><a id="__codelineno-0-71" name="__codelineno-0-71" href="#__codelineno-0-71"></a>│   ├── dashboard/
-</span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72" href="#__codelineno-0-72"></a>│   │   ├── css/
-</span><span id="__span-0-73"><a id="__codelineno-0-73" name="__codelineno-0-73" href="#__codelineno-0-73"></a>│   │   ├── templates/
-</span><span id="__span-0-74"><a id="__codelineno-0-74" name="__codelineno-0-74" href="#__codelineno-0-74"></a>│   │   ├── dashboard_app.py
-</span><span id="__span-0-75"><a id="__codelineno-0-75" name="__codelineno-0-75" href="#__codelineno-0-75"></a>│   │   └── dashboard_routes.py
-</span><span id="__span-0-76"><a id="__codelineno-0-76" name="__codelineno-0-76" href="#__codelineno-0-76"></a>│   ├── interfaces/
-</span><span id="__span-0-77"><a id="__codelineno-0-77" name="__codelineno-0-77" href="#__codelineno-0-77"></a>│   ├── knowledge/
-</span><span id="__span-0-78"><a id="__codelineno-0-78" name="__codelineno-0-78" href="#__codelineno-0-78"></a>│   ├── models/
-</span><span id="__span-0-79"><a id="__codelineno-0-79" name="__codelineno-0-79" href="#__codelineno-0-79"></a>│   ├── platform/
-</span><span id="__span-0-80"><a id="__codelineno-0-80" name="__codelineno-0-80" href="#__codelineno-0-80"></a>│   ├── reasoning/
-</span><span id="__span-0-81"><a id="__codelineno-0-81" name="__codelineno-0-81" href="#__codelineno-0-81"></a>│   ├── repository/
-</span><span id="__span-0-82"><a id="__codelineno-0-82" name="__codelineno-0-82" href="#__codelineno-0-82"></a>│   ├── validation/
-</span><span id="__span-0-83"><a id="__codelineno-0-83" name="__codelineno-0-83" href="#__codelineno-0-83"></a>│   └── workflow/
-</span><span id="__span-0-84"><a id="__codelineno-0-84" name="__codelineno-0-84" href="#__codelineno-0-84"></a>│       ├── documentation_workflow.py
-</span><span id="__span-0-85"><a id="__codelineno-0-85" name="__codelineno-0-85" href="#__codelineno-0-85"></a>│       └── research_workflow.py
-</span><span id="__span-0-86"><a id="__codelineno-0-86" name="__codelineno-0-86" href="#__codelineno-0-86"></a>├── tests/
-</span><span id="__span-0-87"><a id="__codelineno-0-87" name="__codelineno-0-87" href="#__codelineno-0-87"></a>│   ├── unit/
-</span><span id="__span-0-88"><a id="__codelineno-0-88" name="__codelineno-0-88" href="#__codelineno-0-88"></a>│   │   ├── agents/
-</span><span id="__span-0-89"><a id="__codelineno-0-89" name="__codelineno-0-89" href="#__codelineno-0-89"></a>│   │   │   ├── documentation/
-</span><span id="__span-0-90"><a id="__codelineno-0-90" name="__codelineno-0-90" href="#__codelineno-0-90"></a>│   │   │   └── research/
-</span><span id="__span-0-91"><a id="__codelineno-0-91" name="__codelineno-0-91" href="#__codelineno-0-91"></a>│   │   ├── config/
-</span><span id="__span-0-92"><a id="__codelineno-0-92" name="__codelineno-0-92" href="#__codelineno-0-92"></a>│   │   ├── dashboard/
-</span><span id="__span-0-93"><a id="__codelineno-0-93" name="__codelineno-0-93" href="#__codelineno-0-93"></a>│   │   ├── models/
-</span><span id="__span-0-94"><a id="__codelineno-0-94" name="__codelineno-0-94" href="#__codelineno-0-94"></a>│   │   ├── platform/
-</span><span id="__span-0-95"><a id="__codelineno-0-95" name="__codelineno-0-95" href="#__codelineno-0-95"></a>│   │   ├── reasoning/
-</span><span id="__span-0-96"><a id="__codelineno-0-96" name="__codelineno-0-96" href="#__codelineno-0-96"></a>│   │   └── workflow/
-</span><span id="__span-0-97"><a id="__codelineno-0-97" name="__codelineno-0-97" href="#__codelineno-0-97"></a>│   ├── integration/
-</span><span id="__span-0-98"><a id="__codelineno-0-98" name="__codelineno-0-98" href="#__codelineno-0-98"></a>│   │   ├── agents/
-</span><span id="__span-0-99"><a id="__codelineno-0-99" name="__codelineno-0-99" href="#__codelineno-0-99"></a>│   │   │   ├── documentation/
-</span><span id="__span-0-100"><a id="__codelineno-0-100" name="__codelineno-0-100" href="#__codelineno-0-100"></a>│   │   │   └── research/
-</span><span id="__span-0-101"><a id="__codelineno-0-101" name="__codelineno-0-101" href="#__codelineno-0-101"></a>│   │   └── platform/
-</span><span id="__span-0-102"><a id="__codelineno-0-102" name="__codelineno-0-102" href="#__codelineno-0-102"></a>│   ├── acceptance/
-</span><span id="__span-0-103"><a id="__codelineno-0-103" name="__codelineno-0-103" href="#__codelineno-0-103"></a>│   │   ├── agents/
-</span><span id="__span-0-104"><a id="__codelineno-0-104" name="__codelineno-0-104" href="#__codelineno-0-104"></a>│   │   │   ├── documentation/
-</span><span id="__span-0-105"><a id="__codelineno-0-105" name="__codelineno-0-105" href="#__codelineno-0-105"></a>│   │   │   └── research/
-</span><span id="__span-0-106"><a id="__codelineno-0-106" name="__codelineno-0-106" href="#__codelineno-0-106"></a>│   │   └── platform/
-</span><span id="__span-0-107"><a id="__codelineno-0-107" name="__codelineno-0-107" href="#__codelineno-0-107"></a>│   └── test_data/
-</span><span id="__span-0-108"><a id="__codelineno-0-108" name="__codelineno-0-108" href="#__codelineno-0-108"></a>├── mkdocs.yml
-</span><span id="__span-0-109"><a id="__codelineno-0-109" name="__codelineno-0-109" href="#__codelineno-0-109"></a>├── pyproject.toml
-</span><span id="__span-0-110"><a id="__codelineno-0-110" name="__codelineno-0-110" href="#__codelineno-0-110"></a>├── README.md
-</span><span id="__span-0-111"><a id="__codelineno-0-111" name="__codelineno-0-111" href="#__codelineno-0-111"></a>├── TEST_COMMANDS.md
-</span><span id="__span-0-112"><a id="__codelineno-0-112" name="__codelineno-0-112" href="#__codelineno-0-112"></a>└── .gitignore
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>│   ├── reasoning/
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>│   ├── repository/
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>│   ├── validation/
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>│   └── workflow/
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>├── tests/
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>│   ├── unit/
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>│   ├── integration/
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>│   ├── acceptance/
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>│   └── test_data/
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>├── mkdocs.yml
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>├── pyproject.toml
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>├── README.md
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>├── TEST_COMMANDS.md
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>└── .gitignore
 </span></code></pre></div>
-<hr />
-<h2 id="directory-purposes">Directory Purposes</h2>
+<h3 id="directory-responsibilities">Directory responsibilities</h3>
 <table>
 <thead>
 <tr>
 <th>Directory</th>
-<th>Purpose</th>
+<th>Responsibility</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>docs/</code></td>
-<td>Authoritative Markdown for the MkDocs site and project review.</td>
+<td>Authoritative Markdown and MkDocs source</td>
+</tr>
+<tr>
+<td><code>docs/agents/documentation/</code></td>
+<td>Documentation Agent charter through test records</td>
 </tr>
 <tr>
 <td><code>docs/agents/research/</code></td>
-<td>Research Agent charter, functional, architecture, design, interface, testing, plan, and result records.</td>
+<td>Research Agent charter through test records</td>
+</tr>
+<tr>
+<td><code>docs/platform/</code></td>
+<td>Shared platform design, contracts, and UI status data</td>
+</tr>
+<tr>
+<td><code>docs/project/</code></td>
+<td>Project governance, environment, status, roadmap, and testing references</td>
 </tr>
 <tr>
 <td><code>skills/</code></td>
-<td>Repository-local Agent Skills loaded by the Project0 Skill Registry.</td>
+<td>Repository-local skill packages loaded by Skill Registry</td>
 </tr>
 <tr>
-<td><code>src/project0/agents/research/</code></td>
-<td>Research-specific providers, services, routes, views, template, and CSS.</td>
+<td><code>src/project0/agents/</code></td>
+<td>Agent-specific providers, services, routes, views, templates, and CSS</td>
 </tr>
 <tr>
-<td><code>src/project0/platform/</code></td>
-<td>Shared composition and dispatch, including Research Workflow assembly.</td>
+<td><code>src/project0/artifacts/</code></td>
+<td>Shared artifact-location behavior</td>
 </tr>
 <tr>
-<td><code>src/project0/models/</code></td>
-<td>Shared immutable models, including Research and Reasoning models.</td>
+<td><code>src/project0/common/</code></td>
+<td>Shared operational utilities such as logging/startup validation</td>
 </tr>
 <tr>
-<td><code>src/project0/interfaces/</code></td>
-<td>Shared service/workflow protocols.</td>
-</tr>
-<tr>
-<td><code>src/project0/workflow/</code></td>
-<td>Documentation and Research workflow orchestration.</td>
+<td><code>src/project0/config/</code></td>
+<td>Environment-backed application settings</td>
 </tr>
 <tr>
 <td><code>src/project0/dashboard/</code></td>
-<td>Shared FastAPI application, shell, status endpoints, templates, and CSS.</td>
+<td>Shared FastAPI application, routes, shell, status, templates, and CSS</td>
 </tr>
 <tr>
-<td><code>tests/unit/agents/research/</code></td>
-<td>Isolated Research Agent component tests.</td>
+<td><code>src/project0/interfaces/</code></td>
+<td>Shared service and workflow protocols</td>
 </tr>
 <tr>
-<td><code>tests/integration/agents/research/</code></td>
-<td>Assembled workflow and UI integration tests.</td>
+<td><code>src/project0/knowledge/</code></td>
+<td>Repository-document parsing, indexing, selection, and formatting</td>
 </tr>
 <tr>
-<td><code>tests/acceptance/agents/research/</code></td>
-<td>Playwright Research Agent browser scenarios.</td>
+<td><code>src/project0/models/</code></td>
+<td>Shared typed request, result, state, and value records</td>
+</tr>
+<tr>
+<td><code>src/project0/platform/</code></td>
+<td>Platform composition and dispatch</td>
+</tr>
+<tr>
+<td><code>src/project0/reasoning/</code></td>
+<td>Provider-neutral prompting, parsing, and provider implementations</td>
+</tr>
+<tr>
+<td><code>src/project0/repository/</code></td>
+<td>Safe repository discovery, reads, updates, and Git differences</td>
+</tr>
+<tr>
+<td><code>src/project0/validation/</code></td>
+<td>Documentation validators and aggregation</td>
+</tr>
+<tr>
+<td><code>src/project0/workflow/</code></td>
+<td>Generic, Documentation, and Research orchestration</td>
+</tr>
+<tr>
+<td><code>tests/unit/</code></td>
+<td>Isolated component and contract tests</td>
+</tr>
+<tr>
+<td><code>tests/integration/</code></td>
+<td>Assembled production-component tests</td>
+</tr>
+<tr>
+<td><code>tests/acceptance/</code></td>
+<td>Browser/external-boundary scenarios</td>
+</tr>
+<tr>
+<td><code>tests/test_data/</code></td>
+<td>Controlled test fixtures and repository targets</td>
 </tr>
 </tbody>
 </table>
-<hr />
-<h2 id="research-agent-source-boundaries">Research Agent Source Boundaries</h2>
-<p>Research-specific business logic belongs under
-<code>src/project0/agents/research/</code>. The complete workflow coordinator resides at
-<code>src/project0/workflow/research_workflow.py</code>, shared models at
-<code>src/project0/models/research_models.py</code>, and protocols at
-<code>src/project0/interfaces/research_interfaces.py</code>.</p>
-<p>The shared Dashboard application registers Research Agent routes and provides
-the shell/status endpoint. The shared Platform Dispatcher assembles the
-Research Workflow. The reusable Markdown/Link/MkDocs Validation Service is
-used by documentation workflows, not by the Research Workflow.</p>
-<hr />
-<h2 id="documentation-and-generated-output">Documentation and Generated Output</h2>
-<p>Markdown under <code>docs/</code> is authoritative for published documentation. Generated
-MkDocs output, when present locally, is not authoritative.</p>
-<p>Research Agent result output has two separate forms:</p>
+<h3 id="agent-and-platform-boundaries">Agent and platform boundaries</h3>
+<p>Research business logic belongs under <code>src/project0/agents/research/</code>, its
+coordinator under <code>src/project0/workflow/research_workflow.py</code>, models under
+<code>src/project0/models/research_models.py</code>, and protocols under
+<code>src/project0/interfaces/research_interfaces.py</code>. Documentation follows the
+same ownership pattern for its agent UI and dedicated workflow/models.</p>
+<p>The Dashboard owns the shared shell/status and registers agent routes. Platform
+Dispatcher assembles dedicated workflows. The reusable Markdown/Link/MkDocs
+Validation Service serves documentation workflows; Research uses its own
+analysis/evaluation validation.</p>
+<h2 id="constraints-and-notes">Constraints and Notes</h2>
 <ul>
-<li>in-memory compatibility <code>ResearchArtifact</code> values returned by the workflow;
-  and</li>
-<li><code>project0_research_results.md</code> generated by the browser's <strong>Save Results</strong>
-  action.</li>
-</ul>
-<p>Neither form is automatically written into the repository.</p>
-<hr />
-<h2 id="important-notes">Important Notes</h2>
-<ul>
-<li>The current Research Agent unit, integration, and acceptance directories are
-  implemented; they are not planned placeholders.</li>
-<li>The source tree contains separate Documentation and Research Agent packages.</li>
-<li>The private repository source, tests, configuration, and templates are the
-  implementation authority. Generated GitHub Pages content is not.</li>
-<li>Individual agents own their Work Area behavior while the Dashboard owns the
-  shared shell and status presentation.</li>
+<li>Directory documentation describes stable architecture, not every repository
+  file; consult the tree for exact current inventory.</li>
+<li>Generated MkDocs <code>site/</code> output is not authoritative.</li>
+<li>Research output may exist as in-memory compatibility <code>ResearchArtifact</code>
+  values or browser-generated <code>project0_research_results.md</code>; neither is
+  automatically written to the repository.</li>
+<li>Unit, integration, and acceptance directories are implemented rather than
+  planned placeholders, but their presence is not execution evidence.</li>
+<li>Individual agents own Work Area behavior; the Dashboard owns the shared shell
+  and status presentation.</li>
 </ul>
 
 
