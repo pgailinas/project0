@@ -1,484 +1,98 @@
 # Research Agent Design
 
-**Version:** 0.5  
+**Version:** 0.6  
 **Owner:** Project0  
-**Last Updated:** 2026-09-10
+**Last Updated:** 2026-09-11
 
----
+## 1. Executive Summary
 
-## 1. Purpose
+The Research Agent combines deterministic request parsing, bounded multi-query retrieval, provider balancing, metadata/evidence acquisition, and presentation with schema-constrained reasoning for context analysis, relevance evaluation, paper analysis, and research-direction synthesis. The design preserves explicit evidence provenance, isolates retryable generated-output defects, and limits search, evidence, evaluation, and synthesis work. Several candidate-selection rules remain specialized for visual/video-language representation research and are not domain-independent.
 
-This document records the current detailed design of the Research Agent. It is
-descriptive of the implementation at the documented revision; it does not
-define unimplemented intentions.
+## 2. Purpose and Scope
 
----
+This document records the current detailed Research Agent design. It describes implemented component behavior, interactions, configuration, failure handling, and constraints rather than future intentions. Public field declarations and browser contracts belong in the Interface Design; executable requirements belong in the Functional Specification.
 
-## 2. Composition
+`create_project0_dashboard_app()` assembles the Research dispatcher with strategy, query, source, metadata, evaluation, artifact, context-ingestion, context-analysis, paper-analysis, and direction-analysis services. Selected source names and the Research model are supplied to the relevant services.
 
-`create_project0_dashboard_app()` creates a Research Agent dispatcher with:
+## 3. Component Design
 
-- `ResearchStrategyService`;
-- `ResearchQueryService`;
-- `ResearchSourceService` and configured providers;
-- `PaperMetadataService`;
-- `ResearchEvaluationService`;
-- `ResearchArtifactService`;
-- `ResearchContextIngestionService`;
-- `ExistingResearchContextAnalysisService`;
-- `PaperAnalysisService`; and
-- `ResearchDirectionAnalysisService`.
+### Request and context
 
-The dispatcher passes the selected provider names into both Strategy Service
-and Provider Factory. It passes the Research Agent model name to every
-reasoning-backed research service.
+The POST route accepts `question`, `guidance`, integer `max_results` defaulting to 10, and optional `context_document`. The UI trims text, retains the normalized filename, and forwards bytes without storage.
 
-The `ResearchWorkflow` constructor defaults its direction-analysis flag from
-the module-level `SETTINGS.research_direction_analysis_enabled`. The dispatcher
-does not explicitly forward a custom `ProjectSettings` value for this flag.
-Normal application startup imports `SETTINGS` from the environment, so the
-documented environment override applies; isolated callers supplying a different
-settings object to `create_platform_dispatcher` do not currently override this
-constructor default.
+Markdown/text are decoded as UTF-8. PDF page text is extracted with pypdf and joined with two newlines; page boundaries are not retained in `extracted_text`. `ResearchContextDocument` records UUID, filename, type, extraction method, status, and PDF page count. The service performs no OCR or chunking.
 
----
+Context reasoning returns an optional research problem; prior work, approaches, findings, limitations, unresolved questions, and future work; and solution-search concepts. Findings receive the upload UUID and optional section provenance. With a question, exactly three source/target/mechanism concepts with distinct mechanisms are required. Acronym and encoder/decoder anchors from the question are restored when absent. Retryable structural or field errors receive one retry; provider exceptions do not.
 
-## 3. Request and Context Design
+### Strategy and queries
 
-### Browser request
+Strategy construction is deterministic. Ordered concepts combine programmatic focus, guidance, question, context-inferred concepts, unresolved questions, future work, limitations, findings, and research problem, removing exact duplicates. Constraints include programmatic values and guidance beginning `prefer`, `focus`, `avoid`, or `require`; question-form guidance becomes sub-questions. The first three unique quoted titles, arXiv IDs, or DOI IDs become seeds.
 
-The POST route accepts:
+The Query Service normalizes seeds, derives compact context queries and direct/mechanism/transfer/application dimensions, removes exact and high-overlap candidates, selects at most three discovery queries, removes queries with at least 60% term-stem overlap with a seed, and returns seeds first. Discovery candidates overlap substantially at 75% of the smaller meaningful-term set. At most three seeds plus three normally eight-word discovery queries produce six search terms.
 
-| Form field | Type | Default |
-| --- | --- | --- |
-| `question` | text | empty; rejected by UI |
-| `guidance` | text | empty |
-| `max_results` | integer | 10 |
-| `context_document` | optional upload | none |
+### Providers and retrieval
 
-The UI trims question/guidance and retains the normalized filename for display.
-It forwards file bytes without storing a copy.
+Provider names are `semantic_scholar`, `openalex`, `openreview`, `crossref`, `arxiv`, and `stub`; the default is `semantic_scholar,arxiv`. Names are case-sensitive and unsupported names fail construction. External providers retry transient errors, HTTP 429, and server failures up to three attempts using provider-specific delay behavior.
 
-### Context ingestion
+The Source Service calls each provider for each query, skipping Crossref for arXiv-only input. Duplicate identity uses provider/source ID, normalized DOI/arXiv ID, or normalized title with compatible year and overlapping authors. Canonical richness considers abstract length, author count, metadata count, year, and URL; missing fields are merged.
 
-Markdown and text are decoded as UTF-8 without rewriting their content. PDF
-pages are read with pypdf; non-empty extracted page strings are joined with two
-newlines. The resulting `ResearchContextDocument` includes a UUID, source
-filename, type, extraction method, status, and PDF page count where applicable.
+The alignment profile activates when strategy terms collectively contain visual, language, and mechanism vocabulary. Seeds bypass exclusion. Hard-coded visual/video-language rules also influence evidence tiers and are not general domain-independent ranking. Within provider/query groups, deterministic overlap ranking precedes round-robin selection to the default 24-candidate pool.
 
-The service does not preserve page boundaries in `extracted_text` and does not
-chunk the document. Context findings can cite a recognizable section string,
-but page-number provenance is not requested or stored for context findings.
+### Metadata, evidence, and evaluation
 
-### Context structured output
+All providers map to `PaperMetadata`; only Semantic Scholar receives a separate detail request. When more than eight papers exist, preliminary scoring and direct/transferable visual-language tiers choose at most eight eligible candidates. With eight or fewer, all proceed without that tier filter.
 
-The provider must return:
+Evidence acquisition adds abstracts, follows authoritative PDF metadata or derived arXiv PDF URLs, validates PDF content, and extracts recognized Abstract, Method/Methodology/Approach/Model, and Experiment/Results/Evaluation sections. Each section is limited to 8,000 characters and total evidence to 24,000, preserving heading page and removing duplicates. No evidence produces `discovery_only`; such papers are counted and then removed from displayed final results.
 
-- optional `research_problem`;
-- arrays for prior work, implemented approaches, findings, limitations,
-  unresolved questions, and stated future work; and
-- `inferred_solution_search_concepts`.
+Evaluation batches contain at most three papers identified as batch-local `paper-NNN`. The schema requires score, summary, strengths, limitations, connections, and warnings. Scores use the documented 0–100 relevance rubric, require an explicit transfer connection at 50+, and receive contradiction checks at 75+. Integer scores normalize to 0.0–1.0; invalid identity/coverage/high-score entries are partially recovered and retried once. Persistent unresolved records remain unscored. Final evidence results sort by score with null last and take `max(1, max_results)` without excluding results below 0.75.
 
-Each ordinary finding requires non-empty content and a string-or-null section.
-The service attaches the uploaded document UUID to every finding.
+### Paper and direction analysis
 
-When a research question is supplied, exactly three solution concepts are
-required. Each item has non-empty source, target, and mechanism fields; all
-three mechanisms must differ. Fields are combined with duplicate words removed.
-Question tokens that look like acronyms or include `encoder`/`decoder` become
-required anchors and are prepended when absent. Retryable structured-output or
-field errors receive one retry; provider exceptions are not retried here.
+One request analyzes each retained paper. Required problem and approach plus optional findings are bound to that paper; every finding cites supplied evidence and exact page when present. Missing structure or invalid fields retry once, then skip the paper; provider exceptions propagate.
 
----
+Direction Analysis runs with at least two valid analyses and uses the first three. Deterministic context/literature handles enforce known, unique provenance. Themes, comparisons, and shared limitations require two papers; unresolved questions require one. Performance comparisons require matching evidence polarity. Non-speculative directions require literature and, when present, context evidence; speculative directions require at least one anchor. Ordinary invalid synthesis items are omitted, while semantic or direction-structure errors retry the full response once and then become an isolated workflow warning.
 
-## 4. Strategy Design
+### Presentation and diagnostics
 
-The Strategy Service is deterministic.
+The UI joins sources, papers, evaluations, and analyses by source ID into consolidated cards. Evaluation warnings become deduplicated relevance limitations. Legacy Literature Comparison, Research Gap Analysis, and Experiment Proposal artifacts remain unrendered compatibility outputs. Browser **Save Results** separately builds `project0_research_results.md` from the visible package using File System Access or Blob download.
 
-### Ordered concepts
+INFO logs aggregate selection counts; DEBUG logs candidate traces. The system-status panel polls `/api/system-status?agent=research` every two seconds during submission and reports provider/model and NVIDIA GPU data, not workflow-stage telemetry. Direction Analysis may write its Ollama payload to `/tmp/project0_direction_analysis_request.json`.
 
-Concepts are appended in this order:
+## 4. Interactions and Contracts
 
-1. explicit `focus_areas` from programmatic requests;
-2. non-constraint, non-question guidance items;
-3. the normalized question concept;
-4. context-inferred solution concepts;
-5. context unresolved questions;
-6. context stated future work;
-7. context limitations;
-8. context findings; and
-9. the context research problem.
+The Platform Dispatcher owns composition and passes the Research model to all reasoning services. Services depend on `ReasoningProviderProtocol`, not Ollama. Principal immutable contracts cover requests, strategy, source references, metadata, evidence, context, evaluations, paper analyses, synthesis/directions, artifacts, and `ResearchResult`; source providers implement `ResearchSourceProviderProtocol`.
 
-Implemented approaches and prior work from context are not directly appended as
-strategy concepts. Exact duplicate strings are removed while preserving first
-occurrence.
+Execution flows from optional context ingestion through strategy/query generation, nested provider retrieval, deduplication and balancing, metadata normalization, optional preliminary ranking, evidence acquisition, final evaluation, retained-paper analysis, optional Direction Analysis, compatibility artifacts, and browser mapping.
 
-### Constraints and sub-questions
-
-Programmatic constraints are followed by guidance items beginning with
-`prefer`, `focus`, `avoid`, or `require`. Guidance constraints receive a trailing
-period. Guidance items ending in a question mark become sub-questions.
-
-### Seeds
-
-The first three unique quoted titles, arXiv identifiers, or DOI identifiers in
-guidance become `seed_terms`. Quoted text is treated as a seed even if it is not
-actually a publication title.
-
----
-
-## 5. Query Design
-
-The Query Service does not call a model or provider.
-
-### Construction
-
-1. Normalize and deduplicate seeds.
-2. Build compact queries from inferred context solution concepts.
-3. Convert strategy concepts and `Focus on ...` constraints into candidate
-   dimensions.
-4. Detect directive guidance and research roles.
-5. When suitable, derive distinct direct, mechanism, transfer, and application
-   role queries.
-6. Remove exact and high-overlap candidates.
-7. Select at most three discovery queries.
-8. Remove discovery queries with 60% or greater term-stem overlap with a seed.
-9. Return seeds followed by discovery queries.
-
-Substantial overlap among discovery candidates is defined as at least 75%
-relative to the smaller meaningful-term set.
-
-### Bounds
-
-- Strategy Service: at most three seeds.
-- Query Service: at most three discovery dimensions.
-- Generated discovery query: normally at most eight words.
-- Total current search terms: at most six.
-
-Seeds are preserved as entered after whitespace normalization and are not
-subject to the eight-word discovery-query limit.
-
----
-
-## 6. Provider and Retrieval Design
-
-### Configuration
-
-The supported names are `semantic_scholar`, `openalex`, `openreview`,
-`crossref`, `arxiv`, and `stub`. Names are selected from a comma-separated
-environment value without case normalization. Unsupported names fail provider
-construction.
-
-Default selection is:
-
-~~~text
-semantic_scholar,arxiv
-~~~
-
-### Provider behavior
-
-| Provider | Endpoint family | Per-call result bound | Notable behavior |
-| --- | --- | ---: | --- |
-| Semantic Scholar | Graph API paper search/detail | 10 | Optional API key; search retries; detail fallback to search metadata. |
-| OpenAlex | `/works` | 10 | Provider class supports an API key, but application settings do not wire one. |
-| OpenReview | API2 `/notes/search` | 10 retained | Requests up to 50 notes, then keeps submission-like forum notes and filters reviews/DBLP records. |
-| Crossref | `/works` | 10 | Optional contact `mailto`; invalid individual items are skipped. |
-| arXiv | public Atom API | 10 | 60-second default timeout; returns normalized Atom entries. |
-| stub | in-memory | configured tuple | Records strategies and can raise a configured error. |
-
-External providers use up to three attempts for transient request errors,
-HTTP 429, and server failures. They honor numeric `Retry-After` where
-implemented and otherwise use exponential delays. Exact error messages and
-delay caps differ by provider.
-
-### Dispatch
-
-The Source Service converts each search term into a one-term strategy and calls
-providers in this nested order:
-
-~~~text
-for provider in configured providers:
-    for query in strategy.search_terms:
-        provider.search(one-query strategy)
-~~~
-
-Crossref is not called for a one-term query that is only an arXiv identifier or
-arXiv URL.
-
-### Duplicate identity
-
-Two references are duplicates when they share provider/source ID, a normalized
-DOI/arXiv identifier, or a normalized title with compatible year and authors.
-Title matching ignores accents, case, and punctuation. When both records have
-authors, at least one normalized author must overlap.
-
-Canonical richness is ordered by abstract length, author count, metadata-field
-count, presence of year, then presence of URL. Missing/blank metadata fields
-from the alternate record are merged into the canonical record.
-
-### Eligibility profile
-
-The Source Service enables its alignment profile when strategy concepts and
-queries collectively contain visual, language, and mechanism terms. Direct and
-transferable candidates are identified from title plus abstract tokens.
-Explicit seeds bypass profile exclusion. Candidates with no profile vocabulary
-can remain, while candidates exposing incompatible language/task or
-representation-synthesis vocabulary can be excluded.
-
-This profile and the Evidence Candidate tiers in `ResearchWorkflow` contain
-hard-coded visual/video-language representation-learning vocabulary. They are
-not dynamically derived from arbitrary research domains.
-
-### Balanced pool
-
-Within each provider/query group, candidates are sorted by a tuple of:
-
-1. title overlap with terms repeated across strategy queries;
-2. title/abstract overlap with repeated anchor terms;
-3. title overlap with that group's query; and
-4. title/abstract overlap with that query.
-
-Seeds enter first. The selector then takes one candidate from each group per
-round, skipping duplicates, until the default `evaluation_candidate_limit` of
-24 is reached. Candidate statistics and trace records are diagnostic state,
-not fields on the strategy.
-
----
-
-## 7. Metadata and Evidence Design
-
-### Metadata normalization
-
-All supported provider names map to `PaperMetadata`. Missing optional fields
-remain null/empty. Semantic Scholar is the only provider for which the metadata
-service makes a separate detail request.
-
-### Shortlist
-
-The workflow-level evidence candidate limit is eight. If metadata contains
-more than eight papers:
-
-1. `rank_candidates` performs preliminary metadata evaluation;
-2. Evidence Candidate tiers put direct video-language-representation transfer
-   candidates before transferable visual-language candidates;
-3. unrelated or excluded candidates receive tier 2 and are not eligible;
-4. scores order candidates within a tier; and
-5. at most eight eligible papers proceed.
-
-If eight or fewer papers exist, all proceed directly to evidence acquisition;
-the workflow-specific tier filter is not applied at that point.
-
-### Evidence acquisition
-
-For each shortlisted paper:
-
-- add a non-empty abstract as `ResearchPaperEvidenceSection("Abstract", ...)`;
-- inspect paper and source-reference metadata for
-  `open_access_pdf_url`/`pdf_url`;
-- for arXiv, convert an `/abs/` URL to `/pdf/`;
-- retrieve and validate PDF content;
-- extract Abstract, Method/Methodology/Approach/Model, and
-  Experiment/Results/Evaluation sections only when a matching heading occurs
-  on a page; and
-- take at most 8,000 characters after each heading and 24,000 characters total.
-
-Evidence records preserve the heading page, not a complete page range.
-Duplicate evidence sections are removed. Any non-empty evidence yields
-`available`; otherwise status is `discovery_only`.
-
-The workflow's `discovery_only_count` counts papers with no evidence sections.
-Its warning is added before final selection. The final default evidence path
-then removes those papers from displayed results.
-
----
-
-## 8. Evaluation Design
-
-### Batch identity and schema
-
-Batches contain at most three papers. External source IDs are replaced with
-`paper-NNN` handles scoped to the batch. The schema requires exactly one item
-per paper with score, summary, strengths, limitations, connections, and
-warnings.
-
-### Relevance rubric
-
-The provider prompt defines:
-
-- 90–100: direct application/task and central-problem alignment;
-- 75–89: a major technical dimension plus application alignment or a concrete
-  supported transfer path;
-- 50–74: related mechanism with an incomplete transfer path;
-- 25–49: background/adjacent work without a specific mapping; and
-- 0–24: weakly related or off-topic.
-
-Scores of at least 50 require an explicit mechanism-to-question connection.
-Scores of at least 75 receive additional contradiction checks. The returned
-integer is divided by 100; integer-valued floats are accepted, but booleans,
-fractional scores, and out-of-range values are rejected.
-
-### Recovery
-
-On retryable identity, coverage, or high-score defects:
-
-- valid items are retained;
-- unknown/duplicate/invalid items are ignored for partial recovery;
-- only unresolved papers are retried once; and
-- persistent unresolved papers receive a null score and explicit warnings.
-
-Other malformed field types and provider exceptions propagate.
-
-### Final result selection
-
-The default evidence path keeps evaluations whose papers have evidence
-sections, sorts descending by score with null last, and takes
-`max(1, max_results)`. It does not apply the 0.75 threshold as an exclusion.
-Recommendation is a presentation property derived from `score >= 0.75`.
-
----
-
-## 9. Paper Analysis Design
-
-One provider request is made per retained paper. Abstract evidence is added to
-the evidence-section list if the paper has an abstract and no explicit
-`Abstract` section.
-
-The response does not return paper IDs. Required `problem` and `approach` and
-all optional findings are bound to the paper already being processed. Each
-finding must cite a supplied section and exact page number when one exists.
-When abstract evidence exists and the model supplies both section and page as
-null, the service normalizes the citation to `Abstract`.
-
-Missing structured output and provider-field validation errors are retried
-once. Persistent structural failure skips the paper. Provider exceptions
-propagate. A discovery-only paper without abstract content is skipped without a
-provider call.
-
----
-
-## 10. Research Direction Analysis Design
-
-### Input
-
-Direction Analysis runs for at least two valid analyses and truncates input to
-the first three. Context and paper findings are cataloged with deterministic
-internal paths, then exposed to the provider as sequential
-`context-NNN`/`literature-NNN` handles.
-
-### Output rules
-
-The schema requires synthesis arrays and candidate directions.
-
-- Themes, comparisons, and shared limitations require cited evidence from at
-  least two distinct papers.
-- Unresolved questions require at least one paper.
-- Evidence lists must contain known, unique handles of the expected source
-  type and may not exceed the distinct literature-source count.
-- Explicit better/worse/higher/lower/outperform/underperform-style comparisons
-  are accepted only when cited literature findings contain matching
-  performance polarity.
-- Non-speculative directions always require literature evidence and also
-  context evidence when context exists.
-- A speculative direction requires at least one evidence anchor.
-
-Ordinary invalid synthesis findings are caught, logged, and omitted. The
-performance-comparison guard raises a semantic grounding error that invalidates
-the response. Invalid candidate directions also invalidate the response. The
-whole request is retried once with the first validation error included as
-feedback. A second failure propagates to the workflow, which converts it to a
-warning and omits Direction Analysis.
-
----
-
-## 11. Artifact and Presentation Design
-
-### In-memory artifacts
-
-When evaluations exist, `ResearchArtifactService` returns:
-
-- Literature Comparison;
-- Research Gap Analysis; and
-- Experiment Proposal.
-
-They are deterministic compatibility artifacts, omit source references, and
-are counted in the workflow summary string. The current page model does not
-carry them, and template artifact markup is disabled with `{% if false %}`.
-
-### Consolidated cards
-
-The UI joins papers, evaluations, source references, and paper analyses by
-source ID. Each displayed card includes one title link at most, source details,
-abstract/fallback text, relevance fields, and optional structured analysis.
-Evaluation warnings are deduplicated into the displayed Relevance Limitations;
-the card-level warning tuple is cleared.
-
-### Saved Markdown
-
-On a completed page, **Save Results** builds
-`project0_research_results.md` in JavaScript. It includes the request, optional
-context filename and findings, consolidated paper results, available analyses,
-Direction Analysis, and a generation timestamp. The browser uses the File
-System Access API when available and otherwise downloads a Blob.
-
-This saved file is not a server-side `ResearchArtifact` and is not written to
-the repository.
-
----
-
-## 12. Status, Logging, and Diagnostics
-
-`completed_with_warnings` is returned for:
-
-- no source references;
-- incomplete metadata count;
-- discovery-only evidence-shortlist members;
-- no recommended evidence-reviewed papers; or
-- isolated Direction Analysis failure.
-
-The source service logs aggregate selection counts at INFO and candidate traces
-at DEBUG. Direction Analysis may write its Ollama request payload to
-`/tmp/project0_direction_analysis_request.json` through request metadata.
-
-The browser system-status panel polls `/api/system-status?agent=research` every
-two seconds during a submitted request. It reports configured provider/model
-and NVIDIA GPU information; it is operational status, not true workflow-stage
-telemetry.
-
----
-
-## 13. Configuration
+## 5. Configuration and Failure Behavior
 
 | Setting | Default |
 | --- | --- |
 | Reasoning provider | `ollama` |
 | Research model | `qwen2.5:7b` |
-| Ollama base URL | `http://127.0.0.1:11434` |
+| Ollama URL | `http://127.0.0.1:11434` |
 | Ollama timeout | 600 seconds |
-| Active source providers | `semantic_scholar`, `arxiv` |
-| Evaluation candidate pool | 24 |
+| Source providers | `semantic_scholar`, `arxiv` |
+| Evaluation pool | 24 |
 | Evidence shortlist | 8 |
 | Evaluation batch | 3 |
-| Direction input | first 3 paper analyses |
+| Direction input | first 3 analyses |
 | Direction Analysis | enabled |
 | Recommendation threshold | 0.75 |
 
-Environment-variable names and fallback rules are listed in the Functional
-Specification and Testing Guide.
+The workflow constructor obtains the direction-analysis flag from module-level `SETTINGS`; normal environment startup honors the override, but a custom `ProjectSettings` passed only to `create_platform_dispatcher` does not override that constructor default.
 
----
+No source results, incomplete metadata, discovery-only candidates, no recommended papers, and isolated Direction failure produce `completed_with_warnings`. Recoverable structured-output defects follow the retries above. Provider exceptions propagate except where the workflow explicitly isolates Direction Analysis or the source service has another successful group.
 
-## 14. Known Implementation Constraints
+## 6. Constraints and Verification
 
-- Context is sent in one reasoning request; there is no chunk limit.
-- PDF section extraction is heading- and page-dependent and is not a complete
-  paper parser.
-- The current candidate profile and evidence tiers include domain-specific
-  visual/video-language terminology.
-- Partial source-query failures are not surfaced when another group succeeds.
-- The optional OpenAlex provider API key is not configurable through
-  `ProjectSettings`.
-- A caller-supplied `ProjectSettings.research_direction_analysis_enabled` is
-  not explicitly forwarded by the dispatcher; normal environment-based global
-  settings remain effective.
-- Legacy artifacts are not the browser-saved result package.
+- Context is one reasoning request with no chunk limit or page provenance.
+- PDF extraction is heading/page-dependent rather than a complete parser.
+- Candidate profile and evidence tiers contain domain-specific vocabulary.
+- Partial source/query failures are not surfaced when another group succeeds.
+- OpenAlex's optional API key is not wired through `ProjectSettings`.
+- Custom dispatcher settings do not directly override the workflow constructor's direction flag.
+- Legacy artifacts differ from the browser-saved package.
+- Model reasoning remains variable despite schemas, deterministic checks, and retries.
 
+Verification shall cover deterministic bounds, provider construction and dispatch, identity and recovery rules, evidence grounding, UI consolidation, configuration, warning/failure behavior, and the distinction between current capability and future design.
