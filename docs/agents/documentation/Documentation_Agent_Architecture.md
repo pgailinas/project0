@@ -1,375 +1,109 @@
 # Documentation Agent Architecture
 
-**Version:** 0.7  
+**Version:** 0.8  
 **Owner:** Project0  
 **Last Updated:** 2026-09-11
 
----
+## 1. Executive Summary
 
-## 1. Purpose
+The Documentation Agent is a source-grounded, human-reviewed Markdown update workflow hosted by the shared Project0 Dashboard. It composes separate repository, context, reasoning, location, validation, review, update, and Git-diff services behind typed boundaries. Reasoning proposes changes; deterministic guards establish eligibility and location; individual human approval authorizes each write. Approved files are replaced atomically, but the proposal set is not transactional and failed final validation does not roll back a completed write.
 
-### Objective
+## 2. Purpose and Scope
 
-Define the high-level architecture of the Documentation Agent and the
-major components that implement its source-grounded, human-reviewed
-Markdown update workflow.
+This document defines the Documentation Agent's architecture, major components, runtime composition, dependencies, data flow, and constraints. Algorithms and exact model fields belong in the Documentation Agent Design and Interface Design.
 
-### Scope
+The architecture keeps agent-specific workflow and presentation behavior outside the shared Dashboard shell. It treats supplied source files as read-only evidence, existing Markdown targets as controlled artifacts, provider output as untrusted structured input, and ambiguous source-grounded proposals as warnings rather than best-effort writes.
 
-This document describes architectural organization, responsibility
-boundaries, principal data flow, runtime composition, dependencies, and
-constraints. Detailed algorithms and exact model fields belong in the
-Documentation Agent Design and Interface Design documents.
+## 3. Architecture and Components
 
----
+### Runtime topology
 
-## 2. Architectural Principles
-
-- **Modular responsibility**: Repository access, context construction,
-  reasoning, artifact location, validation, review presentation,
-  repository update, and Git diff generation remain separate concerns.
-- **Repository grounding**: Explicitly supplied source files are
-  read-only authoritative evidence for source-grounded synchronization.
-- **Controlled target artifacts**: Existing Markdown target files are
-  updated in place; the executable workflow does not create or delete
-  files.
-- **Deterministic enforcement**: Path, operation, file-type, location,
-  semantic-alignment, anchor, and source-fidelity rules are enforced
-  outside the reasoning provider.
-- **Human authority**: A proposal must receive an individual approve
-  decision before it can be written.
-- **Typed boundaries**: Components exchange typed request, result,
-  proposal, review, validation, and presentation models.
-- **Provider abstraction**: Reasoning services depend on a provider
-  protocol rather than a specific model runtime.
-- **Shared platform reuse**: Agent-specific behavior composes reusable
-  Project0 services without moving that behavior into the shared
-  Dashboard shell.
-- **Fail-closed behavior**: Ambiguous or unsupported source-grounded
-  proposals are skipped and reported instead of being applied by best
-  effort.
-
----
-
-## 3. Architectural Workflow
-
-### 3.1 Browser and platform flow
-
-The Documentation Agent is hosted inside the Project0 Dashboard. Its
-FastAPI router accepts requests and individual review decisions. The UI
-service normalizes browser values, calls the Platform Dispatcher, and
-maps workflow objects into presentation models.
-
-The Platform Dispatcher invokes `DocumentationWorkflow` directly. The
-generic `WorkflowEngine` is assembled as a shared platform service but
-is not the execution engine for the current Documentation Workflow.
+The Dashboard router accepts requests and individual review decisions. The UI Service normalizes browser values, invokes the Platform Dispatcher, and maps workflow objects into presentation models. The dispatcher calls `DocumentationWorkflow` directly; the assembled generic `WorkflowEngine` is not its current execution engine.
 
 ```mermaid
 flowchart TD
-    Browser["Documentation Work Area"] --> Routes["FastAPI routes"]
-    Routes --> UIService["Documentation UI service"]
-    UIService --> Dispatcher["Platform Dispatcher"]
-    Dispatcher --> Workflow["Documentation Workflow"]
-    Workflow --> Result["Review state or final result"]
-    Result --> UIService
+    B["Documentation Work Area"] --> R["FastAPI routes"]
+    R --> U["Documentation UI Service"]
+    U --> P["Platform Dispatcher"]
+    P --> W["Documentation Workflow"]
+    W --> S["Review state or result"]
+    S --> U
 ```
 
-### 3.2 Context and reasoning paths
+`create_project0_dashboard_app()` constructs separate Documentation and Research dispatchers. In Ollama mode they may share a provider while using agent-specific model names. The Documentation model resolves from `PROJECT0_DOCUMENTATION_OLLAMA_MODEL`, then `PROJECT0_OLLAMA_MODEL`, with `gemma3:4b` as default. Stub mode supplies separate deterministic providers.
 
-The workflow has two context paths:
+### Browser and orchestration components
 
-1. **Source-grounded path**: When source paths are supplied, the
-   repository service reads only the requested target and source files.
-   Context explicitly labels each file as `TARGET DOCUMENTATION` or
-   `AUTHORITATIVE SOURCE`. Any read error prevents context construction.
-2. **Ordinary path**: Without source paths, the Knowledge Service builds
-   context from the user request and optional requested target paths.
-   Baseline documents are not automatically included by this path.
+- **Documentation Agent Routes** expose the Work Area, request, and review endpoints; parse newline-separated paths and decisions; delegate blocking calls through the thread pool; and render the shared shell.
+- **Documentation Agent UI Service** normalizes fields, invokes the workflow port, maps domain data to immutable view models, creates focused differences using the shared application helper, and converts errors to page states.
+- **Platform Dispatcher** exposes workflow execution, review submission, and state retrieval; validates top-level inputs; and assembles dependencies.
+- **Documentation Workflow** owns context selection, reasoning, gap deduplication, proposal construction and filtering, validation, in-memory review state, application, Git diff, statuses, warnings, and summary counts.
 
-Source-grounded execution uses two reasoning calls. The first returns
-material documentation gaps; exact duplicate gaps are removed. The
-second generates edits only for the established gaps and receives the
-repository-local `strict-documentation-editor` skill when the Skill
-Registry is configured. Ordinary execution uses one documentation
-update reasoning call.
+### Repository, context, and reasoning components
+
+- **Repository Service** performs deterministic discovery and reads, preserving relative identity and read failures.
+- **Knowledge Service** builds ordinary-request context through deterministic discovery, parsing, selection, and formatting.
+- **Reasoning Service and Prompt Builder** construct schema-constrained requests, separate instructions and repository context, and parse provider output into typed gaps, impacts, and changes or a failed result.
+- **Reasoning Provider** executes provider-neutral requests. Ollama uses non-streaming `/api/chat`, JSON schema, temperature 0.0, and configured timeout; stub mode supplies deterministic output.
+- **Skill Registry** discovers repository-local skills and conditionally loads `strict-documentation-editor` for source-grounded proposal generation. Skills guide reasoning but do not replace deterministic guards.
+
+### Enforcement, validation, and mutation components
+
+- **Artifact Location Service** locates existing sections and exact ranges for localized changes; results remain subject to ambiguity and semantic checks.
+- **Validation Service** runs validators in order, isolates exceptions, and aggregates status. The default workflow includes Markdown, Link, and MkDocs validators, not Documentation Consistency Validator.
+- **Review Coordinator** defines a reusable decision-provider abstraction, but current Dashboard review calls `DocumentationWorkflow.submit_review()` through the dispatcher; it does not automatically mediate browser decisions or regenerate revisions.
+- **Repository Update Service** applies one approved proposal after verifying identifiers, containment, Markdown type, existence, and original snapshot; successful writes use a temporary file and atomic replacement.
+- **Git Diff Service** reports differences limited to applied paths and performs no stage, commit, push, branch, merge, or pull-request operation.
+- **Shared models and interfaces** separate repository, context, reasoning, validation, workflow, location, review, update, diff, and browser-presentation contracts.
+
+## 4. Interactions and Dependencies
+
+### Context and proposal flow
+
+Source-grounded mode reads only requested targets and sources, labels them `TARGET DOCUMENTATION` or `AUTHORITATIVE SOURCE`, and aborts on any read failure. It performs gap analysis, exact-gap deduplication, and bounded proposal generation for established gaps; `strict-documentation-editor` is used in proposal generation when configured. Ordinary mode uses Knowledge Service context and one update-reasoning call without automatic baseline inclusion.
 
 ```mermaid
 flowchart TD
-    Request["Documentation request"] --> SourceCheck{"Source paths?"}
-    SourceCheck -->|Yes| ExactContext["Targets plus authoritative sources"]
-    ExactContext --> GapAnalysis["Gap analysis"]
-    GapAnalysis --> ProposalReasoning["Bounded proposal generation"]
-    SourceCheck -->|No| Knowledge["Knowledge Service context"]
-    Knowledge --> ProposalReasoning
-    ProposalReasoning --> Guards["Deterministic proposal guards"]
+    Q["Documentation request"] --> C{"Source paths?"}
+    C -->|Yes| G["Exact context and gap analysis"]
+    C -->|No| K["Knowledge Service context"]
+    G --> P["Proposal reasoning"]
+    K --> P
+    P --> D["Deterministic guards"]
+    D --> H["Human review"]
+    H --> F["Apply, validate, and diff"]
 ```
 
-### 3.3 Proposal, validation, and review flow
+Structured output is parsed before deterministic enforcement, and enforcement precedes review. Eligible proposals update existing `.md` files within repository and allowlist boundaries. Source-grounded proposals receive additional concrete-content, fenced-Python, declaration-fidelity, unique-location/anchor, and semantic-alignment checks.
 
-Structured provider output is parsed by `ReasoningService`. The
-Documentation Workflow then converts supported changes into reviewable
-proposals. Only updates to existing `.md` files inside the repository
-and optional target allowlist are eligible.
+Current repository paths are preliminarily validated before review; candidate edits are not staged into an isolated tree. Review state is stored by workflow ID. Approve immediately invokes update; reject and skip write nothing; revise retains state and returns to the user without rerunning reasoning. After all decisions, applied paths receive final validation and Git diff, summary data is returned, and in-memory state is removed.
 
-Source-grounded proposals receive additional deterministic checks for
-concrete Markdown content, fenced Python use, declaration fidelity,
-unique locations or anchors, and section semantic alignment. Failed
-checks produce warnings and skipped proposals.
+### External dependencies
 
-The configured Validation Service validates proposal target paths before
-review. This preliminary validation evaluates the current repository
-files; it does not apply each proposed edit to an isolated validation
-workspace.
+- A local Git repository with Markdown targets and optional source evidence.
+- `mkdocs.yml` and locally resolvable links.
+- Python and Project0 packages.
+- FastAPI, Starlette, and Jinja2.
+- Git for path-scoped diffs.
+- Local Ollama when selected.
+- pytest and browser-test dependencies.
 
-The workflow stores review state in memory by workflow identifier. Each
-proposal accepts approve, revise, reject, or skip:
+## 5. Boundaries and Constraints
 
-- approve immediately invokes the Repository Update Service;
-- reject and skip produce skipped application records without writes;
-- revise retains state and returns control to the user, but does not
-  automatically invoke reasoning again.
+Provider output is untrusted. Review state is process-local and not durable or shared. Approval mutates one proposal immediately, so earlier writes may coexist with pending proposals. Atomicity is per file, not across the set. Final validation occurs after writing and reports failure without restoring the original document.
 
-After every proposal has a decision, the workflow validates successfully
-applied paths, generates their Git diff, builds summary counters, returns
-a final result, and removes the in-memory state.
+Handled boundaries include: aborting source-grounded context on read failure; converting expected provider, parsing, I/O, runtime, type, and value failures to failed results; skipping invalid proposals with warnings; converting validator exceptions to failed validator results; rejecting stale snapshots, unknown IDs, duplicate reviews, and unsupported decisions.
 
-```mermaid
-flowchart TD
-    Guards["Accepted proposals"] --> Preliminary["Validate current target paths"]
-    Preliminary --> Review["Individual human review"]
-    Review -->|Approve| Apply["Atomic Markdown update"]
-    Review -->|Reject or skip| NoWrite["No repository write"]
-    Review -->|Revise| Retain["Retain request and workflow state"]
-    Apply --> Final["Final validation and Git diff"]
-    NoWrite --> Completion["Complete after all decisions"]
-    Final --> Completion
-```
+Current constraints are:
 
----
+- Only existing Markdown files may be updated.
+- Source-grounded context is limited to explicit targets and sources.
+- Preliminary validation examines current files, not a candidate tree.
+- Review state is in memory and decisions are processed per proposal.
+- Revise does not regenerate a proposal automatically.
+- Writes are atomic per file but not transactional across proposals.
+- Final validation provides no rollback.
+- Documentation Consistency Validator is not in the default validator tuple.
+- The workflow performs no Git publication operation.
 
-## 4. Architectural Components
-
-### Documentation Agent Routes
-
-Expose the Documentation Work Area, request submission, and review
-submission endpoints. Routes parse newline-separated paths, convert
-review decision strings, delegate blocking workflow calls through the
-thread pool, and render the shared Dashboard shell.
-
-### Documentation Agent UI Service
-
-Acts as the browser adapter. It normalizes request fields, invokes the
-dispatcher-facing workflow port, converts domain models to immutable
-view models, constructs focused proposal differences using the same
-change-application helper used by repository updates, and maps errors to
-displayable failure states.
-
-### Platform Dispatcher
-
-Provides the application-level entry points for running documentation
-workflows, submitting reviews, and retrieving workflow state. It
-validates required top-level values and assembles default platform and
-agent dependencies.
-
-### Repository Service
-
-Provides deterministic repository discovery and file reads. For
-source-grounded work it reads the exact target and source path set and
-preserves repository-relative identity and read errors.
-
-### Knowledge Service
-
-Builds documentation context for requests without authoritative source
-paths. It performs repository document discovery, parsing, deterministic
-selection, and formatting through its knowledge-layer collaborators.
-
-### Reasoning Service and Prompt Builder
-
-Build schema-constrained provider requests and parse provider-neutral
-structured output. The Prompt Builder separates system instructions,
-workflow rules, allowed paths and sections, active skill instructions,
-and repository context. The Reasoning Service converts provider output
-into typed gaps, impacts, and proposed changes or a failed reasoning
-result.
-
-### Reasoning Provider
-
-Executes the provider request. The production path supports local
-Ollama through `/api/chat`, non-streaming JSON-schema output, temperature
-0.0, and configurable timeout. Stub mode supplies deterministic output
-for development and tests. Documentation and Research dispatchers may
-share an Ollama provider while using different model names.
-
-### Skill Registry
-
-Discovers and loads repository-local skills beneath `skills/`. The
-Documentation Workflow conditionally loads
-`strict-documentation-editor` for source-grounded proposal generation.
-Skill instructions refine model behavior; deterministic workflow guards
-remain authoritative and independent of the skill.
-
-### Artifact Location Service
-
-Finds existing Markdown sections and other precise ranges used to
-anchor localized changes. Location results are advisory inputs to
-deterministic ambiguity and semantic-alignment checks before a proposal
-is accepted.
-
-### Documentation Workflow
-
-Owns orchestration of context acquisition, one- or two-stage reasoning,
-gap deduplication, proposal construction and filtering, preliminary
-validation, in-memory review state, per-proposal application, final
-validation, Git diff generation, warnings, statuses, and summaries.
-
-### Validation Service
-
-Runs configured validators in order, isolates validator exceptions, and
-aggregates issues and status. The default Documentation Workflow is
-assembled with:
-
-- Markdown Validator;
-- Link Validator; and
-- MkDocs Validator.
-
-The Documentation Consistency Validator exists elsewhere in the
-platform but is not included in the default Documentation Workflow's
-validator tuple at the pinned implementation.
-
-### Review Coordinator
-
-Defines a reusable decision-provider abstraction and is injected into
-the Documentation Workflow. Interactive Dashboard review, however,
-calls `DocumentationWorkflow.submit_review()` through the Platform
-Dispatcher; the stored coordinator is not invoked by that current path.
-It should therefore not be described as automatically regenerating
-revised proposals or mediating browser decisions.
-
-### Repository Update Service
-
-Applies one approved proposal. It verifies matching proposal and review
-identifiers, repository containment, Markdown type, file existence, and
-the original-content snapshot. Successful writes use a temporary file
-in the destination directory followed by atomic replacement.
-
-### Git Diff Service
-
-Generates a Git diff limited to successfully applied paths. It reports
-repository differences but does not commit, stage, push, branch, merge,
-or open pull requests.
-
-### Shared Models and Interfaces
-
-Typed contracts cover repository access, context, reasoning providers,
-validation, workflow execution, documentation workflow operations,
-artifact locations, review, repository update, and Git diff generation.
-Domain workflow models remain separate from browser presentation models.
-
----
-
-## 5. Runtime Composition and External Dependencies
-
-`create_project0_dashboard_app()` constructs separate Documentation and
-Research dispatchers and supplies their UI services to the shared
-Dashboard application.
-
-When `PROJECT0_REASONING_PROVIDER=ollama`, both dispatchers use the
-configured Ollama provider and agent-specific model names. The
-Documentation model resolves from `PROJECT0_DOCUMENTATION_OLLAMA_MODEL`,
-then `PROJECT0_OLLAMA_MODEL`, with `gemma3:4b` as its default. When the
-provider is `stub`, the Dashboard supplies separate deterministic
-Documentation and Research reasoning providers.
-
-Principal external dependencies are:
-
-- a local Git repository;
-- Markdown documentation and optional Python or other source evidence;
-- `mkdocs.yml` and locally resolvable documentation links;
-- the Python runtime and Project0 application packages;
-- FastAPI, Starlette, and Jinja2 for the browser interface;
-- Git for final diff generation;
-- a local Ollama service when Ollama reasoning is selected; and
-- pytest and browser-test dependencies for verification.
-
----
-
-## 6. Data, State, and Failure Boundaries
-
-### Data boundaries
-
-The principal Documentation Agent model groups are:
-
-- documentation workflow requests and statuses;
-- source-grounded gaps, impacts, and proposed reasoning changes;
-- accepted documentation change proposals;
-- individual reviews and application results;
-- preliminary and final validation results;
-- workflow state, summaries, and final results; and
-- page, proposal, difference, validation, and summary view models.
-
-Provider output is treated as untrusted structured input. Parsing
-precedes deterministic proposal enforcement, and proposal enforcement
-precedes human review.
-
-### State and mutation boundaries
-
-Review state is stored only in the Documentation Workflow process. It is
-not durable across application restarts or shared across independent
-processes.
-
-Approval is immediately mutating for that proposal. Earlier approvals
-can therefore be present in the working tree while later proposals still
-await decisions. The proposal set is not a transaction.
-
-Final validation occurs after writing. A failed final validation result
-is reported and influences workflow status, but the implementation does
-not automatically restore the original document.
-
-### Failure behavior
-
-- Context read failures abort source-grounded context construction.
-- Provider, parsing, expected I/O, runtime, type, and value failures are
-  converted into failed reasoning or workflow results where handled.
-- Invalid individual proposals are generally skipped with warnings.
-- Validator exceptions become failed validator results with error
-  issues.
-- A stale target snapshot produces a failed application result.
-- Unknown workflow IDs, unknown proposal IDs, duplicate reviews, and
-  unsupported review decisions are rejected.
-
----
-
-## 7. Architectural Constraints and Future Expansion
-
-### Current constraints
-
-- Only existing Markdown files can be updated by the workflow.
-- Source-grounded context is limited to explicitly supplied target and
-  source paths.
-- Preliminary validation evaluates current target files rather than a
-  staged candidate tree.
-- Review state is in memory.
-- Review decisions are processed one proposal at a time.
-- Revise does not automatically regenerate a proposal.
-- Approved writes are atomic per file but not transactional across
-  proposals.
-- Final validation has no rollback mechanism.
-- The default Documentation Workflow uses Markdown, link, and MkDocs
-  validators, not the Documentation Consistency Validator.
-- The workflow does not perform Git publication operations.
-
-### Possible future expansion
-
-Future versions may introduce durable workflow state, candidate-tree
-validation, automatic revision loops, transactional rollback, controlled
-document creation or deletion, semantic retrieval, repository-event
-awareness, asynchronous execution, additional reasoning providers, and
-multi-agent coordination.
-
-These items are architectural possibilities, not current capabilities.
-They require corresponding implementation, tests, and documentation
-updates before being treated as supported behavior.
-
----
-
-**End of Document**
+Durable state, candidate-tree validation, automatic revision, transactions or rollback, controlled create/delete, semantic retrieval, repository-event awareness, asynchronous execution, more providers, and multi-agent coordination are future possibilities, not current capabilities.
