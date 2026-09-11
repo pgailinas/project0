@@ -1,8 +1,8 @@
 # Component Communication Design
 
-**Version:** 0.5  
+**Version:** 0.6  
 **Owner:** Project0  
-**Last Updated:** 2026-09-09  
+**Last Updated:** 2026-09-10  
 
 ---
 
@@ -258,9 +258,12 @@ The implemented sequence is:
 
 ## Research Workflow
 
-* Coordinate Research Strategy, Research Query, Research Source, Paper Metadata, Research Evaluation, Per-Paper Analysis, Research Direction Analysis, Validation, and Research Artifact services.
-* Preserve Research Agent workflow state.
-* Return Research Workflow Results.
+* Coordinate optional context ingestion/analysis, Research Strategy, Research Query, Research Source, Paper Metadata/evidence acquisition, Research Evaluation, Per-Paper Analysis, Research Direction Analysis, and Research Artifact services.
+* Preserve Research Agent workflow state and source/evidence statistics.
+* Isolate Research Direction Analysis failure as a completed result warning.
+* Return immutable Research Workflow Results.
+
+Research structured-output and grounding checks are implemented inside the research analysis/evaluation services. The Research Workflow does not call the reusable Markdown/Link/MkDocs Validation Service.
 
 ### Shared Interfaces
 
@@ -491,4 +494,5 @@ The implemented Validation Service coordinates:
 * Documentation Consistency Validator
 
 The next implementation phase will extend this communication foundation with semantic retrieval, embedding generation, vector search, and additional AI agent capabilities.
+
 

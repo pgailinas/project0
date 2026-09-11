@@ -1,1149 +1,484 @@
 # Research Agent Design
 
-**Version:** 0.3  
+**Version:** 0.5  
 **Owner:** Project0  
-**Last Updated:** 2026-09-02
+**Last Updated:** 2026-09-10
 
 ---
 
 ## 1. Purpose
 
-### Objective
-
-Define the internal design of the major Research Agent components
-required to implement the Research Agent Functional Specification.
-
-### Scope
-
-Describe the purpose, responsibilities, interfaces, inputs, outputs,
-dependencies, and future considerations for Research Agent components.
-Architectural implementation boundaries and service abstractions are
-included where required to define component responsibilities.
+This document records the current detailed design of the Research Agent. It is
+descriptive of the implementation at the documented revision; it does not
+define unimplemented intentions.
 
 ---
 
-## 2. Component Design Principles
+## 2. Composition
 
--   Each component has a single responsibility.
--   Components communicate through well-defined typed interfaces.
--   Shared immutable data models define information exchanged between
-    components.
--   Components depend on interfaces rather than concrete implementations
-    where practical.
--   Deterministic processing shall be used whenever AI reasoning is not
-    required.
--   Components shall be independently testable.
--   Minimize coupling between components.
--   Maximize reuse across future AI agents.
--   Research outputs shall preserve identifiable source and citation
-    information.
--   Research-specific behavior shall remain separate from reusable
-    Project0 platform services.
+`create_project0_dashboard_app()` creates a Research Agent dispatcher with:
 
----
+- `ResearchStrategyService`;
+- `ResearchQueryService`;
+- `ResearchSourceService` and configured providers;
+- `PaperMetadataService`;
+- `ResearchEvaluationService`;
+- `ResearchArtifactService`;
+- `ResearchContextIngestionService`;
+- `ExistingResearchContextAnalysisService`;
+- `PaperAnalysisService`; and
+- `ResearchDirectionAnalysisService`.
 
-## 3. Component Overview
+The dispatcher passes the selected provider names into both Strategy Service
+and Provider Factory. It passes the Research Agent model name to every
+reasoning-backed research service.
 
-The Research Agent reuses the existing Project0 platform foundation and
-adds research-specific components required to transform research
-questions into structured, evidence-grounded research artifacts. The
-Research Agent is hosted within the reusable Dashboard Framework, which
-provides the browser interface while remaining architecturally separate
-from the agent services.
-
-Existing Project0 platform components reused by the Research Agent
-include:
-
--   Dashboard Framework
--   Platform Dispatcher
--   Workflow Engine
--   Knowledge Service
--   Reasoning Service
--   Validation Service
--   Artifact Services
--   Shared Interfaces
--   Shared Data Models
-
-Initial Research Agent-specific components include:
-
--   Research Workflow
--   Research Strategy Service
--   Research Query Service
--   Research Source Service
--   Research Source Provider Interface
--   Paper Metadata Service
--   Research Evaluation Service
--   Context Document Ingestion
--   Existing Research Context Analysis
--   Per-Paper Analysis
--   Research Direction Analysis
--   Research Artifact Service
-
-The Platform Dispatcher provides the platform-level entry point. It
-creates workflow tasks and submits them to the Workflow Engine. The
-Research Workflow coordinates the research-specific services and
-existing Project0 platform services required to produce structured
-research results.
+The `ResearchWorkflow` constructor defaults its direction-analysis flag from
+the module-level `SETTINGS.research_direction_analysis_enabled`. The dispatcher
+does not explicitly forward a custom `ProjectSettings` value for this flag.
+Normal application startup imports `SETTINGS` from the environment, so the
+documented environment override applies; isolated callers supplying a different
+settings object to `create_platform_dispatcher` do not currently override this
+constructor default.
 
 ---
 
-## 4. Component Specifications
+## 3. Request and Context Design
 
-### 4.1 Platform Dispatcher
+### Browser request
 
-#### Purpose
+The POST route accepts:
 
-Provide the platform-level entry point for assembling services and
-dispatching Research Agent workflows.
+| Form field | Type | Default |
+| --- | --- | --- |
+| `question` | text | empty; rejected by UI |
+| `guidance` | text | empty |
+| `max_results` | integer | 10 |
+| `context_document` | optional upload | none |
 
-#### Responsibilities
+The UI trims question/guidance and retains the normalized filename for display.
+It forwards file bytes without storing a copy.
 
--   Assemble the Research Workflow.
--   Create research workflow tasks.
--   Dispatch Research Workflows.
--   Return structured research workflow results.
--   Preserve separation between platform routing and Research Agent
-    behavior.
+### Context ingestion
 
-#### Interfaces
+Markdown and text are decoded as UTF-8 without rewriting their content. PDF
+pages are read with pypdf; non-empty extracted page strings are joined with two
+newlines. The resulting `ResearchContextDocument` includes a UUID, source
+filename, type, extraction method, status, and PDF page count where applicable.
 
-##### Provides
+The service does not preserve page boundaries in `extracted_text` and does not
+chunk the document. Context findings can cite a recognizable section string,
+but page-number provenance is not requested or stored for context findings.
 
--   Run research workflow.
+### Context structured output
 
-##### Consumes
+The provider must return:
 
--   Workflow Interface.
--   Research Workflow Interface.
--   Research workflow models.
+- optional `research_problem`;
+- arrays for prior work, implemented approaches, findings, limitations,
+  unresolved questions, and stated future work; and
+- `inferred_solution_search_concepts`.
 
-#### Design Notes
+Each ordinary finding requires non-empty content and a string-or-null section.
+The service attaches the uploaded document UUID to every finding.
 
--   Coordinates platform services without implementing research behavior
-    directly.
--   Uses existing Project0 platform dispatch patterns.
--   Provides a common entry point for the Documentation Agent, Research
-    Agent, and future agents.
-
-#### Inputs
-
--   Research workflow request
-
-#### Outputs
-
--   Research workflow result
-
-#### Required Services
-
--   Workflow Interface
--   Research Workflow Interface
-
-#### Future Considerations
-
--   Additional agent routing
--   Multi-agent workflow coordination
+When a research question is supplied, exactly three solution concepts are
+required. Each item has non-empty source, target, and mechanism fields; all
+three mechanisms must differ. Fields are combined with duplicate words removed.
+Question tokens that look like acronyms or include `encoder`/`decoder` become
+required anchors and are prepended when absent. Retryable structured-output or
+field errors receive one retry; provider exceptions are not retried here.
 
 ---
 
-### 4.2 Dashboard Framework
+## 4. Strategy Design
 
-#### Purpose
+The Strategy Service is deterministic.
 
-Provide the reusable browser-based user interface for Project0 services
-and AI agents.
+### Ordered concepts
 
-#### Responsibilities
+Concepts are appended in this order:
 
--   Host Research Agent pages within the shared framework.
--   Provide shared navigation, context, and Work Area hosting.
--   Provide the Dashboard Work Area for Research Agent interaction.
--   Remain independent of Research Agent business logic.
+1. explicit `focus_areas` from programmatic requests;
+2. non-constraint, non-question guidance items;
+3. the normalized question concept;
+4. context-inferred solution concepts;
+5. context unresolved questions;
+6. context stated future work;
+7. context limitations;
+8. context findings; and
+9. the context research problem.
 
-#### Design Notes
+Implemented approaches and prior work from context are not directly appended as
+strategy concepts. Exact duplicate strings are removed while preserving first
+occurrence.
 
--   Reuses the existing Dashboard Framework.
--   Research Agent-specific pages render within the Dashboard Work Area.
--   Research Agent UI behavior remains separate from shared Dashboard
-    Framework behavior.
+### Constraints and sub-questions
 
----
+Programmatic constraints are followed by guidance items beginning with
+`prefer`, `focus`, `avoid`, or `require`. Guidance constraints receive a trailing
+period. Guidance items ending in a question mark become sub-questions.
 
-### 4.3 Workflow Engine
+### Seeds
 
-#### Purpose
-
-Execute Project0 workflow tasks and return structured execution results.
-
-#### Responsibilities
-
--   Execute Research Agent workflow tasks.
--   Preserve workflow identifiers.
--   Capture task outputs.
--   Convert task exceptions into failed task results.
--   Return structured workflow execution results.
-
-#### Design Notes
-
--   Reuses the existing Project0 Workflow Engine.
--   Does not implement research-specific behavior.
--   Research workflow coordination remains the responsibility of the
-    Research Workflow.
+The first three unique quoted titles, arXiv identifiers, or DOI identifiers in
+guidance become `seed_terms`. Quoted text is treated as a seed even if it is not
+actually a publication title.
 
 ---
 
-### 4.4 Knowledge Service
+## 5. Query Design
 
-#### Purpose
+The Query Service does not call a model or provider.
 
-Provide Project0 repository knowledge relevant to Research Agent
-requests.
+### Construction
 
-#### Responsibilities
+1. Normalize and deduplicate seeds.
+2. Build compact queries from inferred context solution concepts.
+3. Convert strategy concepts and `Focus on ...` constraints into candidate
+   dimensions.
+4. Detect directive guidance and research roles.
+5. When suitable, derive distinct direct, mechanism, transfer, and application
+   role queries.
+6. Remove exact and high-overlap candidates.
+7. Select at most three discovery queries.
+8. Remove discovery queries with 60% or greater term-stem overlap with a seed.
+9. Return seeds followed by discovery queries.
 
--   Retrieve existing project research documentation.
--   Retrieve existing research artifacts when applicable.
--   Provide repository-grounded project context to research workflows.
+Substantial overlap among discovery candidates is defined as at least 75%
+relative to the smaller meaningful-term set.
 
-#### Design Notes
+### Bounds
 
--   Reuses the existing deterministic Knowledge Service.
--   Does not perform external literature discovery.
--   External research sources remain separate from repository knowledge
-    retrieval.
+- Strategy Service: at most three seeds.
+- Query Service: at most three discovery dimensions.
+- Generated discovery query: normally at most eight words.
+- Total current search terms: at most six.
 
-#### Future Considerations
-
--   Semantic retrieval
--   Embedding generation
--   Vector search
-
----
-
-### 4.5 Reasoning Service
-
-#### Purpose
-
-Perform AI-assisted research reasoning.
-
-#### Responsibilities
-
--   Analyze research questions.
--   Assist research strategy generation.
--   Analyze technical paper information.
--   Analyze Existing Research Context document content.
--   Perform structured per-paper interpretation.
--   Compare research methods and approaches.
--   Perform cross-paper synthesis for Research Direction Analysis.
--   Identify potential research gaps.
--   Generate experiment planning suggestions.
--   Generate structured research artifact content.
-
-#### Interfaces
-
-##### Provides
-
--   Analyze research request.
--   Evaluate research information.
--   Generate research analysis.
-
-##### Consumes
-
--   Research question.
--   Research source information.
--   Paper metadata.
--   Optional Existing Research Context.
--   Project knowledge.
-
-#### Design Notes
-
--   Performs only tasks requiring AI-assisted reasoning.
--   Does not directly access external research sources.
--   Does not independently establish scientific validity.
--   Distinguishes source information from generated analysis.
-
-#### Required Services
-
--   AI Reasoning Provider
-
-#### Future Considerations
-
--   Multiple reasoning providers
--   Model routing
--   Context-size management
+Seeds are preserved as entered after whitespace normalization and are not
+subject to the eight-word discovery-query limit.
 
 ---
 
-### 4.6 Validation Service
+## 6. Provider and Retrieval Design
 
-#### Purpose
+### Configuration
 
-Coordinate validation of Research Agent workflow outputs.
+The supported names are `semantic_scholar`, `openalex`, `openreview`,
+`crossref`, `arxiv`, and `stub`. Names are selected from a comma-separated
+environment value without case normalization. Unsupported names fail provider
+construction.
 
-#### Responsibilities
+Default selection is:
 
--   Validate required research artifact structure.
--   Validate required source and citation information.
--   Validate referenced context items and paper identifiers.
--   Validate candidate research direction context motivation and
-    literature evidence unless explicitly marked speculative.
--   Reject unknown source identifiers.
--   Aggregate validation results.
--   Preserve structured validation warnings and errors.
+~~~text
+semantic_scholar,arxiv
+~~~
 
-#### Design Notes
+### Provider behavior
 
--   Reuses the existing Project0 Validation Service where practical.
--   Research-specific validators may be added through existing
-    validation interfaces.
--   Validation does not determine scientific correctness.
+| Provider | Endpoint family | Per-call result bound | Notable behavior |
+| --- | --- | ---: | --- |
+| Semantic Scholar | Graph API paper search/detail | 10 | Optional API key; search retries; detail fallback to search metadata. |
+| OpenAlex | `/works` | 10 | Provider class supports an API key, but application settings do not wire one. |
+| OpenReview | API2 `/notes/search` | 10 retained | Requests up to 50 notes, then keeps submission-like forum notes and filters reviews/DBLP records. |
+| Crossref | `/works` | 10 | Optional contact `mailto`; invalid individual items are skipped. |
+| arXiv | public Atom API | 10 | 60-second default timeout; returns normalized Atom entries. |
+| stub | in-memory | configured tuple | Records strategies and can raise a configured error. |
 
-#### Future Considerations
+External providers use up to three attempts for transient request errors,
+HTTP 429, and server failures. They honor numeric `Retry-After` where
+implemented and otherwise use exponential delays. Exact error messages and
+delay caps differ by provider.
 
--   Citation validator
--   Research artifact validator
--   Metadata consistency validator
+### Dispatch
 
----
+The Source Service converts each search term into a one-term strategy and calls
+providers in this nested order:
 
-### 4.7 Shared Interfaces
+~~~text
+for provider in configured providers:
+    for query in strategy.search_terms:
+        provider.search(one-query strategy)
+~~~
 
-#### Purpose
+Crossref is not called for a one-term query that is only an arXiv identifier or
+arXiv URL.
 
-Define stable public contracts between Project0 and Research Agent
-components.
+### Duplicate identity
 
-#### Initial Research Interfaces
+Two references are duplicates when they share provider/source ID, a normalized
+DOI/arXiv identifier, or a normalized title with compatible year and authors.
+Title matching ignores accents, case, and punctuation. When both records have
+authors, at least one normalized author must overlap.
 
--   Research Workflow Interface
--   Research Strategy Interface
--   Research Source Interface
--   Paper Metadata Interface
--   Research Evaluation Interface
--   Existing Research Context Analysis Interface
--   Per-Paper Analysis Interface
--   Research Direction Analysis Interface
--   Research Artifact Interface
+Canonical richness is ordered by abstract length, author count, metadata-field
+count, presence of year, then presence of URL. Missing/blank metadata fields
+from the alternate record are merged into the canonical record.
 
-#### Design Notes
+### Eligibility profile
 
--   Interfaces use Python structural protocols.
--   Components depend on required capabilities rather than specific
-    implementations.
--   Research-specific interfaces shall remain separate from generic
-    platform interfaces.
--   Interfaces shall remain small and aligned with implemented component
-    capabilities.
+The Source Service enables its alignment profile when strategy concepts and
+queries collectively contain visual, language, and mechanism terms. Direct and
+transferable candidates are identified from title plus abstract tokens.
+Explicit seeds bypass profile exclusion. Candidates with no profile vocabulary
+can remain, while candidates exposing incompatible language/task or
+representation-synthesis vocabulary can be excluded.
 
----
+This profile and the Evidence Candidate tiers in `ResearchWorkflow` contain
+hard-coded visual/video-language representation-learning vocabulary. They are
+not dynamically derived from arbitrary research domains.
 
-### 4.8 Shared Data Models
+### Balanced pool
 
-#### Purpose
+Within each provider/query group, candidates are sorted by a tuple of:
 
-Define immutable information exchanged between Research Agent
-components.
+1. title overlap with terms repeated across strategy queries;
+2. title/abstract overlap with repeated anchor terms;
+3. title overlap with that group's query; and
+4. title/abstract overlap with that query.
 
-#### Initial Research Models
-
--   Research Request
--   Research Result
--   Research Strategy
--   Research Source Reference
--   Paper Reference
--   Paper Metadata
--   Research Evaluation
--   Existing Research Context
--   Paper Analysis
--   Research Direction Analysis
--   Research Artifact
-
-#### Design Notes
-
--   Models use immutable dataclasses where practical.
--   Result models preserve structured outputs, warnings, and errors.
--   Source and citation information shall remain associated with
-    research outputs.
--   Shared models prevent component-specific communication formats.
+Seeds enter first. The selector then takes one candidate from each group per
+round, skipping duplicates, until the default `evaluation_candidate_limit` of
+24 is reached. Candidate statistics and trace records are diagnostic state,
+not fields on the strategy.
 
 ---
 
-### 4.9 Context Document Ingestion
+## 7. Metadata and Evidence Design
 
-#### Purpose
+### Metadata normalization
 
-Provide controlled ingestion and text extraction for an optional
-Existing Research Context document.
+All supported provider names map to `PaperMetadata`. Missing optional fields
+remain null/empty. Semantic Scholar is the only provider for which the metadata
+service makes a separate detail request.
 
-#### Responsibilities
+### Shortlist
 
--   Accept a context document through a simple file-selection/upload
-    interaction.
--   Support text-based PDF, Markdown, and plain-text documents.
--   Extract source content without storing a copy of the source document.
--   Preserve page- or section-level provenance.
--   Process large documents using bounded chunking with implementation
-    limits to be defined.
--   Clearly report extraction failures.
--   Reject image-only or scanned PDF documents requiring OCR.
+The workflow-level evidence candidate limit is eight. If metadata contains
+more than eight papers:
 
-#### Design Notes
+1. `rank_candidates` performs preliminary metadata evaluation;
+2. Evidence Candidate tiers put direct video-language-representation transfer
+   candidates before transferable visual-language candidates;
+3. unrelated or excluded candidates receive tier 2 and are not eligible;
+4. scores order candidates within a tier; and
+5. at most eight eligible papers proceed.
 
--   File handling and text extraction remain separate from research
-    reasoning.
--   OCR support is deferred to a future enhancement.
--   A selected context document that cannot be extracted shall not
-    silently revert to the no-context workflow.
+If eight or fewer papers exist, all proceed directly to evidence acquisition;
+the workflow-specific tier filter is not applied at that point.
 
-#### Inputs
+### Evidence acquisition
 
--   Optional Existing Research Context document
+For each shortlisted paper:
 
-#### Outputs
+- add a non-empty abstract as `ResearchPaperEvidenceSection("Abstract", ...)`;
+- inspect paper and source-reference metadata for
+  `open_access_pdf_url`/`pdf_url`;
+- for arXiv, convert an `/abs/` URL to `/pdf/`;
+- retrieve and validate PDF content;
+- extract Abstract, Method/Methodology/Approach/Model, and
+  Experiment/Results/Evaluation sections only when a matching heading occurs
+  on a page; and
+- take at most 8,000 characters after each heading and 24,000 characters total.
 
--   Extracted context document content
--   Source provenance
--   Extraction warnings or errors
+Evidence records preserve the heading page, not a complete page range.
+Duplicate evidence sections are removed. Any non-empty evidence yields
+`available`; otherwise status is `discovery_only`.
 
----
-
-### 4.10 Existing Research Context Analysis
-
-#### Purpose
-
-Transform extracted context document content into structured Existing
-Research Context.
-
-#### Responsibilities
-
--   Identify the research problem.
--   Identify prior work.
--   Identify implemented approaches.
--   Identify findings and limitations.
--   Identify unresolved questions.
--   Identify stated future work.
--   Preserve source references for extracted context findings.
-
-#### Interfaces
-
-##### Provides
-
--   Analyze Existing Research Context.
-
-##### Consumes
-
--   Extracted context document content.
--   Reasoning Service.
-
-#### Design Notes
-
--   Context findings are source-derived.
--   Source-derived context findings remain distinguishable from generated
-    analysis.
--   Context provenance is preserved at page- or section-level.
--   Context analysis failures are clearly reported.
-
-#### Inputs
-
--   Extracted context document content
--   Source provenance
-
-#### Outputs
-
--   Existing Research Context
-
-#### Required Services
-
--   Reasoning Service
+The workflow's `discovery_only_count` counts papers with no evidence sections.
+Its warning is added before final selection. The final default evidence path
+then removes those papers from displayed results.
 
 ---
 
-### 4.11 Per-Paper Analysis
+## 8. Evaluation Design
 
-#### Purpose
+### Batch identity and schema
 
-Produce structured technical analysis for each retained paper.
+Batches contain at most three papers. External source IDs are replaced with
+`paper-NNN` handles scoped to the batch. The schema requires exactly one item
+per paper with score, summary, strengths, limitations, connections, and
+warnings.
 
-#### Responsibilities
+### Relevance rubric
 
--   Identify the paper problem and approach.
--   Identify representations and modalities.
--   Identify the learning or alignment objective.
--   Identify datasets or tasks.
--   Identify findings and limitations.
--   Explain relevance to the current research.
--   Preserve evidence references.
--   Identify analysis derived from metadata and abstract information.
+The provider prompt defines:
 
-#### Interfaces
+- 90–100: direct application/task and central-problem alignment;
+- 75–89: a major technical dimension plus application alignment or a concrete
+  supported transfer path;
+- 50–74: related mechanism with an incomplete transfer path;
+- 25–49: background/adjacent work without a specific mapping; and
+- 0–24: weakly related or off-topic.
 
-##### Provides
+Scores of at least 50 require an explicit mechanism-to-question connection.
+Scores of at least 75 receive additional contradiction checks. The returned
+integer is divided by 100; integer-valued floats are accepted, but booleans,
+fractional scores, and out-of-range values are rejected.
 
--   Analyze retained paper.
+### Recovery
 
-##### Consumes
+On retryable identity, coverage, or high-score defects:
 
--   Research Request.
--   Research Strategy.
--   Paper Metadata.
--   Research Evaluation.
--   Reasoning Service.
+- valid items are retained;
+- unknown/duplicate/invalid items are ignored for partial recovery;
+- only unresolved papers are retried once; and
+- persistent unresolved papers receive a null score and explicit warnings.
 
-#### Design Notes
+Other malformed field types and provider exceptions propagate.
 
--   Per-paper analysis is source-derived interpretation.
--   Missing source information shall not be invented.
--   Evidence references remain associated with analysis findings.
+### Final result selection
 
-#### Inputs
-
--   Research Request
--   Research Strategy
--   Paper Metadata
--   Research Evaluation
-
-#### Outputs
-
--   Paper Analysis
-
-#### Required Services
-
--   Reasoning Service
+The default evidence path keeps evaluations whose papers have evidence
+sections, sorts descending by score with null last, and takes
+`max(1, max_results)`. It does not apply the 0.75 threshold as an exclusion.
+Recommendation is a presentation property derived from `score >= 0.75`.
 
 ---
 
-### 4.12 Research Direction Analysis
+## 9. Paper Analysis Design
 
-#### Purpose
+One provider request is made per retained paper. Abstract evidence is added to
+the evidence-section list if the paper has an abstract and no explicit
+`Abstract` section.
 
-Analyze retained paper analyses together with optional Existing Research
-Context to identify evidence-grounded research directions.
+The response does not return paper IDs. Required `problem` and `approach` and
+all optional findings are bound to the paper already being processed. Each
+finding must cite a supplied section and exact page number when one exists.
+When abstract evidence exists and the model supplies both section and page as
+null, the service normalizes the citation to `Abstract`.
 
-#### Responsibilities
-
--   Perform cross-paper comparison.
--   Produce structured synthesis findings including themes, comparisons,
-    shared limitations, and unresolved questions.
--   Identify candidate research directions.
--   Ground candidate directions in context motivation and literature
-    evidence unless explicitly marked speculative.
--   Preserve provenance for supporting context and paper evidence.
-
-#### Interfaces
-
-##### Provides
-
--   Analyze research directions.
-
-##### Consumes
-
--   Research Request.
--   Research Strategy.
--   Optional Existing Research Context.
--   Paper Analyses.
--   Reasoning Service.
-
-#### Design Notes
-
--   Cross-paper synthesis is functionality within Research Direction
-    Analysis rather than a separate service.
--   Research directions are Research Agent inference grounded in
-    source-derived context and per-paper interpretation.
--   Referenced context items and paper identifiers are validated before
-    analysis results are returned.
-
-#### Inputs
-
--   Research Request
--   Research Strategy
--   Optional Existing Research Context
--   Paper Analyses
-
-#### Outputs
-
--   Synthesis findings
--   Candidate research directions
-
-#### Required Services
-
--   Reasoning Service
+Missing structured output and provider-field validation errors are retried
+once. Persistent structural failure skips the paper. Provider exceptions
+propagate. A discovery-only paper without abstract content is skipped without a
+provider call.
 
 ---
 
-### 4.13 Research Strategy Service
+## 10. Research Direction Analysis Design
 
-#### Purpose
+### Input
 
-Transform a research question into a structured research strategy.
+Direction Analysis runs for at least two valid analyses and truncates input to
+the first three. Context and paper findings are cataloged with deterministic
+internal paths, then exposed to the provider as sequential
+`context-NNN`/`literature-NNN` handles.
 
-#### Responsibilities
+### Output rules
 
--   Analyze the research request.
--   Incorporate optional Existing Research Context when provided.
--   Support open-ended research requests when Existing Research Context
-    is available.
--   Identify the research objective and relevant research concepts.
--   Identify explicit research sub-questions when present.
--   Identify optional constraints and focus areas.
--   Produce a structured Research Strategy.
+The schema requires synthesis arrays and candidate directions.
 
-#### Interfaces
+- Themes, comparisons, and shared limitations require cited evidence from at
+  least two distinct papers.
+- Unresolved questions require at least one paper.
+- Evidence lists must contain known, unique handles of the expected source
+  type and may not exceed the distinct literature-source count.
+- Explicit better/worse/higher/lower/outperform/underperform-style comparisons
+  are accepted only when cited literature findings contain matching
+  performance polarity.
+- Non-speculative directions always require literature evidence and also
+  context evidence when context exists.
+- A speculative direction requires at least one evidence anchor.
 
-##### Provides
-
--   Generate research strategy.
-
-##### Consumes
-
--   Research Request.
--   Optional Existing Research Context.
--   Reasoning Service.
-
-#### Design Notes
-
--   Research strategy generation may use AI reasoning.
--   The service does not execute external research searches.
--   Search-term generation remains the responsibility of the Research
-    Query Service.
--   Search execution remains the responsibility of the Research Source
-    Service.
-
-#### Inputs
-
--   Research Request
-
-#### Outputs
-
--   Research Strategy
-
-#### Required Services
-
--   Reasoning Service
-
-#### Future Considerations
-
--   Strategy refinement
--   Search history awareness
--   User-defined strategy templates
+Ordinary invalid synthesis findings are caught, logged, and omitted. The
+performance-comparison guard raises a semantic grounding error that invalidates
+the response. Invalid candidate directions also invalidate the response. The
+whole request is retried once with the first validation error included as
+feedback. A second failure propagates to the workflow, which converts it to a
+warning and omits Direction Analysis.
 
 ---
 
-### 4.10 Research Query Service
+## 11. Artifact and Presentation Design
 
-#### Purpose
+### In-memory artifacts
 
-Transform a structured Research Strategy into deterministic,
-provider-ready research search terms.
+When evaluations exist, `ResearchArtifactService` returns:
 
-#### Responsibilities
+- Literature Comparison;
+- Research Gap Analysis; and
+- Experiment Proposal.
 
--   Convert research concepts into focused search terms.
--   Generate a complementary, bounded set of queries from the Research
-    Strategy, optional Existing Research Context, and user guidance.
--   Preserve deterministic query ordering.
--   Remove duplicate query terms.
--   Return an enriched Research Strategy containing provider-ready
-    search terms.
+They are deterministic compatibility artifacts, omit source references, and
+are counted in the workflow summary string. The current page model does not
+carry them, and template artifact markup is disabled with `{% if false %}`.
 
-#### Design Notes
+### Consolidated cards
 
--   The service remains independent from external research source
-    providers.
--   The Research Strategy Service determines what should be researched.
--   The Research Query Service determines how that research intent is
-    expressed as searchable terms.
+The UI joins papers, evaluations, source references, and paper analyses by
+source ID. Each displayed card includes one title link at most, source details,
+abstract/fallback text, relevance fields, and optional structured analysis.
+Evaluation warnings are deduplicated into the displayed Relevance Limitations;
+the card-level warning tuple is cleared.
 
-#### Inputs
+### Saved Markdown
 
--   Research Strategy
+On a completed page, **Save Results** builds
+`project0_research_results.md` in JavaScript. It includes the request, optional
+context filename and findings, consolidated paper results, available analyses,
+Direction Analysis, and a generation timestamp. The browser uses the File
+System Access API when available and otherwise downloads a Blob.
 
-#### Outputs
-
--   Research Strategy
-
----
-
-### 4.14 Research Source Service
-
-#### Purpose
-
-Provide controlled access to supported external research sources.
-
-#### Responsibilities
-
--   Execute research searches using a Research Strategy.
--   Query configured external research source providers.
--   Combine results from multiple configured research source providers.
--   Deduplicate source references returned across provider queries.
--   Normalize returned research source references.
--   Preserve source identifiers and locations.
--   Return structured source results and errors.
-
-#### Interfaces
-
-##### Provides
-
--   Search research sources.
--   Retrieve research source information.
-
-##### Consumes
-
--   Research Strategy.
--   External research source adapters.
-
-#### Design Notes
-
--   External source access is isolated behind a typed interface.
--   Multiple configured providers may contribute source references to a
-    single research workflow.
--   The service does not perform research relevance evaluation.
--   Source-specific behavior shall remain isolated from the Research
-    Workflow.
--   Initial implementation should support the minimum number of external
-    sources required to provide useful research output.
-
-#### Inputs
-
--   Research Strategy
-
-#### Outputs
-
--   Research Source References
-
-#### External Dependencies
-
--   Supported external research sources
-
-#### Future Considerations
-
--   Additional research sources
--   Source-specific adapters
--   Search result caching
--   Rate-limit handling
+This saved file is not a server-side `ResearchArtifact` and is not written to
+the repository.
 
 ---
 
-### 4.15 Paper Metadata Service
+## 12. Status, Logging, and Diagnostics
 
-#### Purpose
+`completed_with_warnings` is returned for:
 
-Retrieve and normalize available metadata for candidate research papers.
+- no source references;
+- incomplete metadata count;
+- discovery-only evidence-shortlist members;
+- no recommended evidence-reviewed papers; or
+- isolated Direction Analysis failure.
 
-#### Responsibilities
+The source service logs aggregate selection counts at INFO and candidate traces
+at DEBUG. Direction Analysis may write its Ollama request payload to
+`/tmp/project0_direction_analysis_request.json` through request metadata.
 
--   Retrieve available paper metadata.
--   Normalize title, author, publication year, abstract, and source
-    identifiers.
--   Preserve external source references.
--   Return structured metadata results and errors.
-
-#### Interfaces
-
-##### Provides
-
--   Retrieve paper metadata.
-
-##### Consumes
-
--   Research Source References.
--   External research source adapters.
-
-#### Design Notes
-
--   Performs deterministic metadata normalization where practical.
--   Does not evaluate paper relevance.
--   Missing metadata shall be reported rather than invented.
-
-#### Inputs
-
--   Research Source References
-
-#### Outputs
-
--   Paper Metadata
-
-#### Future Considerations
-
--   DOI enrichment
--   Citation metadata
--   Publication venue normalization
+The browser system-status panel polls `/api/system-status?agent=research` every
+two seconds during a submitted request. It reports configured provider/model
+and NVIDIA GPU information; it is operational status, not true workflow-stage
+telemetry.
 
 ---
 
-### 4.16 Research Evaluation Service
+## 13. Configuration
 
-#### Purpose
+| Setting | Default |
+| --- | --- |
+| Reasoning provider | `ollama` |
+| Research model | `qwen2.5:7b` |
+| Ollama base URL | `http://127.0.0.1:11434` |
+| Ollama timeout | 600 seconds |
+| Active source providers | `semantic_scholar`, `arxiv` |
+| Evaluation candidate pool | 24 |
+| Evidence shortlist | 8 |
+| Evaluation batch | 3 |
+| Direction input | first 3 paper analyses |
+| Direction Analysis | enabled |
+| Recommendation threshold | 0.75 |
 
-Evaluate candidate research papers against the research question and
-research strategy.
-
-#### Responsibilities
-
--   Evaluate paper relevance using a bounded relevance scale.
--   Distinguish direct research-question alignment from partial,
-    adjacent, or topical relevance.
--   Apply consistent relevance criteria across evaluated papers.
--   Explain relevance to the research question.
-
-#### Interfaces
-
-##### Provides
-
--   Evaluate candidate paper.
--   Rank candidate papers.
-
-##### Consumes
-
--   Research Request.
--   Research Strategy.
--   Paper Metadata.
--   Reasoning Service.
-
-#### Design Notes
-
--   Uses AI reasoning where semantic evaluation is required.
--   Relevance evaluation shall preserve the distinction between source
-    facts and generated analysis.
--   Evaluation results shall preserve references to supporting papers.
--   Valid provider relevance scores are normalized for downstream use.
--   Candidate papers are evaluated in bounded batches and validated
-    batch results are combined into the complete evaluation result.
--   Evaluation provider responses within a batch that violate required
-    source traceability or coverage constraints may be retried once
-    before the evaluation is reported as failed.
--   Human research judgment remains authoritative.
-
-#### Inputs
-
--   Research Request
--   Research Strategy
--   Paper Metadata
-
-#### Outputs
-
--   Research Evaluations
-
-#### Required Services
-
--   Reasoning Service
-
-#### Future Considerations
-
--   Improved evaluation scoring
--   Configurable ranking criteria
--   Cross-paper evidence analysis
+Environment-variable names and fallback rules are listed in the Functional
+Specification and Testing Guide.
 
 ---
 
-### 4.17 Research Artifact Service
+## 14. Known Implementation Constraints
 
-#### Purpose
+- Context is sent in one reasoning request; there is no chunk limit.
+- PDF section extraction is heading- and page-dependent and is not a complete
+  paper parser.
+- The current candidate profile and evidence tiers include domain-specific
+  visual/video-language terminology.
+- Partial source-query failures are not surfaced when another group succeeds.
+- The optional OpenAlex provider API key is not configurable through
+  `ProjectSettings`.
+- A caller-supplied `ProjectSettings.research_direction_analysis_enabled` is
+  not explicitly forwarded by the dispatcher; normal environment-based global
+  settings remain effective.
+- Legacy artifacts are not the browser-saved result package.
 
-Create structured, reusable research artifacts from validated Research
-Agent outputs.
-
-#### Responsibilities
-
--   Generate paper summary artifacts.
--   Generate literature comparison artifacts.
--   Generate research gap artifacts.
--   Generate experiment planning artifacts.
--   Generate saved research packages containing the request, context
-    summary, research strategy, retained papers, per-paper analyses,
-    synthesis findings, candidate directions, provenance, and validation
-    status.
--   Preserve citation and source references.
--   Return structured Research Artifacts.
-
-#### Interfaces
-
-##### Provides
-
--   Generate research artifact.
-
-##### Consumes
-
--   Research Evaluations.
--   Paper Metadata.
--   Research Request.
--   Optional Existing Research Context.
--   Paper Analyses.
--   Research Direction Analysis.
-
-#### Design Notes
-
--   Research artifacts preserve source provenance.
--   Artifact generation shall not modify repository documentation
-    directly.
--   Repository preservation of approved research artifacts may be
-    coordinated with the Documentation Agent or existing artifact
-    services.
-
-#### Inputs
-
--   Research Evaluations
--   Paper Metadata
--   Research Request
--   Optional Existing Research Context
--   Paper Analyses
--   Research Direction Analysis
-
-#### Outputs
-
--   Research Artifacts
-
-#### Future Considerations
-
--   Expanded research artifact types
--   Artifact persistence policies
--   Cross-project research artifacts
-
----
-
-### 4.18 Research Workflow
-
-#### Purpose
-
-Coordinate the complete Research Agent execution pipeline.
-
-#### Responsibilities
-
--   Coordinate Research Strategy, Research Query, Research Source, Paper
-    Metadata, Knowledge, Reasoning, Research Evaluation, Validation, and
-    Research Artifact services.
--   Preserve internal workflow state.
--   Preserve existing workflow semantics when no Existing Research
-    Context document is provided.
--   Coordinate context ingestion and analysis when an Existing Research
-    Context document is provided.
--   Clearly report requested context extraction or analysis failures
-    without silently reverting to the no-context workflow.
--   Rank evaluated papers by relevance and retain the configured maximum
-    number of results.
--   Preserve all discovered source references for traceability.
--   Generate per-paper analyses from retained evaluations.
--   Coordinate Research Direction Analysis across retained paper
-    analyses and optional Existing Research Context.
--   Generate research artifacts from retained evaluations and analyses.
--   Produce immutable Research Results.
--   Preserve source and citation information.
--   Support human review of research outputs.
-
-#### Design Notes
-
--   Research Workflow execution is initiated through the Platform
-    Dispatcher.
--   Research Agent UI interactions are hosted by the Dashboard
-    Framework.
--   External source access occurs only through the Research Source
-    Service.
--   AI reasoning does not directly access external research sources.
--   Research artifacts remain reviewable outputs rather than
-    authoritative research conclusions.
-
----
-
-### Research Source Provider Design
-
-#### Purpose
-
-Define the provider-based design used to isolate external research
-source implementations from Research Agent workflow components.
-
-#### Design Notes
-
-The Research Source Service communicates through a typed provider
-interface rather than depending directly on a specific external research
-source implementation.
-
-Research source providers are responsible for retrieving research source
-references while preserving source identifiers and locations.
-
-Initial provider implementations include:
-
--   Semantic Scholar Source Provider
-    -   Provides production research source access.
-    -   Retrieves identifiable research references from Semantic
-        Scholar.
--   arXiv Source Provider
-    -   Provides research source access through the arXiv API.
-    -   Retrieves identifiable academic paper references from arXiv.
--   Crossref Source Provider
-    -   Provides research source access through the Crossref API.
-    -   Retrieves identifiable research references from Crossref.
--   OpenAlex Source Provider
-    -   Provides research source access through the OpenAlex API.
-    -   Retrieves identifiable research references from OpenAlex.
--   OpenReview Source Provider
-    -   Provides research source access through the OpenReview API.
-    -   Retrieves identifiable research references from OpenReview.
--   Stub Research Source Provider
-    -   Provides deterministic research source behavior.
-    -   Supports automated testing, demonstrations, and acceptance
-        validation without requiring external research source
-        availability.
-
-The provider abstraction allows Research Agent workflows to remain
-unchanged when external research sources are added, replaced, configured
-together, or tested through deterministic implementations.
-
-Initial provider interaction:
-
-``` text
-Research Workflow
-        |
-        v
-Research Source Service
-        |
-        v
-Research Source Provider Interface
-        |
-        +---------------------------------------------------------------+
-        |              |              |              |              |
-        v              v              v              v              v
-Semantic Scholar  arXiv Provider  Crossref       OpenAlex       OpenReview
-Provider          (external       Provider       Provider       Provider
-(production       source)         (external      (external      (external
-source)                           source)        source)        source)
-        |
-        v
-Stub Provider
-(deterministic validation)
-```
-
-The provider design follows the Project0 principle that components
-depend on interfaces rather than concrete implementations.
-
----
-
-### Revision Workflow Support
-
-The Research Workflow supports a revision path when a user requests
-changes to a generated research request or research output.
-
-#### Responsibilities
-
--   Preserve the original research request.
--   Preserve optional research constraints.
--   Accept appended or modified revision instructions.
--   Resume normal research processing after resubmission.
--   Preserve source and citation information during revision.
-
-#### Design Notes
-
--   Revision creates a new research reasoning cycle.
--   Existing source evidence should remain available when applicable.
--   Revised research direction may trigger additional source discovery.
-
----
-
-## 5. Interface Design Principles
-
--   Interfaces shall remain technology independent.
--   Components communicate only through public typed interfaces.
--   Components shall not directly access another component's internal
-    state.
--   Components shall depend on interfaces rather than concrete
-    implementations where practical.
--   Interface contracts shall remain backward compatible whenever
-    practical.
--   Shared data models shall define information exchanged between
-    components.
--   Concrete implementations may satisfy interfaces through structural
-    typing.
--   Interfaces shall remain small and aligned with implemented component
-    capabilities.
--   External research source implementations shall remain isolated
-    behind Research Source interfaces.
-
----
-
-## 7. Component Interactions
-
-The Platform Dispatcher provides the platform-level entry point and
-submits Research Agent workflow tasks to the Workflow Engine.
-
-The initial Research Workflow follows this sequence:
-
-1.  The user submits a Research Request through the Dashboard Framework.
-2.  The Platform Dispatcher creates and dispatches the Research
-    Workflow.
-3.  When provided, the selected Existing Research Context document is
-    ingested and analyzed.
-4.  The Research Strategy Service analyzes the Research Request and
-    optional Existing Research Context.
-5.  The Reasoning Service assists with research concept and strategy
-    generation when required.
-6.  The Research Strategy Service returns a Research Strategy.
-6.  The Research Query Service enriches the Research Strategy with
-    deterministic provider-ready search terms.
-8.  The Research Source Service searches configured external research
-    source providers.
-9.  External source results from configured providers are combined and
-    normalized into Research Source References.
-10.  The Paper Metadata Service retrieves and normalizes available
-    metadata.
-11. The Knowledge Service retrieves relevant existing Project0 research
-    context when applicable.
-12. The Research Evaluation Service evaluates candidate papers against
-    the Research Request and Research Strategy.
-13. The Reasoning Service performs semantic research evaluation where
-    required.
-14. Candidate papers are ranked by relevance and the configured maximum
-    number of results is retained.
-15. Per-Paper Analysis produces structured technical analysis from
-    available metadata and abstract information for each retained paper.
-16. Research Direction Analysis performs cross-paper comparison and
-    identifies candidate research directions.
-17. The Research Artifact Service generates structured research
-    artifacts from retained evaluations and analyses.
-18. Citation and source references are preserved with the generated
-    artifacts.
-19. The Validation Service validates required artifact structure and
-    source information.
-20. The Research Workflow returns a structured Research Result.
-21. Research results are presented for human review through the
-    Dashboard Framework.
-
-The Dashboard Framework remains responsible for the shared application
-shell, including navigation, context, and Work Area hosting. The
-Research Agent provides only agent-specific workflow interactions within
-the Dashboard Work Area.
-
-Research Agent-specific behavior remains isolated from reusable Project0
-platform services. External research source behavior remains isolated
-behind the Research Source Service and its interfaces.
-
----
-
-## 7. Design Constraints
-
--   Preserve modularity.
--   Use deterministic processing whenever AI reasoning is not required.
--   Maintain vendor neutrality.
--   Support future extensibility.
--   Use typed interfaces between platform and Research Agent components.
--   Use shared immutable models for component communication.
--   Depend on interfaces rather than concrete implementations where
-    practical.
--   Preserve source and citation information throughout the research
-    workflow.
--   External research source access shall occur through defined service
-    interfaces.
--   Missing source or metadata information shall not be invented.
--   Existing Research Context source documents shall not be copied into
-    Project0 storage by the Research Agent.
--   Existing Research Context provenance shall be preserved at page- or
-    section-level.
--   Image-only or scanned PDF context documents requiring OCR are outside
-    the current implementation scope.
--   AI-generated analysis shall remain distinguishable from source
-    information.
--   Source-derived context findings, source-derived per-paper
-    interpretation, and Research Agent inference shall remain
-    distinguishable.
--   Research evaluation does not independently establish scientific
-    correctness.
--   Human research judgment remains authoritative.
--   Initial implementation shall avoid semantic retrieval, vector
-    search, and multi-agent research workflows unless later requirements
-    demonstrate the need.

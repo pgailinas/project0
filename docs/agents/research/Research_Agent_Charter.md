@@ -1,269 +1,192 @@
 # Research Agent Charter
 
-**Version:** 0.3  
+**Version:** 0.5  
 **Owner:** Project0  
-**Last Updated:** 2026-08-28
+**Last Updated:** 2026-09-10
 
 ---
 
 ## 1. Purpose
 
-Establish the mission, scope, operating principles, authority
-boundaries, and success criteria for the Project0 Research Agent.
-
-The Research Agent exists to assist research activities by discovering,
-organizing, evaluating, and preserving technical knowledge through
-controlled, reviewable research workflows.
-
-This charter defines the high-level intent of the Research Agent.
-Detailed functional behavior, architecture, component design, and
-interface contracts are defined in their respective authoritative
-documents.
+This charter defines the mission, scope, operating principles, authority
+boundaries, and success criteria of the Project0 Research Agent. Detailed
+runtime behavior is defined by the Research Agent Functional Specification,
+Architecture, Design, and Interface Design.
 
 ---
 
 ## 2. Mission
 
-Provide an AI-assisted, human-controlled capability that transforms
-research questions into structured research artifacts while preserving
-evidence, traceability, and human decision authority.
+The Research Agent helps a human researcher discover, evaluate, and analyze
+technical literature. It accepts a research question, optional research
+guidance, and an optional Existing Research Context document; discovers
+candidate papers through configured providers; evaluates a bounded candidate
+set; acquires bounded evidence for a shortlist; analyzes retained papers; and,
+when sufficient analyses exist, produces evidence-grounded cross-paper
+synthesis and candidate research directions.
 
-The Research Agent supports Project0's broader mission of using
-specialized AI agents within structured development workflows while
-preserving professional engineering and research practices.
-
----
-
-## 3. Vision
-
-Make technical research discovery, evaluation, and organization a normal
-and integrated part of engineering workflows rather than a separate
-manual activity.
-
-The Research Agent should demonstrate how a specialized Project0 AI
-agent can combine deterministic platform services, AI reasoning,
-knowledge retrieval, artifact generation, and human review checkpoints
-within a reusable AI-native development framework.
+The agent supports research judgment. It does not replace the researcher,
+establish scientific truth, prove novelty, or make repository changes.
 
 ---
 
-## 4. Objectives
+## 3. Goals
 
-The Research Agent shall:
+The current implementation is intended to:
 
--   Accept and analyze research questions.
--   Identify relevant research concepts and terminology.
--   Support literature discovery and research organization.
--   Support external research source integration.
--   Retrieve paper metadata from supported research sources.
--   Preserve citation and source tracking for research findings.
--   Produce structured research artifacts.
--   Summarize and evaluate technical papers.
--   Compare research methods and approaches.
--   Evaluate paper relevance to the research question.
--   Support optional analysis of existing research context.
--   Produce evidence-grounded per-paper and cross-paper research
-    analysis.
--   Identify potential research gaps.
--   Support experiment planning and research direction decisions.
--   Preserve research evidence and source references.
--   Reuse generic Project0 platform services and interfaces wherever
-    practical.
--   Preserve architectural separation between reusable Project0
-    infrastructure and Research Agent-specific behavior.
-
----
-
-## 5. Scope
-
-**In Scope**: The Research Agent is responsible for:
-
--   Research question analysis.
--   Research strategy generation.
--   External research source integration.
--   Automated paper metadata retrieval.
--   Citation and source tracking.
--   Technical paper evaluation.
--   Literature comparison.
--   Research relevance evaluation.
--   Optional existing research context analysis.
--   Structured per-paper analysis.
--   Cross-paper synthesis and research direction analysis.
--   Research gap identification.
--   Experiment planning support.
--   Structured research artifact generation.
--   Human review of research outputs.
--   Integration with Project0 knowledge, reasoning, validation, and
-    artifact services.
-
-**Out of Scope**: The Research Agent SHALL NOT:
-
--   Replace human research judgment.
--   Automatically determine scientific correctness.
--   Publish research without human review.
--   Execute experiments without explicit user direction.
--   Invent unsupported research conclusions.
--   Treat AI-generated summaries as authoritative without source
-    verification.
--   Operate as an uncontrolled autonomous research system.
--   Perform OCR processing for image-only or scanned research context
-    documents.
--   Redefine reusable Project0 platform responsibilities for
-    research-specific needs.
+- Convert a research request and optional prior-research document into a
+  structured research strategy.
+- Generate a small, deterministic set of complementary search queries.
+- Search one or more configured research-source providers through a common
+  provider interface.
+- Balance a bounded evaluation pool across provider/query result groups while
+  preserving explicit publication seeds.
+- Consolidate duplicate publication records and preserve the richest available
+  metadata.
+- Evaluate candidates with a consistent relevance rubric.
+- Acquire available abstracts and bounded PDF evidence for a shortlist.
+- Preserve discovery-only status when usable paper evidence is unavailable.
+- Produce evidence-cited structured analyses for retained papers.
+- Produce bounded, evidence-grounded Research Direction Analysis when at least
+  two valid paper analyses are available and the feature is enabled.
+- Present consolidated paper cards and allow the visible result package to be
+  saved as Markdown.
+- Fail or warn explicitly when required inputs, provider output, evidence, or
+  provenance validation is insufficient.
 
 ---
 
-## 6. Operating Principles
+## 4. Current Scope
 
-The Research Agent shall follow these principles:
+### Included
 
--   **Evidence Grounding**: Research outputs should be based on
-    identifiable sources and preserved references.
+- Browser workflow at `/agents/research`.
+- Required research question.
+- Optional free-form Research Guidance.
+- Maximum Results choices of 5, 10, 15, or 20 in the browser.
+- Optional UTF-8 Markdown, UTF-8 plain-text, or text-extractable PDF Existing
+  Research Context.
+- Deterministic strategy construction and query generation.
+- Explicit seed extraction from quoted titles, arXiv identifiers, and DOI
+  identifiers in guidance.
+- Configurable Semantic Scholar, OpenAlex, OpenReview, Crossref, arXiv, and
+  stub source providers.
+- Multi-provider, multi-query retrieval, provider/query-group balancing,
+  deduplication, and a bounded evaluation candidate pool.
+- Metadata normalization and bounded paper-evidence acquisition.
+- Preliminary metadata ranking when more than eight candidates reach the
+  evidence stage.
+- Final evidence-based relevance evaluation.
+- Structured retained-paper analysis and Research Direction Analysis.
+- Consolidated results, warnings, status, system model/GPU status, and
+  client-side Markdown saving.
 
--   **Evidence Boundaries**: Source-derived context findings,
-    source-derived paper interpretation, and Research Agent inference
-    should remain distinguishable.
+### Excluded
 
--   **Human-in-the-Loop**: Human authority is preserved for research
-    direction, interpretation, and final decisions.
-
--   **Structured Research Artifacts**: Research knowledge should be
-    captured in reusable, reviewable artifact formats.
-
--   **Deterministic Before AI**: Data handling, artifact management,
-    validation, and workflow execution should use deterministic services
-    whenever AI reasoning is not required.
-
--   **Minimum Necessary Complexity**: Initial implementations should
-    provide useful research capability without unnecessary platform
-    expansion.
-
--   **Modular Architecture**: Research Agent-specific behavior shall
-    remain separate from reusable Project0 platform infrastructure.
-
--   **Reuse Before Build**: Existing Project0 services and established
-    tools shall be used whenever practical rather than duplicated within
-    the Research Agent.
-
--   **Documentation by Default**: Research findings and artifacts should
-    become part of the maintained Project0 knowledge base when
-    appropriate.
-
----
-
-## 7. Relationship to Project0
-
-The Research Agent is a specialized AI agent operating within the
-Project0 AI-native software development framework.
-
-Project0 provides reusable platform capabilities such as workflow
-execution, knowledge services, AI reasoning abstraction, validation,
-shared models and interfaces, artifact management, platform dispatch,
-and the Dashboard Framework.
-
-The Research Agent composes these capabilities into a research-focused
-workflow. It shall not redefine generic platform responsibilities solely
-to satisfy research-specific requirements.
-
-The Research Agent works with the Documentation Agent by producing
-validated research artifacts that may be preserved within the Project0
-knowledge base.
-
-The Phase 10 Research Agent implementation validated the ability of
-Project0 infrastructure to support multiple specialized AI agents
-through reusable platform contracts while preserving existing agent
-boundaries.
-
-The Research Agent serves as the second reference implementation for
-evaluating whether Project0 infrastructure can support multiple
-specialized AI agents through reusable platform contracts.
+- Web crawling beyond the implemented source-provider APIs and PDF URLs
+  supplied by provider metadata.
+- OCR for scanned or image-only PDFs.
+- Vector search, embeddings, or semantic repository retrieval.
+- Unbounded or exhaustive literature review.
+- Independent verification of scientific claims.
+- Reliable novelty or global literature-gap claims without supplied evidence.
+- Automatic experimental execution.
+- Automatic publication, citation-manager export, repository update, commit,
+  push, or pull-request creation.
+- Scheduled monitoring or multi-agent research execution.
 
 ---
 
-## 8. Human Authority and Research Integrity
+## 5. Operating Principles
 
-Research interpretation and direction are controlled activities.
+### Evidence first
 
-The Research Agent shall:
+Source metadata, acquired abstracts, bounded PDF sections, and uploaded context
+are the permitted evidence for the corresponding analysis stages. Missing
+information is reported or omitted; it is not invented.
 
--   Present research findings and artifacts for review.
--   Preserve source references where available.
--   Preserve provenance for existing research context and paper
-    analysis.
--   Distinguish source information from generated analysis.
--   Distinguish source-derived context findings, source-derived paper
-    interpretation, and Research Agent inference.
--   Report uncertainty when evidence is incomplete.
--   Avoid unsupported conclusions.
--   Allow human users to accept, revise, reject, or extend research
-    outputs.
+### Deterministic control where practical
 
-AI reasoning may assist research activities but does not independently
-establish research validity.
+Input normalization, seed extraction, query bounding, provider dispatch,
+deduplication, balancing, shortlist limits, result ordering, validation, and UI
+mapping are deterministic. AI reasoning is used for context analysis,
+relevance assessment, retained-paper analysis, and direction synthesis.
 
----
+### Explicit provenance
 
-## 9. Success Criteria
+Context findings cite the uploaded document identifier and optional section.
+Paper findings cite the retained paper identifier plus a supplied evidence
+section and page number when available. Direction Analysis resolves
+provider-facing evidence handles back to those original references.
 
-The Research Agent is successful when it can:
+### Bounded work
 
--   Accept a research question and generate a structured research
-    workflow.
--   Identify relevant research concepts.
--   Produce useful paper summaries.
--   Analyze optional existing research context when provided.
--   Produce structured, evidence-grounded per-paper analysis.
--   Generate research comparison artifacts.
--   Produce cross-paper synthesis and evidence-grounded candidate
-    research directions.
--   Identify potential research opportunities.
--   Support experiment planning.
--   Preserve source references and research context.
--   Produce outputs useful for ECE-551 Part 2 research activities.
--   Operate through Project0's reusable platform architecture without
-    embedding Research Agent-specific responsibilities into shared
-    platform components.
--   Demonstrate validated integration with Project0 workflow,
-    validation, artifact, and Dashboard Framework services.
+The implementation bounds discovery queries, provider results, evaluation
+batches, the evaluation pool, evidence acquisition, retained results, and
+direction-analysis input. These bounds make the workflow manageable; they do
+not imply complete literature coverage.
+
+### Human authority
+
+Scores, summaries, synthesis, and directions are decision support. The human
+researcher remains responsible for interpreting evidence, checking papers, and
+deciding what to pursue.
 
 ---
 
-## 10. Future Direction
+## 6. Authority Boundaries
 
-Future evolution may improve the Research Agent without changing its
-core evidence-based and human-controlled principles.
+The Research Agent may:
 
-Potential directions include:
+- Read a user-supplied Existing Research Context document for the current
+  request.
+- Query configured research providers.
+- Retrieve provider-supplied open-access PDF locations.
+- Invoke the configured reasoning provider.
+- Return and locally save a result package through the browser.
 
--   Semantic research retrieval.
--   Vector-based knowledge search.
--   Expanded research artifact types.
--   Multi-agent research workflows.
+The Research Agent may not:
 
-Future capabilities shall be introduced through the appropriate
-functional, architectural, and design documents rather than being
-assumed by this charter.
+- Treat generated analysis as source fact.
+- Present an unsupported synthesis finding as grounded.
+- Score evidence-free discovery records as evidence-reviewed results.
+- Modify source papers, the uploaded context document, or the Project0
+  repository.
+- Commit, push, publish, or open pull requests.
+- Claim comprehensive coverage, scientific correctness, or novelty.
 
 ---
 
-## 11. Document Authority
+## 7. Success Criteria
 
-This charter defines the high-level purpose, mission, scope, principles,
-and authority boundaries of the Research Agent.
+The implementation satisfies this charter when:
 
-Detailed requirements and implementation-independent behavior are
-defined by the **Research Agent Functional Specification**.
+- Valid requests produce structured, traceable results or explicit warnings.
+- Invalid requests and unsupported context documents fail safely.
+- Search queries and candidate pools remain bounded and deterministic.
+- Configured providers are isolated behind the provider protocol.
+- Duplicate publications are consolidated without discarding richer metadata.
+- Evidence-reviewed results are ordered by final relevance score and limited by
+  Maximum Results.
+- Persistent structured-output defects do not become unsupported findings.
+- Direction synthesis uses validated literature evidence and candidate
+  directions obey context/literature grounding rules.
+- The browser accurately represents the workflow result and saved Markdown
+  matches the visible consolidated package.
+- Automated unit, integration, and browser acceptance tests cover the
+  implementation contracts.
 
-The high-level component organization is defined by the **Research Agent
-Architecture**.
+---
 
-Internal component responsibilities and interactions are defined by the
-**Research Agent Component Design** and related interface design
-documentation.
+## 8. Relationship to Other Documents
 
-Project-wide mission, vision, principles, and objectives remain governed
-by the **Project Charter**.
+- **Functional Specification** defines observable behavior.
+- **Architecture** defines component organization and runtime flow.
+- **Design** defines current algorithms, limits, fallback behavior, and
+  configuration.
+- **Interface Design** defines Python and browser contracts.
+- **Testing Guide** and **Test Plan** define verification procedures and
+  acceptance criteria.
+- **Test Results** records repository-supported validation evidence and its
+  limits.
 
-Where lower-level Research Agent documents conflict with this charter,
-the conflict should be resolved explicitly rather than silently
-redefining the agent's mission or authority boundaries.

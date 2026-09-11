@@ -64,9 +64,9 @@ Project0 documentation is organized into the following categories.
 | [**Research Agent Architecture**](agents/research/Research_Agent_Architecture.md) | Describes the high-level architecture, workflow, and major system components. |
 | [**Research Agent Design**](agents/research/Research_Agent_Design.md) | Defines the detailed responsibilities, interfaces, inputs, outputs, and dependencies of each architectural component. |
 | [**Research Agent Interface Design**](agents/research/Research_Agent_Interface_Design.md) | Defines the Research Agent interface contracts, component boundaries, interaction responsibilities, and integration with reusable Project0 platform services. |
-| [**Research Agent Testing Guide**](agents/research/Research_Agent_Testing_Guide.md) | Defines Research Agent-specific testing, including workflow behavior, review decisions, repository safety, validation, local AI provider testing, browser acceptance testing, regression testing, and completion criteria. |
-| [**Research Agent Test Plan**](agents/research/Research_Agent_Test_Plan.md) | Defines Research Agent-specific acceptance criteria, including workflow behavior, review decisions, repository safety, validation requirements, local AI provider verification, browser acceptance testing, regression criteria, and completion requirements. |
-| [**Research Agent Test Results**](agents/research/Research_Agent_Test_Results.md) | Records Research Agent-specific test execution outcomes, including acceptance status, executed scenarios, regression results, discovered issues, resolutions, and final completion assessment. |
+| [**Research Agent Testing Guide**](agents/research/Research_Agent_Testing_Guide.md) | Provides current Research Agent test commands, live/stub configuration, expected bounds, manual checks, and troubleshooting guidance. |
+| [**Research Agent Test Plan**](agents/research/Research_Agent_Test_Plan.md) | Defines unit, integration, browser acceptance, live-provider, safety, grounding, and regression coverage for the implemented Research Agent. |
+| [**Research Agent Test Results**](agents/research/Research_Agent_Test_Results.md) | Records repository-supported Research Agent validation coverage and the limits of currently verifiable execution evidence. |
 
 ---
 
@@ -137,7 +137,7 @@ The core Project0 platform has completed its Phase 9 Documentation Agent impleme
 
 The Documentation Agent V1 is complete and serves as the first reference implementation of a Project0 AI Agent.
 
-The Research Agent V1 is complete and serves as the second reference implementation for validating reuse of Project0 infrastructure by additional specialized AI agents, including context-aware literature analysis and consolidated retained-paper results.
+The Research Agent V1 is complete and serves as the second reference implementation for validating reuse of Project0 infrastructure by additional specialized AI agents, including bounded multi-query retrieval, evidence-aware literature analysis, grounded Research Direction Analysis, and consolidated retained-paper results.
 
 ---
 
@@ -146,3 +146,4 @@ The Research Agent V1 is complete and serves as the second reference implementat
 Begin with the [**Project Charter**](project/Project_Charter.md) to understand the overall vision and objectives. Next, review the [**Development Environment**](project/Development_Environment.md) to configure a standard Project0 development workstation. After the environment is configured, review the [**Testing Guide**](project/Testing_Guide.md) to understand the Project0 testing strategy and validation workflow.
 
 Then continue through the reusable platform documentation, beginning with the [**Dashboard Design**](platform/Dashboard_Design.md), followed by the [**Component Communication Design**](platform/Component_Communication_Design.md) and [**Shared Data Models and Error Contracts**](platform/Shared_Data_Models_and_Error_Contracts.md), before reviewing the Documentation Agent Charter, Functional Specification, Architecture, Design, Interface Design, and Testing Guide. Then review the Research Agent Charter, Functional Specification, Architecture, Design, Interface Design, and Test Plan.
+

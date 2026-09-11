@@ -1,321 +1,149 @@
 # Research Agent Test Results
 
-**Version:** 0.7  
+**Version:** 0.8  
 **Owner:** Project0  
-**Last Updated:** 2026-09-02
-
-------------------------------------------------------------------------
-
-## Executive Summary
-
-This document records the updated validation status for the Project0
-Research Agent following validated workflow, research-analysis, and
-result-presentation changes.
-
-The Research Agent now includes:
-
--   Research strategy generation
--   Research query generation
--   Research source provider abstraction
--   Semantic Scholar provider support
--   arXiv provider support
--   Deterministic stub provider support
--   Research workflow orchestration
--   Bounded research evaluation batching
--   Existing Research Context analysis
--   Structured per-paper analysis
--   Research Direction Analysis and evidence validation
--   Consolidated retained-paper result presentation
--   Platform dispatcher integration
--   End-to-end Dashboard workflow validation
-
-This update extends the previous Research Agent validation record with
-the Phase 10 completion milestone.
-
-The Research Agent runtime integration has also been validated through
-successful dashboard startup and complete Dashboard workflow acceptance
-validation.
-
-------------------------------------------------------------------------
-
-## 1. Phase 10 Completion Validation
-
-### Research Agent Foundation and Provider Architecture
-
-Status:
-
-**COMPLETE**
-
-Validated components:
-
--   Research Agent models
--   Research interfaces
--   Research source provider abstraction
--   Research source provider factory
--   Semantic Scholar source provider
--   Research Query Service
--   Research workflow integration
--   Platform Dispatcher dependency injection
-
-The Research Agent workflow now executes through:
-
-``` text
-Research Workflow
-        |
-        +--> Research Strategy Service
-        |
-        +--> Research Query Service
-        |
-        +--> Research Source Service
-        |
-        +--> Metadata Service
-        |
-        +--> Evaluation Service
-        |
-        +--> Artifact Service
-```
-
-------------------------------------------------------------------------
-
-## 2. Research Query Service Validation
-
-### Objective
-
-Verify deterministic generation of research queries from Research Agent
-strategies.
-
-Status:
-
-PASS
-
-Verified:
-
--   Query service interface integration
--   Strategy-to-query transformation
--   Duplicate query removal
--   Query normalization
--   Workflow dependency injection
-
-------------------------------------------------------------------------
-
-## 3. Research Workflow Integration Validation
-
-### Objective
-
-Verify that Research Workflow correctly coordinates query generation
-before source retrieval.
-
-Status:
-
-PASS
-
-Validated:
-
-``` text
-tests/unit/workflow/test_research_workflow.py
-```
-
-Validated:
-
-``` text
-tests/integration/agents/research/test_research_workflow_flow.py
-```
-
-------------------------------------------------------------------------
-
-## 4. Platform Runtime Validation
-
-### Objective
-
-Verify that the Dashboard composition root correctly constructs the
-updated Research Workflow.
-
-Status:
-
-PASS
-
-Validated startup:
-
-``` text
-python -m project0.dashboard.dashboard_app
-```
-
-Result:
-
-``` text
-Application startup complete.
-```
-
-The Platform Dispatcher now provides all required Research Workflow
-dependencies, including Research Query Service.
-
-------------------------------------------------------------------------
-
-## 5. Research Source Provider Validation
-
-Status:
-
-PASS
-
-Verified:
-
--   Provider abstraction remains intact.
--   Semantic Scholar provider supports production-oriented retrieval.
--   arXiv provider supports external research source retrieval.
--   Stub provider supports deterministic automated testing.
--   Research workflow validation does not require external provider
-    availability.
-
-------------------------------------------------------------------------
-
-## 6. Phase 10 Validation Decision
-
-Current Status:
-
-**Research Agent V1 Functional Validation COMPLETE**
-
-The Research Agent has demonstrated:
-
--   successful workflow integration
--   repository-grounded research processing
--   controlled source provider architecture
--   deterministic automated validation
--   successful runtime composition
--   successful Research Agent validation
-
-Remaining activities belong to future Research Agent enhancements:
-
--   browser UI resilience improvements
--   expanded source provider support
--   additional acceptance scenario coverage
--   final documentation synchronization
-
-------------------------------------------------------------------------
-
-## 7. Phase 11 Functional Validation
-
-### Research Agent V1 Functional Validation
-
-Status:
-
-**COMPLETE**
-
-Validated components:
-
--   Research Agent browser UI workflow
--   Research Agent request submission
--   Research source provider execution
--   arXiv source provider integration
--   arXiv paper metadata handling
--   Research evaluation execution
--   Bounded research evaluation batching
--   Research artifact generation
--   End-to-end Dashboard workflow completion
-
-Validated workflow:
-
-``` text
-Research Request
-        |
-        +--> Research Strategy Service
-        |
-        +--> Research Query Service
-        |
-        +--> Research Source Service
-        |
-        +--> arXiv Source Provider
-        |
-        +--> Paper Metadata Service
-        |
-        +--> Research Evaluation Service
-        |
-        +--> Research Artifact Service
-        |
-        +--> Dashboard Results
-```
-
-The Research Agent successfully completed an end-to-end research
-workflow using arXiv as the configured research source.
-
-External research source availability remains dependent on provider API
-availability and may require future resilience improvements such as
-caching and enhanced rate-limit handling.
-
-Research evaluation with candidate papers from multiple configured
-sources has been validated using bounded evaluation batches. Validated
-batch results are combined while preserving source traceability.
-
-------------------------------------------------------------------------
-
-## 8. Historical Validation Reference
-
-Previous validation records remain preserved in this document history.
-
-The original validation baseline established:
-
--   initial Research Agent integration scenarios
--   browser acceptance foundation
--   safety validation scenarios
--   provider abstraction requirements
-
-The current version extends that baseline with completed Phase 10
-implementation validation.
-
-
-------------------------------------------------------------------------
-
-## 9. Phase 13 Context and Per-Paper Analysis Validation
-
-### Existing Research Context and Structured Per-Paper Analysis
-
-Status:
-
-**COMPLETE THROUGH TASK 6**
-
-Validated components:
-
--   Optional Existing Research Context document ingestion
--   Existing Research Context analysis
--   Context-aware Research Strategy generation
--   Existing Research Context Dashboard upload workflow
--   Structured per-paper analysis
--   Metadata and abstract-based analysis for retained papers
--   Research Workflow integration after relevance ranking and selection
--   Research evaluation missing-paper retry behavior
-
-Structured analysis is displayed only for papers with available abstract
-content. Each retained paper presents its source details, relevance
-assessment, and applicable structured analysis in one consolidated result
-card without repeated visible source URLs.
-
-Browser acceptance validation completed successfully with configured
-Maximum Results values of 5, 10, and 20.
-
-Research evaluation robustness was additionally validated after
-introducing missing-paper retry behavior. Valid partial evaluations are
-preserved when the only provider-response defect is missing expected
-source identifiers, and only the missing papers are retried. Unknown or
-duplicate source identifiers continue to require complete-batch retry.
-
-------------------------------------------------------------------------
-
-## 10. Research Direction Analysis Validation
-
-Status:
-
-**COMPLETE**
-
-Validated components:
-
--   Cross-paper synthesis within Research Direction Analysis
--   Candidate research direction evidence validation
--   Rejection of unknown context items and paper identifiers
--   Required context motivation and literature evidence for
-    non-speculative candidate directions
--   Bounded Research Direction Analysis input
--   Saved research package direction-analysis content
-
-Bounded context document chunking limits remain future work.
-
-OCR processing for image-only or scanned PDF context documents is not
-included in the planned implementation increment.
+**Last Updated:** 2026-09-10
+
+---
+
+## 1. Status of This Record
+
+This file is synchronized to the Research Agent implementation and automated
+test inventory on GitHub `main` at commit
+`9372cc13e9c47a4b768e2ad435669403c99bec32`.
+
+No test process was executed as part of this documentation-only repository
+audit. The repository has no GitHub Actions workflow run for `main` from which
+an independently verifiable current pass count can be obtained. Accordingly,
+this document does not claim a new aggregate pass/skip count.
+
+Previously recorded completion statements that were not tied to an exact
+revision and command have been replaced by the verifiable coverage record
+below. A future local or CI execution should append an exact run record rather
+than infer success from the presence of test files.
+
+---
+
+## 2. Implemented Automated Coverage
+
+The current repository contains Research Agent unit coverage for:
+
+- request, route, UI-service, and immutable view-model behavior;
+- Markdown, text, and PDF Existing Research Context ingestion;
+- structured context analysis, provenance, inferred solution concepts, and
+  retry behavior;
+- strategy construction and bounded multi-query generation;
+- Semantic Scholar, OpenAlex, OpenReview, Crossref, arXiv, and stub providers;
+- provider factory selection;
+- provider/query dispatch, partial failures, balancing, deduplication,
+  alignment-profile filtering, statistics, and candidate trace;
+- provider-specific metadata normalization;
+- abstract/PDF evidence acquisition and discovery-only fallback;
+- preliminary and final relevance evaluation, batch recovery, and score
+  validation;
+- retained-paper analysis evidence validation and retry/skip behavior;
+- Research Direction Analysis evidence resolution, grounding, omission, and
+  retry behavior;
+- workflow selection, limits, warnings, and failure states;
+- in-memory compatibility artifacts;
+- Dashboard composition and system-status configuration; and
+- research and reasoning data models.
+
+Integration coverage assembles Research workflows and browser-facing routes.
+Browser acceptance coverage exercises Research request, result, and
+end-to-end safety scenarios.
+
+---
+
+## 3. Current Acceptance Scenario Inventory
+
+The browser acceptance suite defines:
+
+| ID | Scenario |
+| --- | --- |
+| `UI_RA_FUN_001` | Research Agent page, request input, and processing state |
+| `UI_RA_FUN_002_A` | Research source presentation |
+| `UI_RA_FUN_003_A` | Paper metadata presentation |
+| `UI_RA_FUN_004_A` | Research evaluation presentation |
+| `UI_RA_FUN_005_A` | Visible research result/artifact-equivalent presentation and completed workflow consistency |
+| `UI_RA_AI_002_A` | Unsupported research information is not presented as supported |
+| `UI_RA_SAF_001_A` | Invalid request does not start the workflow |
+| `UI_RA_SAF_002_A` | Unavailable results are reported safely |
+
+The historical test names retain the term “artifacts,” but the current template
+presents consolidated Research Results cards and keeps the separate legacy
+artifact panel disabled.
+
+---
+
+## 4. Key Regression Assertions Present
+
+The current test suite specifically asserts:
+
+- at most three discovery-query dimensions;
+- independent dispatch of each query to each provider;
+- a bounded balanced evaluation pool;
+- strongest available duplicate metadata retention;
+- exclusion and traceability of alignment-profile mismatches;
+- eight-paper evidence shortlisting;
+- preliminary ranking separated from final evidence evaluation;
+- final evidence-reviewed display even when no paper reaches 0.75;
+- no model scoring for evidence-free discovery-only papers;
+- evaluation batches of three and one unresolved-paper retry;
+- one paper-analysis validation retry followed by per-paper skip;
+- Direction Analysis at two or more valid papers and at most three inputs;
+- omission of ordinary invalid synthesis findings;
+- rejection/retry of unsupported performance ordering;
+- required evidence for speculative and non-speculative directions;
+- default-enabled Research Direction Analysis;
+- Research Agent-specific Ollama model display; and
+- consolidated paper results in the Dashboard.
+
+---
+
+## 5. Gaps and Limitations
+
+The repository evidence does not establish:
+
+- a current aggregate pass/skip count for this exact commit;
+- live availability or stable ranking from external research providers;
+- model-quality equivalence across Ollama models;
+- exhaustive literature coverage;
+- successful OCR or context chunking, which are not implemented;
+- complete PDF parsing beyond the bounded heading-based extractor; or
+- server-side persistence of the browser-saved Markdown package.
+
+The current automated tests also coexist with implementation-specific
+visual/video-language candidate heuristics. Passing tests establishes the
+specified heuristic behavior, not general domain-independent relevance.
+
+There is also a current implementation/test gap in
+`src/project0/dashboard/dashboard_app.py`: the built-in Research reasoning stub
+has no Existing Research Context response branch, its paper-analysis response
+uses the older `evidence_ids` shape and omits the current `page_number` field,
+and its direction response uses `E5`/`E6` rather than generated
+`context-NNN`/`literature-NNN` identifiers. The Dashboard unit test covers the
+stub evaluation branch but not these later branches. Consequently, the
+built-in stub is not evidence of a successful full Research workflow.
+
+---
+
+## 6. Next Execution Record
+
+After running verification, record:
+
+~~~text
+Revision:
+Date:
+Environment:
+Command:
+Passed:
+Failed:
+Skipped:
+Duration:
+Environment-dependent checks:
+Known limitations:
+~~~
+
+Recommended commands are provided in the Research Agent Testing Guide and
+repository `TEST_COMMANDS.md`.

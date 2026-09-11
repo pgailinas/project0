@@ -1,286 +1,328 @@
 # Research Agent Interface Design
 
-**Version:** 0.3  
+**Version:** 0.4  
 **Owner:** Project0  
-**Last Updated:** 2026-09-02
+**Last Updated:** 2026-09-10
 
 ---
 
 ## 1. Purpose
 
-### Phase 11 Alignment
-
-The Research Agent interfaces are designed to operate within the
-Project0 Dashboard Framework. The Dashboard Framework provides the
-browser-based user interface, navigation, shared layout, and template
-infrastructure, while Research Agent interfaces define only the
-contracts between Research Agent components. The Dashboard Framework
-remains architecturally separate from Research Agent business logic.
-
-The Research Agent workflow adds human-in-the-loop research interactions
-hosted within the Dashboard Work Area. The Dashboard Framework continues
-to provide the shared application shell, navigation, and hosting
-infrastructure. Research Agent interfaces define only agent-specific
-workflow interactions, including research request processing, research
-strategy generation, optional Existing Research Context processing,
-external research source access, paper metadata retrieval, research
-evaluation, per-paper analysis, research direction analysis, research
-artifact generation, and workflow result handling.
-
-Research request processing supports optional research constraints,
-focus areas, user-provided papers or references, and an optional Existing
-Research Context document. When these inputs are not provided, the
-Research Agent workflow uses the research question and available Project0
-services to develop an appropriate research strategy. When an Existing
-Research Context document is not provided, existing workflow semantics
-and result behavior are preserved. Agent interfaces remain independent
-of the specific search, source selection, ranking, and evaluation
-strategies used by the underlying services.
-
-External research source access is isolated behind Research Agent
-interfaces so that source-specific implementations remain separate from
-Research Agent workflow behavior. Multiple configured research source
-providers may contribute references through the same interface contract.
-Citation and source information are preserved through interface
-contracts so that generated research artifacts remain traceable to
-identifiable research sources.
-
-Agent-specific UI behavior and presentation details remain outside these
-interfaces and are implemented by the Research Agent UI components.
-
-The Phase 10 Research Agent implementation validated these interface
-contracts through unit, integration, and acceptance testing while
-preserving separation between Research Agent workflow behavior and
-shared Project0 platform infrastructure.
----
-
-## Existing Research Context Interface Contract
-
-The Research Agent supports an optional Existing Research Context
-document through defined context ingestion and analysis interfaces.
-
-Context document interaction uses a simple file-selection/upload
-mechanism. Supported initial document types are text-based PDF, Markdown,
-and plain text. The Research Agent does not store a copy of the selected
-source document.
-
-Responsibilities:
-
--   Accept an optional Existing Research Context document.
--   Extract text content from supported document types.
--   Preserve page- or section-level source provenance.
--   Support bounded document chunking with implementation limits to be
-    defined.
--   Clearly report context extraction or analysis failures.
--   Reject image-only or scanned PDF documents requiring OCR.
--   Produce structured Existing Research Context containing the research
-    problem, prior work, implemented approaches, findings, limitations,
-    unresolved questions, stated future work, and source references.
-
-When context processing succeeds, the structured Existing Research
-Context is provided to research strategy generation and downstream
-research analysis. Open-ended research requests are supported when
-Existing Research Context is available.
-
-Context findings are source-derived and remain distinguishable from
-generated analysis.
+This document defines the implemented browser, dispatcher, service, provider,
+model, and presentation interfaces of the Project0 Research Agent.
 
 ---
 
-## Per-Paper Analysis Interface Contract
+## 2. Browser Interface
 
-The Per-Paper Analysis interface defines structured technical analysis
-for each retained paper.
+### Routes
 
-Responsibilities:
+| Method | Route | Name | Behavior |
+| --- | --- | --- | --- |
+| GET | `/agents/research` | `research_agent_home` | Renders the ready Research Agent Work Area. |
+| POST | `/agents/research/request` | `research_agent_submit_request` | Reads form/upload values, executes the UI service in a thread pool, and renders the resulting page. |
 
--   Identify the paper problem and approach.
--   Identify representations and modalities.
--   Identify the learning or alignment objective.
--   Identify datasets or tasks.
--   Identify findings and limitations.
--   Explain relevance to the current research.
--   Preserve evidence references.
--   Identify analysis derived from metadata and abstract information.
+Research Agent routes must be registered before the Dashboard's generic
+`/agents/{agent_identifier}` placeholder.
 
-Per-paper analysis is source-derived interpretation and remains
-distinguishable from source information and Research Agent inference.
+### Form
 
----
+| Field | Browser control | Required | Values |
+| --- | --- | --- | --- |
+| Existing research context | file | no | `.pdf`, `.md`, `.markdown`, `.txt` |
+| Research question | textarea | yes | non-empty after trimming |
+| Research guidance | textarea | no | free-form text |
+| Maximum Results | select | yes | 5, 10, 15, 20; default 10 |
 
-## Research Direction Analysis Interface Contract
+The HTML `required` attribute provides client validation. Server-side UI
+validation also prevents a blank question from invoking the workflow.
 
-The Research Direction Analysis interface defines cross-paper analysis
-and evidence-grounded candidate research direction generation.
+### Page states
 
-Responsibilities:
+`ResearchAgentPageStatus` values are:
 
--   Accept optional Existing Research Context and retained Paper
-    Analyses.
--   Produce structured synthesis findings containing themes,
-    comparisons, shared limitations, and unresolved questions.
--   Identify candidate research directions.
--   Preserve context motivation and literature evidence for candidate
-    directions unless explicitly marked speculative.
--   Preserve provenance for referenced context items and papers.
+- `ready`
+- `processing`
+- `completed`
+- `completed_with_warnings`
+- `failed`
 
-Cross-paper synthesis remains functionality within Research Direction
-Analysis rather than a separate interface. Research directions are
-Research Agent inference grounded in source-derived context and
-per-paper interpretation.
+`processing` is used when a mapped result has no recognized final status. On
+normal form submission, JavaScript immediately disables the submit button,
+shows “Searching and evaluating research...”, identifies the active operation
+as “Research Workflow”, and starts elapsed-time/status updates while awaiting
+the synchronous POST response.
 
-The output contract includes synthesis findings and candidate research
-directions. Validation rejects unknown context items or paper identifiers,
-and requires both context motivation and literature evidence for each
-non-speculative candidate direction.
+### Visible results
 
----
+The template can render:
 
-## Research Source Provider Interface Contract
+- workflow status and warnings;
+- the populated request form;
+- uploaded context filename and Existing Research Context Analysis;
+- consolidated Research Results cards;
+- Research Direction Analysis;
+- Workflow Summary counts; and
+- shared system status for the Research Agent model and GPU.
 
-The Research Agent isolates external research source implementations
-through Research Source interfaces.
+The visible workflow-progress labels are Request, Strategy, Source Search,
+Metadata, Evaluation, Artifacts, and Complete. They are presentation states,
+not server-emitted per-stage events.
 
-The interface contract allows the Research Workflow and Research Source
-Service to depend on source capabilities rather than specific external
-provider implementations.
+Separate paper-analysis and legacy artifact panels remain disabled in the
+template. Available paper analysis is embedded in each consolidated card.
 
-Initial provider implementations include:
+### Save Results
 
--   Semantic Scholar Source Provider
-    -   Supports production research source retrieval.
-    -   Provides identifiable research source references for downstream
-        metadata retrieval and evaluation.
--   arXiv Source Provider
-    -   Supports external research source retrieval through arXiv.
--   Crossref Source Provider
-    -   Supports external research source retrieval through Crossref.
--   OpenAlex Source Provider
-    -   Supports external research source retrieval through OpenAlex.
--   OpenReview Source Provider
-    -   Supports external research source retrieval through OpenReview.
--   Stub Research Source Provider
-    -   Supports deterministic research workflow validation.
-    -   Provides controlled research source behavior for testing,
-        demonstrations, and acceptance workflows.
-
-Research source providers preserve provider-specific source
-identifiers and citation information through the shared interface
-contracts.
-
-Provider interaction model:
-
-``` text
-Research Workflow
-        |
-        v
-Research Source Service
-        |
-        v
-Research Source Provider Interface
-        |
-        +---------------------------------------------------------------+
-        |              |              |              |              |
-        v              v              v              v              v
-Semantic Scholar  arXiv Provider  Crossref       OpenAlex       OpenReview
-Provider          (external       Provider       Provider       Provider
-(production       source)         (external      (external      (external
-source)                           source)        source)        source)
-        |
-        v
-Stub Provider
-(deterministic validation)
-```
-
-The interface contract allows additional research sources to be added
-or configured together without modifying Research Agent workflow
-behavior.
+The button appears when results are present and the page is completed or
+completed-with-warnings. Client JavaScript serializes the visible result
+package to `project0_research_results.md`. It attempts
+`showSaveFilePicker` first and falls back to a Blob download.
 
 ---
 
-## Research Query Interface Contract
+## 3. UI Service Contract
 
-The Research Agent separates research intent definition from external
-research source execution through a dedicated Research Query interface.
+`ResearchAgentUIService` depends on a minimal `ResearchWorkflowPort`:
 
-The Research Query interface transforms a structured Research Strategy
-into deterministic, provider-ready research queries.
+~~~python
+run_research_workflow(
+    question: str,
+    guidance: str = "",
+    max_results: int = 10,
+    context_source_name: str | None = None,
+    context_content: bytes | None = None,
+) -> object
+~~~
 
-Responsibilities:
+The UI adapter deliberately reads either attributes or mapping keys so tests
+and alternate ports can supply compatible objects.
 
--   Accept structured research strategies.
--   Generate focused research queries from research concepts.
--   Generate a complementary, bounded query set from the Research
-    Strategy, optional Existing Research Context, and user guidance.
--   Preserve deterministic query ordering.
--   Remove duplicate query terms.
--   Remain independent from external research source implementations.
--   Provide query results to the Research Source Service for downstream
-    source execution.
+### Mapping rules
 
-Provider interaction model:
-
-``` text
-Research Workflow
-        |
-        v
-Research Strategy Service
-        |
-        v
-Research Query Interface
-        |
-        v
-Research Source Service
-        |
-        v
-Research Source Provider Interface
-```
-
-The interface contract allows query generation behavior to evolve
-without modifying external research source implementations or workflow
-coordination behavior.
+- Missing optional values become empty tuples or nulls.
+- Unknown workflow-status strings map to no workflow status and therefore a
+  processing page unless warnings/errors determine another state.
+- A returned error message or `ResearchStatus.FAILED` yields a failed page.
+- Workflow warnings are preserved at page level.
+- Evaluation warnings are combined with evaluation limitations on the card.
+- Papers, evaluations, source references, and analyses are joined by source
+  identity while preserving evaluation order.
+- An `abstract_metadata` analysis is hidden when the displayed paper has no
+  abstract.
+- Null-like optional finding text is omitted.
 
 ---
 
+## 4. Platform Dispatcher Interface
+
+`PlatformDispatcher.run_research_workflow` exposes:
+
+~~~python
+run_research_workflow(
+    question: str,
+    guidance: str = "",
+    max_results: int = 10,
+    context_source_name: str | None = None,
+    context_content: bytes | None = None,
+) -> ResearchResult
+~~~
+
+The dispatcher rejects an empty question, creates `ResearchRequest`, and calls
+`ResearchWorkflow.execute`. Browser users normally encounter the earlier UI
+validation rather than the dispatcher exception.
+
+`ResearchWorkflowProtocol.execute` accepts the request plus the paired optional
+context filename and bytes.
+
 ---
 
-## Research Analysis Validation Interface Behavior
+## 5. Service Protocols
 
-Research analysis interfaces preserve traceability between generated
-analysis and supporting source information.
+The Research Agent defines protocols for:
 
-Validation behavior includes:
+| Protocol | Principal operation |
+| --- | --- |
+| `ResearchContextIngestionServiceProtocol` | `ingest(source_name, content)` |
+| `ExistingResearchContextAnalysisServiceProtocol` | `analyze(document, research_question="")` |
+| `ResearchStrategyServiceProtocol` | `build_strategy(request, context=None)` |
+| `ResearchQueryServiceProtocol` | `generate_queries(strategy)` |
+| `ResearchSourceServiceProtocol` | `search(strategy)` |
+| `PaperMetadataServiceProtocol` | `retrieve_metadata(references)` and `acquire_evidence(papers)` |
+| `ResearchEvaluationServiceProtocol` | `evaluate(request, strategy, papers)` |
+| `PaperAnalysisServiceProtocol` | `analyze(request, strategy, papers)` |
+| `ResearchDirectionAnalysisServiceProtocol` | `analyze(request, context, paper_analyses)` |
+| `ResearchArtifactServiceProtocol` | `generate_artifacts(request, evaluations)` |
+| `ResearchWorkflowProtocol` | `execute(request, context_source_name=None, context_content=None)` |
 
--   verifying that referenced context items exist
--   verifying that referenced paper identifiers exist
--   verifying candidate research direction context motivation and
-    literature evidence unless explicitly marked speculative
--   rejecting unknown source identifiers
--   preserving the distinction between source-derived context findings,
-    source-derived per-paper interpretation, and Research Agent inference
-
-Saved research package interfaces include the request, context summary,
-research strategy, retained papers, per-paper analyses, synthesis
-findings, candidate directions, provenance, and validation status.
+The workflow also detects `rank_candidates` dynamically on the evaluation
+service and falls back to `evaluate` for preliminary ranking. It detects
+`acquire_evidence` dynamically on the metadata service to preserve a legacy
+workflow path for compatible test doubles/implementations.
 
 ---
 
-## Revision Workflow Interface Behavior
+## 6. Source Provider Interface
 
-Research Agent interfaces support revision of generated research
-requests and research outputs through the workflow interaction contract.
+`ResearchSourceProviderProtocol.search(strategy)` returns an ordered tuple of
+`ResearchSourceReference`.
 
-Revision behavior includes:
+Provider configuration names are exact lowercase tokens:
 
--   returning a user to an editable request state
--   preserving the original research request
--   preserving optional research constraints
--   preserving source and citation information
--   accepting updated or appended user instructions
--   submitting the revised request through the existing research
-    workflow
+~~~text
+semantic_scholar
+openalex
+openreview
+crossref
+arxiv
+stub
+~~~
 
-The interface contract does not determine research source selection,
-search strategy, relevance evaluation, or UI presentation details. Those
-responsibilities remain with the Research Agent workflow services and
-Research Agent UI components.
+The Provider Factory returns a dictionary keyed by the selected names. Unknown
+names raise `ValueError`.
+
+Each normalized source reference contains:
+
+- provider `source_name`;
+- provider `source_id`;
+- title;
+- optional URL;
+- authors;
+- optional publication year; and
+- provider-specific metadata.
+
+---
+
+## 7. Reasoning Provider Interface
+
+Context Analysis, Evaluation, Paper Analysis, and Direction Analysis depend on
+`ReasoningProviderProtocol.generate(ProviderRequest) -> ProviderResponse`.
+
+`ProviderRequest` carries system instructions, JSON user prompt, JSON response
+schema, model name, temperature, optional output-token bound, request metadata,
+and request ID. `ProviderResponse.structured_output` must be a mapping for the
+Research Agent parsers.
+
+The Ollama implementation posts:
+
+~~~json
+{
+  "model": "<request model>",
+  "messages": [
+    {"role": "system", "content": "..."},
+    {"role": "user", "content": "..."}
+  ],
+  "stream": false,
+  "format": {"type": "object"},
+  "options": {"temperature": 0.0}
+}
+~~~
+
+The actual `format` value is the complete service-supplied response schema.
+The provider parses the returned message content as JSON and returns a
+provider-neutral response. HTTP, response-shape, and JSON errors are explicit.
+
+---
+
+## 8. Data Model Interfaces
+
+### Request and strategy
+
+`ResearchRequest` includes question, guidance, Maximum Results, programmatic
+constraints/focus areas/source names, metadata, and request ID.
+
+`ResearchStrategy` includes concepts, search terms, seeds, objective,
+sub-questions, constraints, source names, rationale, and inferred
+solution-search concepts.
+
+### Source, metadata, and evidence
+
+`ResearchSourceReference` preserves discovery identity and metadata.
+`PaperMetadata` preserves normalized metadata plus:
+
+- `ResearchPaperEvidenceStatus.AVAILABLE` or `DISCOVERY_ONLY`; and
+- zero or more `ResearchPaperEvidenceSection` values with section, content, and
+  optional page.
+
+`ResearchPaperAnalysisBasis` distinguishes `ABSTRACT_METADATA`,
+`PAPER_CONTENT`, and the model-defined `DISCOVERY_ONLY` value. Current
+`PaperAnalysisService` returns only the first two because evidence-free papers
+are skipped.
+
+### Findings and analyses
+
+`ResearchEvidenceReference` identifies a context document or research paper
+and may include page/section. `ResearchFinding` couples content to evidence.
+These compose Existing Research Context, Paper Analysis, Research Synthesis,
+and Research Direction models.
+
+### Result
+
+`ResearchResult` contains:
+
+- request ID, status, summary, creation time;
+- strategy;
+- source references, papers, evaluations, and legacy artifacts;
+- optional Existing Research Context;
+- paper analyses;
+- optional Direction Analysis;
+- warnings and error message; and
+- metadata such as source-search and evidence-review statistics.
+
+Statuses are `pending`, `completed`, `completed_with_warnings`, and `failed`.
+The workflow returns only completed, completed-with-warnings, or failed.
+
+---
+
+## 9. Evidence and Structured-Output Contracts
+
+### Evaluation
+
+Provider evaluation identifiers are generated as `paper-NNN` per batch and
+must be returned exactly once. Scores are integer 0–100 or null and are
+normalized internally. Retryable identity/coverage/high-score defects receive
+one partial retry.
+
+### Paper analysis
+
+The provider does not return a paper ID. Each finding returns non-empty content,
+section, and page number. Section/page must match supplied evidence.
+
+### Direction analysis
+
+The provider may return only enumerated opaque context/literature handles.
+Accepted handles resolve to original `ResearchEvidenceReference` objects.
+Synthesis and candidate-direction grounding rules are enforced after schema
+generation; JSON schema alone is not the complete contract.
+
+---
+
+## 10. System Status Interface
+
+`GET /api/system-status?agent=research` returns:
+
+~~~json
+{
+  "llm_provider": "...",
+  "llm_model": "...",
+  "gpu_name": "...",
+  "gpu_utilization": "...",
+  "gpu_vram": "..."
+}
+~~~
+
+For a non-Ollama provider, the model is reported as “Not applicable”. GPU
+fields are “Unavailable” when `nvidia-smi` cannot provide data.
+
+---
+
+## 11. Interface Safety
+
+- Uploaded context bytes and filename must be paired.
+- No Research Agent interface mutates the repository.
+- External source IDs are not trusted as provider-returned evaluation handles.
+- Generated evidence handles are resolved only against the supplied catalog.
+- Missing information remains absent, unscored, warned, or failed according to
+  the relevant service contract.
+- Client-saved Markdown is a user download, not a repository write.
+

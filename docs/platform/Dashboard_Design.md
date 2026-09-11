@@ -1,8 +1,8 @@
 # Dashboard Design
 
-**Version:** 0.6  
+**Version:** 0.7  
 **Owner:** Project0  
-**Last Updated:** 2026-09-02
+**Last Updated:** 2026-09-10
 
 ---
 
@@ -52,7 +52,7 @@ Platform Dispatcher
 Project0 Platform Services
 ```
 
-FastAPI is the selected application framework for the Project0 Dashboard. Jinja2 templates will provide the initial browser interface, and Uvicorn will host the local ASGI application.
+FastAPI implements the Project0 Dashboard, Jinja2 renders the browser interface, and Uvicorn hosts the local ASGI application.
 
 ---
 
@@ -290,9 +290,9 @@ Dashboard integration model:
 - User approval before repository modification.
 - Final validation, Git diff generation, and completion reporting.
 
-The Research Agent provides a second implemented agent integration,
-including context-document selection, research request controls, and
-consolidated retained-paper results within the Dashboard Work Area.
+The Research Agent provides a second implemented agent integration. Its Work Area includes an optional Existing Research Context upload, research-question and guidance controls, a Maximum Results selector, client-side processing feedback, workflow warnings, consolidated evidence-reviewed paper cards, embedded structured paper analysis, optional Research Direction Analysis, summary counts, and browser-side Markdown saving.
+
+The shared system-status panel reports the active agent, operation, elapsed time, configured reasoning provider/model, and GPU information. During a Research request the page polls `/api/system-status?agent=research` every two seconds. This polling reports system configuration and GPU state; it is not server-side workflow-stage telemetry.
 
 The Dashboard Framework continues to own the shared application shell,
 navigation, context toolbar region, and Work Area hosting.
@@ -405,10 +405,17 @@ The initial implementation now includes:
 * Validation-result presentation
 * Agent workflow state presentation
 
-Future implementation includes:
+The current implementation also includes:
 
-* Production LLM integration
-* Improved automated documentation generation quality
+* Research Agent request and result routes
+* Agent-specific Research and Documentation Ollama model selection
+* Shared provider/model and GPU status presentation
+* Consolidated Research Agent result cards and Save Results control
+
+Future implementation may include:
+
+* Improved model-output quality
+* Asynchronous progress reporting
 * Additional AI agents
 
 ---
@@ -430,3 +437,4 @@ Future implementation includes:
 This document defines the Project0 platform user experience.
 
 Each AI agent shall provide its own Interface Design document describing agent-specific pages and interactions while conforming to the Dashboard Design.
+
