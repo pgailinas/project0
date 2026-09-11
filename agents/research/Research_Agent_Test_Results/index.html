@@ -1340,10 +1340,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-status-of-this-record" class="md-nav__link">
+  <a href="#execution-basis" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Status of This Record
+        Execution Basis
       
     </span>
   </a>
@@ -1351,10 +1351,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-implemented-automated-coverage" class="md-nav__link">
+  <a href="#results-summary" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Implemented Automated Coverage
+        Results Summary
       
     </span>
   </a>
@@ -1362,10 +1362,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-current-acceptance-scenario-inventory" class="md-nav__link">
+  <a href="#failures-and-risks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Current Acceptance Scenario Inventory
+        Failures and Risks
       
     </span>
   </a>
@@ -1373,10 +1373,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-key-regression-assertions-present" class="md-nav__link">
+  <a href="#validation-decision" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. Key Regression Assertions Present
+        Validation Decision
       
     </span>
   </a>
@@ -1384,21 +1384,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-gaps-and-limitations" class="md-nav__link">
+  <a href="#next-verification" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. Gaps and Limitations
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#6-next-execution-record" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        6. Next Execution Record
+        Next Verification
       
     </span>
   </a>
@@ -1448,10 +1437,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-status-of-this-record" class="md-nav__link">
+  <a href="#execution-basis" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Status of This Record
+        Execution Basis
       
     </span>
   </a>
@@ -1459,10 +1448,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-implemented-automated-coverage" class="md-nav__link">
+  <a href="#results-summary" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Implemented Automated Coverage
+        Results Summary
       
     </span>
   </a>
@@ -1470,10 +1459,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-current-acceptance-scenario-inventory" class="md-nav__link">
+  <a href="#failures-and-risks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Current Acceptance Scenario Inventory
+        Failures and Risks
       
     </span>
   </a>
@@ -1481,10 +1470,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-key-regression-assertions-present" class="md-nav__link">
+  <a href="#validation-decision" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. Key Regression Assertions Present
+        Validation Decision
       
     </span>
   </a>
@@ -1492,21 +1481,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-gaps-and-limitations" class="md-nav__link">
+  <a href="#next-verification" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. Gaps and Limitations
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#6-next-execution-record" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        6. Next Execution Record
+        Next Verification
       
     </span>
   </a>
@@ -1539,53 +1517,36 @@
 
 
 <h1 id="research-agent-test-results">Research Agent Test Results</h1>
-<p><strong>Version:</strong> 0.8<br />
+<p><strong>Version:</strong> 0.9<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-10</p>
+<strong>Last Updated:</strong> 2026-09-11</p>
 <hr />
-<h2 id="1-status-of-this-record">1. Status of This Record</h2>
-<p>This file is synchronized to the Research Agent implementation and automated
+<h2 id="execution-basis">Execution Basis</h2>
+<p>This record is synchronized to the Research Agent implementation and automated
 test inventory on GitHub <code>main</code> at commit
 <code>9372cc13e9c47a4b768e2ad435669403c99bec32</code>.</p>
-<p>No test process was executed as part of this documentation-only repository
-audit. The repository has no GitHub Actions workflow run for <code>main</code> from which
-an independently verifiable current pass count can be obtained. Accordingly,
-this document does not claim a new aggregate pass/skip count.</p>
-<p>Previously recorded completion statements that were not tied to an exact
-revision and command have been replaced by the verifiable coverage record
-below. A future local or CI execution should append an exact run record rather
-than infer success from the presence of test files.</p>
-<hr />
-<h2 id="2-implemented-automated-coverage">2. Implemented Automated Coverage</h2>
-<p>The current repository contains Research Agent unit coverage for:</p>
+<p>No tests were executed during the documentation-only repository audit, and no
+GitHub Actions run for <code>main</code> supplied an independently verifiable current
+result. Test presence is therefore reported as available coverage, not as
+execution success; no new aggregate pass or skip count is claimed.</p>
+<h2 id="results-summary">Results Summary</h2>
+<p>The repository contains Research Agent unit, integration, and browser
+acceptance coverage for:</p>
 <ul>
-<li>request, route, UI-service, and immutable view-model behavior;</li>
-<li>Markdown, text, and PDF Existing Research Context ingestion;</li>
-<li>structured context analysis, provenance, inferred solution concepts, and
-  retry behavior;</li>
-<li>strategy construction and bounded multi-query generation;</li>
-<li>Semantic Scholar, OpenAlex, OpenReview, Crossref, arXiv, and stub providers;</li>
-<li>provider factory selection;</li>
-<li>provider/query dispatch, partial failures, balancing, deduplication,
-  alignment-profile filtering, statistics, and candidate trace;</li>
-<li>provider-specific metadata normalization;</li>
-<li>abstract/PDF evidence acquisition and discovery-only fallback;</li>
-<li>preliminary and final relevance evaluation, batch recovery, and score
-  validation;</li>
-<li>retained-paper analysis evidence validation and retry/skip behavior;</li>
-<li>Research Direction Analysis evidence resolution, grounding, omission, and
-  retry behavior;</li>
-<li>workflow selection, limits, warnings, and failure states;</li>
-<li>in-memory compatibility artifacts;</li>
-<li>Dashboard composition and system-status configuration; and</li>
-<li>research and reasoning data models.</li>
+<li>request handling, routes, UI services, immutable view models, Dashboard
+  composition, and system-status configuration;</li>
+<li>Markdown, text, and PDF context ingestion, structured context analysis,
+  provenance, inferred solution concepts, and retry behavior;</li>
+<li>bounded query generation and Semantic Scholar, OpenAlex, OpenReview,
+  Crossref, arXiv, stub, and provider-factory behavior;</li>
+<li>dispatch, partial failures, balancing, deduplication, alignment filtering,
+  statistics, traceability, and provider metadata normalization;</li>
+<li>evidence acquisition, preliminary and final relevance evaluation, batching,
+  recovery, validation, paper analysis, and Direction Analysis grounding;</li>
+<li>workflow selection, limits, warnings, failures, compatibility artifacts, and
+  research and reasoning data models.</li>
 </ul>
-<p>Integration coverage assembles Research workflows and browser-facing routes.
-Browser acceptance coverage exercises Research request, result, and
-end-to-end safety scenarios.</p>
-<hr />
-<h2 id="3-current-acceptance-scenario-inventory">3. Current Acceptance Scenario Inventory</h2>
-<p>The browser acceptance suite defines:</p>
+<p>The browser acceptance inventory comprises:</p>
 <table>
 <thead>
 <tr>
@@ -1596,7 +1557,7 @@ end-to-end safety scenarios.</p>
 <tbody>
 <tr>
 <td><code>UI_RA_FUN_001</code></td>
-<td>Research Agent page, request input, and processing state</td>
+<td>Research page, request input, and processing state</td>
 </tr>
 <tr>
 <td><code>UI_RA_FUN_002_A</code></td>
@@ -1612,11 +1573,11 @@ end-to-end safety scenarios.</p>
 </tr>
 <tr>
 <td><code>UI_RA_FUN_005_A</code></td>
-<td>Visible research result/artifact-equivalent presentation and completed workflow consistency</td>
+<td>Visible results and completed-workflow consistency</td>
 </tr>
 <tr>
 <td><code>UI_RA_AI_002_A</code></td>
-<td>Unsupported research information is not presented as supported</td>
+<td>Unsupported information is not presented as supported</td>
 </tr>
 <tr>
 <td><code>UI_RA_SAF_001_A</code></td>
@@ -1628,58 +1589,34 @@ end-to-end safety scenarios.</p>
 </tr>
 </tbody>
 </table>
-<p>The historical test names retain the term “artifacts,” but the current template
-presents consolidated Research Results cards and keeps the separate legacy
-artifact panel disabled.</p>
-<hr />
-<h2 id="4-key-regression-assertions-present">4. Key Regression Assertions Present</h2>
-<p>The current test suite specifically asserts:</p>
-<ul>
-<li>at most three discovery-query dimensions;</li>
-<li>independent dispatch of each query to each provider;</li>
-<li>a bounded balanced evaluation pool;</li>
-<li>strongest available duplicate metadata retention;</li>
-<li>exclusion and traceability of alignment-profile mismatches;</li>
-<li>eight-paper evidence shortlisting;</li>
-<li>preliminary ranking separated from final evidence evaluation;</li>
-<li>final evidence-reviewed display even when no paper reaches 0.75;</li>
-<li>no model scoring for evidence-free discovery-only papers;</li>
-<li>evaluation batches of three and one unresolved-paper retry;</li>
-<li>one paper-analysis validation retry followed by per-paper skip;</li>
-<li>Direction Analysis at two or more valid papers and at most three inputs;</li>
-<li>omission of ordinary invalid synthesis findings;</li>
-<li>rejection/retry of unsupported performance ordering;</li>
-<li>required evidence for speculative and non-speculative directions;</li>
-<li>default-enabled Research Direction Analysis;</li>
-<li>Research Agent-specific Ollama model display; and</li>
-<li>consolidated paper results in the Dashboard.</li>
-</ul>
-<hr />
-<h2 id="5-gaps-and-limitations">5. Gaps and Limitations</h2>
-<p>The repository evidence does not establish:</p>
-<ul>
-<li>a current aggregate pass/skip count for this exact commit;</li>
-<li>live availability or stable ranking from external research providers;</li>
-<li>model-quality equivalence across Ollama models;</li>
-<li>exhaustive literature coverage;</li>
-<li>successful OCR or context chunking, which are not implemented;</li>
-<li>complete PDF parsing beyond the bounded heading-based extractor; or</li>
-<li>server-side persistence of the browser-saved Markdown package.</li>
-</ul>
-<p>The current automated tests also coexist with implementation-specific
-visual/video-language candidate heuristics. Passing tests establishes the
-specified heuristic behavior, not general domain-independent relevance.</p>
-<p>There is also a current implementation/test gap in
+<p>Historical test names retain “artifacts,” although the current template uses
+consolidated Research Results cards and disables the separate legacy panel.
+The suite also contains focused assertions for query and evaluation bounds,
+balanced dispatch, metadata-preserving deduplication, alignment traceability,
+evidence shortlisting, evidence-free paper handling, retry/skip behavior,
+grounded Direction Analysis, effective-model display, and consolidated results.</p>
+<h2 id="failures-and-risks">Failures and Risks</h2>
+<p>The available evidence does not establish a current aggregate result, live
+provider availability or ranking, model-quality equivalence, exhaustive
+literature coverage, OCR or context chunking, complete PDF parsing beyond the
+bounded heading extractor, or server-side persistence of the browser-saved
+Markdown package. Passing tests would establish the specified candidate
+heuristics, not general domain-independent relevance.</p>
+<p>There is also an implementation/test gap in
 <code>src/project0/dashboard/dashboard_app.py</code>: the built-in Research reasoning stub
-has no Existing Research Context response branch, its paper-analysis response
-uses the older <code>evidence_ids</code> shape and omits the current <code>page_number</code> field,
-and its direction response uses <code>E5</code>/<code>E6</code> rather than generated
-<code>context-NNN</code>/<code>literature-NNN</code> identifiers. The Dashboard unit test covers the
-stub evaluation branch but not these later branches. Consequently, the
-built-in stub is not evidence of a successful full Research workflow.</p>
-<hr />
-<h2 id="6-next-execution-record">6. Next Execution Record</h2>
-<p>After running verification, record:</p>
+lacks an Existing Research Context response branch; its paper-analysis response
+uses the older <code>evidence_ids</code> shape and omits <code>page_number</code>; and its direction
+response uses <code>E5</code>/<code>E6</code> rather than generated <code>context-NNN</code>/<code>literature-NNN</code>
+identifiers. Dashboard unit coverage reaches the evaluation branch but not
+these later branches, so the stub is not evidence of a successful full Research
+workflow.</p>
+<h2 id="validation-decision">Validation Decision</h2>
+<p>Coverage is present across the major Research Agent boundaries, but execution
+status for the audited commit is not established. A current pass claim requires
+an executed suite tied to an exact revision, command, and environment.</p>
+<h2 id="next-verification">Next Verification</h2>
+<p>Run the commands in the Research Agent Testing Guide and repository
+<code>TEST_COMMANDS.md</code>, then record:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Revision:
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>Date:
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Environment:
@@ -1691,8 +1628,6 @@ built-in stub is not evidence of a successful full Research workflow.</p>
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>Environment-dependent checks:
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>Known limitations:
 </span></code></pre></div>
-<p>Recommended commands are provided in the Research Agent Testing Guide and
-repository <code>TEST_COMMANDS.md</code>.</p>
 
 
 
