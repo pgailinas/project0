@@ -616,9 +616,55 @@
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("documentation-request-form");
 
-    if (!form) {
-        return;
-    }
+    const applyWorkflowSystemStatus = () => {
+        const activeAgent = document.getElementById(
+            "system-status-active-agent"
+        );
+        const state = document.getElementById(
+            "system-status-state"
+        );
+        const operationRow = document.getElementById(
+            "system-status-operation-row"
+        );
+        const operation = document.getElementById(
+            "system-status-operation"
+        );
+        const elapsedRow = document.getElementById(
+            "system-status-elapsed-row"
+        );
+        const elapsed = document.getElementById(
+            "system-status-elapsed"
+        );
+        const pageState = {{ page.system_state | tojson }};
+        const pageOperation = {{ page.system_operation | tojson }};
+        const pageElapsed = {{ page.elapsed_time | tojson }};
+
+        if (pageState && activeAgent) {
+            activeAgent.textContent = "Documentation Agent";
+        }
+
+        if (pageState && state) {
+            state.textContent = pageState;
+        }
+
+        if (operationRow) {
+            operationRow.hidden = !pageOperation;
+        }
+
+        if (operation && pageOperation) {
+            operation.textContent = pageOperation;
+        }
+
+        if (elapsedRow) {
+            elapsedRow.hidden = !pageElapsed;
+        }
+
+        if (elapsed && pageElapsed) {
+            elapsed.textContent = pageElapsed;
+        }
+    };
+
+    applyWorkflowSystemStatus();
 
     const updateSystemStatus = async () => {
         try {
@@ -671,6 +717,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
+    if (!form) {
+        updateSystemStatus();
+        return;
+    }
+
     let elapsedTimer = null;
 
     const formatElapsed = (elapsedSeconds) => {
@@ -713,7 +764,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (operation) {
-            operation.textContent = "Documentation Workflow";
+            operation.textContent = "Reasoning";
         }
 
         if (elapsedRow) {

@@ -279,6 +279,7 @@ class DocumentationAgentUIService:
                 default=None,
             )
         )
+        elapsed_time = self._workflow_elapsed_time(workflow_result)
 
         page_status = (
             page_status_override
@@ -300,6 +301,9 @@ class DocumentationAgentUIService:
             preliminary_validation=preliminary_validation,
             final_validation=final_validation,
             workflow_summary=summary,
+            system_state=self._system_state(page_status),
+            system_operation=self._system_operation(page_status),
+            elapsed_time=elapsed_time,
             warnings=warnings,
             error_message=error_message,
         )
@@ -823,6 +827,85 @@ class DocumentationAgentUIService:
         }
         return messages[status]
 
+    @classmethod
+    def _workflow_elapsed_time(
+        cls,
+        workflow_result: object,
+    ) -> str | None:
+        """Return frozen automated workflow elapsed time for display."""
+
+        started_at = cls._read_value(
+            workflow_result,
+            "started_at",
+            default=None,
+        )
+        completed_at = cls._read_value(
+            workflow_result,
+            "completed_at",
+            default=None,
+        )
+
+        if not isinstance(started_at, datetime):
+            return None
+
+        end_time = (
+            completed_at
+            if isinstance(completed_at, datetime)
+            else datetime.now(UTC)
+        )
+        elapsed_seconds = max(
+            0,
+            int((end_time - started_at).total_seconds()),
+        )
+
+        return cls._format_elapsed_seconds(elapsed_seconds)
+
+    @staticmethod
+    def _format_elapsed_seconds(elapsed_seconds: int) -> str:
+        """Format elapsed seconds as MM:SS or H:MM:SS."""
+
+        hours, remainder = divmod(elapsed_seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+
+        if hours:
+            return f"{hours}:{minutes:02d}:{seconds:02d}"
+
+        return f"{minutes:02d}:{seconds:02d}"
+
+    @staticmethod
+    def _system_state(
+        status: DocumentationAgentPageStatus,
+    ) -> str | None:
+        """Return workflow-specific System Status state text."""
+
+        states = {
+            DocumentationAgentPageStatus.PROCESSING: "Running",
+            DocumentationAgentPageStatus.REVIEW_REQUIRED: "Awaiting Review",
+            DocumentationAgentPageStatus.REVISION_REQUIRED: "Awaiting Revision",
+            DocumentationAgentPageStatus.COMPLETED: "Completed",
+            DocumentationAgentPageStatus.COMPLETED_WITH_WARNINGS: (
+                "Completed with Warnings"
+            ),
+            DocumentationAgentPageStatus.FAILED: "Failed",
+        }
+        return states.get(status)
+
+    @staticmethod
+    def _system_operation(
+        status: DocumentationAgentPageStatus,
+    ) -> str | None:
+        """Return workflow-specific System Status operation text."""
+
+        operations = {
+            DocumentationAgentPageStatus.PROCESSING: "Reasoning",
+            DocumentationAgentPageStatus.REVIEW_REQUIRED: "Review",
+            DocumentationAgentPageStatus.REVISION_REQUIRED: "Review",
+            DocumentationAgentPageStatus.COMPLETED: "Complete",
+            DocumentationAgentPageStatus.COMPLETED_WITH_WARNINGS: "Complete",
+            DocumentationAgentPageStatus.FAILED: "Workflow",
+        }
+        return operations.get(status)
+
     def _create_failure_page(
         self,
         request_form: DocumentationRequestForm,
@@ -837,6 +920,8 @@ class DocumentationAgentUIService:
             status_message=message,
             request_form=request_form,
             workflow_id=workflow_id,
+            system_state="Failed",
+            system_operation="Workflow",
             error_message=error_message,
         )
 

@@ -164,6 +164,9 @@ class DocumentationAgentPageView:
     preliminary_validation: ValidationResultView | None = None
     final_validation: ValidationResultView | None = None
     workflow_summary: DocumentationWorkflowSummaryView | None = None
+    system_state: str | None = None
+    system_operation: str | None = None
+    elapsed_time: str | None = None
     warnings: tuple[str, ...] = ()
     error_message: str | None = None
 
