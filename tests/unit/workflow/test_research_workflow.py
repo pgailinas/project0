@@ -35,7 +35,10 @@ from project0.models.research_models import (
     ResearchStrategy,
     ResearchSynthesis,
 )
-from project0.workflow.research_workflow import ResearchWorkflow
+from project0.workflow.research_workflow import (
+    ResearchWorkflow,
+    get_research_workflow_progress,
+)
 
 
 class StubResearchStrategyService:
@@ -629,6 +632,54 @@ def _create_workflow(
     )
 
 
+def test_workflow_reports_live_stage_transitions(monkeypatch) -> None:
+    """Workflow reports each real backend stage in execution order."""
+
+    transitions: list[tuple[str, str]] = []
+
+    def capture_progress(
+        stage: str,
+        state: str,
+        request_id: str | None,
+    ) -> None:
+        del request_id
+        transitions.append((stage, state))
+
+    monkeypatch.setattr(
+        "project0.workflow.research_workflow."
+        "_set_research_workflow_progress",
+        capture_progress,
+    )
+
+    result = _create_workflow()[0].execute(_research_request())
+
+    assert result.status is ResearchStatus.COMPLETED
+    assert transitions == [
+        ("strategy", "running"),
+        ("source", "running"),
+        ("metadata", "running"),
+        ("evaluation", "running"),
+        ("artifacts", "running"),
+        ("complete", "completed"),
+    ]
+
+
+def test_workflow_progress_snapshot_ends_complete() -> None:
+    """Successful workflow leaves a completed progress snapshot."""
+
+    request = _research_request()
+
+    result = _create_workflow()[0].execute(request)
+    progress = get_research_workflow_progress()
+
+    assert result.status is ResearchStatus.COMPLETED
+    assert progress == {
+        "stage": "complete",
+        "state": "completed",
+        "request_id": request.request_id,
+    }
+
+
 def test_completed_research_workflow_returns_result() -> None:
     """A successful research workflow returns a completed result."""
 
@@ -941,6 +992,24 @@ def test_workflow_skips_analysis_when_no_results_meet_threshold() -> None:
     assert result.warnings == (
         "No research papers met the minimum relevance threshold.",
     )
+
+
+def test_workflow_progress_snapshot_ends_failed() -> None:
+    """Failed workflow exposes a failed live progress snapshot."""
+
+    request = _research_request()
+
+    result = _create_workflow(
+        strategy_error=ValueError("Strategy failed."),
+    )[0].execute(request)
+    progress = get_research_workflow_progress()
+
+    assert result.status is ResearchStatus.FAILED
+    assert progress == {
+        "stage": "failed",
+        "state": "failed",
+        "request_id": request.request_id,
+    }
 
 
 def test_strategy_failure_stops_workflow() -> None:

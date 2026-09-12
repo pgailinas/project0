@@ -312,6 +312,9 @@ def test_research_request_presents_consolidated_paper_results() -> None:
     }
 
     assert "The research workflow completed successfully." in response.text
+    assert 'id="system-status-active-agent">Research Agent</dd>' in response.text
+    assert 'id="system-status-state">Completed</dd>' in response.text
+    assert 'id="system-status-operation">Complete</dd>' in response.text
     assert "Research Results" in response.text
     assert "Example Video Representation Paper" in response.text
     assert (

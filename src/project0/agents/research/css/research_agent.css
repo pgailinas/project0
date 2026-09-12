@@ -83,7 +83,7 @@ Table of Contents:
 
     grid-template-columns:
         repeat(
-            8,
+            7,
             minmax(5.5rem, 1fr)
         );
 
@@ -121,13 +121,21 @@ Table of Contents:
 
     top: 0.55rem;
 
-    left: calc(50% + 0.75rem);
+    left: 50%;
 
-    width: calc(100% - 1.5rem);
+    z-index: 0;
+
+    width: 100%;
 
     height: 0.2rem;
 
     background: var(--border);
+
+}
+
+.workflow-progress__step.workflow-progress__step--live-complete:not(:last-child)::after {
+
+    background: var(--success);
 
 }
 

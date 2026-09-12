@@ -67,31 +67,31 @@
         </div>
 
         <ol class="workflow-progress__steps">
-            <li class="workflow-progress__step workflow-progress__step--request">
+            <li class="workflow-progress__step workflow-progress__step--request" data-stage="request">
                 <span class="workflow-progress__marker" aria-hidden="true"></span>
                 <span class="workflow-progress__label">Request</span>
             </li>
-            <li class="workflow-progress__step workflow-progress__step--strategy">
+            <li class="workflow-progress__step workflow-progress__step--strategy" data-stage="strategy">
                 <span class="workflow-progress__marker" aria-hidden="true"></span>
                 <span class="workflow-progress__label">Strategy</span>
             </li>
-            <li class="workflow-progress__step workflow-progress__step--source">
+            <li class="workflow-progress__step workflow-progress__step--source" data-stage="source">
                 <span class="workflow-progress__marker" aria-hidden="true"></span>
                 <span class="workflow-progress__label">Source Search</span>
             </li>
-            <li class="workflow-progress__step workflow-progress__step--metadata">
+            <li class="workflow-progress__step workflow-progress__step--metadata" data-stage="metadata">
                 <span class="workflow-progress__marker" aria-hidden="true"></span>
                 <span class="workflow-progress__label">Metadata</span>
             </li>
-            <li class="workflow-progress__step workflow-progress__step--evaluation">
+            <li class="workflow-progress__step workflow-progress__step--evaluation" data-stage="evaluation">
                 <span class="workflow-progress__marker" aria-hidden="true"></span>
                 <span class="workflow-progress__label">Evaluation</span>
             </li>
-            <li class="workflow-progress__step workflow-progress__step--artifacts">
+            <li class="workflow-progress__step workflow-progress__step--artifacts" data-stage="artifacts">
                 <span class="workflow-progress__marker" aria-hidden="true"></span>
                 <span class="workflow-progress__label">Artifacts</span>
             </li>
-            <li class="workflow-progress__step workflow-progress__step--complete">
+            <li class="workflow-progress__step workflow-progress__step--complete" data-stage="complete">
                 <span class="workflow-progress__marker" aria-hidden="true"></span>
                 <span class="workflow-progress__label">Complete</span>
             </li>
@@ -777,6 +777,138 @@ document.addEventListener("DOMContentLoaded", () => {
         return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
     };
 
+    const researchStages = [
+        "request",
+        "strategy",
+        "source",
+        "metadata",
+        "evaluation",
+        "artifacts",
+        "complete",
+    ];
+
+    const researchStageLabels = {
+        request: "Request",
+        strategy: "Strategy",
+        source: "Source Search",
+        metadata: "Metadata",
+        evaluation: "Evaluation",
+        artifacts: "Artifacts",
+        complete: "Complete",
+        failed: "Failed",
+    };
+
+    const renderResearchStage = (stage) => {
+        const activeIndex = researchStages.indexOf(stage);
+
+        if (activeIndex < 0) {
+            return;
+        }
+
+        document.querySelectorAll(
+            ".workflow-progress__step[data-stage]"
+        ).forEach((step) => {
+            const stepIndex = researchStages.indexOf(
+                step.dataset.stage
+            );
+            const marker = step.querySelector(
+                ".workflow-progress__marker"
+            );
+
+            step.classList.toggle(
+                "workflow-progress__step--live-complete",
+                stepIndex < activeIndex
+            );
+            step.classList.toggle(
+                "workflow-progress__step--live-active",
+                stepIndex === activeIndex
+            );
+
+            step.style.color = "";
+
+            if (marker) {
+                marker.style.borderColor = "";
+                marker.style.background = "";
+                marker.style.boxShadow = "";
+            }
+
+            if (stepIndex < activeIndex) {
+                step.style.color = "var(--success)";
+
+                if (marker) {
+                    marker.style.borderColor = "var(--success)";
+                    marker.style.background = "var(--success)";
+                }
+            } else if (stepIndex === activeIndex) {
+                const stageColor = (
+                    stage === "complete"
+                    ? "var(--success)"
+                    : "var(--primary)"
+                );
+
+                step.style.color = stageColor;
+
+                if (marker) {
+                    marker.style.borderColor = stageColor;
+                    marker.style.background = stageColor;
+                    marker.style.boxShadow = (
+                        stage === "complete"
+                        ? "none"
+                        : "0 0 0 0.25rem rgba(47, 111, 159, 0.18)"
+                    );
+                }
+            }
+        });
+    };
+
+    const updateResearchProgress = async () => {
+        try {
+            const response = await fetch(
+                "/agents/research/progress",
+                { cache: "no-store" }
+            );
+
+            if (!response.ok) {
+                return;
+            }
+
+            const progress = await response.json();
+            const stage = progress.stage;
+            const state = document.getElementById(
+                "system-status-state"
+            );
+            const operation = document.getElementById(
+                "system-status-operation"
+            );
+
+            if (stage && stage !== "idle") {
+                renderResearchStage(stage);
+
+                if (operation) {
+                    operation.textContent = (
+                        researchStageLabels[stage] || "Research"
+                    );
+                }
+            }
+
+            if (state) {
+                if (progress.state === "running") {
+                    state.textContent = "Running";
+                } else if (progress.state === "completed") {
+                    state.textContent = "Completed";
+                } else if (
+                    progress.state === "completed_with_warnings"
+                ) {
+                    state.textContent = "Completed with Warnings";
+                } else if (progress.state === "failed") {
+                    state.textContent = "Failed";
+                }
+            }
+        } catch (error) {
+            return;
+        }
+    };
+
     const beginResearchSystemStatus = () => {
         const activeAgent = document.getElementById(
             "system-status-active-agent"
@@ -810,12 +942,14 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (operation) {
-            operation.textContent = "Research Workflow";
+            operation.textContent = "Request";
         }
 
         if (elapsedRow) {
             elapsedRow.hidden = false;
         }
+
+        renderResearchStage("request");
 
         let elapsedSeconds = 0;
 
@@ -876,7 +1010,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         beginResearchSystemStatus();
         updateSystemStatus();
+        updateResearchProgress();
         window.setInterval(updateSystemStatus, 2000);
+        window.setInterval(updateResearchProgress, 1000);
 
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {

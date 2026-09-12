@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 import logging
+from threading import Lock
 
 from project0.config.settings import SETTINGS
 from project0.interfaces.research_interfaces import (
@@ -40,6 +41,37 @@ logger = logging.getLogger(__name__)
 
 
 EVIDENCE_CANDIDATE_LIMIT = 8
+
+_RESEARCH_PROGRESS_LOCK = Lock()
+_RESEARCH_PROGRESS: dict[str, object] = {
+    "stage": "idle",
+    "state": "idle",
+    "request_id": None,
+}
+
+
+def _set_research_workflow_progress(
+    stage: str,
+    state: str,
+    request_id: str | None,
+) -> None:
+    """Store the latest live Research workflow stage."""
+
+    with _RESEARCH_PROGRESS_LOCK:
+        _RESEARCH_PROGRESS.update(
+            {
+                "stage": stage,
+                "state": state,
+                "request_id": request_id,
+            }
+        )
+
+
+def get_research_workflow_progress() -> dict[str, object]:
+    """Return a thread-safe snapshot of live Research workflow progress."""
+
+    with _RESEARCH_PROGRESS_LOCK:
+        return dict(_RESEARCH_PROGRESS)
 
 
 class ResearchWorkflow:
@@ -96,6 +128,12 @@ class ResearchWorkflow:
         discovery_only_count = 0
         recommended_evaluations = ()
 
+        _set_research_workflow_progress(
+            stage="strategy",
+            state="running",
+            request_id=request.request_id,
+        )
+
         try:
             if (
                 (context_source_name is None)
@@ -145,6 +183,12 @@ class ResearchWorkflow:
                 strategy
             )
 
+            _set_research_workflow_progress(
+                stage="source",
+                state="running",
+                request_id=request.request_id,
+            )
+
             source_references = self._source_service.search(
                 strategy
             )
@@ -168,6 +212,12 @@ class ResearchWorkflow:
                 warnings.append(
                     "No candidate research sources were found."
                 )
+
+            _set_research_workflow_progress(
+                stage="metadata",
+                state="running",
+                request_id=request.request_id,
+            )
 
             papers = self._metadata_service.retrieve_metadata(
                 source_references
@@ -231,6 +281,12 @@ class ResearchWorkflow:
                         "were retained as discovery-only because usable "
                         "paper evidence was unavailable."
                     )
+
+            _set_research_workflow_progress(
+                stage="evaluation",
+                state="running",
+                request_id=request.request_id,
+            )
 
             evaluations = self._evaluation_service.evaluate(
                 request,
@@ -329,6 +385,12 @@ class ResearchWorkflow:
                             f"{self._format_error_message(error)}"
                         )
 
+            _set_research_workflow_progress(
+                stage="artifacts",
+                state="running",
+                request_id=request.request_id,
+            )
+
             artifacts = self._artifact_service.generate_artifacts(
                 request,
                 evaluations,
@@ -338,6 +400,12 @@ class ResearchWorkflow:
                 ResearchStatus.COMPLETED_WITH_WARNINGS
                 if warnings
                 else ResearchStatus.COMPLETED
+            )
+
+            _set_research_workflow_progress(
+                stage="complete",
+                state=status.value,
+                request_id=request.request_id,
             )
 
             return ResearchResult(
@@ -394,6 +462,12 @@ class ResearchWorkflow:
             logger.exception(
                 "Research workflow failed for request %s.",
                 request.request_id,
+            )
+
+            _set_research_workflow_progress(
+                stage="failed",
+                state="failed",
+                request_id=request.request_id,
             )
 
             return self._failed_result(

@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from time import perf_counter
 
 from fastapi import APIRouter, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse
@@ -22,6 +23,9 @@ from project0.agents.research.research_agent_ui_service import (
     ResearchAgentUIService,
 )
 from project0.dashboard.dashboard_routes import build_dashboard_shell_context
+from project0.workflow.research_workflow import (
+    get_research_workflow_progress,
+)
 
 
 RESEARCH_AGENT_ROUTE_PREFIX = "/agents/research"
@@ -56,6 +60,15 @@ def create_research_agent_router(
             page=page,
         )
 
+    @router.get(
+        "/progress",
+        name="research_agent_progress",
+    )
+    async def research_agent_progress() -> dict[str, object]:
+        """Return the live Research workflow stage."""
+
+        return get_research_workflow_progress()
+
     @router.post(
         "/request",
         response_class=HTMLResponse,
@@ -77,6 +90,8 @@ def create_research_agent_router(
             context_source_name = context_document.filename
             context_content = await context_document.read()
 
+        started_at = perf_counter()
+
         page = await run_in_threadpool(
             ui_service.submit_request,
             question=question,
@@ -90,6 +105,9 @@ def create_research_agent_router(
             templates=template_engine,
             request=request,
             page=page,
+            elapsed_time=_format_elapsed(
+                perf_counter() - started_at
+            ),
         )
 
     return router
@@ -106,6 +124,7 @@ def _render_page(
     templates: Jinja2Templates,
     request: Request,
     page: object,
+    elapsed_time: str | None = None,
 ) -> HTMLResponse:
     """Render the Research Agent template with shared context."""
 
@@ -117,6 +136,10 @@ def _render_page(
         {
             "page": page,
             "active_navigation": "research-agent",
+            **_research_system_status(
+                page=page,
+                elapsed_time=elapsed_time,
+            ),
         }
     )
 
@@ -125,3 +148,46 @@ def _render_page(
         name=RESEARCH_AGENT_TEMPLATE_NAME,
         context=context,
     )
+
+
+def _research_system_status(
+    page: object,
+    elapsed_time: str | None = None,
+) -> dict[str, str | None]:
+    """Return Research Agent values for the shared System Status panel."""
+
+    page_status = getattr(page, "page_status", None)
+    status_value = getattr(page_status, "value", str(page_status or ""))
+
+    states = {
+        "ready": "Ready",
+        "processing": "Running",
+        "completed": "Completed",
+        "completed_with_warnings": "Completed with Warnings",
+        "failed": "Failed",
+    }
+    operations = {
+        "processing": "Research",
+        "completed": "Complete",
+        "completed_with_warnings": "Complete",
+    }
+
+    return {
+        "active_agent_name": "Research Agent",
+        "system_state": states.get(status_value, "Idle"),
+        "system_operation": operations.get(status_value),
+        "elapsed_time": (
+            elapsed_time
+            if status_value != "ready"
+            else None
+        ),
+    }
+
+
+def _format_elapsed(elapsed_seconds: float) -> str:
+    """Format elapsed seconds for the shared System Status panel."""
+
+    total_seconds = max(0, int(elapsed_seconds))
+    minutes, seconds = divmod(total_seconds, 60)
+
+    return f"{minutes:02d}:{seconds:02d}"

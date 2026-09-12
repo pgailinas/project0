@@ -92,6 +92,10 @@ def _build_templates(tmp_path: Path) -> Jinja2Templates:
                 <p id="active-navigation">{{ active_navigation }}</p>
                 <p id="active-page">{{ active_page }}</p>
                 <p id="project-name">{{ project_name }}</p>
+                <p id="system-active-agent">{{ active_agent_name }}</p>
+                <p id="system-state">{{ system_state }}</p>
+                <p id="system-operation">{{ system_operation or "" }}</p>
+                <p id="system-elapsed">{{ elapsed_time or "" }}</p>
                 {% for agent in agents %}
                 <p class="dashboard-agent">
                     {{ agent.name }}:{{ agent.available }}
@@ -140,6 +144,52 @@ def _build_client(
     return TestClient(app), service
 
 
+def test_research_system_status_maps_processing_state() -> None:
+    """Processing pages expose active Research Agent system status."""
+
+    page = _build_page(
+        ResearchAgentPageStatus.PROCESSING,
+        "Processing.",
+    )
+
+    from project0.agents.research.research_agent_routes import (
+        _research_system_status,
+    )
+
+    assert _research_system_status(
+        page,
+        elapsed_time="01:23",
+    ) == {
+        "active_agent_name": "Research Agent",
+        "system_state": "Running",
+        "system_operation": "Research",
+        "elapsed_time": "01:23",
+    }
+
+
+def test_research_system_status_maps_failed_state() -> None:
+    """Failed pages retain elapsed time without a misleading operation."""
+
+    page = _build_page(
+        ResearchAgentPageStatus.FAILED,
+        "Failed.",
+    )
+
+    from project0.agents.research.research_agent_routes import (
+        _research_system_status,
+    )
+
+    assert _research_system_status(
+        page,
+        elapsed_time="00:17",
+    ) == {
+        "active_agent_name": "Research Agent",
+        "system_state": "Failed",
+        "system_operation": None,
+        "elapsed_time": "00:17",
+    }
+
+
 def test_route_constants() -> None:
     """Route constants should remain stable for templates and registration."""
 
@@ -165,6 +215,10 @@ def test_research_agent_home_route(tmp_path: Path) -> None:
     )
     assert '<p id="active-page">agent:research</p>' in response.text
     assert '<p id="project-name">Project0</p>' in response.text
+    assert '<p id="system-active-agent">Research Agent</p>' in response.text
+    assert '<p id="system-state">Ready</p>' in response.text
+    assert '<p id="system-operation"></p>' in response.text
+    assert '<p id="system-elapsed"></p>' in response.text
     assert "Documentation Agent:True" in response.text
     assert "Research Agent:True" in response.text
     assert service.received_request is None
@@ -211,6 +265,10 @@ def test_submit_request_route_delegates_form_values(
     assert "The research workflow completed successfully." in response.text
     assert '<p id="status">completed</p>' in response.text
     assert '<p id="request-id">research-request</p>' in response.text
+    assert '<p id="system-active-agent">Research Agent</p>' in response.text
+    assert '<p id="system-state">Completed</p>' in response.text
+    assert '<p id="system-operation">Complete</p>' in response.text
+    assert '<p id="system-elapsed">00:00</p>' in response.text
 
 
 def test_submit_request_route_uses_threadpool_without_changing_delegation(
@@ -323,6 +381,34 @@ def test_submit_request_route_delegates_context_document(
     }
 
 
+def test_research_agent_progress_route_returns_live_stage(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    """Progress route should expose the latest live workflow stage."""
+
+    monkeypatch.setattr(
+        "project0.agents.research.research_agent_routes."
+        "get_research_workflow_progress",
+        lambda: {
+            "stage": "metadata",
+            "state": "running",
+            "request_id": "research-request",
+        },
+    )
+
+    client, _ = _build_client(tmp_path)
+
+    response = client.get("/agents/research/progress")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "stage": "metadata",
+        "state": "running",
+        "request_id": "research-request",
+    }
+
+
 def test_router_exposes_expected_named_routes(tmp_path: Path) -> None:
     """The router should expose stable names for URL generation."""
 
@@ -345,4 +431,5 @@ def test_router_exposes_expected_named_routes(tmp_path: Path) -> None:
     route_names = {route.name for route in router.routes}
 
     assert "research_agent_home" in route_names
+    assert "research_agent_progress" in route_names
     assert "research_agent_submit_request" in route_names
