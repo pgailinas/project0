@@ -42,7 +42,8 @@ theme:
 nav:
   - Welcome to Project0: index.md
 
-  - Project0:
+  - Project Documentation:
+      - Overview: project/index.md
       - Project Charter: project/Project_Charter.md
       - Project Directory Structure: project/Project_Directory_Structure.md
       - Development Environment: project/Development_Environment.md
@@ -52,13 +53,13 @@ nav:
       - Implementation Roadmap: project/Implementation_Roadmap.md
       - Implementation Status: project/Implementation_Status.md
 
-  - Platform:
+  - Platform Documentation:
+      - Overview: platform/index.md
       - Dashboard Design: platform/Dashboard_Design.md
       - Component Communication Design: platform/Component_Communication_Design.md
       - Shared Data Models and Error Contracts: platform/Shared_Data_Models_and_Error_Contracts.md
       - Agent Skills Design: platform/Agent_Skills_Design.md
       - Project0 Validation Status: platform/Project0_Validation_Status.md
-
       
   - Documentation Agent:
       - Overview: agents/documentation/index.md

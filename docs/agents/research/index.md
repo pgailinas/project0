@@ -48,9 +48,13 @@ The Research Agent supports:
 
 Provider selection and reasoning-model configuration are controlled by Project0 configuration and may vary by deployment.
 
-## Related Project Documentation
+## Related Documentation
 
-For Project0-wide architecture, platform design, configuration, validation, and development documentation, return to the [Project0 Documentation Home](../../index.md).
+For project goals, development practices, roadmap, and implementation status, see the [Project Documentation](../../project/index.md).
+
+For shared platform architecture, services, contracts, Dashboard behavior, and validation, see the [Platform Documentation](../../platform/index.md).
+
+For the complete documentation portal, return to the [Project0 Documentation Home](../../index.md).
 
 ## Source of Truth
 

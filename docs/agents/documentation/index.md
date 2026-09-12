@@ -31,9 +31,13 @@ The Documentation Agent supports:
 
 The Documentation Agent is intended to keep Project0 documentation aligned with implemented source behavior while minimizing unsupported or unnecessary changes.
 
-## Related Project Documentation
+## Related Documentation
 
-For Project0-wide architecture, platform design, configuration, validation, and development documentation, return to the [Project0 Documentation Home](../../index.md).
+For project goals, development practices, roadmap, and implementation status, see the [Project Documentation](../../project/index.md).
+
+For shared platform architecture, services, contracts, Dashboard behavior, and validation, see the [Platform Documentation](../../platform/index.md).
+
+For the complete documentation portal, return to the [Project0 Documentation Home](../../index.md).
 
 ## Source of Truth
 
