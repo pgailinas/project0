@@ -487,6 +487,14 @@ def test_build_prompt_includes_source_grounded_section_guidance() -> None:
     assert "Propose documentation changes only for source-established gaps" in (
         user_prompt
     )
+    assert "ESTABLISHED DOCUMENTATION GAPS are the complete allowed change set" in (
+        user_prompt
+    )
+    assert "use that exact target text as the change boundary" in user_prompt
+    assert "Do not add helper function names or implementation explanation" in (
+        user_prompt
+    )
+    assert "rather than weakening the relationship with `or`" in user_prompt
     assert "Do not recommend new implementation fields" in user_prompt
 
 
@@ -1441,6 +1449,13 @@ def test_active_skill_uses_concise_system_instructions() -> None:
 
     assert "The supplied response schema constrains" in instructions
     assert "Source-grounded documentation work is synchronization" in instructions
+    assert "ESTABLISHED DOCUMENTATION GAPS are a closed set" in instructions
+    assert "treat that exact target text as the edit boundary" in instructions
+    assert "smallest corrected version" in instructions
+    assert "do not rewrite surrounding paragraphs" in instructions
+    assert "Do not add private or helper function names" in instructions
+    assert "rather than weakening it with `or`" in instructions
+    assert "Keep documentation_meaning equally concise" in instructions
     assert "Do not propose new source fields" in instructions
     assert "does not establish a documentation gap" in instructions
     assert "Target Paths identify the only documents" not in instructions

@@ -204,6 +204,10 @@ class DocumentationWorkflow:
 
                 gap_results: list[ReasoningResult] = []
                 verified_gaps: list[DocumentationGap] = []
+                verified_gap_target_claims: dict[
+                    tuple[str, str | None, str, str],
+                    str,
+                ] = {}
 
                 for pair_index, gap_context in enumerate(
                     gap_contexts,
@@ -264,6 +268,14 @@ class DocumentationWorkflow:
 
                         if rejection_reason is None:
                             verified_gaps.append(gap)
+                            target_claim = self._extract_bounded_target_claim(
+                                gap_context
+                            )
+                            if target_claim is not None:
+                                verified_gap_target_claims.setdefault(
+                                    self._documentation_gap_key(gap),
+                                    target_claim,
+                                )
                         else:
                             logger.debug(
                                 "Rejected documentation gap: reason=%r "
@@ -305,7 +317,10 @@ class DocumentationWorkflow:
 
                 context = (
                     f"{context.rstrip()}\n\n"
-                    f"{self._format_established_gaps(established_gaps)}"
+                    + self._format_established_gaps(
+                        established_gaps,
+                        verified_gap_target_claims,
+                    )
                 )
 
             reasoning_result = self._reasoning_service.reason(
@@ -1050,12 +1065,12 @@ class DocumentationWorkflow:
             behaviors.add("deduplication")
             behaviors.add("deduplicate")
 
-        # line.strip() establishes surrounding-whitespace trimming.
+        # line.strip() establishes surrounding-whitespace trimming only.
+        # Do not broaden this deterministic source fact into generic
+        # "normalization"; that term may imply transformations not shown here.
         if re.search(r"\b[A-Za-z_][A-Za-z0-9_]*\.strip\(\)", source_block):
             behaviors.add("trim")
             behaviors.add("trimming")
-            behaviors.add("normalization")
-            behaviors.add("normalize")
 
         # Filtering on the stripped line removes blank/whitespace-only items.
         if re.search(
@@ -1505,7 +1520,21 @@ class DocumentationWorkflow:
         return frozenset(tokens)
 
     @staticmethod
+    def _documentation_gap_key(
+        gap: DocumentationGap,
+    ) -> tuple[str, str | None, str, str]:
+        """Return the normalized identity used for verified Stage 1 gaps."""
+
+        return (
+            gap.document_path.as_posix(),
+            gap.section.strip() if gap.section is not None else None,
+            " ".join(gap.gap.split()),
+            " ".join(gap.source_evidence.split()),
+        )
+
+    @classmethod
     def _deduplicate_documentation_gaps(
+        cls,
         gaps: tuple[DocumentationGap, ...],
     ) -> tuple[DocumentationGap, ...]:
         """Return Stage 1 gaps with exact semantic duplicates removed."""
@@ -1514,12 +1543,7 @@ class DocumentationWorkflow:
         seen: set[tuple[str, str | None, str, str]] = set()
 
         for gap in gaps:
-            key = (
-                gap.document_path.as_posix(),
-                gap.section.strip() if gap.section is not None else None,
-                " ".join(gap.gap.split()),
-                " ".join(gap.source_evidence.split()),
-            )
+            key = cls._documentation_gap_key(gap)
 
             if key in seen:
                 continue
@@ -1529,12 +1553,18 @@ class DocumentationWorkflow:
 
         return tuple(deduplicated)
 
-    @staticmethod
+    @classmethod
     def _format_established_gaps(
+        cls,
         gaps: tuple[DocumentationGap, ...],
+        target_claims: dict[
+            tuple[str, str | None, str, str],
+            str,
+        ] | None = None,
     ) -> str:
-        """Format Stage 1 gaps as bounded input for proposal generation."""
+        """Format verified gaps as bounded Stage 2 proposal input."""
 
+        claim_map = target_claims or {}
         lines = ["=== ESTABLISHED DOCUMENTATION GAPS ==="]
 
         for index, gap in enumerate(gaps, start=1):
@@ -1543,6 +1573,17 @@ class DocumentationWorkflow:
                     f"Gap {index}:",
                     f"Document Path: {gap.document_path.as_posix()}",
                     f"Section: {gap.section if gap.section is not None else 'null'}",
+                )
+            )
+
+            target_claim = claim_map.get(
+                cls._documentation_gap_key(gap)
+            )
+            if target_claim is not None:
+                lines.append(f"Target Claim: {target_claim}")
+
+            lines.extend(
+                (
                     f"Gap: {gap.gap}",
                     f"Source Evidence: {gap.source_evidence}",
                 )
@@ -1550,10 +1591,163 @@ class DocumentationWorkflow:
 
         lines.append(
             "Generate documentation edits only for the established gaps above. "
-            "Do not introduce additional gaps, requirements, or design changes."
+            "When Target Claim is present, treat that exact text as the edit "
+            "boundary and make only the smallest correction needed to resolve "
+            "the gap. Do not add helper-function explanation or rewrite "
+            "surrounding documentation. Do not introduce additional gaps, "
+            "requirements, or design changes."
         )
 
         return "\n".join(lines)
+
+    @staticmethod
+    def _extract_established_gap_target_claims(
+        context: str,
+    ) -> dict[tuple[str, str | None], tuple[str, ...]]:
+        """Extract exact Stage 2 target claims keyed by path and section."""
+
+        marker = "=== ESTABLISHED DOCUMENTATION GAPS ==="
+
+        if marker not in context:
+            return {}
+
+        gap_block = context.split(marker, 1)[1]
+        raw_gaps = tuple(
+            part.strip()
+            for part in re.split(
+                r"(?m)^Gap \d+:\s*$",
+                gap_block,
+            )[1:]
+            if part.strip()
+        )
+        claims: dict[tuple[str, str | None], list[str]] = {}
+
+        for raw_gap in raw_gaps:
+            path_match = re.search(
+                r"(?m)^Document Path:\s*(.+)$",
+                raw_gap,
+            )
+            section_match = re.search(
+                r"(?m)^Section:\s*(.+)$",
+                raw_gap,
+            )
+            claim_match = re.search(
+                r"(?m)^Target Claim:\s*(.+)$",
+                raw_gap,
+            )
+
+            if (
+                path_match is None
+                or section_match is None
+                or claim_match is None
+            ):
+                continue
+
+            repository_path = path_match.group(1).strip()
+            section_value = section_match.group(1).strip()
+            section = None if section_value == "null" else section_value
+            claim = claim_match.group(1).strip()
+
+            if claim:
+                claims.setdefault(
+                    (repository_path, section),
+                    [],
+                ).append(claim)
+
+        return {
+            key: tuple(dict.fromkeys(values))
+            for key, values in claims.items()
+        }
+
+    @classmethod
+    def _select_minimal_replacement_content(
+        cls,
+        proposed_content: str,
+        target_claim: str,
+    ) -> str:
+        """Keep only the proposal paragraph that corresponds to the claim."""
+
+        stripped = proposed_content.strip()
+        blocks = tuple(
+            block.strip()
+            for block in re.split(r"\n\s*\n", stripped)
+            if block.strip()
+        )
+
+        if len(blocks) <= 1:
+            return stripped
+
+        target_tokens = cls._claim_pairing_tokens(target_claim)
+
+        if not target_tokens:
+            return stripped
+
+        scored = []
+
+        for block in blocks:
+            block_tokens = cls._claim_pairing_tokens(block)
+            overlap = target_tokens.intersection(block_tokens)
+            coverage = len(overlap) / len(target_tokens)
+            scored.append((coverage, len(overlap), block))
+
+        scored.sort(
+            key=lambda item: (
+                -item[0],
+                -item[1],
+                len(item[2]),
+            )
+        )
+        best_coverage, _, best_block = scored[0]
+
+        if best_coverage < 0.5:
+            return stripped
+
+        return best_block
+
+    @classmethod
+    def _canonicalize_established_behavior_wording(
+        cls,
+        proposed_content: str,
+        target_claim: str,
+        context: str,
+    ) -> str:
+        """Canonicalize one known behavior conjunction from source syntax.
+
+        This guard is intentionally narrow. When the exact established target
+        claim denies "normalization or deduplication", and authoritative Python
+        source deterministically shows both surrounding-whitespace trimming
+        via ``strip()`` and deduplication via ``dict.fromkeys(...)``, replace
+        model wording that says "normalization or deduplication" with the
+        concrete conjunction "trimming and deduplication".
+
+        The correction avoids overstating ``strip()`` as generic normalization
+        and prevents a Stage 2 proposal from weakening two established source
+        behaviors with ``or``.
+        """
+
+        normalized_target = " ".join(target_claim.split()).casefold()
+
+        if "normalization or deduplication" not in normalized_target:
+            return proposed_content
+
+        authoritative_sources = cls._extract_authoritative_python_sources(
+            context
+        )
+        source_text = "\n".join(authoritative_sources)
+        behaviors = cls._infer_positive_source_behaviors(source_text)
+
+        if not {
+            "trimming",
+            "deduplication",
+        }.issubset(behaviors):
+            return proposed_content
+
+        return re.sub(
+            r"\bnormalization\s+or\s+deduplication\b",
+            "trimming and deduplication",
+            proposed_content,
+            flags=re.IGNORECASE,
+        )
 
     @staticmethod
     def _log_reasoning_result(
@@ -1857,6 +2051,11 @@ class DocumentationWorkflow:
         proposals: list[DocumentationChangeProposal] = []
         warnings: list[str] = []
         allowed_target_paths = set(target_paths)
+        established_target_claims = (
+            self._extract_established_gap_target_claims(context)
+            if source_grounded
+            else {}
+        )
 
         for proposed_change in reasoning_result.proposed_changes:
             repository_path = proposed_change.document_path.as_posix()
@@ -1977,6 +2176,37 @@ class DocumentationWorkflow:
                     context=context,
                 )
 
+            established_claim_candidates = established_target_claims.get(
+                (
+                    repository_path,
+                    proposed_change.section,
+                ),
+                (),
+            )
+            established_target_claim = (
+                established_claim_candidates[0]
+                if len(established_claim_candidates) == 1
+                else None
+            )
+
+            if (
+                source_grounded
+                and established_target_claim is not None
+                and proposed_change.edit_type
+                is DocumentationEditType.REPLACE
+            ):
+                proposed_content = self._select_minimal_replacement_content(
+                    proposed_content=proposed_content,
+                    target_claim=established_target_claim,
+                )
+                proposed_content = (
+                    self._canonicalize_established_behavior_wording(
+                        proposed_content=proposed_content,
+                        target_claim=established_target_claim,
+                        context=context,
+                    )
+                )
+
             if (
                 source_grounded
                 and not self._python_declarations_are_source_grounded(
@@ -2036,6 +2266,7 @@ class DocumentationWorkflow:
 
             if (
                 source_grounded
+                and established_target_claim is None
                 and proposed_change.section
                 and artifact_location is not None
                 and not self._is_semantically_aligned_section(
@@ -2115,6 +2346,7 @@ class DocumentationWorkflow:
                     continue
 
             proposal_artifact_location = artifact_location
+            proposal_anchor_text = proposed_change.anchor_text
             proposal_anchor_mode = (
                 DocumentationAnchorMode.INSERT_AFTER
                 if proposed_change.edit_type
@@ -2123,6 +2355,28 @@ class DocumentationWorkflow:
             )
 
             if (
+                source_grounded
+                and established_target_claim is not None
+                and proposed_change.edit_type
+                is DocumentationEditType.REPLACE
+            ):
+                anchor_count = original_content.count(
+                    established_target_claim
+                )
+
+                if anchor_count != 1:
+                    warnings.append(
+                        "The exact established target claim could not be "
+                        "resolved uniquely; the proposed change was skipped: "
+                        f"{repository_path}."
+                    )
+                    continue
+
+                proposal_artifact_location = None
+                proposal_anchor_text = established_target_claim
+                proposal_anchor_mode = DocumentationAnchorMode.REPLACE
+
+            elif (
                 source_grounded
                 and artifact_location is not None
                 and artifact_location.location_type
@@ -2146,7 +2400,7 @@ class DocumentationWorkflow:
                 proposed_content=proposed_content,
                 rationale=proposed_change.rationale,
                 artifact_location=proposal_artifact_location,
-                anchor_text=proposed_change.anchor_text,
+                anchor_text=proposal_anchor_text,
                 anchor_mode=proposal_anchor_mode,
             )
 

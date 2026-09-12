@@ -1636,8 +1636,10 @@ def test_positive_source_behavior_inference_is_narrow() -> None:
 
     assert "deduplication" in behaviors
     assert "deduplicate" in behaviors
-    assert "normalization" in behaviors
     assert "trim" in behaviors
+    assert "trimming" in behaviors
+    assert "normalization" not in behaviors
+    assert "normalize" not in behaviors
     assert "blank-removal" in behaviors
     assert "validation" not in behaviors
 
@@ -1844,6 +1846,235 @@ def test_source_grounded_workflow_stops_after_gap_analysis_when_no_gaps(
     assert result.proposals == ()
     assert result.preliminary_validation is None
     assert validation_service.requests == []
+
+
+
+
+def test_format_established_gaps_preserves_exact_target_claim() -> None:
+    """Verified Stage 1 target text is carried into Stage 2."""
+
+    gap = DocumentationGap(
+        document_path=Path("docs/Example.md"),
+        section="Browser routes",
+        gap=(
+            "The target denies deduplication while source parsing "
+            "deduplicates path values."
+        ),
+        source_evidence=(
+            "parse_paths returns tuple(dict.fromkeys(...)), removing "
+            "duplicate values."
+        ),
+        confidence=0.95,
+    )
+    claim = (
+        "Path fields are newline-separated and trimmed; route parsing does "
+        "not guarantee deduplication."
+    )
+
+    formatted = DocumentationWorkflow._format_established_gaps(
+        (gap,),
+        {
+            DocumentationWorkflow._documentation_gap_key(gap): claim,
+        },
+    )
+
+    assert f"Target Claim: {claim}" in formatted
+    assert "treat that exact text as the edit boundary" in formatted
+    assert "Do not add helper-function explanation" in formatted
+
+
+def test_minimal_replacement_content_drops_extra_implementation_paragraph() -> None:
+    """Strict Stage 2 keeps only the paragraph corresponding to the claim."""
+
+    target_claim = (
+        "Path fields are newline-separated, trimmed, and stripped of blank "
+        "entries; route parsing does not guarantee normalization or "
+        "deduplication. Blank requests fail in UI or dispatcher."
+    )
+    proposed_content = (
+        "Path fields are newline-separated, trimmed, and stripped of blank "
+        "entries; route parsing guarantees normalization and deduplication. "
+        "Blank requests fail in UI or dispatcher.\n\n"
+        "Normalization is ensured by `_parse_source_paths` and "
+        "`_parse_target_paths`."
+    )
+
+    minimal = DocumentationWorkflow._select_minimal_replacement_content(
+        proposed_content=proposed_content,
+        target_claim=target_claim,
+    )
+
+    assert minimal == (
+        "Path fields are newline-separated, trimmed, and stripped of blank "
+        "entries; route parsing guarantees normalization and deduplication. "
+        "Blank requests fail in UI or dispatcher."
+    )
+    assert "_parse_source_paths" not in minimal
+    assert "_parse_target_paths" not in minimal
+
+
+def test_established_behavior_wording_uses_trimming_and_deduplication() -> None:
+    """Stage 2 uses concrete source behaviors joined by conjunction."""
+
+    target_claim = (
+        "Path fields are newline-separated, trimmed, and stripped of blank "
+        "entries; route parsing does not guarantee normalization or "
+        "deduplication."
+    )
+    context = (
+        "=== AUTHORITATIVE SOURCE ===\n"
+        "Path: src/project0/example.py\n"
+        "def parse_paths(value: str) -> tuple[str, ...]:\n"
+        "    return tuple(\n"
+        "        dict.fromkeys(\n"
+        "            line.strip()\n"
+        "            for line in value.splitlines()\n"
+        "            if line.strip()\n"
+        "        )\n"
+        "    )\n"
+    )
+
+    result = (
+        DocumentationWorkflow._canonicalize_established_behavior_wording(
+            proposed_content=(
+                "Path fields are newline-separated and trimmed; route parsing "
+                "guarantees normalization or deduplication."
+            ),
+            target_claim=target_claim,
+            context=context,
+        )
+    )
+
+    assert "guarantees trimming and deduplication" in result
+    assert "normalization or deduplication" not in result
+
+
+def test_established_behavior_wording_requires_both_source_behaviors() -> None:
+    """Canonical wording is unchanged without both trimming and deduplication."""
+
+    target_claim = (
+        "Route parsing does not guarantee normalization or deduplication."
+    )
+    context = (
+        "=== AUTHORITATIVE SOURCE ===\n"
+        "Path: src/project0/example.py\n"
+        "def parse_paths(value: str) -> tuple[str, ...]:\n"
+        "    return tuple(line.strip() for line in value.splitlines())\n"
+    )
+    proposed_content = (
+        "Route parsing guarantees normalization or deduplication."
+    )
+
+    result = (
+        DocumentationWorkflow._canonicalize_established_behavior_wording(
+            proposed_content=proposed_content,
+            target_claim=target_claim,
+            context=context,
+        )
+    )
+
+    assert result == proposed_content
+
+
+def test_source_grounded_established_claim_becomes_exact_replace_anchor(
+    tmp_path: Path,
+) -> None:
+    """Stage 2 replaces the exact verified claim instead of inserting a block."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    target_claim = (
+        "Path fields are newline-separated, trimmed, and stripped of blank "
+        "entries; route parsing does not guarantee normalization or "
+        "deduplication. Blank requests fail in UI or dispatcher."
+    )
+    corrected_claim = (
+        "Path fields are newline-separated, trimmed, and stripped of blank "
+        "entries; route parsing guarantees trimming and deduplication. "
+        "Blank requests fail in UI or dispatcher."
+    )
+    model_claim = (
+        "Path fields are newline-separated, trimmed, and stripped of blank "
+        "entries; route parsing guarantees normalization or deduplication. "
+        "Blank requests fail in UI or dispatcher."
+    )
+    document.write_text(
+        "# Original\n"
+        "## Browser routes\n"
+        f"{target_claim}\n",
+        encoding="utf-8",
+    )
+
+    location = ArtifactLocation(
+        location_id="browser-routes",
+        repository_path=str(document),
+        location_type=ArtifactLocationType.SECTION,
+        locator="Browser routes",
+        start_line=2,
+        end_line=3,
+        content_hash="hash",
+    )
+    change = ProposedDocumentationChange(
+        document_path=Path("docs/index.md"),
+        operation=DocumentationChangeOperation.UPDATE,
+        rationale="Correct route path normalization and deduplication.",
+        documentation_meaning=model_claim,
+        proposed_content=(
+            f"{model_claim}\n\n"
+            "Normalization is ensured by `_parse_source_paths` and "
+            "`_parse_target_paths`."
+        ),
+        section="Browser routes",
+        anchor_text=None,
+        edit_type=DocumentationEditType.REPLACE,
+        confidence=1.0,
+    )
+    reasoning_result = _reasoning_result(
+        proposed_changes=(change,)
+    )
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=reasoning_result,
+        validation_results=(),
+        artifact_locations=(location,),
+    )[0]
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/index.md\n"
+        "# Original\n"
+        "## Browser routes\n"
+        f"{target_claim}\n"
+        "\n"
+        "=== AUTHORITATIVE SOURCE ===\n"
+        "Path: src/project0/example.py\n"
+        "def _parse_source_paths(value: str) -> tuple[str, ...]:\n"
+        "    return tuple(dict.fromkeys(line.strip() for line in value.splitlines()))\n"
+        "\n"
+        "=== ESTABLISHED DOCUMENTATION GAPS ===\n"
+        "Gap 1:\n"
+        "Document Path: docs/index.md\n"
+        "Section: Browser routes\n"
+        f"Target Claim: {target_claim}\n"
+        "Gap: The target denies normalization or deduplication.\n"
+        "Source Evidence: Parsing trims and deduplicates path values.\n"
+    )
+
+    proposals, warnings = workflow._build_proposals(
+        reasoning_result=reasoning_result,
+        target_paths=("docs/index.md",),
+        source_grounded=True,
+        context=context,
+    )
+
+    assert warnings == ()
+    assert len(proposals) == 1
+
+    proposal = proposals[0]
+
+    assert proposal.proposed_content == corrected_claim
+    assert proposal.anchor_text == target_claim
+    assert proposal.anchor_mode is DocumentationAnchorMode.REPLACE
+    assert proposal.artifact_location is None
 
 
 def test_reasoning_failure_stops_workflow(tmp_path: Path) -> None:
