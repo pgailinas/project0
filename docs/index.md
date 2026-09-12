@@ -59,7 +59,7 @@ The generic Workflow Engine currently executes generic task lists and the contex
 | [Component Communication Design](platform/Component_Communication_Design.md) | Runtime composition, service interactions, workflow boundaries, events, and failure propagation |
 | [Shared Data Models and Error Contracts](platform/Shared_Data_Models_and_Error_Contracts.md) | Implemented model families, status values, repository errors, and boundary-specific failure behavior |
 | [Agent Skills Design](platform/Agent_Skills_Design.md) | Repository-local skill format, immutable models, registry behavior, reasoning integration, and limits |
-| [Project0 Test Results](platform/Project0_Test_Results.md) | Commit-specific regression/validation record and historical-result boundary |
+| [Project0 Validation Status](platform/Project0_Validation_Status.md) | Commit-specific regression/validation record and historical-result boundary |
 
 ### Documentation Agent
 
@@ -191,7 +191,7 @@ This documentation synchronization is pinned to commit `da217ae42f7ceeffc95a84c6
 - `python -m compileall -q src` failed because `src/project0/interfaces/knowledge_interfaces.py` contains Markdown code fences around the Python module.
 - The historical `1265 passed, 11 skipped` record from 2026-09-09 was not tied to the pinned commit and does not establish its status.
 
-See [Implementation Status](project/Implementation_Status.md), [Testing Guide](project/Testing_Guide.md), and [Project0 Test Results](platform/Project0_Test_Results.md) for the precise status, commands, gaps, and reporting rules.
+See [Implementation Status](project/Implementation_Status.md), [Testing Guide](project/Testing_Guide.md), and [Project0 Validation Status](platform/Project0_Validation_Status.md) for the precise status, commands, gaps, and reporting rules.
 
 ## Getting Started
 
@@ -201,7 +201,7 @@ See [Implementation Status](project/Implementation_Status.md), [Testing Guide](p
 4. Learn shared boundaries in [Component Communication Design](platform/Component_Communication_Design.md) and [Shared Data Models and Error Contracts](platform/Shared_Data_Models_and_Error_Contracts.md).
 5. Use the [Testing Guide](project/Testing_Guide.md) before treating a change as verified.
 6. Consult the dedicated Documentation or Research Agent set for agent-specific behavior.
-7. Check [Implementation Status](project/Implementation_Status.md) and [Project0 Test Results](platform/Project0_Test_Results.md) before relying on a milestone or pass claim.
+7. Check [Implementation Status](project/Implementation_Status.md) and [Project0 Validation Status](platform/Project0_Validation_Status.md) before relying on a milestone or pass claim.
 
 ## Future Direction
 

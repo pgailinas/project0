@@ -163,7 +163,7 @@ def _create_integration_client(
     )
     test_results_directory.mkdir(parents=True)
     (
-        test_results_directory / "Project0_Test_Results.md"
+        test_results_directory / "Project0_Validation_Status.md"
     ).write_text(
         """# Project0 Test Results
 

@@ -148,7 +148,7 @@ def _read_test_status(project_root: Path) -> tuple[str, str]:
         project_root
         / "docs"
         / "platform"
-        / "Project0_Test_Results.md"
+        / "Project0_Validation_Status.md"
     )
 
     try:

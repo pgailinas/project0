@@ -76,7 +76,7 @@ platform version, recorded test/validation text, Git status, and provider.
 | Current phase | Hard-coded stale Phase 11 label |
 | Documentation count | Recursive `docs/**/*.md`; otherwise `Unknown` |
 | Platform version | Hard-coded `0.1.0` |
-| Test/validation text | Bold fields in `docs/platform/Project0_Test_Results.md` |
+| Test/validation text | Bold fields in `docs/platform/Project0_Validation_Status.md` |
 | Provider | `PROJECT0_REASONING_PROVIDER`, default `ollama` |
 
 The Dashboard does not run tests or validation. Missing status content becomes

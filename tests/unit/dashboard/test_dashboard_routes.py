@@ -35,7 +35,7 @@ def _create_test_client(
     )
     test_results_directory.mkdir(parents=True)
     (
-        test_results_directory / "Project0_Test_Results.md"
+        test_results_directory / "Project0_Validation_Status.md"
     ).write_text(
         """# Project0 Test Results
 
@@ -224,7 +224,7 @@ def test_dashboard_home_handles_missing_test_status_snapshot(
         project_root
         / "docs"
         / "platform"
-        / "Project0_Test_Results.md"
+        / "Project0_Validation_Status.md"
     ).unlink()
 
     response = client.get("/")

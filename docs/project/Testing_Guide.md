@@ -6,7 +6,7 @@
 
 ## 1. Purpose and Scope
 
-This guide defines Project0's implemented test organization, environment, commands, result interpretation, and troubleshooting. Unit, integration, and acceptance tests verify component contracts, production-component collaboration, and externally observable behavior. Test files establish intended coverage only; executed evidence belongs in [Project0 Test Results](../platform/Project0_Test_Results.md).
+This guide defines Project0's implemented test organization, environment, commands, result interpretation, and troubleshooting. Unit, integration, and acceptance tests verify component contracts, production-component collaboration, and externally observable behavior. Test files establish intended coverage only; executed evidence belongs in [Project0 Validation Status](../platform/Project0_Validation_Status.md).
 
 Testing shall be deterministic by default, isolate external systems behind contract-correct fakes, use temporary repositories for file behavior, test observable contracts rather than incidental implementation, and distinguish platform-owned from agent-owned verification. Live providers, browser tests, and recorded results are separate evidence types. Never infer a current pass from inventory, collection, historical counts, or another commit.
 
@@ -104,7 +104,7 @@ Use minimal non-sensitive fixtures, temporary roots for writes, contract-correct
 
 A valid record identifies exact source state, date/environment, command/scope, pass/fail/error/skip counts, provider/model mode, browser/external prerequisites, excluded live checks, and separate compilation/documentation results. Do not treat skips as passes, collection as execution, stubs as live validation, or inventory as regression evidence.
 
-`Project0_Test_Results.md` is manually maintained; the Dashboard displays its bold `Tests` and `Validation` fields but does not execute or verify them.
+`Project0_Validation_Status.md` is manually maintained; the Dashboard displays its bold `Tests` and `Validation` fields but does not execute or verify them.
 
 A repository change is validated only when focused and affected layer suites pass; the complete applicable regression passes; compilation and documentation checks pass where relevant; unexpected warnings/errors/collection failures are resolved; skips and excluded live tests are recorded; and results are tied to the exact source state. Agent criteria may be stricter but cannot replace shared-platform validation.
 
