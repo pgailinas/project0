@@ -172,8 +172,32 @@ def test_gap_analysis_prompt_is_comparison_only() -> None:
     assert "Do not infer performance, efficiency" in (
         provider_request.system_instructions
     )
+    assert "Evaluate the target document's actual claims first" in (
+        provider_request.system_instructions
+    )
+    assert "is not a documentation gap merely because" in (
+        provider_request.system_instructions
+    )
+    assert "smallest set of non-overlapping gaps" in (
+        provider_request.system_instructions
+    )
+    assert "TARGET DOCUMENTATION CLAIM CANDIDATES" in (
+        provider_request.system_instructions
+    )
+    assert "return only those contradiction gaps" in (
+        provider_request.system_instructions
+    )
+    assert "a source file path by itself is not sufficient evidence" in (
+        provider_request.system_instructions
+    )
     assert "Stage 1 Gap Analysis Rule:" in provider_request.user_prompt
-    assert "exact target section" in provider_request.user_prompt
+    assert "target's existing claims directly" in provider_request.user_prompt
+    assert "smallest set of non-overlapping gaps" in provider_request.user_prompt
+    assert "TARGET DOCUMENTATION CLAIM CANDIDATES first" in (
+        provider_request.user_prompt
+    )
+    assert "return only contradiction gaps" in provider_request.user_prompt
+    assert "a source path alone is not evidence" in provider_request.user_prompt
     assert "Do not propose edits" in provider_request.user_prompt
     assert "Target Documentation Paths:" in provider_request.user_prompt
 
@@ -238,6 +262,18 @@ def test_gap_analysis_schema_uses_dedicated_gap_contract() -> None:
         "type": "string",
         "enum": ["Interface Contract"],
     }
+    assert "Smallest non-overlapping set" in (
+        schema["properties"]["gaps"]["description"]
+    )
+    assert "current abstraction level" in (
+        schema["properties"]["gaps"]["description"]
+    )
+    assert "concrete authoritative source behavior" in (
+        gap_schema["properties"]["source_evidence"]["description"]
+    )
+    assert "source file path by itself is not sufficient evidence" in (
+        gap_schema["properties"]["source_evidence"]["description"]
+    )
 
 
 def test_build_prompt_includes_objective_and_context() -> None:

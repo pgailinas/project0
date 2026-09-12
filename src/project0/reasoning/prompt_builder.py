@@ -85,6 +85,24 @@ class PromptBuilder:
                 "A gap is material only when the target document's existing "
                 "contract is missing, outdated, inaccurate, or materially "
                 "incomplete at its current abstraction level.\n"
+                "Evaluate the target document's actual claims first. A source "
+                "implementation detail is not a documentation gap merely because "
+                "the target does not mention that framework, helper, mechanism, "
+                "class, function, or implementation technique. When the target "
+                "already states the behavior correctly at its current abstraction "
+                "level, do not report a gap for lower-level source details.\n"
+                "Prefer the smallest set of non-overlapping gaps that directly "
+                "identify target claims contradicted by, or materially incomplete "
+                "relative to, the authoritative source. Do not split one behavior "
+                "difference into multiple implementation-detail gaps.\n"
+                "When TARGET DOCUMENTATION CLAIM CANDIDATES are supplied, evaluate "
+                "those claims explicitly before searching for undocumented source "
+                "details. If one or more candidate claims are contradicted by the "
+                "authoritative source, return only those contradiction gaps in this "
+                "Stage 1 run and do not add lower-priority omission gaps.\n"
+                "source_evidence must state the concrete source behavior or fact "
+                "that establishes the discrepancy; a source file path by itself "
+                "is not sufficient evidence.\n"
                 "If no material source-established documentation gap exists, "
                 "return an empty gaps array.\n"
                 "Warnings must be directly supported by the supplied context.\n"
@@ -225,14 +243,23 @@ class PromptBuilder:
                     "",
                     "Stage 1 Gap Analysis Rule:",
                     (
-                        "Compare target documentation against authoritative "
-                        "source evidence and return only material "
-                        "source-established documentation gaps. Each gap must "
-                        "name the exact target section when one applies and cite "
-                        "the source evidence that establishes the missing or "
-                        "inaccurate documented fact. Do not propose edits, wording, "
-                        "implementation changes, or design recommendations. Return "
-                        "an empty gaps array when there is no material gap."
+                        "Compare the target's existing claims directly against "
+                        "authoritative source evidence and return only material "
+                        "source-established documentation gaps. Do not treat a "
+                        "lower-level implementation detail as a gap when the target "
+                        "already documents the behavior correctly at its current "
+                        "abstraction level. Prefer the smallest set of non-overlapping "
+                        "gaps. Evaluate TARGET DOCUMENTATION CLAIM CANDIDATES first; "
+                        "when any candidate claim is contradicted by source evidence, "
+                        "return only contradiction gaps for those candidates before "
+                        "considering missing-detail gaps. Each gap must name the exact "
+                        "target section when one "
+                        "applies and state the concrete source behavior that "
+                        "establishes the missing, outdated, or inaccurate documented "
+                        "fact; a source path alone is not evidence. Do not propose "
+                        "edits, wording, implementation changes, or design "
+                        "recommendations. Return an empty gaps array when there is "
+                        "no material gap."
                     ),
                     "",
                     "Repository Context:",
@@ -470,8 +497,12 @@ class PromptBuilder:
                     },
                     "gaps": {
                         "description": (
-                            "Material source-established documentation gaps "
-                            "only. Return an empty array when there are none."
+                            "Smallest non-overlapping set of material "
+                            "source-established documentation gaps only. Do not "
+                            "report lower-level implementation details when the "
+                            "target already documents the behavior correctly at "
+                            "its current abstraction level. Return an empty array "
+                            "when there are none."
                         ),
                         "type": "array",
                         "items": {
@@ -512,10 +543,11 @@ class PromptBuilder:
                                 },
                                 "source_evidence": {
                                     "description": (
-                                        "The concrete authoritative source fact "
-                                        "that establishes this gap. State only "
-                                        "evidence observable in the supplied "
-                                        "authoritative source."
+                                        "The concrete authoritative source behavior "
+                                        "or fact that establishes this gap. State "
+                                        "only evidence observable in the supplied "
+                                        "authoritative source. A source file path "
+                                        "by itself is not sufficient evidence."
                                     ),
                                     "type": "string",
                                 },

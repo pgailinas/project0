@@ -195,10 +195,12 @@ class DocumentationWorkflow:
             )
 
             if source_grounded:
+                gap_context = self._build_claim_level_gap_context(context)
+
                 gap_result = self._reasoning_service.reason(
                     ReasoningRequest(
                         objective=request.user_request,
-                        context=context,
+                        context=gap_context,
                         workflow_type="documentation_gap_analysis",
                         target_paths=target_paths,
                         constraints=(),
@@ -399,6 +401,118 @@ class DocumentationWorkflow:
                 warnings=tuple(warnings),
             )
 
+
+    @staticmethod
+    def _build_claim_level_gap_context(
+        context: str,
+    ) -> str:
+        """Add exact target-document claim candidates for Stage 1 comparison.
+
+        Claim candidates preserve target wording and section ownership while
+        excluding headings, blank lines, fenced code, and context metadata.
+        The authoritative source content remains unchanged in the original
+        context so reasoning can compare each candidate against source evidence.
+        """
+
+        target_marker = "=== TARGET DOCUMENTATION ==="
+        source_marker = "=== AUTHORITATIVE SOURCE ==="
+
+        if target_marker not in context or source_marker not in context:
+            return context
+
+        claims: list[tuple[str | None, str]] = []
+        in_target = False
+        in_fence = False
+        current_section: str | None = None
+
+        for line in context.splitlines():
+            stripped = line.strip()
+
+            if stripped == target_marker:
+                in_target = True
+                in_fence = False
+                current_section = None
+                continue
+
+            if stripped == source_marker:
+                in_target = False
+                in_fence = False
+                current_section = None
+                continue
+
+            if stripped.startswith("=== ") and stripped.endswith(" ==="):
+                in_target = False
+                in_fence = False
+                current_section = None
+                continue
+
+            if not in_target:
+                continue
+
+            if stripped.startswith("```"):
+                in_fence = not in_fence
+                continue
+
+            if in_fence or not stripped or stripped.startswith("Path: "):
+                continue
+
+            if stripped.startswith("#"):
+                marker_length = len(stripped) - len(
+                    stripped.lstrip("#")
+                )
+                remainder = stripped[marker_length:]
+                if (
+                    1 <= marker_length <= 6
+                    and remainder.startswith(" ")
+                ):
+                    current_section = remainder.strip()
+                continue
+
+            if re.fullmatch(r"\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?", stripped):
+                continue
+
+            claim_text = stripped
+
+            if claim_text.startswith(("- ", "* ", "+ ")):
+                claim_text = claim_text[2:].strip()
+
+            if re.match(r"^\d+[.)]\s+", claim_text):
+                claim_text = re.sub(
+                    r"^\d+[.)]\s+",
+                    "",
+                    claim_text,
+                    count=1,
+                ).strip()
+
+            if not claim_text:
+                continue
+
+            claims.append((current_section, claim_text))
+
+        if not claims:
+            return context
+
+        lines = [
+            context.rstrip(),
+            "",
+            "=== TARGET DOCUMENTATION CLAIM CANDIDATES ===",
+            (
+                "Evaluate these exact target claims before considering "
+                "undocumented source details. Preserve their wording when "
+                "describing contradictions."
+            ),
+        ]
+
+        for index, (section, claim_text) in enumerate(claims, start=1):
+            lines.extend(
+                (
+                    f"Claim {index}:",
+                    f"Section: {section if section is not None else 'null'}",
+                    f"Text: {claim_text}",
+                )
+            )
+
+        return "\n".join(lines)
 
     @staticmethod
     def _deduplicate_documentation_gaps(

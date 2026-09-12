@@ -879,6 +879,126 @@ def test_source_grounded_workflow_runs_gap_analysis_before_edit_generation(
     )
 
 
+def test_claim_level_gap_context_surfaces_exact_target_claims() -> None:
+    """Stage 1 context exposes exact target prose as claim candidates."""
+
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/Example.md\n"
+        "# Example\n"
+        "## Interface Contracts\n"
+        "Path fields are trimmed; route parsing does not guarantee "
+        "normalization or deduplication.\n"
+        "\n"
+        "=== AUTHORITATIVE SOURCE ===\n"
+        "Path: src/project0/example.py\n"
+        "return tuple(dict.fromkeys(values))\n"
+    )
+
+    result = DocumentationWorkflow._build_claim_level_gap_context(
+        context
+    )
+
+    assert "=== TARGET DOCUMENTATION CLAIM CANDIDATES ===" in result
+    assert "Claim 1:" in result
+    assert "Section: Interface Contracts" in result
+    assert (
+        "Text: Path fields are trimmed; route parsing does not guarantee "
+        "normalization or deduplication."
+        in result
+    )
+    assert "return tuple(dict.fromkeys(values))" in result
+
+
+def test_claim_level_gap_context_excludes_headings_code_and_metadata() -> None:
+    """Claim extraction omits structural lines and fenced code."""
+
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/Example.md\n"
+        "# Example\n"
+        "## Contract\n"
+        "Documented behavior.\n"
+        "```python\n"
+        "internal_call()\n"
+        "```\n"
+        "\n"
+        "=== AUTHORITATIVE SOURCE ===\n"
+        "Path: src/project0/example.py\n"
+        "VALUE = 1\n"
+    )
+
+    result = DocumentationWorkflow._build_claim_level_gap_context(
+        context
+    )
+    candidate_block = result.split(
+        "=== TARGET DOCUMENTATION CLAIM CANDIDATES ===",
+        1,
+    )[1]
+
+    assert "Text: Documented behavior." in candidate_block
+    assert "internal_call()" not in candidate_block
+    assert "Text: Path: docs/Example.md" not in candidate_block
+    assert "Text: ## Contract" not in candidate_block
+
+
+def test_source_grounded_gap_request_uses_claim_level_context(
+    tmp_path: Path,
+) -> None:
+    """Source-grounded Stage 1 receives explicit target claim candidates."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text("# Original\n", encoding="utf-8")
+
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/index.md\n"
+        "# Original\n"
+        "## Contract\n"
+        "Route parsing does not guarantee deduplication.\n"
+        "\n"
+        "=== AUTHORITATIVE SOURCE ===\n"
+        "Path: src/project0/example.py\n"
+        "values = tuple(dict.fromkeys(values))\n"
+    )
+
+    def context_provider(
+        request: DocumentationWorkflowRequest,
+    ) -> str:
+        del request
+        return context
+
+    components = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(),
+        validation_results=(),
+        context_provider=context_provider,
+    )
+    workflow = components[0]
+    reasoning_service = components[1]
+
+    workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Synchronize documentation.",
+            target_paths=("docs/index.md",),
+            source_paths=("src/project0/example.py",),
+            workflow_id="workflow-claim-level-gap-context",
+        )
+    )
+
+    assert len(reasoning_service.requests) == 1
+    gap_request = reasoning_service.requests[0]
+    assert gap_request.workflow_type == "documentation_gap_analysis"
+    assert "=== TARGET DOCUMENTATION CLAIM CANDIDATES ===" in (
+        gap_request.context
+    )
+    assert (
+        "Text: Route parsing does not guarantee deduplication."
+        in gap_request.context
+    )
+
+
 def test_documentation_gap_deduplication_preserves_first_exact_gap() -> None:
     """Exact Stage 1 duplicates are removed before proposal generation."""
 
