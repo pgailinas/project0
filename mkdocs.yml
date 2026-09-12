@@ -61,6 +61,7 @@ nav:
 
       
   - Documentation Agent:
+      - Overview: agents/documentation/index.md
       - Documentation Agent Charter: agents/documentation/Documentation_Agent_Charter.md
       - Documentation Agent Functional Spec: agents/documentation/Documentation_Agent_Functional_Spec.md
       - Documentation Agent Architecture: agents/documentation/Documentation_Agent_Architecture.md
@@ -71,6 +72,7 @@ nav:
       - Documentation Agent Test Results: agents/documentation/Documentation_Agent_Test_Results.md
 
   - Research Agent:
+      - Overview: agents/research/index.md
       - Research Agent Charter: agents/research/Research_Agent_Charter.md
       - Research Agent Functional Spec: agents/research/Research_Agent_Functional_Spec.md
       - Research Agent Architecture: agents/research/Research_Agent_Architecture.md

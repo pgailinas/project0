@@ -771,6 +771,7 @@ textarea:focus-visible {
 16. Buttons and Links
 =============================================================*/
 
+.button,
 .toolbar-button,
 .toolbar-link,
 .home-action {
@@ -808,6 +809,8 @@ textarea:focus-visible {
 
 }
 
+.button:hover,
+.button:focus,
 .toolbar-button:hover,
 .toolbar-button:focus,
 .toolbar-link:hover,
