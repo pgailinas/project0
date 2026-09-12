@@ -867,14 +867,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../platform/Project0_Test_Results/" class="md-nav__link">
+      <a href="../../platform/Project0_Validation_Status/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Project0 Test Results
+    Project0 Validation Status
   
 
     
@@ -1601,7 +1601,7 @@
 <strong>Owner:</strong> Project0<br />
 <strong>Last Updated:</strong> 2026-09-11</p>
 <h2 id="1-purpose-and-scope">1. Purpose and Scope</h2>
-<p>This guide defines Project0's implemented test organization, environment, commands, result interpretation, and troubleshooting. Unit, integration, and acceptance tests verify component contracts, production-component collaboration, and externally observable behavior. Test files establish intended coverage only; executed evidence belongs in <a href="../../platform/Project0_Test_Results/">Project0 Test Results</a>.</p>
+<p>This guide defines Project0's implemented test organization, environment, commands, result interpretation, and troubleshooting. Unit, integration, and acceptance tests verify component contracts, production-component collaboration, and externally observable behavior. Test files establish intended coverage only; executed evidence belongs in <a href="../../platform/Project0_Validation_Status/">Project0 Validation Status</a>.</p>
 <p>Testing shall be deterministic by default, isolate external systems behind contract-correct fakes, use temporary repositories for file behavior, test observable contracts rather than incidental implementation, and distinguish platform-owned from agent-owned verification. Live providers, browser tests, and recorded results are separate evidence types. Never infer a current pass from inventory, collection, historical counts, or another commit.</p>
 <h2 id="2-test-organization-and-environment">2. Test Organization and Environment</h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>tests/
@@ -1661,7 +1661,7 @@
 <p>Use minimal non-sensitive fixtures, temporary roots for writes, contract-correct stubs, and assertions on expected dependency interactions. Test names use <code>test_&lt;component&gt;.py</code> and <code>test_&lt;expected_behavior&gt;()</code>; multi-layer plan scenarios use <code>test_INT_&lt;scenario_id&gt;_&lt;behavior&gt;()</code> or <code>test_UI_&lt;scenario_id&gt;_&lt;behavior&gt;()</code>.</p>
 <h2 id="4-result-interpretation">4. Result Interpretation</h2>
 <p>A valid record identifies exact source state, date/environment, command/scope, pass/fail/error/skip counts, provider/model mode, browser/external prerequisites, excluded live checks, and separate compilation/documentation results. Do not treat skips as passes, collection as execution, stubs as live validation, or inventory as regression evidence.</p>
-<p><code>Project0_Test_Results.md</code> is manually maintained; the Dashboard displays its bold <code>Tests</code> and <code>Validation</code> fields but does not execute or verify them.</p>
+<p><code>Project0_Validation_Status.md</code> is manually maintained; the Dashboard displays its bold <code>Tests</code> and <code>Validation</code> fields but does not execute or verify them.</p>
 <p>A repository change is validated only when focused and affected layer suites pass; the complete applicable regression passes; compilation and documentation checks pass where relevant; unexpected warnings/errors/collection failures are resolved; skips and excluded live tests are recorded; and results are tied to the exact source state. Agent criteria may be stricter but cannot replace shared-platform validation.</p>
 <p>Current gaps include undeclared browser-test dependencies, no CI workflow, empty Ollama acceptance and <code>test_skill_models.py</code> modules, and no automatic repository-health publication. Historical counts must not be carried forward.</p>
 <h2 id="5-troubleshooting">5. Troubleshooting</h2>
