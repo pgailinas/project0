@@ -82,7 +82,6 @@ def _write_dashboard_templates(
             "{% block work_area %}"
             "<h1>Project Overview</h1>"
             "<p>{{ project_name }}</p>"
-            "<p id=\"project-root\">{{ project_root }}</p>"
             "<p>{{ repository_name }}</p>"
             "<p>{{ git_branch }}</p>"
             "<p>{{ current_phase }}</p>"
@@ -165,7 +164,7 @@ def _create_integration_client(
     (
         test_results_directory / "Project0_Validation_Status.md"
     ).write_text(
-        """# Project0 Test Results
+        """# Project0 Validation Status
 
 ## Current Regression Status
 
@@ -209,8 +208,8 @@ def test_dashboard_home_flow(
     assert response.status_code == 200
     assert "Project Overview" in response.text
     assert "Project0" in response.text
-    assert str(project_root) in response.text
-    assert "Phase 11 – Research Agent Functional Validation" in response.text
+    assert str(project_root) not in response.text
+    assert "Project0 Platform Stabilization" in response.text
     assert "12 passed, 3 skipped" in response.text
     assert "Documentation Agent" in response.text
     assert "Research Agent" in response.text
@@ -273,7 +272,7 @@ def test_dashboard_agent_navigation_flow(
     )
     assert "Project Overview" in documentation_response.text
     assert (
-        "Phase 11 – Research Agent Functional Validation"
+        "Project0 Platform Stabilization"
         not in documentation_response.text
     )
     assert "12 passed, 3 skipped" not in documentation_response.text
@@ -282,7 +281,7 @@ def test_dashboard_agent_navigation_flow(
     assert "Research Agent" in research_response.text
     assert "Project Overview" in research_response.text
     assert (
-        "Phase 11 – Research Agent Functional Validation"
+        "Project0 Platform Stabilization"
         not in research_response.text
     )
     assert "12 passed, 3 skipped" not in research_response.text

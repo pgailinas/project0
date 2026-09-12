@@ -37,7 +37,7 @@ def _create_test_client(
     (
         test_results_directory / "Project0_Validation_Status.md"
     ).write_text(
-        """# Project0 Test Results
+        """# Project0 Validation Status
 
 ## Current Regression Status
 
@@ -92,7 +92,6 @@ def _create_test_client(
         {% block work_area %}
             <h1>Project Overview</h1>
             <p>{{ project_name }}</p>
-            <p>{{ project_root }}</p>
             <p>{{ active_page }}</p>
             <p>{{ platform_version }}</p>
             <p>{{ repository_name }}</p>
@@ -189,7 +188,7 @@ def test_dashboard_home_displays_project_information(
 
     assert "Project0" in response.text
     assert "project0" in response.text
-    assert str(project_root) in response.text
+    assert str(project_root) not in response.text
     assert "0.1.0" in response.text
 
 
@@ -204,7 +203,7 @@ def test_dashboard_home_displays_project_status_in_work_area(
 
     assert "Project Overview" in response.text
     assert "Unknown" in response.text
-    assert "Phase 11 – Research Agent Functional Validation" in response.text
+    assert "Project0 Platform Stabilization" in response.text
     assert "12 passed, 3 skipped" in response.text
     assert "Regression suite passed" in response.text
     assert "ollama" in response.text
@@ -301,7 +300,7 @@ def test_documentation_agent_fallback_route_renders_placeholder(
     assert "agent:documentation" in response.text
     assert "Project Overview" in response.text
     assert (
-        "Phase 11 – Research Agent Functional Validation"
+        "Project0 Platform Stabilization"
         not in response.text
     )
     assert "All tests passing" not in response.text

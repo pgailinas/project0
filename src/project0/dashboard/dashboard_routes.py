@@ -277,14 +277,11 @@ def create_dashboard_router(
         context.update(
             {
                 "repository_name": "project0",
-                "project_root": project_root,
                 "documentation_url": "/documentation",
                 "git_branch": _read_git_branch(project_root),
                 "git_status": _read_git_status(project_root),
                 "git_status_class": "status-value--muted",
-                "current_phase": (
-                    "Phase 11 – Research Agent Functional Validation"
-                ),
+                "current_phase": "Project0 Platform Stabilization",
                 "documentation_count": _count_documentation(project_root),
                 "test_status": test_status,
                 "test_status_class": "status-value--success",
