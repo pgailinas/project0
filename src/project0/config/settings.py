@@ -15,6 +15,7 @@ from pathlib import Path
 
 from project0.config.constants import (
     DEFAULT_LOG_LEVEL,
+    DEFAULT_OLLAMA_CONTEXT_WINDOW_TOKENS,
     DEFAULT_OLLAMA_TIMEOUT_SECONDS,
     DEFAULT_RESEARCH_DIRECTION_ANALYSIS_ENABLED,
     DEFAULT_RESEARCH_SOURCE_PROVIDERS,
@@ -40,6 +41,7 @@ class ProjectSettings:
     documentation_ollama_model: str = "gemma3:4b"
     ollama_base_url: str = "http://127.0.0.1:11434"
     ollama_timeout_seconds: float = DEFAULT_OLLAMA_TIMEOUT_SECONDS
+    ollama_context_window_tokens: int = DEFAULT_OLLAMA_CONTEXT_WINDOW_TOKENS
 
 
 
@@ -125,6 +127,12 @@ def load_settings() -> ProjectSettings:
             os.getenv(
                 "PROJECT0_OLLAMA_TIMEOUT_SECONDS",
                 str(DEFAULT_OLLAMA_TIMEOUT_SECONDS),
+            )
+        ),
+        ollama_context_window_tokens=int(
+            os.getenv(
+                "PROJECT0_OLLAMA_CONTEXT_WINDOW_TOKENS",
+                str(DEFAULT_OLLAMA_CONTEXT_WINDOW_TOKENS),
             )
         ),
     )

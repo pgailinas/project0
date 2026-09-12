@@ -13,6 +13,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from project0.config.constants import (
+    DEFAULT_OLLAMA_CONTEXT_WINDOW_TOKENS,
+)
 from project0.models.reasoning_models import (
     ProviderRequest,
     ReasoningRequest,
@@ -26,6 +29,7 @@ class PromptBuilder:
     model_name: str | None = None
     temperature: float | None = 0.0
     maximum_output_tokens: int | None = 4096
+    context_window_tokens: int | None = DEFAULT_OLLAMA_CONTEXT_WINDOW_TOKENS
 
     def build_prompt(
         self,
@@ -40,6 +44,7 @@ class PromptBuilder:
             model_name=self.model_name,
             temperature=self.temperature,
             maximum_output_tokens=self.maximum_output_tokens,
+            context_window_tokens=self.context_window_tokens,
             metadata={
                 "reasoning_request_id": request.request_id,
                 "workflow_type": request.workflow_type,

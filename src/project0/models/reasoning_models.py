@@ -106,6 +106,7 @@ class ProviderRequest:
     model_name: str | None = None
     temperature: float | None = None
     maximum_output_tokens: int | None = None
+    context_window_tokens: int | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
     request_id: str = field(default_factory=lambda: str(uuid4()))
 

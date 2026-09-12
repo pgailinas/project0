@@ -57,6 +57,7 @@ def create_provider_request() -> ProviderRequest:
             ],
         },
         model_name="qwen2.5:7b",
+        maximum_output_tokens=None,
     )
 
 
@@ -166,6 +167,74 @@ def test_ollama_provider_builds_expected_chat_request(
             "temperature": 0.0,
         },
     }
+
+
+def test_ollama_provider_uses_maximum_output_tokens(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify request output-token limit maps to Ollama num_predict."""
+
+    captured_options: dict[str, Any] = {}
+
+    def fake_post(
+        url: str,
+        *,
+        json: dict[str, Any],
+        timeout: float,
+    ) -> httpx.Response:
+        del url, timeout
+        captured_options.update(json["options"])
+        return create_http_response()
+
+    monkeypatch.setattr(httpx, "post", fake_post)
+
+    request = ProviderRequest(
+        system_instructions="Return structured documentation reasoning.",
+        user_prompt="Update docs/Implementation_Status.md.",
+        response_schema={
+            "type": "object",
+        },
+        model_name="qwen2.5:7b",
+        maximum_output_tokens=4096,
+    )
+
+    OllamaReasoningProvider().generate(request)
+
+    assert captured_options["num_predict"] == 4096
+
+
+def test_ollama_provider_uses_context_window_tokens(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify request context-window limit maps to Ollama num_ctx."""
+
+    captured_options: dict[str, Any] = {}
+
+    def fake_post(
+        url: str,
+        *,
+        json: dict[str, Any],
+        timeout: float,
+    ) -> httpx.Response:
+        del url, timeout
+        captured_options.update(json["options"])
+        return create_http_response()
+
+    monkeypatch.setattr(httpx, "post", fake_post)
+
+    request = ProviderRequest(
+        system_instructions="Return structured documentation reasoning.",
+        user_prompt="Update docs/Implementation_Status.md.",
+        response_schema={
+            "type": "object",
+        },
+        model_name="qwen2.5:7b",
+        context_window_tokens=16384,
+    )
+
+    OllamaReasoningProvider().generate(request)
+
+    assert captured_options["num_ctx"] == 16384
 
 
 def test_ollama_provider_normalizes_trailing_base_url_slash(
@@ -422,6 +491,43 @@ def test_ollama_provider_requires_message_object(
         )
 
 
+def test_ollama_provider_retries_invalid_structured_content_once(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify one malformed structured response is retried once."""
+
+    invalid_response_data = create_ollama_response_data()
+    invalid_response_data["message"]["content"] = "not structured json"
+
+    responses = [
+        create_http_response(data=invalid_response_data),
+        create_http_response(),
+    ]
+    call_count = 0
+
+    def fake_post(*args: Any, **kwargs: Any) -> httpx.Response:
+        nonlocal call_count
+        del args, kwargs
+        response = responses[call_count]
+        call_count += 1
+        return response
+
+    monkeypatch.setattr(httpx, "post", fake_post)
+
+    result = OllamaReasoningProvider().generate(
+        create_provider_request()
+    )
+
+    assert call_count == 2
+    assert result.structured_output == {
+        "summary": "Update the implementation status.",
+        "impacts": [],
+        "proposed_changes": [],
+        "assumptions": [],
+        "warnings": [],
+    }
+
+
 def test_ollama_provider_rejects_invalid_structured_content(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -430,21 +536,27 @@ def test_ollama_provider_rejects_invalid_structured_content(
     response_data = create_ollama_response_data()
     response_data["message"]["content"] = "not structured json"
 
-    monkeypatch.setattr(
-        httpx,
-        "post",
-        lambda *args, **kwargs: create_http_response(
+    call_count = 0
+
+    def fake_post(*args: Any, **kwargs: Any) -> httpx.Response:
+        nonlocal call_count
+        del args, kwargs
+        call_count += 1
+        return create_http_response(
             data=response_data
-        ),
-    )
+        )
+
+    monkeypatch.setattr(httpx, "post", fake_post)
 
     with pytest.raises(
         ValueError,
-        match="not valid structured JSON",
+        match="not valid structured JSON after 2 attempts",
     ):
         OllamaReasoningProvider().generate(
             create_provider_request()
         )
+
+    assert call_count == 2
 
 
 def test_ollama_provider_requires_structured_output_object(

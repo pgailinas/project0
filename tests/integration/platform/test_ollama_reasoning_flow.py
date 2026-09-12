@@ -251,6 +251,8 @@ def test_ollama_reasoning_flow_passes_prompt_schema_to_ollama(
     assert captured_payload["stream"] is False
     assert captured_payload["options"] == {
         "temperature": 0.0,
+        "num_predict": 4096,
+        "num_ctx": 16384,
     }
 
     schema = captured_payload["format"]
