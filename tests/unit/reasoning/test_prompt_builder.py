@@ -181,19 +181,76 @@ def test_gap_analysis_prompt_is_comparison_only() -> None:
     assert "smallest set of non-overlapping gaps" in (
         provider_request.system_instructions
     )
+    assert "BOUNDED TARGET-SOURCE CLAIM PAIRS" in (
+        provider_request.system_instructions
+    )
+    assert "Absence of evidence in a paired snippet is not a contradiction" in (
+        provider_request.system_instructions
+    )
+    assert "each Stage 1 request contains exactly one target claim" in (
+        provider_request.system_instructions
+    )
+    assert "Do not search outside the supplied pair" in (
+        provider_request.system_instructions
+    )
+    assert "substantial verbatim portion" in (
+        provider_request.system_instructions
+    )
+    assert "already present in that exact claim" in (
+        provider_request.system_instructions
+    )
+    assert "paired source helper or function name" in (
+        provider_request.system_instructions
+    )
+    assert "merely because that implementation name is absent" in (
+        provider_request.system_instructions
+    )
+    assert "Never treat lack of evidence" in (
+        provider_request.system_instructions
+    )
+    assert "Preserve semantic polarity" in (
+        provider_request.system_instructions
+    )
+    assert "positively performs a behavior" in (
+        provider_request.system_instructions
+    )
     assert "TARGET DOCUMENTATION CLAIM CANDIDATES" in (
         provider_request.system_instructions
     )
     assert "return only those contradiction gaps" in (
         provider_request.system_instructions
     )
-    assert "a source file path by itself is not sufficient evidence" in (
+    assert "A source file path by itself is not sufficient evidence" in (
         provider_request.system_instructions
     )
     assert "Stage 1 Gap Analysis Rule:" in provider_request.user_prompt
     assert "target's existing claims directly" in provider_request.user_prompt
     assert "smallest set of non-overlapping gaps" in provider_request.user_prompt
-    assert "TARGET DOCUMENTATION CLAIM CANDIDATES first" in (
+    assert "BOUNDED TARGET-SOURCE CLAIM PAIRS" in (
+        provider_request.user_prompt
+    )
+    assert "Missing evidence is not a contradiction" in (
+        provider_request.user_prompt
+    )
+    assert "this request contains exactly one target claim" in (
+        provider_request.user_prompt
+    )
+    assert "Do not search outside the supplied pair" in (
+        provider_request.user_prompt
+    )
+    assert "substantial verbatim portion of it as the gap" in (
+        provider_request.user_prompt
+    )
+    assert "term is missing when that term is already" in (
+        provider_request.user_prompt
+    )
+    assert "do not require paired source helper/function names" in (
+        provider_request.user_prompt
+    )
+    assert "preserve semantic polarity" in (
+        provider_request.user_prompt
+    )
+    assert "TARGET DOCUMENTATION CLAIM CANDIDATES are supplied instead" in (
         provider_request.user_prompt
     )
     assert "return only contradiction gaps" in provider_request.user_prompt
@@ -272,6 +329,12 @@ def test_gap_analysis_schema_uses_dedicated_gap_contract() -> None:
         gap_schema["properties"]["source_evidence"]["description"]
     )
     assert "source file path by itself is not sufficient evidence" in (
+        gap_schema["properties"]["source_evidence"]["description"]
+    )
+    assert "Absence of a fact from a bounded paired snippet" in (
+        gap_schema["properties"]["source_evidence"]["description"]
+    )
+    assert "relevant function or operation" in (
         gap_schema["properties"]["source_evidence"]["description"]
     )
 

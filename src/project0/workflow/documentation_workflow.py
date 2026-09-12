@@ -195,48 +195,95 @@ class DocumentationWorkflow:
             )
 
             if source_grounded:
-                gap_context = self._build_claim_level_gap_context(context)
+                bounded_gap_context = self._build_claim_level_gap_context(
+                    context
+                )
+                gap_contexts = self._split_bounded_gap_context(
+                    bounded_gap_context
+                )
 
-                gap_result = self._reasoning_service.reason(
-                    ReasoningRequest(
-                        objective=request.user_request,
-                        context=gap_context,
-                        workflow_type="documentation_gap_analysis",
-                        target_paths=target_paths,
-                        constraints=(),
-                        skills=(),
-                        metadata={
-                            "workflow_id": request.workflow_id,
-                            "documentation_stage": "gap_analysis",
-                        },
+                gap_results: list[ReasoningResult] = []
+                verified_gaps: list[DocumentationGap] = []
+
+                for pair_index, gap_context in enumerate(
+                    gap_contexts,
+                    start=1,
+                ):
+                    gap_result = self._reasoning_service.reason(
+                        ReasoningRequest(
+                            objective=request.user_request,
+                            context=gap_context,
+                            workflow_type="documentation_gap_analysis",
+                            target_paths=target_paths,
+                            constraints=(),
+                            skills=(),
+                            metadata={
+                                "workflow_id": request.workflow_id,
+                                "documentation_stage": "gap_analysis",
+                                "gap_pair_index": pair_index,
+                                "gap_pair_count": len(gap_contexts),
+                            },
+                        )
                     )
-                )
 
-                self._log_reasoning_result(
-                    "Documentation gap analysis",
-                    gap_result,
-                )
-
-                if gap_result.status is ReasoningStatus.FAILED:
-                    return self._failed_result(
-                        request=request,
-                        started_at=started_at,
-                        reasoning_result=gap_result,
-                        error_message=(
-                            gap_result.error_message
-                            or "Documentation gap analysis failed."
+                    self._log_reasoning_result(
+                        (
+                            "Documentation gap analysis "
+                            f"pair {pair_index}/{len(gap_contexts)}"
                         ),
-                        warnings=gap_result.warnings,
+                        gap_result,
                     )
 
-                warnings.extend(
-                    self._select_reasoning_warnings(
-                        reasoning_result=gap_result,
-                        source_grounded=True,
+                    if gap_result.status is ReasoningStatus.FAILED:
+                        return self._failed_result(
+                            request=request,
+                            started_at=started_at,
+                            reasoning_result=gap_result,
+                            error_message=(
+                                gap_result.error_message
+                                or "Documentation gap analysis failed."
+                            ),
+                            warnings=gap_result.warnings,
+                        )
+
+                    gap_results.append(gap_result)
+                    warnings.extend(
+                        self._select_reasoning_warnings(
+                            reasoning_result=gap_result,
+                            source_grounded=True,
+                        )
                     )
+
+                    for gap in gap_result.gaps:
+                        rejection_reason = (
+                            self._documentation_gap_rejection_reason(
+                                gap=gap,
+                                gap_context=gap_context,
+                            )
+                        )
+
+                        if rejection_reason is None:
+                            verified_gaps.append(gap)
+                        else:
+                            logger.debug(
+                                "Rejected documentation gap: reason=%r "
+                                "document_path=%r section=%r gap=%r "
+                                "source_evidence=%r",
+                                rejection_reason,
+                                gap.document_path.as_posix(),
+                                gap.section,
+                                gap.gap,
+                                gap.source_evidence,
+                            )
+
+                aggregate_gap_result = self._aggregate_gap_results(
+                    gap_results=tuple(gap_results),
+                    gaps=self._deduplicate_documentation_gaps(
+                        tuple(verified_gaps)
+                    ),
                 )
 
-                if not gap_result.gaps:
+                if not aggregate_gap_result.gaps:
                     state = DocumentationWorkflowState(
                         workflow_id=request.workflow_id,
                         status=DocumentationWorkflowStatus.REVIEW_REQUIRED,
@@ -244,7 +291,7 @@ class DocumentationWorkflow:
                         user_request=request.user_request,
                         target_paths=request.target_paths,
                         source_paths=request.source_paths,
-                        reasoning_result=gap_result,
+                        reasoning_result=aggregate_gap_result,
                         proposals=(),
                         preliminary_validation=None,
                         warnings=tuple(warnings),
@@ -254,9 +301,7 @@ class DocumentationWorkflow:
 
                     return self._create_review_required_result(state)
 
-                established_gaps = self._deduplicate_documentation_gaps(
-                    gap_result.gaps
-                )
+                established_gaps = aggregate_gap_result.gaps
 
                 context = (
                     f"{context.rstrip()}\n\n"
@@ -402,16 +447,18 @@ class DocumentationWorkflow:
             )
 
 
-    @staticmethod
+    @classmethod
     def _build_claim_level_gap_context(
+        cls,
         context: str,
     ) -> str:
-        """Add exact target-document claim candidates for Stage 1 comparison.
+        """Build a bounded Stage 1 context around strong claim/source pairs.
 
-        Claim candidates preserve target wording and section ownership while
-        excluding headings, blank lines, fenced code, and context metadata.
-        The authoritative source content remains unchanged in the original
-        context so reasoning can compare each candidate against source evidence.
+        Exact target prose claims are paired only with authoritative Python
+        functions or methods whose declaration names share at least two
+        meaningful tokens with the claim. At most four claims and two source
+        snippets per claim are included. Source snippets are capped by line
+        count, and class bodies are never emitted.
         """
 
         target_marker = "=== TARGET DOCUMENTATION ==="
@@ -420,74 +467,753 @@ class DocumentationWorkflow:
         if target_marker not in context or source_marker not in context:
             return context
 
-        claims: list[tuple[str | None, str]] = []
-        in_target = False
-        in_fence = False
-        current_section: str | None = None
+        claims = cls._extract_target_claim_records(context)
+        source_functions = cls._extract_authoritative_function_records(
+            context
+        )
 
-        for line in context.splitlines():
-            stripped = line.strip()
+        if not claims or not source_functions:
+            return cls._append_claim_candidates(context, claims)
 
-            if stripped == target_marker:
-                in_target = True
-                in_fence = False
-                current_section = None
-                continue
+        pair_candidates: list[
+            tuple[
+                int,
+                str,
+                str | None,
+                str,
+                tuple[tuple[str, str, str], ...],
+            ]
+        ] = []
 
-            if stripped == source_marker:
-                in_target = False
-                in_fence = False
-                current_section = None
-                continue
+        for document_path, section, claim_text in claims:
+            claim_tokens = cls._claim_pairing_tokens(
+                f"{section or ''} {claim_text}"
+            )
+            ranked_functions: list[
+                tuple[int, str, str, str]
+            ] = []
 
-            if stripped.startswith("=== ") and stripped.endswith(" ==="):
-                in_target = False
-                in_fence = False
-                current_section = None
-                continue
-
-            if not in_target:
-                continue
-
-            if stripped.startswith("```"):
-                in_fence = not in_fence
-                continue
-
-            if in_fence or not stripped or stripped.startswith("Path: "):
-                continue
-
-            if stripped.startswith("#"):
-                marker_length = len(stripped) - len(
-                    stripped.lstrip("#")
+            for source_path, function_name, snippet in source_functions:
+                name_tokens = cls._claim_pairing_tokens(function_name)
+                name_overlap = len(
+                    claim_tokens.intersection(name_tokens)
                 )
-                remainder = stripped[marker_length:]
-                if (
-                    1 <= marker_length <= 6
-                    and remainder.startswith(" ")
-                ):
-                    current_section = remainder.strip()
+
+                if name_overlap < 2:
+                    continue
+
+                source_tokens = cls._claim_pairing_tokens(snippet)
+                body_overlap = len(
+                    claim_tokens.intersection(source_tokens)
+                )
+                score = (name_overlap * 100) + body_overlap
+
+                ranked_functions.append(
+                    (
+                        score,
+                        source_path,
+                        function_name,
+                        snippet,
+                    )
+                )
+
+            if not ranked_functions:
                 continue
 
-            if re.fullmatch(r"\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?", stripped):
-                continue
-
-            claim_text = stripped
-
-            if claim_text.startswith(("- ", "* ", "+ ")):
-                claim_text = claim_text[2:].strip()
-
-            if re.match(r"^\d+[.)]\s+", claim_text):
-                claim_text = re.sub(
-                    r"^\d+[.)]\s+",
-                    "",
+            ranked_functions.sort(
+                key=lambda item: (
+                    -item[0],
+                    item[1],
+                    item[2],
+                )
+            )
+            selected_functions = tuple(
+                (
+                    source_path,
+                    function_name,
+                    snippet,
+                )
+                for _, source_path, function_name, snippet
+                in ranked_functions[:2]
+            )
+            pair_candidates.append(
+                (
+                    ranked_functions[0][0],
+                    document_path,
+                    section,
                     claim_text,
-                    count=1,
-                ).strip()
+                    selected_functions,
+                )
+            )
 
-            if not claim_text:
+        if not pair_candidates:
+            return cls._append_claim_candidates(context, claims)
+
+        pair_candidates.sort(
+            key=lambda item: (
+                -item[0],
+                item[1],
+                item[2] or "",
+                item[3],
+            )
+        )
+        selected_pairs = pair_candidates[:4]
+
+        lines = [
+            "=== TARGET DOCUMENTATION ===",
+        ]
+
+        emitted_sections: set[tuple[str, str | None]] = set()
+
+        for _, document_path, section, claim_text, _ in selected_pairs:
+            section_key = (document_path, section)
+
+            if section_key not in emitted_sections:
+                lines.append(f"Path: {document_path}")
+                if section is not None:
+                    lines.append(f"## {section}")
+                emitted_sections.add(section_key)
+
+            lines.append(claim_text)
+
+        lines.extend(
+            (
+                "",
+                "=== BOUNDED TARGET-SOURCE CLAIM PAIRS ===",
+                (
+                    "Evaluate only the exact target claims and paired "
+                    "authoritative source snippets below. A missing fact in a "
+                    "paired snippet is not evidence that the target claim is "
+                    "wrong. Return a gap only when the paired source positively "
+                    "contradicts the claim or positively establishes that the "
+                    "claim is materially incomplete."
+                ),
+            )
+        )
+
+        for index, (
+            _,
+            document_path,
+            section,
+            claim_text,
+            functions,
+        ) in enumerate(selected_pairs, start=1):
+            lines.extend(
+                (
+                    f"Pair {index}:",
+                    f"Document Path: {document_path}",
+                    f"Section: {section if section is not None else 'null'}",
+                    f"Target Claim: {claim_text}",
+                    "Paired Authoritative Source:",
+                )
+            )
+
+            for source_path, function_name, snippet in functions:
+                lines.extend(
+                    (
+                        f"Path: {source_path}",
+                        f"Function: {function_name}",
+                        snippet,
+                    )
+                )
+
+        return "\n".join(lines)
+
+    @staticmethod
+    def _split_bounded_gap_context(
+        gap_context: str,
+    ) -> tuple[str, ...]:
+        """Split bounded claim/source pairs into independent Stage 1 contexts.
+
+        Non-paired fallback contexts remain a single reasoning request.
+        """
+
+        marker = "=== BOUNDED TARGET-SOURCE CLAIM PAIRS ==="
+
+        if marker not in gap_context:
+            return (gap_context,)
+
+        _, pair_block = gap_context.split(marker, 1)
+        raw_pairs = tuple(
+            part.strip()
+            for part in re.split(
+                r"(?m)^Pair \d+:\s*$",
+                pair_block,
+            )[1:]
+            if part.strip()
+        )
+
+        contexts: list[str] = []
+
+        for raw_pair in raw_pairs:
+            document_match = re.search(
+                r"(?m)^Document Path:\s*(.+)$",
+                raw_pair,
+            )
+            section_match = re.search(
+                r"(?m)^Section:\s*(.+)$",
+                raw_pair,
+            )
+            claim_match = re.search(
+                r"(?m)^Target Claim:\s*(.+)$",
+                raw_pair,
+            )
+            source_marker = "Paired Authoritative Source:"
+
+            if (
+                document_match is None
+                or section_match is None
+                or claim_match is None
+                or source_marker not in raw_pair
+            ):
                 continue
 
-            claims.append((current_section, claim_text))
+            source_text = raw_pair.split(
+                source_marker,
+                1,
+            )[1].strip()
+            document_path = document_match.group(1).strip()
+            section = section_match.group(1).strip()
+            claim_text = claim_match.group(1).strip()
+
+            lines = [
+                "=== TARGET DOCUMENTATION ===",
+                f"Path: {document_path}",
+            ]
+
+            if section != "null":
+                lines.append(f"## {section}")
+
+            lines.extend(
+                (
+                    claim_text,
+                    "",
+                    marker,
+                    (
+                        "Evaluate only this exact target claim against "
+                        "the paired authoritative source snippets below. "
+                        "A missing fact in a paired snippet is not evidence "
+                        "that the target claim is wrong."
+                    ),
+                    "Pair 1:",
+                    f"Document Path: {document_path}",
+                    f"Section: {section}",
+                    f"Target Claim: {claim_text}",
+                    source_marker,
+                    source_text,
+                )
+            )
+
+            contexts.append("\n".join(lines))
+
+        return tuple(contexts) if contexts else (gap_context,)
+
+    @classmethod
+    def _documentation_gap_rejection_reason(
+        cls,
+        gap: DocumentationGap,
+        gap_context: str,
+    ) -> str | None:
+        """Return a deterministic reason to reject an unverified Stage 1 gap.
+
+        Pair-level strict mode fails closed when the model reasons from missing
+        evidence, merely repeats all or a substantial contiguous part of the
+        target claim as the gap, claims a target omission for a term already
+        present in that exact claim, treats a paired helper/function name as
+        required target documentation, reverses a
+        deterministically established positive source behavior, or supplies
+        non-substantive source evidence.
+        """
+
+        target_claim = cls._extract_bounded_target_claim(gap_context)
+        gap_text = " ".join(gap.gap.split())
+        evidence = " ".join(gap.source_evidence.split())
+
+        if cls._uses_absence_as_contradiction(gap_text, evidence):
+            return "absence of evidence was treated as contradiction"
+
+        if (
+            target_claim is not None
+            and cls._gap_repeats_target_claim(
+                gap_text=gap_text,
+                target_claim=target_claim,
+            )
+        ):
+            return "gap merely repeated the target claim"
+
+        if (
+            target_claim is not None
+            and cls._claims_missing_term_already_in_target(
+                gap_text=gap_text,
+                target_claim=target_claim,
+            )
+        ):
+            return "gap claimed an omission already present in the target claim"
+
+        if cls._claims_missing_paired_function_name(
+            gap_text=gap_text,
+            gap_context=gap_context,
+        ):
+            return "gap treated a paired implementation helper name as required documentation"
+
+        if not cls._gap_has_substantive_source_evidence(
+            gap=gap,
+            gap_context=gap_context,
+        ):
+            return "source evidence was not substantive"
+
+        if (
+            target_claim is not None
+            and cls._gap_reverses_positive_source_behavior(
+                gap_text=gap_text,
+                target_claim=target_claim,
+                gap_context=gap_context,
+            )
+        ):
+            return "gap reversed positive authoritative source behavior"
+
+        return None
+
+    @staticmethod
+    def _extract_bounded_target_claim(
+        gap_context: str,
+    ) -> str | None:
+        """Extract the exact target claim from one bounded Stage 1 context."""
+
+        match = re.search(
+            r"(?m)^Target Claim:\s*(.+)$",
+            gap_context,
+        )
+
+        if match is None:
+            return None
+
+        claim = match.group(1).strip()
+        return claim or None
+
+    @staticmethod
+    def _normalized_gap_text(value: str) -> str:
+        """Normalize prose for deterministic exact-claim comparison."""
+
+        return " ".join(
+            re.findall(
+                r"[A-Za-z0-9_]+",
+                value.casefold(),
+            )
+        )
+
+
+    @classmethod
+    def _gap_repeats_target_claim(
+        cls,
+        gap_text: str,
+        target_claim: str,
+    ) -> bool:
+        """Return whether a gap merely repeats target wording.
+
+        Exact normalized equality is rejected. A shorter gap is also rejected
+        when at least seven normalized tokens form a contiguous subset of the
+        exact target claim. A real contradiction that quotes target wording
+        but adds source-established behavior will not be a pure contiguous
+        subset and remains eligible.
+        """
+
+        normalized_gap = cls._normalized_gap_text(gap_text)
+        normalized_target = cls._normalized_gap_text(target_claim)
+
+        if not normalized_gap or not normalized_target:
+            return False
+
+        if normalized_gap == normalized_target:
+            return True
+
+        gap_tokens = normalized_gap.split()
+        target_tokens = normalized_target.split()
+
+        if len(gap_tokens) < 7:
+            return False
+
+        if len(gap_tokens) > len(target_tokens):
+            return False
+
+        window_size = len(gap_tokens)
+
+        return any(
+            target_tokens[index:index + window_size] == gap_tokens
+            for index in range(len(target_tokens) - window_size + 1)
+        )
+
+    @staticmethod
+    def _uses_absence_as_contradiction(
+        gap_text: str,
+        source_evidence: str,
+    ) -> bool:
+        """Reject Stage 1 reasoning that treats missing evidence as a gap."""
+
+        combined = f"{gap_text}\n{source_evidence}"
+
+        patterns = (
+            r"\bno evidence\b",
+            r"\bdoes not provide evidence\b",
+            r"\bdoes not show\b",
+            r"\bnot shown\b",
+            r"\bnot present in (?:the )?(?:paired )?source\b",
+            r"\bsource (?:does not|doesn't) (?:mention|document|establish)\b",
+            r"\babsence of (?:a fact|evidence)\b",
+            r"\bcannot be verified from (?:the )?(?:paired )?source\b",
+        )
+
+        return any(
+            re.search(pattern, combined, re.IGNORECASE)
+            for pattern in patterns
+        )
+
+    @classmethod
+    def _claims_missing_term_already_in_target(
+        cls,
+        gap_text: str,
+        target_claim: str,
+    ) -> bool:
+        """Reject omission claims when the named term is already documented."""
+
+        omission_patterns = (
+            r"(?:does not|doesn't)\s+(?:mention|document|include)\s+(?:the\s+)?[`'\"]?([A-Za-z_][A-Za-z0-9_-]*)",
+            r"\b(?:missing|omits?|omitted)\s+(?:the\s+)?[`'\"]?([A-Za-z_][A-Za-z0-9_-]*)",
+        )
+        target_tokens = cls._claim_pairing_tokens(target_claim)
+
+        for pattern in omission_patterns:
+            match = re.search(pattern, gap_text, re.IGNORECASE)
+
+            if match is None:
+                continue
+
+            term_tokens = cls._claim_pairing_tokens(match.group(1))
+
+            if term_tokens and term_tokens.issubset(target_tokens):
+                return True
+
+        return False
+
+
+    @classmethod
+    def _claims_missing_paired_function_name(
+        cls,
+        gap_text: str,
+        gap_context: str,
+    ) -> bool:
+        """Reject gaps that demand documentation of paired helper names.
+
+        In strict mode, a private/helper function name is an implementation
+        detail unless the target claim itself already documents that name.
+        """
+
+        function_names = cls._extract_paired_function_names(gap_context)
+
+        if not function_names:
+            return False
+
+        omission_patterns = (
+            r"(?:does not|doesn't)\s+(?:mention|document|include)\s+(?:the\s+)?[`'\"]?([A-Za-z_][A-Za-z0-9_]*)",
+            r"\b(?:missing|omits?|omitted)\s+(?:the\s+)?[`'\"]?([A-Za-z_][A-Za-z0-9_]*)",
+            r"\bnot\s+(?:mentioned|documented|included)\b[^A-Za-z0-9_]+[`'\"]?([A-Za-z_][A-Za-z0-9_]*)",
+        )
+
+        missing_names: set[str] = set()
+
+        for pattern in omission_patterns:
+            for match in re.finditer(pattern, gap_text, re.IGNORECASE):
+                missing_names.add(match.group(1))
+
+        return any(
+            function_name in missing_names
+            for function_name in function_names
+        )
+
+
+    @classmethod
+    def _gap_reverses_positive_source_behavior(
+        cls,
+        gap_text: str,
+        target_claim: str,
+        gap_context: str,
+    ) -> bool:
+        """Reject negative behavior incorrectly attributed to source functions.
+
+        This guard is intentionally narrow. It activates only when:
+        - the target contains a negative behavior claim,
+        - paired source syntax deterministically establishes that behavior, and
+        - the returned gap places the negative wording on a paired source
+          function rather than on the target documentation.
+
+        Correct contradictions such as "the target says X is not guaranteed,
+        but parse_paths performs X" remain eligible.
+        """
+
+        source_block = cls._extract_paired_authoritative_source(gap_context)
+
+        if not source_block:
+            return False
+
+        positive_behaviors = cls._infer_positive_source_behaviors(source_block)
+
+        if not positive_behaviors:
+            return False
+
+        target_negative = cls._extract_negative_behavior_terms(target_claim)
+
+        if not target_negative.intersection(positive_behaviors):
+            return False
+
+        function_names = cls._extract_paired_function_names(gap_context)
+
+        if not function_names:
+            return False
+
+        normalized_gap = " ".join(gap_text.split())
+
+        negative_patterns = (
+            r"does not\s+(?:guarantee\s+)?",
+            r"doesn't\s+(?:guarantee\s+)?",
+            r"do not\s+(?:guarantee\s+)?",
+            r"don't\s+(?:guarantee\s+)?",
+            r"is not\s+(?:guaranteed|normalized|deduplicated|trimmed)",
+            r"are not\s+(?:guaranteed|normalized|deduplicated|trimmed)",
+        )
+
+        for function_name in function_names:
+            for function_match in re.finditer(
+                rf"\b{re.escape(function_name)}\b",
+                normalized_gap,
+                re.IGNORECASE,
+            ):
+                following_text = normalized_gap[function_match.end():]
+                local_clause = re.split(
+                    r"[.;]|\b(?:but|however|whereas|while|which)\b",
+                    following_text,
+                    maxsplit=1,
+                    flags=re.IGNORECASE,
+                )[0]
+
+                if len(local_clause) > 220:
+                    local_clause = local_clause[:220]
+
+                if any(
+                    re.search(pattern, local_clause, re.IGNORECASE)
+                    for pattern in negative_patterns
+                ):
+                    return True
+
+        return False
+
+    @staticmethod
+    def _extract_paired_function_names(
+        gap_context: str,
+    ) -> tuple[str, ...]:
+        """Return paired authoritative function names from one Stage 1 context."""
+
+        return tuple(
+            dict.fromkeys(
+                match.group(1).strip()
+                for match in re.finditer(
+                    r"(?m)^Function:\s*([A-Za-z_][A-Za-z0-9_]*)\s*$",
+                    gap_context,
+                )
+            )
+        )
+
+    @staticmethod
+    def _extract_paired_authoritative_source(
+        gap_context: str,
+    ) -> str:
+        """Return the paired authoritative source portion of one Stage 1 context."""
+
+        marker = "Paired Authoritative Source:"
+
+        if marker not in gap_context:
+            return ""
+
+        return gap_context.split(marker, 1)[1].strip()
+
+    @classmethod
+    def _infer_positive_source_behaviors(
+        cls,
+        source_block: str,
+    ) -> frozenset[str]:
+        """Infer a small set of source behaviors from deterministic syntax."""
+
+        behaviors: set[str] = set()
+
+        # dict.fromkeys(...) preserves first-occurrence order while removing
+        # duplicate hashable values from the input sequence.
+        if "dict.fromkeys" in source_block:
+            behaviors.add("deduplication")
+            behaviors.add("deduplicate")
+
+        # line.strip() establishes surrounding-whitespace trimming.
+        if re.search(r"\b[A-Za-z_][A-Za-z0-9_]*\.strip\(\)", source_block):
+            behaviors.add("trim")
+            behaviors.add("trimming")
+            behaviors.add("normalization")
+            behaviors.add("normalize")
+
+        # Filtering on the stripped line removes blank/whitespace-only items.
+        if re.search(
+            r"if\s+[A-Za-z_][A-Za-z0-9_]*\.strip\(\)",
+            source_block,
+        ):
+            behaviors.add("blank")
+            behaviors.add("empty")
+            behaviors.add("blank-removal")
+
+        return frozenset(behaviors)
+
+    @classmethod
+    def _extract_negative_behavior_terms(
+        cls,
+        text: str,
+    ) -> frozenset[str]:
+        """Extract behavior terms governed by explicit negative wording."""
+
+        terms: set[str] = set()
+        normalized = " ".join(text.split())
+
+        patterns = (
+            r"(?:does not|doesn't|do not|don't)\s+(?:guarantee\s+)?"
+            r"([A-Za-z][A-Za-z0-9_-]*(?:\s+or\s+[A-Za-z][A-Za-z0-9_-]*)*)",
+            r"\bnot\s+(?:guaranteed|normalized|deduplicated|trimmed)\b",
+        )
+
+        for match in re.finditer(patterns[0], normalized, re.IGNORECASE):
+            phrase = match.group(1)
+
+            for part in re.split(r"\s+or\s+", phrase, flags=re.IGNORECASE):
+                terms.update(cls._claim_pairing_tokens(part))
+
+        for match in re.finditer(patterns[1], normalized, re.IGNORECASE):
+            token = match.group(0).casefold()
+
+            if "normalized" in token:
+                terms.update(("normalization", "normalize"))
+            if "deduplicated" in token:
+                terms.update(("deduplication", "deduplicate"))
+            if "trimmed" in token:
+                terms.update(("trim", "trimming"))
+
+        return frozenset(terms)
+
+    @staticmethod
+    def _gap_has_substantive_source_evidence(
+        gap: DocumentationGap,
+        gap_context: str,
+    ) -> bool:
+        """Return whether Stage 1 evidence is more than a source path.
+
+        This deterministic fail-closed guard rejects empty evidence, exact
+        context paths, repository-path-only strings, and trivial labels.
+        """
+
+        evidence = gap.source_evidence.strip().strip("`").strip()
+
+        if not evidence:
+            return False
+
+        context_paths = {
+            line[6:].strip()
+            for line in gap_context.splitlines()
+            if line.startswith("Path: ")
+        }
+
+        if evidence in context_paths:
+            return False
+
+        if re.fullmatch(
+            r"(?:[A-Za-z0-9_.-]+/)+[A-Za-z0-9_.-]+\.[A-Za-z0-9]+",
+            evidence,
+        ):
+            return False
+
+        words = re.findall(r"[A-Za-z][A-Za-z0-9_]*", evidence)
+
+        if len(words) < 4:
+            return False
+
+        substantive_tokens = {
+            word.casefold()
+            for word in words
+            if word.casefold()
+            not in {
+                "authoritative",
+                "evidence",
+                "file",
+                "path",
+                "source",
+                "the",
+                "this",
+            }
+        }
+
+        return len(substantive_tokens) >= 2
+
+    @staticmethod
+    def _aggregate_gap_results(
+        gap_results: tuple[ReasoningResult, ...],
+        gaps: tuple[DocumentationGap, ...],
+    ) -> ReasoningResult:
+        """Aggregate independent pair-level Stage 1 results."""
+
+        if not gap_results:
+            raise ValueError(
+                "At least one documentation gap result is required."
+            )
+
+        first = gap_results[0]
+        assumptions = tuple(
+            dict.fromkeys(
+                assumption
+                for result in gap_results
+                for assumption in result.assumptions
+            )
+        )
+        warnings = tuple(
+            dict.fromkeys(
+                warning
+                for result in gap_results
+                for warning in result.warnings
+            )
+        )
+
+        metadata = dict(first.metadata)
+        metadata["gap_pair_count"] = len(gap_results)
+        metadata["verified_gap_count"] = len(gaps)
+
+        return ReasoningResult(
+            request_id=first.request_id,
+            status=ReasoningStatus.COMPLETED,
+            summary=(
+                "Verified documentation gaps were found."
+                if gaps
+                else "No verified documentation gaps were found."
+            ),
+            impacts=(),
+            proposed_changes=(),
+            created_at=first.created_at,
+            provider_name=first.provider_name,
+            model_name=first.model_name,
+            gaps=gaps,
+            assumptions=assumptions,
+            warnings=warnings,
+            error_message=None,
+            metadata=metadata,
+        )
+
+    @classmethod
+    def _append_claim_candidates(
+        cls,
+        context: str,
+        claims: tuple[tuple[str, str | None, str], ...],
+    ) -> str:
+        """Preserve prior claim-candidate behavior when pairing is unavailable."""
 
         if not claims:
             return context
@@ -503,7 +1229,7 @@ class DocumentationWorkflow:
             ),
         ]
 
-        for index, (section, claim_text) in enumerate(claims, start=1):
+        for index, (_, section, claim_text) in enumerate(claims, start=1):
             lines.extend(
                 (
                     f"Claim {index}:",
@@ -513,6 +1239,270 @@ class DocumentationWorkflow:
             )
 
         return "\n".join(lines)
+
+    @staticmethod
+    def _extract_target_claim_records(
+        context: str,
+    ) -> tuple[tuple[str, str | None, str], ...]:
+        """Extract exact target prose claims with document and section."""
+
+        target_marker = "=== TARGET DOCUMENTATION ==="
+        source_marker = "=== AUTHORITATIVE SOURCE ==="
+
+        claims: list[tuple[str, str | None, str]] = []
+        in_target = False
+        in_fence = False
+        current_path: str | None = None
+        current_section: str | None = None
+
+        for line in context.splitlines():
+            stripped = line.strip()
+
+            if stripped == target_marker:
+                in_target = True
+                in_fence = False
+                current_path = None
+                current_section = None
+                continue
+
+            if stripped == source_marker:
+                in_target = False
+                in_fence = False
+                current_path = None
+                current_section = None
+                continue
+
+            if stripped.startswith("=== ") and stripped.endswith(" ==="):
+                in_target = False
+                in_fence = False
+                current_path = None
+                current_section = None
+                continue
+
+            if not in_target:
+                continue
+
+            if stripped.startswith("```"):
+                in_fence = not in_fence
+                continue
+
+            if in_fence or not stripped:
+                continue
+
+            if stripped.startswith("Path: "):
+                current_path = stripped[6:].strip()
+                continue
+
+            if stripped.startswith("#"):
+                marker_length = len(stripped) - len(
+                    stripped.lstrip("#")
+                )
+                remainder = stripped[marker_length:]
+
+                if (
+                    1 <= marker_length <= 6
+                    and remainder.startswith(" ")
+                ):
+                    current_section = (
+                        remainder.strip()
+                        if marker_length >= 2
+                        else None
+                    )
+                continue
+
+            if current_path is None:
+                continue
+
+            if re.fullmatch(
+                r"\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?",
+                stripped,
+            ):
+                continue
+
+            claim_text = stripped
+
+            if claim_text.startswith(("- ", "* ", "+ ")):
+                claim_text = claim_text[2:].strip()
+
+            if re.match(r"^\d+[.)]\s+", claim_text):
+                claim_text = re.sub(
+                    r"^\d+[.)]\s+",
+                    "",
+                    claim_text,
+                    count=1,
+                ).strip()
+
+            if claim_text:
+                claims.append(
+                    (
+                        current_path,
+                        current_section,
+                        claim_text,
+                    )
+                )
+
+        return tuple(claims)
+
+    @classmethod
+    def _extract_authoritative_function_records(
+        cls,
+        context: str,
+    ) -> tuple[tuple[str, str, str], ...]:
+        """Extract bounded authoritative Python function and method snippets."""
+
+        source_marker = "=== AUTHORITATIVE SOURCE ==="
+
+        records: list[tuple[str, str, str]] = []
+        in_source = False
+        current_path: str | None = None
+        current_lines: list[str] = []
+
+        def flush() -> None:
+            if (
+                not in_source
+                or current_path is None
+                or not current_path.endswith(".py")
+            ):
+                return
+
+            source_content = "\n".join(current_lines)
+
+            try:
+                module = ast.parse(source_content)
+            except SyntaxError:
+                return
+
+            for node in ast.walk(module):
+                if not isinstance(
+                    node,
+                    (
+                        ast.FunctionDef,
+                        ast.AsyncFunctionDef,
+                    ),
+                ):
+                    continue
+
+                snippet = cls._bounded_function_source(
+                    source_content=source_content,
+                    node=node,
+                    maximum_lines=16,
+                )
+
+                if snippet:
+                    records.append(
+                        (
+                            current_path,
+                            node.name,
+                            snippet,
+                        )
+                    )
+
+        for line in context.splitlines():
+            stripped = line.strip()
+
+            if stripped == source_marker:
+                flush()
+                in_source = True
+                current_path = None
+                current_lines = []
+                continue
+
+            if stripped.startswith("=== ") and stripped.endswith(" ==="):
+                flush()
+                in_source = False
+                current_path = None
+                current_lines = []
+                continue
+
+            if not in_source:
+                continue
+
+            if current_path is None and line.startswith("Path: "):
+                current_path = line[6:].strip()
+                continue
+
+            current_lines.append(line)
+
+        flush()
+
+        return tuple(records)
+
+    @staticmethod
+    def _bounded_function_source(
+        source_content: str,
+        node: ast.FunctionDef | ast.AsyncFunctionDef,
+        maximum_lines: int,
+    ) -> str:
+        """Return one function or method snippet capped to maximum_lines."""
+
+        start_lineno = node.lineno
+
+        if node.decorator_list:
+            start_lineno = min(
+                decorator.lineno
+                for decorator in node.decorator_list
+            )
+
+        end_lineno = node.end_lineno
+
+        if end_lineno is None:
+            return ""
+
+        lines = source_content.splitlines()
+        snippet_lines = lines[start_lineno - 1:end_lineno]
+
+        if len(snippet_lines) > maximum_lines:
+            snippet_lines = [
+                *snippet_lines[:maximum_lines],
+                "    # ... snippet truncated ...",
+            ]
+
+        return textwrap.dedent(
+            "\n".join(snippet_lines)
+        ).strip()
+
+    @staticmethod
+    def _claim_pairing_tokens(text: str) -> frozenset[str]:
+        """Return normalized lexical tokens for bounded claim pairing."""
+
+        expanded = re.sub(
+            r"([a-z0-9])([A-Z])",
+            r"\1 \2",
+            text.replace("_", " ").replace("-", " "),
+        )
+
+        tokens: set[str] = set()
+
+        for raw_token in re.findall(r"[A-Za-z][A-Za-z0-9]*", expanded):
+            token = raw_token.casefold()
+
+            if len(token) <= 2:
+                continue
+
+            variants = {token}
+
+            if token.endswith("ies") and len(token) > 4:
+                variants.add(f"{token[:-3]}y")
+            elif token.endswith("s") and len(token) > 3:
+                variants.add(token[:-1])
+
+            if token.endswith("ing") and len(token) > 5:
+                stem = token[:-3]
+                variants.add(stem)
+                variants.add(f"{stem}e")
+
+            if token.endswith("ed") and len(token) > 4:
+                stem = token[:-2]
+                variants.add(stem)
+                variants.add(f"{stem}e")
+
+            tokens.update(
+                value
+                for value in variants
+                if value not in _SECTION_SEMANTIC_STOP_WORDS
+            )
+
+        return frozenset(tokens)
 
     @staticmethod
     def _deduplicate_documentation_gaps(

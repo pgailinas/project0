@@ -75,7 +75,8 @@ class StubReasoningService:
                         section=change.section,
                         gap="Configured documentation gap.",
                         source_evidence=(
-                            "Configured authoritative source evidence."
+                            "Configured source function returns the "
+                            "documented behavior."
                         ),
                         confidence=0.9,
                     )
@@ -871,7 +872,9 @@ def test_source_grounded_workflow_runs_gap_analysis_before_edit_generation(
     )
     assert "=== ESTABLISHED DOCUMENTATION GAPS ===" in edit_request.context
     assert "Configured documentation gap." in edit_request.context
-    assert "Configured authoritative source evidence." in edit_request.context
+    assert "Configured source function returns the documented behavior." in (
+        edit_request.context
+    )
     assert "Section: null" in edit_request.context
     assert (
         "Generate documentation edits only for the established gaps above."
@@ -879,39 +882,118 @@ def test_source_grounded_workflow_runs_gap_analysis_before_edit_generation(
     )
 
 
-def test_claim_level_gap_context_surfaces_exact_target_claims() -> None:
-    """Stage 1 context exposes exact target prose as claim candidates."""
+def test_claim_level_gap_context_pairs_strong_claim_with_functions() -> None:
+    """Stage 1 pairs exact prose with strongly matching source functions."""
 
     context = (
         "=== TARGET DOCUMENTATION ===\n"
         "Path: docs/Example.md\n"
         "# Example\n"
-        "## Interface Contracts\n"
+        "## Browser routes\n"
         "Path fields are trimmed; route parsing does not guarantee "
         "normalization or deduplication.\n"
         "\n"
         "=== AUTHORITATIVE SOURCE ===\n"
         "Path: src/project0/example.py\n"
-        "return tuple(dict.fromkeys(values))\n"
+        "def _parse_source_paths(value: str) -> tuple[str, ...]:\n"
+        "    return tuple(dict.fromkeys(\n"
+        "        line.strip() for line in value.splitlines() if line.strip()\n"
+        "    ))\n"
+        "\n"
+        "def _parse_target_paths(value: str) -> tuple[str, ...]:\n"
+        "    return tuple(dict.fromkeys(\n"
+        "        line.strip() for line in value.splitlines() if line.strip()\n"
+        "    ))\n"
+        "\n"
+        "def unrelated_request(value: str) -> str:\n"
+        "    return value\n"
     )
 
     result = DocumentationWorkflow._build_claim_level_gap_context(
         context
     )
 
-    assert "=== TARGET DOCUMENTATION CLAIM CANDIDATES ===" in result
-    assert "Claim 1:" in result
-    assert "Section: Interface Contracts" in result
+    assert "=== BOUNDED TARGET-SOURCE CLAIM PAIRS ===" in result
+    assert "Pair 1:" in result
+    assert "Section: Browser routes" in result
     assert (
-        "Text: Path fields are trimmed; route parsing does not guarantee "
-        "normalization or deduplication."
+        "Target Claim: Path fields are trimmed; route parsing does not "
+        "guarantee normalization or deduplication."
         in result
     )
-    assert "return tuple(dict.fromkeys(values))" in result
+    assert "Function: _parse_source_paths" in result
+    assert "Function: _parse_target_paths" in result
+    assert "Function: unrelated_request" not in result
+    assert result.count("Function: ") == 2
 
 
-def test_claim_level_gap_context_excludes_headings_code_and_metadata() -> None:
-    """Claim extraction omits structural lines and fenced code."""
+def test_claim_level_gap_context_excludes_classes_and_caps_function_snippet() -> None:
+    """Pair context emits bounded functions, never complete class bodies."""
+
+    long_body = "".join(
+        f"        value_{index} = {index}\n"
+        for index in range(30)
+    )
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/Example.md\n"
+        "# Example\n"
+        "## Parsing\n"
+        "Source path parsing trims source path values.\n"
+        "\n"
+        "=== AUTHORITATIVE SOURCE ===\n"
+        "Path: src/project0/example.py\n"
+        "class Parser:\n"
+        "    def parse_source_paths(self, value: str) -> tuple[str, ...]:\n"
+        + long_body
+        + "        return (value.strip(),)\n"
+        "\n"
+        "    def unrelated_method(self) -> None:\n"
+        "        pass\n"
+    )
+
+    result = DocumentationWorkflow._build_claim_level_gap_context(
+        context
+    )
+
+    assert "class Parser:" not in result
+    assert "Function: parse_source_paths" in result
+    assert "# ... snippet truncated ..." in result
+    assert "value_29 = 29" not in result
+    assert "Function: unrelated_method" not in result
+
+
+def test_claim_level_gap_context_limits_pairs_to_four() -> None:
+    """Stage 1 pairing is capped at four strongest claim pairs."""
+
+    target_claims = "".join(
+        (
+            f"## Section {index}\n"
+            f"Parse source path {index} uses parse source paths.\n"
+        )
+        for index in range(6)
+    )
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/Example.md\n"
+        "# Example\n"
+        + target_claims
+        + "\n"
+        "=== AUTHORITATIVE SOURCE ===\n"
+        "Path: src/project0/example.py\n"
+        "def parse_source_paths(value: str) -> tuple[str, ...]:\n"
+        "    return (value.strip(),)\n"
+    )
+
+    result = DocumentationWorkflow._build_claim_level_gap_context(
+        context
+    )
+
+    assert result.count("Pair ") == 4
+
+
+def test_claim_level_gap_context_falls_back_without_strong_function_match() -> None:
+    """Existing claim-candidate behavior remains when no strong pair exists."""
 
     context = (
         "=== TARGET DOCUMENTATION ===\n"
@@ -925,7 +1007,8 @@ def test_claim_level_gap_context_excludes_headings_code_and_metadata() -> None:
         "\n"
         "=== AUTHORITATIVE SOURCE ===\n"
         "Path: src/project0/example.py\n"
-        "VALUE = 1\n"
+        "def unrelated(value: int) -> int:\n"
+        "    return value + 1\n"
     )
 
     result = DocumentationWorkflow._build_claim_level_gap_context(
@@ -938,14 +1021,13 @@ def test_claim_level_gap_context_excludes_headings_code_and_metadata() -> None:
 
     assert "Text: Documented behavior." in candidate_block
     assert "internal_call()" not in candidate_block
-    assert "Text: Path: docs/Example.md" not in candidate_block
-    assert "Text: ## Contract" not in candidate_block
+    assert "=== BOUNDED TARGET-SOURCE CLAIM PAIRS ===" not in result
 
 
-def test_source_grounded_gap_request_uses_claim_level_context(
+def test_source_grounded_gap_request_uses_bounded_pair_context(
     tmp_path: Path,
 ) -> None:
-    """Source-grounded Stage 1 receives explicit target claim candidates."""
+    """Source-grounded Stage 1 receives only bounded strong claim pairs."""
 
     document = tmp_path / "docs/index.md"
     document.parent.mkdir()
@@ -956,11 +1038,15 @@ def test_source_grounded_gap_request_uses_claim_level_context(
         "Path: docs/index.md\n"
         "# Original\n"
         "## Contract\n"
-        "Route parsing does not guarantee deduplication.\n"
+        "Route path parsing does not guarantee deduplication.\n"
         "\n"
         "=== AUTHORITATIVE SOURCE ===\n"
         "Path: src/project0/example.py\n"
-        "values = tuple(dict.fromkeys(values))\n"
+        "def parse_route_paths(value: str) -> tuple[str, ...]:\n"
+        "    return tuple(dict.fromkeys(value.splitlines()))\n"
+        "\n"
+        "def unrelated() -> None:\n"
+        "    pass\n"
     )
 
     def context_provider(
@@ -983,20 +1069,720 @@ def test_source_grounded_gap_request_uses_claim_level_context(
             user_request="Synchronize documentation.",
             target_paths=("docs/index.md",),
             source_paths=("src/project0/example.py",),
-            workflow_id="workflow-claim-level-gap-context",
+            workflow_id="workflow-bounded-gap-context",
         )
     )
 
     assert len(reasoning_service.requests) == 1
     gap_request = reasoning_service.requests[0]
     assert gap_request.workflow_type == "documentation_gap_analysis"
-    assert "=== TARGET DOCUMENTATION CLAIM CANDIDATES ===" in (
+    assert "=== BOUNDED TARGET-SOURCE CLAIM PAIRS ===" in (
         gap_request.context
     )
     assert (
-        "Text: Route parsing does not guarantee deduplication."
+        "Target Claim: Route path parsing does not guarantee deduplication."
         in gap_request.context
     )
+    assert "Function: parse_route_paths" in gap_request.context
+    assert "def unrelated" not in gap_request.context
+
+
+def test_split_bounded_gap_context_creates_one_context_per_pair() -> None:
+    """Each bounded pair becomes an independent Stage 1 request context."""
+
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/Example.md\n"
+        "## Browser routes\n"
+        "First claim.\n"
+        "Second claim.\n"
+        "\n"
+        "=== BOUNDED TARGET-SOURCE CLAIM PAIRS ===\n"
+        "Evaluate pairs.\n"
+        "Pair 1:\n"
+        "Document Path: docs/Example.md\n"
+        "Section: Browser routes\n"
+        "Target Claim: First claim.\n"
+        "Paired Authoritative Source:\n"
+        "Path: src/project0/example.py\n"
+        "Function: parse_first\n"
+        "def parse_first(value: str) -> str:\n"
+        "    return value.strip()\n"
+        "Pair 2:\n"
+        "Document Path: docs/Example.md\n"
+        "Section: Browser routes\n"
+        "Target Claim: Second claim.\n"
+        "Paired Authoritative Source:\n"
+        "Path: src/project0/example.py\n"
+        "Function: parse_second\n"
+        "def parse_second(value: str) -> str:\n"
+        "    return value\n"
+    )
+
+    contexts = DocumentationWorkflow._split_bounded_gap_context(context)
+
+    assert len(contexts) == 2
+    assert "Target Claim: First claim." in contexts[0]
+    assert "Function: parse_first" in contexts[0]
+    assert "Target Claim: Second claim." not in contexts[0]
+    assert "Function: parse_second" not in contexts[0]
+    assert "Target Claim: Second claim." in contexts[1]
+    assert "Function: parse_second" in contexts[1]
+
+
+def test_gap_source_evidence_rejects_path_only_and_accepts_behavior() -> None:
+    """Stage 1 path-only evidence fails closed."""
+
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/Example.md\n"
+        "## Browser routes\n"
+        "Route parsing does not guarantee deduplication.\n"
+        "\n"
+        "=== BOUNDED TARGET-SOURCE CLAIM PAIRS ===\n"
+        "Pair 1:\n"
+        "Document Path: docs/Example.md\n"
+        "Section: Browser routes\n"
+        "Target Claim: Route parsing does not guarantee deduplication.\n"
+        "Paired Authoritative Source:\n"
+        "Path: src/project0/example.py\n"
+        "Function: parse_route_paths\n"
+        "def parse_route_paths(value: str) -> tuple[str, ...]:\n"
+        "    return tuple(dict.fromkeys(value.splitlines()))\n"
+    )
+    path_only = DocumentationGap(
+        document_path=Path("docs/Example.md"),
+        section="Browser routes",
+        gap="The target incorrectly denies deduplication.",
+        source_evidence="src/project0/example.py",
+        confidence=0.9,
+    )
+    substantive = DocumentationGap(
+        document_path=Path("docs/Example.md"),
+        section="Browser routes",
+        gap="The target incorrectly denies deduplication.",
+        source_evidence=(
+            "parse_route_paths returns tuple(dict.fromkeys(...)), "
+            "which removes duplicate path values."
+        ),
+        confidence=0.9,
+    )
+
+    assert not DocumentationWorkflow._gap_has_substantive_source_evidence(
+        gap=path_only,
+        gap_context=context,
+    )
+    assert DocumentationWorkflow._gap_has_substantive_source_evidence(
+        gap=substantive,
+        gap_context=context,
+    )
+
+
+
+def test_gap_rejection_reason_rejects_absence_based_contradiction() -> None:
+    """Missing paired evidence cannot establish a documentation gap."""
+
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/Example.md\n"
+        "## Reasoning and validation\n"
+        "The default validation interface runs Markdown, Link, and MkDocs "
+        "validators.\n"
+        "\n"
+        "=== BOUNDED TARGET-SOURCE CLAIM PAIRS ===\n"
+        "Pair 1:\n"
+        "Document Path: docs/Example.md\n"
+        "Section: Reasoning and validation\n"
+        "Target Claim: The default validation interface runs Markdown, "
+        "Link, and MkDocs validators.\n"
+        "Paired Authoritative Source:\n"
+        "Path: src/project0/example.py\n"
+        "Function: parse_source_paths\n"
+        "def parse_source_paths(value: str) -> tuple[str, ...]:\n"
+        "    return (value,)\n"
+    )
+    gap = DocumentationGap(
+        document_path=Path("docs/Example.md"),
+        section="Reasoning and validation",
+        gap=(
+            "The claim is unsupported because there is no evidence in the "
+            "paired source snippets."
+        ),
+        source_evidence=(
+            "src/project0/example.py does not provide evidence for the "
+            "validator claim."
+        ),
+        confidence=0.95,
+    )
+
+    assert DocumentationWorkflow._documentation_gap_rejection_reason(
+        gap=gap,
+        gap_context=context,
+    ) == "absence of evidence was treated as contradiction"
+
+
+def test_gap_rejection_reason_rejects_exact_target_claim_as_gap() -> None:
+    """A model cannot return the target claim itself as a discrepancy."""
+
+    claim = (
+        "| `POST` | `/agents/documentation/request` | Request and optional "
+        "source/target paths | Run the synchronous workflow and render current "
+        "state. |"
+    )
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/Example.md\n"
+        "## Browser routes\n"
+        f"{claim}\n"
+        "\n"
+        "=== BOUNDED TARGET-SOURCE CLAIM PAIRS ===\n"
+        "Pair 1:\n"
+        "Document Path: docs/Example.md\n"
+        "Section: Browser routes\n"
+        f"Target Claim: {claim}\n"
+        "Paired Authoritative Source:\n"
+        "Path: src/project0/example.py\n"
+        "Function: parse_source_paths\n"
+        "def parse_source_paths(value: str) -> tuple[str, ...]:\n"
+        "    return tuple(dict.fromkeys(value.splitlines()))\n"
+    )
+    gap = DocumentationGap(
+        document_path=Path("docs/Example.md"),
+        section="Browser routes",
+        gap=claim,
+        source_evidence=(
+            "parse_source_paths deduplicates newline-separated path values "
+            "using dict.fromkeys."
+        ),
+        confidence=0.9,
+    )
+
+    assert DocumentationWorkflow._documentation_gap_rejection_reason(
+        gap=gap,
+        gap_context=context,
+    ) == "gap merely repeated the target claim"
+
+
+
+def test_gap_rejection_reason_rejects_substantial_target_claim_subset() -> None:
+    """A substantial contiguous target sentence is not a new gap."""
+
+    claim = (
+        "The default validation interface runs Markdown, Link, and MkDocs "
+        "validators; Documentation Consistency Validator is separate. "
+        "The shared reasoning abstraction requires schema-constrained "
+        "structured gap or update objects."
+    )
+    repeated = (
+        "The default validation interface runs Markdown, Link, and MkDocs "
+        "validators Documentation Consistency Validator is separate"
+    )
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/Example.md\n"
+        "## Reasoning and validation\n"
+        f"{claim}\n"
+        "\n"
+        "=== BOUNDED TARGET-SOURCE CLAIM PAIRS ===\n"
+        "Pair 1:\n"
+        "Document Path: docs/Example.md\n"
+        "Section: Reasoning and validation\n"
+        f"Target Claim: {claim}\n"
+        "Paired Authoritative Source:\n"
+        "Path: src/project0/example.py\n"
+        "Function: parse_source_paths\n"
+        "def parse_source_paths(value: str) -> tuple[str, ...]:\n"
+        "    return (value,)\n"
+    )
+    gap = DocumentationGap(
+        document_path=Path("docs/Example.md"),
+        section="Reasoning and validation",
+        gap=repeated,
+        source_evidence=(
+            "parse_source_paths returns parsed path values from the request."
+        ),
+        confidence=0.9,
+    )
+
+    assert DocumentationWorkflow._documentation_gap_rejection_reason(
+        gap=gap,
+        gap_context=context,
+    ) == "gap merely repeated the target claim"
+
+
+def test_gap_repetition_guard_preserves_short_quoted_contradiction() -> None:
+    """Quoting a few target words inside a real contradiction is allowed."""
+
+    claim = (
+        "Route parsing does not guarantee normalization or deduplication."
+    )
+    gap_text = (
+        "The target says route parsing does not guarantee deduplication, "
+        "but parse_route_paths deduplicates values with dict.fromkeys."
+    )
+
+    assert not DocumentationWorkflow._gap_repeats_target_claim(
+        gap_text=gap_text,
+        target_claim=claim,
+    )
+
+
+
+def test_gap_rejection_reason_rejects_missing_paired_function_name() -> None:
+    """Implementation helper names are not required target documentation."""
+
+    claim = (
+        "| `POST` | `/agents/documentation/request` | Request and optional "
+        "source/target paths | Run the synchronous workflow and render current "
+        "state. |"
+    )
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/Example.md\n"
+        "## Browser routes\n"
+        f"{claim}\n"
+        "\n"
+        "=== BOUNDED TARGET-SOURCE CLAIM PAIRS ===\n"
+        "Pair 1:\n"
+        "Document Path: docs/Example.md\n"
+        "Section: Browser routes\n"
+        f"Target Claim: {claim}\n"
+        "Paired Authoritative Source:\n"
+        "Path: src/project0/example.py\n"
+        "Function: _parse_target_paths\n"
+        "def _parse_target_paths(value: str) -> tuple[str, ...]:\n"
+        "    return tuple(dict.fromkeys(value.splitlines()))\n"
+    )
+    gap = DocumentationGap(
+        document_path=Path("docs/Example.md"),
+        section="Browser routes",
+        gap=(
+            "The target documentation does not mention the "
+            "`_parse_target_paths` function, which is present in source."
+        ),
+        source_evidence=(
+            "_parse_target_paths converts newline-separated target paths "
+            "into normalized values."
+        ),
+        confidence=0.95,
+    )
+
+    assert DocumentationWorkflow._documentation_gap_rejection_reason(
+        gap=gap,
+        gap_context=context,
+    ) == (
+        "gap treated a paired implementation helper name as required documentation"
+    )
+
+
+def test_gap_repetition_guard_rejects_long_sentence_from_larger_claim() -> None:
+    """A long existing sentence is rejected even inside a larger paragraph."""
+
+    claim = (
+        "The default validation interface runs Markdown, Link, and MkDocs "
+        "validators; Documentation Consistency Validator is separate. "
+        "Preliminary validation checks distinct accepted-proposal paths "
+        "before review; final validation checks successfully applied paths."
+    )
+    repeated = (
+        "The default validation interface runs Markdown Link and MkDocs "
+        "validators Documentation Consistency Validator is separate"
+    )
+
+    assert DocumentationWorkflow._gap_repeats_target_claim(
+        gap_text=repeated,
+        target_claim=claim,
+    )
+
+
+def test_gap_rejection_reason_rejects_missing_term_present_in_target() -> None:
+    """An omission gap fails when the exact target claim already has the term."""
+
+    claim = (
+        "| `POST` | `/agents/documentation/review` | Workflow ID, proposal "
+        "ID, decision, optional feedback | Submit one decision and render "
+        "updated state. |"
+    )
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/Example.md\n"
+        "## Browser routes\n"
+        f"{claim}\n"
+        "\n"
+        "=== BOUNDED TARGET-SOURCE CLAIM PAIRS ===\n"
+        "Pair 1:\n"
+        "Document Path: docs/Example.md\n"
+        "Section: Browser routes\n"
+        f"Target Claim: {claim}\n"
+        "Paired Authoritative Source:\n"
+        "Path: src/project0/example.py\n"
+        "Function: documentation_agent_submit_review\n"
+        "async def documentation_agent_submit_review(\n"
+        "    feedback: str = Form(\"\"),\n"
+        ") -> HTMLResponse:\n"
+        "    ...\n"
+    )
+    gap = DocumentationGap(
+        document_path=Path("docs/Example.md"),
+        section="Browser routes",
+        gap=(
+            "The target documentation does not mention the `feedback` "
+            "parameter in the request."
+        ),
+        source_evidence=(
+            "documentation_agent_submit_review accepts feedback as an "
+            "optional form field."
+        ),
+        confidence=1.0,
+    )
+
+    assert DocumentationWorkflow._documentation_gap_rejection_reason(
+        gap=gap,
+        gap_context=context,
+    ) == "gap claimed an omission already present in the target claim"
+
+
+def test_gap_rejection_reason_preserves_positive_source_contradiction() -> None:
+    """Concrete positive contradiction remains eligible for Stage 2."""
+
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/Example.md\n"
+        "## Browser routes\n"
+        "Path fields are newline-separated and trimmed; route parsing does "
+        "not guarantee deduplication.\n"
+        "\n"
+        "=== BOUNDED TARGET-SOURCE CLAIM PAIRS ===\n"
+        "Pair 1:\n"
+        "Document Path: docs/Example.md\n"
+        "Section: Browser routes\n"
+        "Target Claim: Path fields are newline-separated and trimmed; route "
+        "parsing does not guarantee deduplication.\n"
+        "Paired Authoritative Source:\n"
+        "Path: src/project0/example.py\n"
+        "Function: parse_source_paths\n"
+        "def parse_source_paths(value: str) -> tuple[str, ...]:\n"
+        "    return tuple(dict.fromkeys(value.splitlines()))\n"
+    )
+    gap = DocumentationGap(
+        document_path=Path("docs/Example.md"),
+        section="Browser routes",
+        gap=(
+            "The target says route parsing does not guarantee "
+            "deduplication, but parse_source_paths deduplicates values."
+        ),
+        source_evidence=(
+            "parse_source_paths returns tuple(dict.fromkeys(...)), removing "
+            "duplicate path values."
+        ),
+        confidence=0.95,
+    )
+
+    assert DocumentationWorkflow._documentation_gap_rejection_reason(
+        gap=gap,
+        gap_context=context,
+    ) is None
+
+
+
+def test_gap_rejection_reason_rejects_reversed_deduplication_polarity() -> None:
+    """A negative gap cannot contradict deterministic positive source behavior."""
+
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/Example.md\n"
+        "## Browser routes\n"
+        "Path fields are newline-separated, trimmed, and stripped of blank "
+        "entries; route parsing does not guarantee normalization or "
+        "deduplication.\n"
+        "\n"
+        "=== BOUNDED TARGET-SOURCE CLAIM PAIRS ===\n"
+        "Pair 1:\n"
+        "Document Path: docs/Example.md\n"
+        "Section: Browser routes\n"
+        "Target Claim: Path fields are newline-separated, trimmed, and stripped "
+        "of blank entries; route parsing does not guarantee normalization or "
+        "deduplication.\n"
+        "Paired Authoritative Source:\n"
+        "Path: src/project0/example.py\n"
+        "Function: _parse_source_paths\n"
+        "def _parse_source_paths(value: str) -> tuple[str, ...]:\n"
+        "    return tuple(\n"
+        "        dict.fromkeys(\n"
+        "            line.strip()\n"
+        "            for line in value.splitlines()\n"
+        "            if line.strip()\n"
+        "        )\n"
+        "    )\n"
+    )
+    gap = DocumentationGap(
+        document_path=Path("docs/Example.md"),
+        section="Browser routes",
+        gap=(
+            "_parse_source_paths does not guarantee normalization or "
+            "deduplication of parsed paths."
+        ),
+        source_evidence=(
+            "_parse_source_paths uses line.strip() and dict.fromkeys(...) "
+            "when returning parsed path values."
+        ),
+        confidence=1.0,
+    )
+
+    assert DocumentationWorkflow._documentation_gap_rejection_reason(
+        gap=gap,
+        gap_context=context,
+    ) == "gap reversed positive authoritative source behavior"
+
+
+def test_gap_rejection_reason_preserves_correct_deduplication_polarity() -> None:
+    """A correctly stated source contradiction remains eligible."""
+
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/Example.md\n"
+        "## Browser routes\n"
+        "Route parsing does not guarantee deduplication.\n"
+        "\n"
+        "=== BOUNDED TARGET-SOURCE CLAIM PAIRS ===\n"
+        "Pair 1:\n"
+        "Document Path: docs/Example.md\n"
+        "Section: Browser routes\n"
+        "Target Claim: Route parsing does not guarantee deduplication.\n"
+        "Paired Authoritative Source:\n"
+        "Path: src/project0/example.py\n"
+        "Function: parse_route_paths\n"
+        "def parse_route_paths(value: str) -> tuple[str, ...]:\n"
+        "    return tuple(dict.fromkeys(value.splitlines()))\n"
+    )
+    gap = DocumentationGap(
+        document_path=Path("docs/Example.md"),
+        section="Browser routes",
+        gap=(
+            "The target incorrectly says route parsing does not guarantee "
+            "deduplication; parse_route_paths deduplicates values."
+        ),
+        source_evidence=(
+            "parse_route_paths returns tuple(dict.fromkeys(...)), removing "
+            "duplicate path values."
+        ),
+        confidence=0.98,
+    )
+
+    assert DocumentationWorkflow._documentation_gap_rejection_reason(
+        gap=gap,
+        gap_context=context,
+    ) is None
+
+
+
+def test_polarity_guard_is_clause_local_for_source_function() -> None:
+    """Later negative wording about the target must not taint source polarity."""
+
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/Example.md\n"
+        "## Browser routes\n"
+        "Route parsing does not guarantee normalization or deduplication.\n"
+        "\n"
+        "=== BOUNDED TARGET-SOURCE CLAIM PAIRS ===\n"
+        "Pair 1:\n"
+        "Document Path: docs/Example.md\n"
+        "Section: Browser routes\n"
+        "Target Claim: Route parsing does not guarantee normalization or "
+        "deduplication.\n"
+        "Paired Authoritative Source:\n"
+        "Path: src/project0/example.py\n"
+        "Function: _parse_source_paths\n"
+        "def _parse_source_paths(value: str) -> tuple[str, ...]:\n"
+        "    return tuple(dict.fromkeys(line.strip() for line in value.splitlines()))\n"
+    )
+    gap = DocumentationGap(
+        document_path=Path("docs/Example.md"),
+        section="Browser routes",
+        gap=(
+            "_parse_source_paths guarantees normalization and deduplication "
+            "of path parsing, which contradicts the target claim that route "
+            "parsing does not guarantee these properties."
+        ),
+        source_evidence=(
+            "_parse_source_paths uses line.strip() and dict.fromkeys(...) "
+            "when returning parsed path values."
+        ),
+        confidence=0.95,
+    )
+
+    assert DocumentationWorkflow._documentation_gap_rejection_reason(
+        gap=gap,
+        gap_context=context,
+    ) is None
+
+
+def test_positive_source_behavior_inference_is_narrow() -> None:
+    """Only deterministic syntax currently recognized by strict mode is inferred."""
+
+    source = (
+        "def parse_paths(value: str) -> tuple[str, ...]:\n"
+        "    return tuple(\n"
+        "        dict.fromkeys(\n"
+        "            line.strip()\n"
+        "            for line in value.splitlines()\n"
+        "            if line.strip()\n"
+        "        )\n"
+        "    )\n"
+    )
+
+    behaviors = DocumentationWorkflow._infer_positive_source_behaviors(source)
+
+    assert "deduplication" in behaviors
+    assert "deduplicate" in behaviors
+    assert "normalization" in behaviors
+    assert "trim" in behaviors
+    assert "blank-removal" in behaviors
+    assert "validation" not in behaviors
+
+
+def test_source_grounded_workflow_verifies_bounded_pairs_independently(
+    tmp_path: Path,
+) -> None:
+    """Pair-level Stage 1 rejects path-only gaps and preserves valid ones."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text(
+        "# Original\n"
+        "## Contract\n"
+        "Route path parsing does not guarantee deduplication.\n"
+        "Review submission accepts a decision.\n",
+        encoding="utf-8",
+    )
+
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/index.md\n"
+        "# Original\n"
+        "## Contract\n"
+        "Route path parsing does not guarantee deduplication.\n"
+        "Review submission accepts a decision.\n"
+        "\n"
+        "=== AUTHORITATIVE SOURCE ===\n"
+        "Path: src/project0/example.py\n"
+        "def parse_route_paths(value: str) -> tuple[str, ...]:\n"
+        "    return tuple(dict.fromkeys(value.splitlines()))\n"
+        "\n"
+        "def submit_review_decision(decision: str) -> str:\n"
+        "    return decision\n"
+    )
+
+    def context_provider(
+        request: DocumentationWorkflowRequest,
+    ) -> str:
+        del request
+        return context
+
+    class PairReasoningService:
+        def __init__(self) -> None:
+            self.requests: list[ReasoningRequest] = []
+
+        def reason(self, request: ReasoningRequest) -> ReasoningResult:
+            self.requests.append(request)
+
+            if request.workflow_type == "documentation_gap_analysis":
+                if "parse_route_paths" in request.context:
+                    gap = DocumentationGap(
+                        document_path=Path("docs/index.md"),
+                        section="Contract",
+                        gap=(
+                            "The target says route parsing does not guarantee "
+                            "deduplication, but the source deduplicates values."
+                        ),
+                        source_evidence=(
+                            "parse_route_paths returns "
+                            "tuple(dict.fromkeys(...)), removing duplicate "
+                            "path values."
+                        ),
+                        confidence=0.95,
+                    )
+                else:
+                    gap = DocumentationGap(
+                        document_path=Path("docs/index.md"),
+                        section="Contract",
+                        gap="Review submission is incomplete.",
+                        source_evidence="src/project0/example.py",
+                        confidence=0.7,
+                    )
+
+                return ReasoningResult(
+                    request_id="pair-gap",
+                    status=ReasoningStatus.COMPLETED,
+                    summary="Pair checked.",
+                    impacts=(),
+                    proposed_changes=(),
+                    created_at=datetime(2026, 8, 5, 12, 0, tzinfo=UTC),
+                    provider_name="stub",
+                    model_name="stub-model",
+                    gaps=(gap,),
+                )
+
+            return ReasoningResult(
+                request_id="proposal",
+                status=ReasoningStatus.COMPLETED,
+                summary="No proposal.",
+                impacts=(),
+                proposed_changes=(),
+                created_at=datetime(2026, 8, 5, 12, 0, tzinfo=UTC),
+                provider_name="stub",
+                model_name="stub-model",
+            )
+
+    reasoning_service = PairReasoningService()
+    workflow = DocumentationWorkflow(
+        repository_root=tmp_path,
+        context_provider=context_provider,
+        reasoning_service=reasoning_service,
+        artifact_location_service=StubArtifactLocationService(),
+        validation_service=StubValidationService(()),
+        review_coordinator=StubReviewCoordinator(),
+        repository_update_service=StubRepositoryUpdateService(),
+        git_diff_service=StubGitDiffService(),
+    )
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Synchronize documentation.",
+            target_paths=("docs/index.md",),
+            source_paths=("src/project0/example.py",),
+            workflow_id="workflow-pair-verification",
+        )
+    )
+
+    gap_requests = tuple(
+        request
+        for request in reasoning_service.requests
+        if request.workflow_type == "documentation_gap_analysis"
+    )
+
+    assert len(gap_requests) == 2
+    assert all(
+        request.metadata["gap_pair_count"] == 2
+        for request in gap_requests
+    )
+    assert gap_requests[0].metadata["gap_pair_index"] == 1
+    assert gap_requests[1].metadata["gap_pair_index"] == 2
+    assert result.reasoning_result is not None
+
+    edit_requests = tuple(
+        request
+        for request in reasoning_service.requests
+        if request.workflow_type == "documentation_update"
+    )
+    assert len(edit_requests) == 1
+    assert (
+        "parse_route_paths returns tuple(dict.fromkeys(...)), "
+        "removing duplicate path values."
+        in edit_requests[0].context
+    )
+    assert "Review submission is incomplete." not in edit_requests[0].context
 
 
 def test_documentation_gap_deduplication_preserves_first_exact_gap() -> None:
