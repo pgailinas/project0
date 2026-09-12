@@ -8,7 +8,7 @@ The platform is designed around specialized AI agents that reuse common services
 
 The published Project0 documentation is available at:
 
-- **Documentation Home:** https://pgailinas.github.io/project0/
+- **Documentation Portal:** https://pgailinas.github.io/project0/
 - **Project Documentation:** https://pgailinas.github.io/project0/project/
 - **Platform Documentation:** https://pgailinas.github.io/project0/platform/
 - **Documentation Agent Documentation:** https://pgailinas.github.io/project0/agents/documentation/
