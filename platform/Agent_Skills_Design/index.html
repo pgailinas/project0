@@ -870,10 +870,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#initial-skill" class="md-nav__link">
+  <a href="#local-skills" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Initial skill
+        Local skills
       
     </span>
   </a>
@@ -1657,10 +1657,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#initial-skill" class="md-nav__link">
+  <a href="#local-skills" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Initial skill
+        Local skills
       
     </span>
   </a>
@@ -1731,34 +1731,42 @@
 
 
 <h1 id="agent-skills-design">Agent Skills Design</h1>
-<p><strong>Version:</strong> 0.4<br />
+<p><strong>Version:</strong> 0.6<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-11<br />
-<strong>Status:</strong> Implemented foundation with one workflow-specific local skill<br />
+<strong>Last Updated:</strong> 2026-09-13<br />
+<strong>Status:</strong> Implemented foundation with two repository-local skills; selective workflow integration<br />
 <strong>Source Baseline:</strong> <code>main</code> at <code>da217ae42f7ceeffc95a84c6baad3dc4376a18f9</code></p>
 <h2 id="executive-summary">Executive Summary</h2>
 <p>Project0 supports repository-local, version-controlled instruction packages
 that are discovered and validated by a shared registry, explicitly activated by
-a workflow, and attached to reasoning requests. The current implementation is
-deliberately narrow: only source-grounded Documentation Workflow proposal
-generation activates the <code>strict-documentation-editor</code> skill. Skills guide the
-model; deterministic Python controls retain authority over scope, evidence,
-validation, review, and repository changes.</p>
+a workflow, and attached to reasoning requests. Two local skill definitions now
+exist: <code>strict-documentation-editor</code> and
+<code>evidence-grounded-research-analyst</code>. Runtime integration is intentionally
+selective rather than agent-wide: source-grounded Documentation Workflow
+proposal generation activates <code>strict-documentation-editor</code>, while the
+Research Workflow does not activate <code>evidence-grounded-research-analyst</code>.
+Research Agent evaluation showed that broad skill activation degraded relevance
+scoring and contributed to Research Direction warnings, so the Research
+integration was reverted. Skills guide the model; deterministic Python controls
+retain authority over scope, evidence, validation, review, and repository
+changes.</p>
 <h2 id="purpose-and-scope">Purpose and Scope</h2>
 <p>This document defines the implemented skill format, registry, reasoning
 integration, workflow activation, and enforcement boundary. It does not define
 a marketplace, dependency manager, execution runtime, remote registry, or
 automatic selection framework.</p>
 <p>The design favors repository-local reviewability, metadata-only discovery,
-on-demand instruction loading, explicit workflow activation, separation of
-registry/workflow/prompt responsibilities, and fail-closed loading when a
-configured workflow requires a skill.</p>
+on-demand instruction loading, explicit and selective workflow activation,
+separation of registry/workflow/prompt responsibilities, and fail-closed
+loading when a configured workflow requires a skill.</p>
 <h2 id="component-design">Component Design</h2>
 <h3 id="repository-format">Repository format</h3>
 <p>Each immediate child directory beneath <code>skills/</code> may contain one <code>SKILL.md</code>:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>skills/
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>└── strict-documentation-editor/
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    └── SKILL.md
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── evidence-grounded-research-analyst/
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│   └── SKILL.md
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>└── strict-documentation-editor/
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    └── SKILL.md
 </span></code></pre></div>
 <p>A skill file begins with YAML frontmatter and continues with Markdown
 instructions. Required fields are a non-empty lowercase kebab-case <code>name</code> and a
@@ -1779,15 +1787,24 @@ requires the file, validates the complete definition, and returns instructions.
 Invalid names, path escapes, missing files, malformed YAML, missing fields, and
 name mismatches raise <code>ValueError</code>. The registry neither downloads nor executes
 skills, modifies files, persists registration, nor selects a skill.</p>
-<h3 id="initial-skill">Initial skill</h3>
-<p><code>strict-documentation-editor</code> is the only current local skill. Its metadata
-classifies it as documentation/local, and its instructions require minimal,
-source-grounded, precisely placed Markdown updates that preserve unrelated
-content and avoid invented implementation details.</p>
+<h3 id="local-skills">Local skills</h3>
+<p><code>strict-documentation-editor</code> classifies itself as documentation/local. Its
+instructions require minimal, source-grounded, precisely placed Markdown
+updates that preserve unrelated content and avoid invented implementation
+details.</p>
+<p><code>evidence-grounded-research-analyst</code> classifies itself as research/local. Its
+instructions require evidence-grounded research analysis that preserves source
+identity and provenance, distinguishes discovery metadata from substantive
+evidence, avoids unsupported findings and comparisons, represents uncertainty
+when evidence is insufficient, and does not override deterministic Research
+Agent workflow controls.</p>
 <h2 id="interactions-and-contracts">Interactions and Contracts</h2>
 <p><code>PlatformDispatcher</code> constructs <code>SkillRegistry(repository_root / "skills")</code>
 and supplies it to the Documentation Workflow factory. The Research Workflow
-does not receive it.</p>
+does not receive the registry, so the
+<code>evidence-grounded-research-analyst</code> definition is intentionally not activated.
+Skill availability therefore does not imply automatic activation by every
+agent or workflow.</p>
 <p><code>ReasoningRequest.skills</code> is a tuple of loaded definitions. For each active
 skill, <code>PromptBuilder</code> appends a labeled instruction block and records its name
 in provider metadata as <code>skill_names</code>. With no skills, normal prompting remains
@@ -1798,10 +1815,12 @@ those gaps and the strict skill. No-gap processing stops without proposals. A
 required-skill load failure fails the source-grounded workflow. Ordinary
 Documentation requests do not activate the skill.</p>
 <h2 id="configuration-and-failure-behavior">Configuration and Failure Behavior</h2>
-<p>Activation depends on non-empty <code>DocumentationWorkflowRequest.source_paths</code> and
-an available registry. Registry discovery/loading failures propagate as
-validation errors; required skill failure does not silently downgrade the
-workflow.</p>
+<p>Documentation activation depends on non-empty
+<code>DocumentationWorkflowRequest.source_paths</code> and an available registry. Registry
+discovery/loading failures propagate as validation errors; required skill
+failure does not silently downgrade the workflow. No Research Workflow skill
+activation path is implemented; the Research skill remains available in the
+repository without being part of the active Research Workflow.</p>
 <p>Skill text has no direct authority to read, write, execute, approve, or publish.
 Deterministic workflow logic continues to enforce requested target paths,
 read-only source evidence, supported operations, established gaps, concrete
@@ -1811,20 +1830,24 @@ review, and controlled application.</p>
 <h2 id="constraints-and-verification">Constraints and Verification</h2>
 <p>Current exclusions include external discovery/installation/trust, dependencies,
 skill code execution, persistent registry state outside Git, semantic automatic
-selection, automatic availability in every workflow, nested discovery, version
-resolution, migration, and runtime user management.</p>
+selection, automatic availability in every workflow, Research Workflow skill
+activation, nested discovery, version resolution, migration, and runtime user
+management. Skills are applied only where controlled evaluation shows that the
+additional instruction layer improves the target workflow.</p>
 <p>Substantive coverage exists in <code>test_skill_registry.py</code>,
 <code>test_prompt_builder.py</code>, and <code>test_documentation_workflow.py</code> for discovery,
 loading, validation, prompt propagation, conditional activation, two-stage
 reasoning, fail-closed behavior, target/evidence controls, placement,
 validation, review, and completion. <code>test_skill_models.py</code> is effectively empty;
 the checked-in source, not a dedicated model test, supports frozen/slotted model
-behavior. This design record does not claim that those tests were executed.</p>
-<p>Future work may add provenance and trust policy, controlled installation and
-updates, dependency/capability metadata, compatibility rules, broader workflow
-integration, and auditable selection while preserving the separation among
-discovery, activation, prompt rendering, deterministic enforcement, and
-execution authority.</p>
+behavior.</p>
+<p>Future work may revisit stage-specific Research skill activation only where
+controlled evaluation demonstrates value without degrading candidate selection,
+relevance scoring, or downstream synthesis. Other future work may add provenance
+and trust policy, controlled installation and updates, dependency/capability
+metadata, compatibility rules, broader selective workflow integration, and
+auditable selection while preserving the separation among discovery, activation,
+prompt rendering, deterministic enforcement, and execution authority.</p>
 
 
 
