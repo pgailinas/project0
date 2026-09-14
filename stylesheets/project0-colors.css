@@ -77,7 +77,9 @@
     --md-primary-fg-color--light:  #2f6f9f;
     --md-primary-fg-color--dark:   #173b56;
 
-    --md-accent-fg-color:          #2f6f9f;
+    --md-accent-fg-color:          #a9cce8;
 
+    /* Documentation links */
+    --md-typeset-a-color:          #a9cce8;
 }
 
