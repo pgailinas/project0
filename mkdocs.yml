@@ -24,20 +24,23 @@ theme:
 
   palette:
     # Dark mode
-    - scheme: slate
+    - scheme: default
+      primary: custom
+      accent: custom
       toggle:
         icon: material/weather-night
         name: Switch to light mode
-      primary: green
-      accent: deep purple
 
     # Light mode
-    - scheme: default
+    - scheme: slate
+      primary: custom
+      accent: custom
       toggle:
         icon: material/weather-sunny
         name: Switch to dark mode
-      primary: blue
-      accent: deep orange
+
+extra_css:
+  - stylesheets/project0-colors.css
 
 nav:
   - Welcome to Project0: index.md

@@ -1,0 +1,90 @@
+/* ============================================================
+   Project0 - Material for MkDocs Color Overrides
+
+   Purpose:
+       Align the Project0 documentation site with the
+       Project0 Dashboard Framework color palette.
+
+   Source:
+       dashboard.css
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   Shared Project0 brand colors
+   ------------------------------------------------------------ */
+
+:root {
+
+    --project0-header:        #1f4f73;
+    --project0-header-dark:   #173b56;
+
+    --project0-primary:       #2f6f9f;
+    --project0-primary-hover: #275f88;
+
+}
+
+
+/* ------------------------------------------------------------
+   Material primary and accent colors
+
+   These values are used when mkdocs.yml specifies:
+
+       primary: custom
+       accent: custom
+   ------------------------------------------------------------ */
+
+:root > * {
+
+    /* Primary branding */
+
+    --md-primary-fg-color:         #1f4f73;
+    --md-primary-fg-color--light:  #2f6f9f;
+    --md-primary-fg-color--dark:   #173b56;
+
+    /* Interactive elements: links, hover states, etc. */
+
+    --md-accent-fg-color:          #2f6f9f;
+
+}
+
+
+/* ------------------------------------------------------------
+   Light documentation theme
+   ------------------------------------------------------------ */
+
+[data-md-color-scheme="default"] {
+
+    --md-primary-fg-color:         #1f4f73;
+    --md-primary-fg-color--light:  #2f6f9f;
+    --md-primary-fg-color--dark:   #173b56;
+
+    --md-accent-fg-color:          #2f6f9f;
+
+}
+
+
+/* ------------------------------------------------------------
+   Dark documentation theme
+
+   Keep Material's normal slate background and text colors,
+   while using the same Project0 blue branding.
+   ------------------------------------------------------------ */
+
+[data-md-color-scheme="slate"] {
+
+    --md-primary-fg-color:         #1f4f73;
+    --md-primary-fg-color--light:  #2f6f9f;
+    --md-primary-fg-color--dark:   #173b56;
+
+    --md-accent-fg-color:          #2f6f9f;
+
+}
+
+
+
+
+.md-header {
+    background-color: #1f4f73 !important;
+}
+
