@@ -72,19 +72,17 @@
    ------------------------------------------------------------ */
 
 [data-md-color-scheme="slate"] {
-
     --md-primary-fg-color:         #1f4f73;
     --md-primary-fg-color--light:  #2f6f9f;
     --md-primary-fg-color--dark:   #173b56;
 
-    --md-accent-fg-color:          #2f6f9f;
-
+    --md-typeset-a-color:          #66bfff;
+    --md-accent-fg-color:          #66bfff;
 }
 
-
-
-
-.md-header {
-    background-color: #1f4f73 !important;
+.md-typeset a {
+    text-decoration: underline;
+    text-underline-offset: 0.12em;
+    text-decoration-thickness: 1px;
 }
 
