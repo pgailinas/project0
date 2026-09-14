@@ -549,6 +549,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#google-colab-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Google Colab environment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#git-editor-and-local-output" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1659,6 +1670,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#google-colab-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Google Colab environment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#git-editor-and-local-output" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1711,9 +1733,9 @@
 
 
 <h1 id="development-environment">Development Environment</h1>
-<p><strong>Version:</strong> 0.5<br />
+<p><strong>Version:</strong> 0.6<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-11</p>
+<strong>Last Updated:</strong> 2026-09-14</p>
 <hr />
 <h2 id="purpose-and-authority">Purpose and Authority</h2>
 <p>This document defines the repository-supported Project0 development baseline,
@@ -1772,9 +1794,10 @@ repository root unless stated otherwise.</p>
 </tbody>
 </table>
 <p>Project0 uses a Python <code>src</code> layout with authoritative Markdown under <code>docs/</code>,
-local skills under <code>skills/</code>, package source under <code>src/project0/</code>, tests under
-<code>tests/</code>, and root configuration in <code>pyproject.toml</code>, <code>mkdocs.yml</code>, <code>README.md</code>,
-and <code>TEST_COMMANDS.md</code>. See <a href="../Project_Directory_Structure/">Project Directory
+local skills under <code>skills/</code>, the Google Colab launcher under <code>notebooks/</code>,
+package source under <code>src/project0/</code>, tests under <code>tests/</code>, and root
+configuration in <code>pyproject.toml</code>, <code>mkdocs.yml</code>, <code>README.md</code>, and
+<code>TEST_COMMANDS.md</code>. See <a href="../Project_Directory_Structure/">Project Directory
 Structure</a> for ownership boundaries.</p>
 <p>Runtime dependencies are FastAPI, Jinja2, MkDocs, Material for MkDocs, PyMdown
 Extensions, pypdf, python-multipart, PyYAML, and Uvicorn. The test extra declares
@@ -1901,6 +1924,44 @@ runs on <code>127.0.0.1:8001</code>; MkDocs runs separately on <code>127.0.0.1:8
 uses <code>PROJECT0_REASONING_PROVIDER=stub</code> and
 <code>PROJECT0_RESEARCH_SOURCE_PROVIDERS=stub</code>; it does not prove live integration.
 Browser acceptance expects the Dashboard and separate Playwright environment.</p>
+<h3 id="google-colab-environment">Google Colab environment</h3>
+<p>The repository provides <code>notebooks/Project0_Colab_Launcher.ipynb</code> so students
+can view and exercise the same Project0 codebase without a local NVIDIA GPU.
+The launcher runs Project0, Ollama, and the Dashboard within a Google Colab
+runtime; it is not a separate or reduced implementation of Project0.</p>
+<p>Select a Colab GPU runtime and configure the Colab secret
+<code>PROJECT0_GITHUB_TOKEN</code> before running the notebook. The launcher performs this
+sequence:</p>
+<ol>
+<li>Clone or update Project0.</li>
+<li>Install Project0 in the current runtime.</li>
+<li>Verify the Colab GPU.</li>
+<li>Install and start Ollama.</li>
+<li>Load and verify <code>qwen2.5:7b</code>.</li>
+<li>Configure and start Project0.</li>
+<li>Open the Project0 Dashboard.</li>
+<li>Optionally stop Project0.</li>
+</ol>
+<p>The validated runtime used an NVIDIA L4 with approximately 23035 MiB VRAM.
+Ollama ran <code>qwen2.5:7b</code> and reported <code>100% GPU</code>. The launcher explicitly sets:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nv">PROJECT0_REASONING_PROVIDER</span><span class="o">=</span>ollama
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nv">PROJECT0_DOCUMENTATION_OLLAMA_MODEL</span><span class="o">=</span>qwen2.5:7b
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="nv">PROJECT0_RESEARCH_SOURCE_PROVIDERS</span><span class="o">=</span>openalex,crossref,arxiv,openreview
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="nv">PROJECT0_LOG_LEVEL</span><span class="o">=</span>DEBUG
+</span></code></pre></div>
+<p>Project0 listens on <code>127.0.0.1:8001</code> inside the runtime. The notebook displays
+the Dashboard through Colab's embedded port proxy, so students interact with
+the existing browser interface from the notebook.</p>
+<p>Colab storage under <code>/content</code> is temporary. Deleting the runtime removes the
+cloned repository, installed runtime state, downloaded Ollama models, and other
+files stored there. Closing the notebook or browser tab does not necessarily
+stop Project0; use the optional stop step or delete the runtime when finished.</p>
+<p>In one observed run, the Research Agent completed in 3 minutes 41 seconds on an
+NVIDIA L4, compared with roughly 12 minutes on a local NVIDIA T1000. This is a
+non-guaranteed observation rather than a benchmark; runtime varies with Colab
+GPU allocation, model state, source/network latency, and request complexity.
+Student accessibility, rather than performance, is the purpose of the Colab
+environment.</p>
 <p><code>validate_startup()</code> checks the project root; required project/package
 directories; <code>pyproject.toml</code>, <code>mkdocs.yml</code>, and <code>README.md</code>; and selected
 package initializers. It raises <code>StartupValidationError</code> but does not verify
