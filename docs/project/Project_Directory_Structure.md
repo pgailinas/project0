@@ -1,8 +1,8 @@
 # Project Directory Structure
 
-**Version:** 0.8  
+**Version:** 0.9  
 **Owner:** Project0  
-**Last Updated:** 2026-09-11
+**Last Updated:** 2026-09-14
 
 ---
 
@@ -26,6 +26,8 @@ project0/
 │   │   └── research/
 │   ├── platform/
 │   └── project/
+├── notebooks/
+│   └── Project0_Colab_Launcher.ipynb
 ├── skills/
 │   └── strict-documentation-editor/
 │       └── SKILL.md
@@ -66,6 +68,7 @@ project0/
 | `docs/agents/research/` | Research Agent charter through test records |
 | `docs/platform/` | Shared platform design, contracts, and UI status data |
 | `docs/project/` | Project governance, environment, status, roadmap, and testing references |
+| `notebooks/` | Student-access launchers, including the Google Colab environment for the Project0 codebase |
 | `skills/` | Repository-local skill packages loaded by Skill Registry |
 | `src/project0/agents/` | Agent-specific providers, services, routes, views, templates, and CSS |
 | `src/project0/artifacts/` | Shared artifact-location behavior |

@@ -125,17 +125,26 @@ The Dashboard provides access to:
 
 ## Google Colab Deployment
 
-Students without a local NVIDIA GPU can run Project0 using Google Colab.
+Students without a local NVIDIA GPU can use Google Colab to view and exercise
+the same Project0 codebase. The launcher runs Ollama with `qwen2.5:7b` on a
+Colab GPU and displays the Project0 Dashboard through Colab's embedded port
+proxy.
 
-The Colab launcher notebook provides five steps:
+The Colab launcher notebook provides eight steps:
 
 1. Clone or update Project0 using the Colab secret `PROJECT0_GITHUB_TOKEN`.
 2. Install Project0 in the current Colab runtime.
-3. Start the Project0 Dashboard on `http://127.0.0.1:8001`.
-4. Display the Dashboard through Colab's port proxy in an embedded browser frame.
-5. Stop Project0 when finished.
+3. Verify the Colab GPU.
+4. Install and start Ollama.
+5. Load and verify `qwen2.5:7b`.
+6. Configure and start Project0 on `http://127.0.0.1:8001`.
+7. Open the Dashboard through Colab's port proxy in an embedded browser frame.
+8. Optionally stop Project0 when finished.
 
 [Open the Project0 Colab launcher notebook](notebooks/Project0_Colab_Launcher.ipynb)
+
+See [Development Environment](docs/project/Development_Environment.md) for the
+runtime configuration, validated environment, and temporary-storage behavior.
 
 Closing the notebook or browser tab does not necessarily stop Project0. Restarting the Colab runtime stops Project0, while **Runtime → Disconnect and delete runtime** also deletes files stored under `/content`.
 

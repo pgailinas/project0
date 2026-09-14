@@ -1,8 +1,8 @@
 # Development Environment
 
-**Version:** 0.5  
+**Version:** 0.6  
 **Owner:** Project0  
-**Last Updated:** 2026-09-11
+**Last Updated:** 2026-09-14
 
 ---
 
@@ -33,9 +33,10 @@ repository root unless stated otherwise.
 | Default reasoning service | Locally reachable Ollama |
 
 Project0 uses a Python `src` layout with authoritative Markdown under `docs/`,
-local skills under `skills/`, package source under `src/project0/`, tests under
-`tests/`, and root configuration in `pyproject.toml`, `mkdocs.yml`, `README.md`,
-and `TEST_COMMANDS.md`. See [Project Directory
+local skills under `skills/`, the Google Colab launcher under `notebooks/`,
+package source under `src/project0/`, tests under `tests/`, and root
+configuration in `pyproject.toml`, `mkdocs.yml`, `README.md`, and
+`TEST_COMMANDS.md`. See [Project Directory
 Structure](Project_Directory_Structure.md) for ownership boundaries.
 
 Runtime dependencies are FastAPI, Jinja2, MkDocs, Material for MkDocs, PyMdown
@@ -130,6 +131,52 @@ runs on `127.0.0.1:8001`; MkDocs runs separately on `127.0.0.1:8000`. Stub mode
 uses `PROJECT0_REASONING_PROVIDER=stub` and
 `PROJECT0_RESEARCH_SOURCE_PROVIDERS=stub`; it does not prove live integration.
 Browser acceptance expects the Dashboard and separate Playwright environment.
+
+### Google Colab environment
+
+The repository provides `notebooks/Project0_Colab_Launcher.ipynb` so students
+can view and exercise the same Project0 codebase without a local NVIDIA GPU.
+The launcher runs Project0, Ollama, and the Dashboard within a Google Colab
+runtime; it is not a separate or reduced implementation of Project0.
+
+Select a Colab GPU runtime and configure the Colab secret
+`PROJECT0_GITHUB_TOKEN` before running the notebook. The launcher performs this
+sequence:
+
+1. Clone or update Project0.
+2. Install Project0 in the current runtime.
+3. Verify the Colab GPU.
+4. Install and start Ollama.
+5. Load and verify `qwen2.5:7b`.
+6. Configure and start Project0.
+7. Open the Project0 Dashboard.
+8. Optionally stop Project0.
+
+The validated runtime used an NVIDIA L4 with approximately 23035 MiB VRAM.
+Ollama ran `qwen2.5:7b` and reported `100% GPU`. The launcher explicitly sets:
+
+```bash
+PROJECT0_REASONING_PROVIDER=ollama
+PROJECT0_DOCUMENTATION_OLLAMA_MODEL=qwen2.5:7b
+PROJECT0_RESEARCH_SOURCE_PROVIDERS=openalex,crossref,arxiv,openreview
+PROJECT0_LOG_LEVEL=DEBUG
+```
+
+Project0 listens on `127.0.0.1:8001` inside the runtime. The notebook displays
+the Dashboard through Colab's embedded port proxy, so students interact with
+the existing browser interface from the notebook.
+
+Colab storage under `/content` is temporary. Deleting the runtime removes the
+cloned repository, installed runtime state, downloaded Ollama models, and other
+files stored there. Closing the notebook or browser tab does not necessarily
+stop Project0; use the optional stop step or delete the runtime when finished.
+
+In one observed run, the Research Agent completed in 3 minutes 41 seconds on an
+NVIDIA L4, compared with roughly 12 minutes on a local NVIDIA T1000. This is a
+non-guaranteed observation rather than a benchmark; runtime varies with Colab
+GPU allocation, model state, source/network latency, and request complexity.
+Student accessibility, rather than performance, is the purpose of the Colab
+environment.
 
 `validate_startup()` checks the project root; required project/package
 directories; `pyproject.toml`, `mkdocs.yml`, and `README.md`; and selected
