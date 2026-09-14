@@ -123,6 +123,22 @@ The Dashboard provides access to:
 - Research Agent
 - Project and agent documentation entry points
 
+## Google Colab Deployment
+
+Students without a local NVIDIA GPU can run Project0 using Google Colab.
+
+The Colab launcher notebook provides five steps:
+
+1. Clone or update Project0 using the Colab secret `PROJECT0_GITHUB_TOKEN`.
+2. Install Project0 in the current Colab runtime.
+3. Start the Project0 Dashboard on `http://127.0.0.1:8001`.
+4. Display the Dashboard through Colab's port proxy in an embedded browser frame.
+5. Stop Project0 when finished.
+
+[Open the Project0 Colab launcher notebook](notebooks/Project0_Colab_Launcher.ipynb)
+
+Closing the notebook or browser tab does not necessarily stop Project0. Restarting the Colab runtime stops Project0, while **Runtime → Disconnect and delete runtime** also deletes files stored under `/content`.
+
 ## Testing
 
 Run the full automated test suite with:
