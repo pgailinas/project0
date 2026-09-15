@@ -1733,9 +1733,9 @@
 
 
 <h1 id="development-environment">Development Environment</h1>
-<p><strong>Version:</strong> 0.6<br />
+<p><strong>Version:</strong> 0.7<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-14</p>
+<strong>Last Updated:</strong> 2026-09-15</p>
 <hr />
 <h2 id="purpose-and-authority">Purpose and Authority</h2>
 <p>This document defines the repository-supported Project0 development baseline,
@@ -1793,37 +1793,23 @@ repository root unless stated otherwise.</p>
 </tr>
 </tbody>
 </table>
-<p>Project0 uses a Python <code>src</code> layout with authoritative Markdown under <code>docs/</code>,
-local skills under <code>skills/</code>, the Google Colab launcher under <code>notebooks/</code>,
-package source under <code>src/project0/</code>, tests under <code>tests/</code>, and root
-configuration in <code>pyproject.toml</code>, <code>mkdocs.yml</code>, <code>README.md</code>, and
-<code>TEST_COMMANDS.md</code>. See <a href="../Project_Directory_Structure/">Project Directory
+<p>Project0 uses a Python <code>src</code> layout with documentation under <code>docs/</code>, local
+skills under <code>skills/</code>, the Google Colab launcher under <code>notebooks/</code>, package
+source under <code>src/project0/</code>, and tests under <code>tests/</code>. See <a href="../Project_Directory_Structure/">Project Directory
 Structure</a> for ownership boundaries.</p>
-<p>Runtime dependencies are FastAPI, Jinja2, MkDocs, Material for MkDocs, PyMdown
-Extensions, pypdf, python-multipart, PyYAML, and Uvicorn. The test extra declares
+<p>Runtime dependencies are declared in <code>pyproject.toml</code>; the test extra declares
 httpx and pytest. Playwright integration and browser binaries used by browser
-acceptance are not declared and must be supplied separately. No lock file is
-present; installation is package-set reproducible, not bit-for-bit locked.</p>
+acceptance must be supplied separately. No lock file is present, so installation
+is package-set reproducible rather than bit-for-bit locked.</p>
 <h3 id="installation-and-verification">Installation and verification</h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>project0<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.12
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>conda<span class="w"> </span>activate<span class="w"> </span>project0
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;.[test]&#39;</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$CONDA_DEFAULT_ENV</span><span class="s2">&quot;</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>which<span class="w"> </span>python
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>python<span class="w"> </span>--version
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>show<span class="w"> </span>project0
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import project0; print(project0.__file__)&quot;</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest
 </span></code></pre></div>
 <p>Editable installation is the normal development mode. Validate dependency
-changes in a new environment:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>project0-clean<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.12
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>conda<span class="w"> </span>activate<span class="w"> </span>project0-clean
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;.[test]&#39;</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import project0; print(project0.__file__)&quot;</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest
-</span></code></pre></div>
-<p>Declared non-browser tests should require no ad hoc packages; browser acceptance
-remains the documented exception.</p>
+changes in a new environment. Declared non-browser tests should require no ad
+hoc packages; browser acceptance remains the documented exception.</p>
 <h3 id="runtime-configuration">Runtime configuration</h3>
 <p><code>ProjectSettings</code> reads process environment values into module-level <code>SETTINGS</code>
 at import. Set values before starting Python; later environment changes do not
@@ -1897,82 +1883,49 @@ refresh the object.</p>
 <p>Research sources support <code>semantic_scholar</code>, <code>openalex</code>, <code>openreview</code>,
 <code>crossref</code>, <code>arxiv</code>, and <code>stub</code>. Whitespace is trimmed; unsupported names raise
 <code>ValueError</code>. An empty list assembles no providers. <code>qwen2.5:7b</code> is the locally
-qualified baseline, not a universal quality claim.</p>
-<p>Temporary shell configuration:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">PROJECT0_REASONING_PROVIDER</span><span class="o">=</span>ollama
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">PROJECT0_RESEARCH_SOURCE_PROVIDERS</span><span class="o">=</span>openalex,crossref,arxiv,openreview
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">PROJECT0_LOG_LEVEL</span><span class="o">=</span>DEBUG
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>python<span class="w"> </span>-m<span class="w"> </span>project0.dashboard.dashboard_app
-</span></code></pre></div>
-<p>Persistent workstation-local credentials may use Conda environment variables;
-reactivate after changes. Never commit or expose real secrets.</p>
+qualified baseline, not a universal quality claim. Never commit or expose real
+secrets.</p>
 <h3 id="runtime-documentation-and-tests">Runtime, documentation, and tests</h3>
 <p>Ollama must be independently installed, reachable, and contain configured
 models. Research providers require applicable network access.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>python<span class="w"> </span>-m<span class="w"> </span>project0.main
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>python<span class="w"> </span>-m<span class="w"> </span>project0.dashboard.dashboard_app
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>mkdocs<span class="w"> </span>serve
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>mkdocs<span class="w"> </span>build<span class="w"> </span>--strict
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit<span class="w"> </span>-v
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration<span class="w"> </span>-v
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/acceptance<span class="w"> </span>-v
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>python<span class="w"> </span>-m<span class="w"> </span>project0.main
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>python<span class="w"> </span>-m<span class="w"> </span>project0.dashboard.dashboard_app
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>mkdocs<span class="w"> </span>serve
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>mkdocs<span class="w"> </span>build<span class="w"> </span>--strict
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest
 </span></code></pre></div>
 <p>The CLI validates repository structure and runs one generic context task; it
 does not launch agents. Do not run files within <code>src/</code> directly. The Dashboard
 runs on <code>127.0.0.1:8001</code>; MkDocs runs separately on <code>127.0.0.1:8000</code>. Stub mode
 uses <code>PROJECT0_REASONING_PROVIDER=stub</code> and
 <code>PROJECT0_RESEARCH_SOURCE_PROVIDERS=stub</code>; it does not prove live integration.
-Browser acceptance expects the Dashboard and separate Playwright environment.</p>
+Browser acceptance expects the Dashboard and a separate Playwright environment.</p>
 <h3 id="google-colab-environment">Google Colab environment</h3>
-<p>The repository provides <code>notebooks/Project0_Colab_Launcher.ipynb</code> so students
-can view and exercise the same Project0 codebase without a local NVIDIA GPU.
-The launcher runs Project0, Ollama, and the Dashboard within a Google Colab
-runtime; it is not a separate or reduced implementation of Project0.</p>
-<p>Select a Colab GPU runtime and configure the Colab secret
-<code>PROJECT0_GITHUB_TOKEN</code> before running the notebook. The launcher performs this
-sequence:</p>
-<ol>
-<li>Clone or update Project0.</li>
-<li>Install Project0 in the current runtime.</li>
-<li>Verify the Colab GPU.</li>
-<li>Install and start Ollama.</li>
-<li>Load and verify <code>qwen2.5:7b</code>.</li>
-<li>Configure and start Project0.</li>
-<li>Open the Project0 Dashboard.</li>
-<li>Optionally stop Project0.</li>
-</ol>
-<p>The validated runtime used an NVIDIA L4 with approximately 23035 MiB VRAM.
-Ollama ran <code>qwen2.5:7b</code> and reported <code>100% GPU</code>. The launcher explicitly sets:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nv">PROJECT0_REASONING_PROVIDER</span><span class="o">=</span>ollama
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nv">PROJECT0_DOCUMENTATION_OLLAMA_MODEL</span><span class="o">=</span>qwen2.5:7b
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="nv">PROJECT0_RESEARCH_SOURCE_PROVIDERS</span><span class="o">=</span>openalex,crossref,arxiv,openreview
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="nv">PROJECT0_LOG_LEVEL</span><span class="o">=</span>DEBUG
-</span></code></pre></div>
-<p>Project0 listens on <code>127.0.0.1:8001</code> inside the runtime. The notebook displays
-the Dashboard through Colab's embedded port proxy, so students interact with
-the existing browser interface from the notebook.</p>
+<p><code>notebooks/Project0_Colab_Launcher.ipynb</code> lets users run the same Project0
+codebase in Google Colab without a local NVIDIA GPU. It is not a separate or
+reduced implementation.</p>
+<p>Because the repository is currently private, users must select a Colab GPU
+runtime and configure the <code>PROJECT0_GITHUB_TOKEN</code> Colab secret. The launcher
+retrieves and installs Project0, prepares Ollama and <code>qwen2.5:7b</code>, configures the
+runtime, and starts the Dashboard. Its core configuration uses Ollama for
+reasoning, <code>qwen2.5:7b</code> for the Documentation Agent, and
+<code>openalex,crossref,arxiv,openreview</code> for research sources.</p>
+<p>Project0 listens on <code>127.0.0.1:8001</code> inside the runtime, and the notebook exposes
+the existing Dashboard through Colab's embedded port proxy.</p>
 <p>Colab storage under <code>/content</code> is temporary. Deleting the runtime removes the
 cloned repository, installed runtime state, downloaded Ollama models, and other
 files stored there. Closing the notebook or browser tab does not necessarily
-stop Project0; use the optional stop step or delete the runtime when finished.</p>
-<p>In one observed run, the Research Agent completed in 3 minutes 41 seconds on an
-NVIDIA L4, compared with roughly 12 minutes on a local NVIDIA T1000. This is a
-non-guaranteed observation rather than a benchmark; runtime varies with Colab
-GPU allocation, model state, source/network latency, and request complexity.
-Student accessibility, rather than performance, is the purpose of the Colab
-environment.</p>
-<p><code>validate_startup()</code> checks the project root; required project/package
-directories; <code>pyproject.toml</code>, <code>mkdocs.yml</code>, and <code>README.md</code>; and selected
-package initializers. It raises <code>StartupValidationError</code> but does not verify
-dependencies, compilation, Git state, tests, MkDocs, Ollama/models, or provider
-connectivity.</p>
+stop Project0; use the notebook's stop step or delete the runtime when finished.</p>
+<p><code>validate_startup()</code> checks the project root, required project/package
+directories, selected root files, and package initializers. It raises
+<code>StartupValidationError</code> but does not verify dependencies, compilation, Git
+state, tests, MkDocs, Ollama/models, or provider connectivity.</p>
 <h3 id="git-editor-and-local-output">Git, editor, and local output</h3>
 <p>Visual Studio Code should use the active Conda interpreter and module-based
 launches. The repository has no authoritative <code>.vscode</code> configuration. Review
-Git status/differences, stage only intended files, and preserve unrelated work.
-Generated caches, environments, build/distribution output, coverage output, and
-<code>site/</code> should not be committed unless a repository workflow requires them.</p>
+Git changes, stage only intended files, and preserve unrelated work. Generated
+caches, environments, build/distribution output, coverage output, and <code>site/</code>
+should not be committed unless a repository workflow requires them.</p>
 <h2 id="constraints-and-notes">Constraints and Notes</h2>
 <p>There is no formal cross-platform matrix, dependency lock, declared browser
 test environment, automated bootstrap, CI, containerized setup, or managed
@@ -1982,12 +1935,12 @@ editor configuration.</p>
 <code>src/project0/interfaces/knowledge_interfaces.py</code> cause
 <code>python -m compileall -q src</code> to fail with <code>SyntaxError</code>. This is a source defect,
 not an environment-creation failure.</p>
-<p>For import failures, reactivate/install editable and verify <code>which python</code>. For
-Ollama failures, confirm service URL/model or use supported stub paths. For
-provider errors, check spelling and commas. A nonnumeric timeout prevents
-settings import. For browser collection, install Playwright integration and
-binaries and start the Dashboard. If the Documentation link fails, start
-<code>mkdocs serve</code> separately.</p>
+<p>For import failures, reactivate the environment and reinstall in editable mode.
+For Ollama failures, confirm the service URL and model or use supported stub
+paths. For provider errors, check the configured names. A nonnumeric timeout
+prevents settings import. Browser acceptance requires Playwright integration,
+its browser binaries, and a running Dashboard. Documentation links require a
+separately running <code>mkdocs serve</code> process.</p>
 
 
 
