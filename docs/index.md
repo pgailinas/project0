@@ -6,6 +6,17 @@ Project0 is a local-first, documentation-centered Python platform for building, 
 
 This documentation site is organized into four major areas. Each area has its own overview page and detailed supporting documents.
 
+## Run Project0
+
+Project0 can be run in Google Colab, allowing users to view and exercise
+the Project0 Dashboard and agents using a Colab GPU without requiring a local
+NVIDIA GPU.
+
+[Open Project0 in Google Colab](https://colab.research.google.com/github/pgailinas/project0/blob/main/notebooks/Project0_Colab_Launcher.ipynb){ .md-button .md-button--primary }
+
+For environment requirements and runtime details, see the
+[Development Environment](project/Development_Environment.md).
+
 ## Documentation Areas
 
 ### Project Documentation
@@ -47,10 +58,16 @@ Executable source, tests, templates, and configuration are authoritative for imp
 
 For a new Project0 user or developer:
 
-1. Start with the [Project Documentation](project/index.md) for scope, environment, standards, testing, roadmap, and current implementation status.
-2. Review the [Platform Documentation](platform/index.md) for shared architecture and platform boundaries.
-3. Use the appropriate agent documentation set for agent-specific behavior and workflows.
-4. Check the relevant validation and test-results documents before relying on current-status or pass-count claims.
+1. To exercise Project0 without a local NVIDIA GPU, use the
+   [Project0 Colab launcher](https://colab.research.google.com/github/pgailinas/project0/blob/main/notebooks/Project0_Colab_Launcher.ipynb).
+2. Start with the [Project Documentation](project/index.md) for scope,
+   environment, standards, testing, roadmap, and current implementation status.
+3. Review the [Platform Documentation](platform/index.md) for shared architecture
+   and platform boundaries.
+4. Use the appropriate agent documentation set for agent-specific behavior and
+   workflows.
+5. Check the relevant validation and test-results documents before relying on
+   current-status or pass-count claims.
 
 ## Source of Truth
 
