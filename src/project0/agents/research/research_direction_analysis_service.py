@@ -107,6 +107,7 @@ class ResearchDirectionAnalysisService:
                 context=context,
                 evidence_catalog=evidence_catalog,
                 provider_response=provider_response,
+                skip_unsupported_comparisons=False,
             )
         except ValueError as error:
             LOGGER.warning(
@@ -132,6 +133,7 @@ class ResearchDirectionAnalysisService:
             context=context,
             evidence_catalog=evidence_catalog,
             provider_response=provider_response,
+            skip_unsupported_comparisons=True,
         )
 
     def _build_evidence_catalog(
@@ -563,6 +565,7 @@ class ResearchDirectionAnalysisService:
         context: ExistingResearchContext | None,
         evidence_catalog: dict[str, _EvidenceCatalogEntry],
         provider_response: ProviderResponse,
+        skip_unsupported_comparisons: bool,
     ) -> ResearchDirectionAnalysis:
         """Create a research direction analysis from structured output."""
 
@@ -595,6 +598,7 @@ class ResearchDirectionAnalysisService:
                 evidence_catalog=evidence_catalog,
                 minimum_distinct_papers=2,
                 maximum_evidence_ids=maximum_literature_evidence_ids,
+                skip_unsupported_comparisons=skip_unsupported_comparisons,
             ),
             comparisons=self._parse_synthesis_findings(
                 value=synthesis_value.get("comparisons"),
@@ -602,6 +606,7 @@ class ResearchDirectionAnalysisService:
                 evidence_catalog=evidence_catalog,
                 minimum_distinct_papers=2,
                 maximum_evidence_ids=maximum_literature_evidence_ids,
+                skip_unsupported_comparisons=skip_unsupported_comparisons,
             ),
             shared_limitations=self._parse_synthesis_findings(
                 value=synthesis_value.get("shared_limitations"),
@@ -609,6 +614,7 @@ class ResearchDirectionAnalysisService:
                 evidence_catalog=evidence_catalog,
                 minimum_distinct_papers=2,
                 maximum_evidence_ids=maximum_literature_evidence_ids,
+                skip_unsupported_comparisons=skip_unsupported_comparisons,
             ),
             unresolved_questions=self._parse_synthesis_findings(
                 value=synthesis_value.get("unresolved_questions"),
@@ -616,6 +622,7 @@ class ResearchDirectionAnalysisService:
                 evidence_catalog=evidence_catalog,
                 minimum_distinct_papers=1,
                 maximum_evidence_ids=maximum_literature_evidence_ids,
+                skip_unsupported_comparisons=skip_unsupported_comparisons,
             ),
         )
 
@@ -641,6 +648,7 @@ class ResearchDirectionAnalysisService:
         evidence_catalog: dict[str, _EvidenceCatalogEntry],
         minimum_distinct_papers: int,
         maximum_evidence_ids: int,
+        skip_unsupported_comparisons: bool,
     ) -> tuple[ResearchFinding, ...]:
         """Parse one collection of evidence-grounded synthesis findings."""
 
@@ -704,8 +712,17 @@ class ResearchDirectionAnalysisService:
                         evidence=evidence,
                     )
                 )
-            except _SemanticGroundingError:
-                raise
+            except _SemanticGroundingError as error:
+                if not skip_unsupported_comparisons:
+                    raise
+
+                LOGGER.warning(
+                    "Skipping semantically ungrounded research direction "
+                    "synthesis finding for field '%s' after the corrective "
+                    "retry: %s",
+                    field_name,
+                    error,
+                )
             except ValueError as error:
                 LOGGER.warning(
                     "Skipping invalid research direction synthesis finding "

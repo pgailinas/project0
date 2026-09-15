@@ -394,6 +394,36 @@ def test_analyze_retries_when_comparison_reverses_unsupported_performance_order(
     )
 
 
+def test_analyze_skips_unsupported_comparison_after_corrective_retry():
+    invalid = _valid_output()
+    invalid["synthesis"]["comparisons"] = [
+        {
+            "content": (
+                "Self-supervised autoencoders perform better than direct "
+                "multimodal inference using CLIP."
+            ),
+            "evidence_ids": [
+                "literature-002",
+                "literature-007",
+            ],
+        }
+    ]
+    retry = json.loads(json.dumps(invalid))
+    provider = StubProvider([invalid, retry])
+    service = ResearchDirectionAnalysisService(provider, "test-model")
+    papers = (
+        _paper_analysis("Paper-A", "Paper A", 3),
+        _paper_analysis("Paper-B", "Paper B", 7),
+    )
+
+    result = service.analyze(_request(), _context(), papers)
+
+    assert len(provider.requests) == 2
+    assert result.synthesis.comparisons == ()
+    assert result.synthesis.themes
+    assert result.candidate_directions
+
+
 def test_analyze_accepts_explicit_performance_order_supported_by_literature():
     first = _paper_analysis("Paper-A", "Paper A", 3)
     first = PaperAnalysis(
