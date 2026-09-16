@@ -4,7 +4,7 @@
 
 Project0 is a local-first, documentation-centered Python platform for building, evaluating, and maintaining specialized AI-assisted workflows.
 
-This documentation site is organized into four major areas. Each area has its own overview page and detailed supporting documents.
+This documentation site is organized into three primary deliverables. Each deliverable has its own overview page and detailed supporting documents.
 
 ## Run Project0
 
@@ -15,33 +15,27 @@ NVIDIA GPU.
 [Open Project0 in Google Colab](https://colab.research.google.com/github/pgailinas/project0/blob/main/notebooks/Project0_Colab_Launcher.ipynb){ .md-button .md-button--primary }
 
 For environment requirements and runtime details, see the
-[Development Environment](project/Development_Environment.md).
+[Development Environment](platform/Development_Environment.md).
 
-## Documentation Areas
+## Documentation Deliverables
 
-### Project Documentation
+### Project0 Platform
 
-Project-level documentation covers Project0 goals, repository structure, development practices, testing, roadmap, and implementation status.
+Project0 Platform documentation covers Project0 goals, repository structure, development practices, testing, roadmap, implementation status, the shared Dashboard Framework, component communication, common data models and error contracts, Agent Skills, and project-level validation status.
 
-[Open Project Documentation](project/index.md)
+[Open Project0 Platform Documentation](platform/index.md)
 
-### Platform Documentation
-
-Platform documentation covers the shared Dashboard Framework, component communication, common data models and error contracts, Agent Skills, and project-level validation status.
-
-[Open Platform Documentation](platform/index.md)
-
-### Documentation Agent Documentation
+### Documentation Agent
 
 The Documentation Agent documentation covers source-grounded documentation maintenance, workflow behavior, interface design, strict-mode updates, testing, and validation.
 
-[Open Documentation Agent Documentation](agents/documentation/index.md)
+[Open Documentation Agent Documentation](documentation-agent/index.md)
 
-### Research Agent Documentation
+### Research Agent
 
 The Research Agent documentation covers research requests, literature discovery, metadata retrieval, relevance evaluation, structured analysis, research-direction synthesis, workflow behavior, testing, and validation.
 
-[Open Research Agent Documentation](agents/research/index.md)
+[Open Research Agent Documentation](research-agent/index.md)
 
 ## Project0 at a Glance
 
@@ -60,13 +54,12 @@ For a new Project0 user or developer:
 
 1. To exercise Project0 without a local NVIDIA GPU, use the
    [Project0 Colab launcher](https://colab.research.google.com/github/pgailinas/project0/blob/main/notebooks/Project0_Colab_Launcher.ipynb).
-2. Start with the [Project Documentation](project/index.md) for scope,
-   environment, standards, testing, roadmap, and current implementation status.
-3. Review the [Platform Documentation](platform/index.md) for shared architecture
-   and platform boundaries.
-4. Use the appropriate agent documentation set for agent-specific behavior and
+2. Start with the [Project0 Platform Documentation](platform/index.md) for scope,
+   environment, standards, testing, roadmap, current implementation status,
+   shared architecture, and platform boundaries.
+3. Use the appropriate agent documentation set for agent-specific behavior and
    workflows.
-5. Check the relevant validation and test-results documents before relying on
+4. Check the relevant validation and test-results documents before relying on
    current-status or pass-count claims.
 
 ## Source of Truth

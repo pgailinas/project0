@@ -84,7 +84,7 @@ def test_UI_DA_FUN_001_documentation_request_form_accepts_input(
     )
 
     target_paths = (
-        "docs/agents/documentation/"
+        "docs/documentation-agent/"
         "Documentation_Agent_Testing_Guide.md"
     )
 
@@ -121,7 +121,7 @@ def test_UI_DA_FUN_001_documentation_request_submission_starts_processing(
     )
 
     target_paths_field.fill(
-        "docs/agents/documentation/"
+        "docs/documentation-agent/"
         "Documentation_Agent_Testing_Guide.md"
     )
 
@@ -190,7 +190,7 @@ def test_UI_DA_FUN_008_documentation_request_revision_workflow(
     )
 
     target_path = (
-        "docs/project/Development_Environment.md"
+        "docs/platform/Development_Environment.md"
     )
 
     request_field.fill(original_request)

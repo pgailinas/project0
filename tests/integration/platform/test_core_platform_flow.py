@@ -71,8 +71,8 @@ def test_core_platform_repository_discovery_flow() -> None:
     }
 
     assert "README.md" in relative_paths
-    assert "docs/project/Project_Charter.md" in relative_paths
-    assert "docs/project/Implementation_Roadmap.md" in relative_paths
+    assert "docs/platform/Project_Charter.md" in relative_paths
+    assert "docs/platform/Implementation_Roadmap.md" in relative_paths
 
     assert all(
         repository_file.extension == ".md"
@@ -111,7 +111,7 @@ def test_core_platform_reads_discovered_document() -> None:
     read_task = WorkflowTask(
         name="Read Project Charter",
         action=lambda: repository_service.read_file(
-            "docs/project/Project_Charter.md"
+            "docs/platform/Project_Charter.md"
         ),
     )
 
@@ -132,6 +132,6 @@ def test_core_platform_reads_discovered_document() -> None:
     assert task_result.output.file_content is not None
     assert (
         task_result.output.file_content.file.relative_path
-        == "docs/project/Project_Charter.md"
+        == "docs/platform/Project_Charter.md"
     )
     assert task_result.output.file_content.content.strip()

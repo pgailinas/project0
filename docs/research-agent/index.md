@@ -50,11 +50,9 @@ Provider selection and reasoning-model configuration are controlled by Project0 
 
 ## Related Documentation
 
-For project goals, development practices, roadmap, and implementation status, see the [Project Documentation](../../project/index.md).
+For project goals, development practices, roadmap, and implementation status, shared platform architecture, services, contracts, Dashboard behavior, and validation, see the [Platform Documentation](../platform/index.md).
 
-For shared platform architecture, services, contracts, Dashboard behavior, and validation, see the [Platform Documentation](../../platform/index.md).
-
-For the complete documentation portal, return to the [Project0 Documentation Home](../../index.md).
+For the complete documentation portal, return to the [Project0 Documentation Home](../index.md).
 
 ## Source of Truth
 

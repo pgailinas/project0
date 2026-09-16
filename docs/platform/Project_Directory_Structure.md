@@ -64,10 +64,10 @@ project0/
 | Directory | Responsibility |
 | --- | --- |
 | `docs/` | Authoritative Markdown and MkDocs source |
-| `docs/agents/documentation/` | Documentation Agent charter through test records |
-| `docs/agents/research/` | Research Agent charter through test records |
+| `docs/documentation-agent/` | Documentation Agent charter through test records |
+| `docs/research-agent/` | Research Agent charter through test records |
 | `docs/platform/` | Shared platform design, contracts, and UI status data |
-| `docs/project/` | Project governance, environment, status, roadmap, and testing references |
+| `docs/platform/` | Project governance, environment, status, roadmap, and testing references |
 | `notebooks/` | Student-access launchers, including the Google Colab environment for the Project0 codebase |
 | `skills/` | Repository-local skill packages loaded by Skill Registry |
 | `src/project0/agents/` | Agent-specific providers, services, routes, views, templates, and CSS |

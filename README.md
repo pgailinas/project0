@@ -143,7 +143,7 @@ The Colab launcher notebook provides eight steps:
 
 [Open the Project0 Colab launcher notebook](notebooks/Project0_Colab_Launcher.ipynb)
 
-See [Development Environment](docs/project/Development_Environment.md) for the
+See [Development Environment](docs/platform/Development_Environment.md) for the
 runtime configuration, validated environment, and temporary-storage behavior.
 
 Closing the notebook or browser tab does not necessarily stop Project0. Restarting the Colab runtime stops Project0, while **Runtime → Disconnect and delete runtime** also deletes files stored under `/content`.

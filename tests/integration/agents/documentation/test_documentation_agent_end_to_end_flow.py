@@ -113,11 +113,11 @@ def _create_reasoning_provider(
 def documentation_repository(tmp_path: Path) -> Path:
     """Create a minimal repository fixture."""
 
-    (tmp_path / "docs/project").mkdir(
+    (tmp_path / "docs/platform").mkdir(
         parents=True
     )
 
-    (tmp_path / "docs/project/Test.md").write_text(
+    (tmp_path / "docs/platform/Test.md").write_text(
         "# Test\n\nImplemented:\n\n- Existing item\n",
         encoding="utf-8",
     )
@@ -127,7 +127,7 @@ def documentation_repository(tmp_path: Path) -> Path:
 site_name: Integration Test Documentation
 
 nav:
-  - Test: project/Test.md
+  - Test: platform/Test.md
 """,
         encoding="utf-8",
     )
@@ -142,7 +142,7 @@ def _create_dispatcher(
     """Create a dispatcher using deterministic reasoning."""
 
     provider = _create_reasoning_provider(
-        "docs/project/Test.md"
+        "docs/platform/Test.md"
     )
 
     settings = ProjectSettings(
@@ -182,7 +182,7 @@ def test_INT_DA_FUN_001_documentation_request_processing(
     state = dispatcher.run_documentation_workflow(
         user_request="Update documentation.",
         target_paths=(
-            "docs/project/Test.md",
+            "docs/platform/Test.md",
         ),
     )
 
@@ -205,13 +205,13 @@ def test_INT_DA_FUN_002_documentation_proposal_generation(
 
     state = dispatcher.run_documentation_workflow(
         "Update documentation.",
-        ("docs/project/Test.md",),
+        ("docs/platform/Test.md",),
     )
 
     proposal = state.proposals[0]
 
     assert proposal.repository_path == (
-        "docs/project/Test.md"
+        "docs/platform/Test.md"
     )
     assert proposal.proposed_content
 
@@ -231,7 +231,7 @@ def test_INT_DA_FUN_003_surgical_documentation_editing(
 
     state = dispatcher.run_documentation_workflow(
         "Insert documentation item.",
-        ("docs/project/Test.md",),
+        ("docs/platform/Test.md",),
     )
 
     proposal = state.proposals[0]
@@ -267,7 +267,7 @@ def test_INT_DA_FUN_005_minimal_change_verification(
 
     state = dispatcher.run_documentation_workflow(
         "Update documentation.",
-        ("docs/project/Test.md",),
+        ("docs/platform/Test.md",),
     )
 
     assert len(state.proposals) == 1
@@ -288,7 +288,7 @@ def test_INT_DA_SAF_001_rejected_proposal_protection(
 
     state = dispatcher.run_documentation_workflow(
         "Update documentation.",
-        ("docs/project/Test.md",),
+        ("docs/platform/Test.md",),
     )
 
     proposal = state.proposals[0]
@@ -336,7 +336,7 @@ def test_INT_DA_AI_001_reasoning_provider_integration(
 
     dispatcher.run_documentation_workflow(
         "Update documentation.",
-        ("docs/project/Test.md",),
+        ("docs/platform/Test.md",),
     )
 
     assert provider.requests

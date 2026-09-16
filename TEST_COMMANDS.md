@@ -4,7 +4,7 @@
 **Location:** Run every command from the Project0 repository root.  
 **Last Updated:** 2026-09-11
 
-For testing principles, ownership boundaries, environment details, naming, result interpretation, and test-development guidance, see `docs/project/Testing_Guide.md`.
+For testing principles, ownership boundaries, environment details, naming, result interpretation, and test-development guidance, see `docs/platform/Testing_Guide.md`.
 
 ## 1. Install Declared Test Dependencies
 
@@ -98,7 +98,7 @@ python -m pytest tests/integration/agents/documentation/test_documentation_agent
 python -m pytest tests/integration/agents/documentation/test_documentation_workflow_flow.py -v
 ```
 
-See `docs/agents/documentation/Documentation_Agent_Testing_Guide.md` for scenario ownership, acceptance requirements, provider configuration, and troubleshooting.
+See `docs/documentation-agent/Documentation_Agent_Testing_Guide.md` for scenario ownership, acceptance requirements, provider configuration, and troubleshooting.
 
 ## 6. Research Agent Suites
 
@@ -152,7 +152,7 @@ python -m pytest tests/integration/agents/research/test_research_agent_ui_flow.p
 python -m pytest tests/integration/agents/research/test_research_workflow_flow.py -v
 ```
 
-See `docs/agents/research/Research_Agent_Testing_Guide.md` for provider bounds, live/stub configuration, manual checks, and troubleshooting.
+See `docs/research-agent/Research_Agent_Testing_Guide.md` for provider bounds, live/stub configuration, manual checks, and troubleshooting.
 
 ## 7. Browser Acceptance
 

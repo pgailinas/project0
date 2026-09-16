@@ -72,8 +72,8 @@ def test_platform_dispatcher_runs_general_context_workflow() -> None:
     }
 
     assert "README.md" in relative_paths
-    assert "docs/project/Project_Charter.md" in relative_paths
-    assert "docs/project/Implementation_Roadmap.md" in relative_paths
+    assert "docs/platform/Project_Charter.md" in relative_paths
+    assert "docs/platform/Implementation_Roadmap.md" in relative_paths
 
     assert context_package.source_count == len(
         context_package.documents
@@ -116,8 +116,8 @@ def test_platform_dispatcher_runs_component_context_workflow() -> None:
     }
 
     assert "README.md" in relative_paths
-    assert "docs/project/Project_Charter.md" in relative_paths
-    assert "docs/project/Implementation_Roadmap.md" in relative_paths
+    assert "docs/platform/Project_Charter.md" in relative_paths
+    assert "docs/platform/Implementation_Roadmap.md" in relative_paths
     assert "docs/platform/Component_Communication_Design.md" in relative_paths
 
 
@@ -142,7 +142,7 @@ def test_platform_dispatcher_preserves_document_metadata() -> None:
     project_charter = next(
         document
         for document in context_package.documents
-        if document.relative_path == "docs/project/Project_Charter.md"
+        if document.relative_path == "docs/platform/Project_Charter.md"
     )
 
     assert project_charter.content.strip()

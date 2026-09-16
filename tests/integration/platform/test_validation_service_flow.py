@@ -32,18 +32,18 @@ def _write_repository_documents(repository_root: Path) -> None:
     documents = {
         "docs/index.md": (
             "# Project0\n\n"
-            "[Architecture](agents/documentation/Documentation_Agent_Architecture.md)\n"
+            "[Architecture](documentation-agent/Documentation_Agent_Architecture.md)\n"
         ),
-        "docs/project/Project_Charter.md": "# Project Charter\n",
-        "docs/project/Documentation_Standards.md": "# Documentation Standards\n",
-        "docs/agents/documentation/Documentation_Agent_Functional_Spec.md": (
+        "docs/platform/Project_Charter.md": "# Project Charter\n",
+        "docs/platform/Documentation_Standards.md": "# Documentation Standards\n",
+        "docs/documentation-agent/Documentation_Agent_Functional_Spec.md": (
             "# Documentation Agent Functional Specification\n"
         ),
-        "docs/agents/documentation/Documentation_Agent_Architecture.md": (
+        "docs/documentation-agent/Documentation_Agent_Architecture.md": (
             "# Documentation Agent Architecture\n\n"
             "## Architectural Components\n"
         ),
-        "docs/agents/documentation/Documentation_Agent_Design.md": (
+        "docs/documentation-agent/Documentation_Agent_Design.md": (
             "# Documentation Agent Component Design\n"
         ),
         "docs/platform/Component_Communication_Design.md": (
@@ -52,7 +52,7 @@ def _write_repository_documents(repository_root: Path) -> None:
         "docs/platform/Shared_Data_Models_and_Error_Contracts.md": (
             "# Shared Data Models and Error Contracts\n"
         ),
-        "docs/project/Implementation_Roadmap.md": (
+        "docs/platform/Implementation_Roadmap.md": (
             "# Implementation Roadmap\n\n"
             "## Phase 1 — Foundation\n\n"
             "## Phase 2 — Core Platform Services\n\n"
@@ -60,7 +60,7 @@ def _write_repository_documents(repository_root: Path) -> None:
             "## Phase 4 — AI Reasoning Integration\n\n"
             "## Phase 5 — Validation Services\n"
         ),
-        "docs/project/Implementation_Status.md": (
+        "docs/platform/Implementation_Status.md": (
             "# Implementation Status\n\n"
             "## Current Phase\n\n"
             "Phase 5 – Validation Services (In Progress)\n\n"
@@ -70,7 +70,7 @@ def _write_repository_documents(repository_root: Path) -> None:
             "- ✅ Phase 3 – Repository Knowledge Services: Completed\n"
             "- ✅ Phase 4 – AI Reasoning Integration: Completed\n"
         ),
-        "docs/project/Project_Directory_Structure.md": (
+        "docs/platform/Project_Directory_Structure.md": (
             "# Project Directory Structure\n"
         ),
     }
@@ -149,9 +149,9 @@ def test_complete_validation_flow_passes(tmp_path: Path) -> None:
     request = ValidationRequest(
         target_paths=(
             "docs/index.md",
-            "docs/agents/documentation/Documentation_Agent_Architecture.md",
-            "docs/project/Implementation_Roadmap.md",
-            "docs/project/Implementation_Status.md",
+            "docs/documentation-agent/Documentation_Agent_Architecture.md",
+            "docs/platform/Implementation_Roadmap.md",
+            "docs/platform/Implementation_Status.md",
         ),
         validation_id="validation-integration-001",
     )
@@ -282,7 +282,7 @@ def test_warning_is_preserved_without_failing_flow(
 
     _write_repository_documents(tmp_path)
     architecture_path = (
-        tmp_path / "docs/agents/documentation/Documentation_Agent_Architecture.md"
+        tmp_path / "docs/documentation-agent/Documentation_Agent_Architecture.md"
     )
     architecture_path.write_text(
         "# Documentation Agent Architecture\n\n"
@@ -296,7 +296,7 @@ def test_warning_is_preserved_without_failing_flow(
     result = service.validate(
         ValidationRequest(
             target_paths=(
-                "docs/agents/documentation/Documentation_Agent_Architecture.md",
+                "docs/documentation-agent/Documentation_Agent_Architecture.md",
             )
         )
     )

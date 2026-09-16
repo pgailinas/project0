@@ -84,7 +84,7 @@ def test_documentation_request_form_preserves_source_paths() -> None:
             "src/project0/models/research_models.py",
         ),
         target_paths=(
-            "docs/agents/research/Research_Agent_Interface_Design.md",
+            "docs/research-agent/Research_Agent_Interface_Design.md",
         ),
     )
 

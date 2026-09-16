@@ -153,10 +153,10 @@ def test_update_documentation_rule_includes_standards() -> None:
     ]
 
     assert (
-        "docs/project/Documentation_Standards.md"
+        "docs/platform/Documentation_Standards.md"
         in rule.required_patterns
     )
-    assert "docs/project/Project_Charter.md" in rule.required_patterns
+    assert "docs/platform/Project_Charter.md" in rule.required_patterns
     assert "docs/*Architecture*.md" in rule.required_patterns
 
 
@@ -181,7 +181,7 @@ def test_validate_documentation_rule_includes_standards() -> None:
     ]
 
     assert (
-        "docs/project/Documentation_Standards.md"
+        "docs/platform/Documentation_Standards.md"
         in rule.required_patterns
     )
     assert "docs/*.md" in rule.required_patterns
