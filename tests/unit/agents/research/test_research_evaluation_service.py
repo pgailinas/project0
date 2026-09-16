@@ -11,6 +11,8 @@
 
 from __future__ import annotations
 
+import logging
+
 from project0.agents.research.research_evaluation_service import (
     ResearchEvaluationService,
 )
@@ -20,11 +22,52 @@ from project0.models.reasoning_models import (
 )
 from project0.models.research_models import (
     PaperMetadata,
+    ResearchMechanismMatch,
     ResearchPaperEvidenceStatus,
     ResearchRequest,
     ResearchSourceReference,
     ResearchStrategy,
 )
+
+
+def add_structured_mechanism_fields(
+    evaluation: object,
+) -> object:
+    """Add internally consistent mechanism evidence to a test response."""
+
+    if not isinstance(evaluation, dict):
+        return evaluation
+
+    score = evaluation.get("relevance_score")
+    if score is None or not isinstance(score, (int, float)):
+        mechanism_match = "none"
+    elif score >= 75:
+        mechanism_match = "direct"
+    elif score >= 50:
+        mechanism_match = "transferable"
+    elif score >= 25:
+        mechanism_match = "adjacent"
+    else:
+        mechanism_match = "none"
+
+    evaluation.setdefault("mechanism_match", mechanism_match)
+    evaluation.setdefault(
+        "source_mechanism",
+        "Learns semantically aligned visual representations.",
+    )
+    evaluation.setdefault(
+        "target_problem_dimension",
+        "Semantic alignment of learned VideoQA representations.",
+    )
+    evaluation.setdefault(
+        "required_adaptation",
+        "Apply the representation objective to the target video encoder.",
+    )
+    evaluation.setdefault(
+        "evidence_support",
+        ["The supplied abstract describes representation learning."],
+    )
+    return evaluation
 
 
 class StubProvider:
@@ -156,10 +199,12 @@ def create_valid_provider_response(
         model_name="qwen3:8b",
         content="{}",
         structured_output={
-            "evaluations": (
-                evaluations
-                if evaluations is not None
-                else [
+            "evaluations": [
+                add_structured_mechanism_fields(evaluation)
+                for evaluation in (
+                    evaluations
+                    if evaluations is not None
+                    else [
                     {
                         "source_id": "paper-001",
                         "relevance_score": 95,
@@ -183,8 +228,9 @@ def create_valid_provider_response(
                         ],
                         "warnings": [],
                     }
-                ]
-            ),
+                    ]
+                )
+            ],
         },
         input_tokens=512,
         output_tokens=128,
@@ -849,6 +895,11 @@ def test_research_evaluation_service_normalizes_score_boundaries() -> None:
         response.structured_output[
             "evaluations"
         ][0]["relevance_score"] = raw_score
+        response.structured_output[
+            "evaluations"
+        ][0]["mechanism_match"] = (
+            "direct" if raw_score == 100 else "none"
+        )
 
         service = ResearchEvaluationService(
             provider=StubProvider(response),
@@ -935,6 +986,9 @@ def test_research_evaluation_service_normalizes_one_as_one_percent() -> None:
     response.structured_output[
         "evaluations"
     ][0]["relevance_score"] = 1
+    response.structured_output[
+        "evaluations"
+    ][0]["mechanism_match"] = "none"
 
     service = ResearchEvaluationService(
         provider=StubProvider(response),
@@ -1095,6 +1149,57 @@ def test_research_evaluation_service_instructs_transferability_rubric() -> None:
     )
 
 
+def test_research_evaluation_service_calibrates_teacher_alignment() -> None:
+    """Mechanism equivalence outranks literal architecture terminology."""
+
+    provider = StubProvider(
+        create_valid_provider_response()
+    )
+    service = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    )
+
+    service.evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        (create_paper_metadata(),),
+    )
+
+    system_instructions = provider.requests[0].system_instructions
+
+    assert (
+        "Evaluate the central technical mechanism before literal task, "
+        "dataset, or model name overlap."
+        in system_instructions
+    )
+    assert (
+        "training a student visual or video encoder to match token-level "
+        "or feature-level targets from a frozen vision-language teacher"
+        in system_instructions
+    )
+    assert (
+        "do not classify such a paper as background merely because it uses "
+        "terms such as ViT, masked modeling, teacher-student learning, or "
+        "distillation instead of autoencoder"
+        in system_instructions
+    )
+    assert (
+        "mechanism directly to video addresses a major technical dimension "
+        "and ordinarily belongs in the 75-89 band"
+        in system_instructions
+    )
+    assert (
+        "demonstrated only on images ordinarily belongs in the 50-74 band"
+        in system_instructions
+    )
+    assert (
+        "explicit seed status or user preference as a request for careful "
+        "evaluation, not as evidence"
+        in system_instructions
+    )
+
+
 def test_research_evaluation_service_retries_contradictory_high_score() -> None:
     """Verify a high score without a transfer path is retried once."""
 
@@ -1111,6 +1216,7 @@ def test_research_evaluation_service_retries_contradictory_high_score() -> None:
             "research_connections": [
                 "The paper shares broad alignment terminology."
             ],
+            "mechanism_match": "direct",
         }
     )
     corrected_response = create_valid_provider_response()
@@ -1127,6 +1233,7 @@ def test_research_evaluation_service_retries_contradictory_high_score() -> None:
                 "The alignment mechanism is related to the research "
                 "question's shared-representation dimension."
             ],
+            "mechanism_match": "transferable",
         }
     )
 
@@ -1179,6 +1286,415 @@ def test_research_evaluation_service_accepts_supported_high_score() -> None:
 
     assert result[0].relevance_score == 0.76
     assert len(provider.requests) == 1
+
+
+def test_research_evaluation_service_logs_structured_decision(caplog) -> None:
+    """DEBUG output exposes the complete model relevance decision."""
+
+    caplog.set_level(
+        logging.DEBUG,
+        logger=(
+            "project0.agents.research.research_evaluation_service"
+        ),
+    )
+    response = create_valid_provider_response()
+    response.structured_output["evaluations"][0].update(
+        {
+            "relevance_score": 82,
+            "mechanism_match": "direct",
+            "source_mechanism": "Frozen CLIP token distillation.",
+            "target_problem_dimension": "Video semantic alignment.",
+            "required_adaptation": "Use the target video encoder.",
+            "evidence_support": [
+                "The abstract describes a frozen CLIP teacher."
+            ],
+        }
+    )
+
+    ResearchEvaluationService(
+        provider=StubProvider(response),
+        model_name="qwen3:8b",
+    ).evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        (
+            create_paper_metadata(
+                source_id="arxiv:2303.16058",
+                title="Unmasked Teacher",
+            ),
+        ),
+    )
+
+    trace = next(
+        record.getMessage()
+        for record in caplog.records
+        if "Research evaluation trace:" in record.getMessage()
+    )
+    assert "stage=final" in trace
+    assert "attempt=initial" in trace
+    assert "paper_source=arxiv:2303.16058" in trace
+    assert "title='Unmasked Teacher'" in trace
+    assert "mechanism_match=direct" in trace
+    assert "relevance_score=0.82" in trace
+    assert "source_mechanism='Frozen CLIP token distillation.'" in trace
+    assert "target_problem_dimension='Video semantic alignment.'" in trace
+    assert "required_adaptation='Use the target video encoder.'" in trace
+    assert "evidence_support=" in trace
+    assert "validation_status=valid" in trace
+
+
+def test_research_evaluation_service_logs_initial_and_retry_decisions(
+    caplog,
+) -> None:
+    """A rejected decision and its corrected retry are both traceable."""
+
+    caplog.set_level(
+        logging.DEBUG,
+        logger=(
+            "project0.agents.research.research_evaluation_service"
+        ),
+    )
+    invalid = create_valid_provider_response()
+    invalid.structured_output["evaluations"][0].update(
+        {
+            "relevance_score": 25,
+            "mechanism_match": "direct",
+        }
+    )
+    corrected = create_valid_provider_response()
+    corrected.structured_output["evaluations"][0].update(
+        {
+            "relevance_score": 82,
+            "mechanism_match": "direct",
+        }
+    )
+
+    ResearchEvaluationService(
+        provider=SequentialStubProvider((invalid, corrected)),
+        model_name="qwen3:8b",
+    ).evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        (create_paper_metadata(title="Unmasked Teacher"),),
+    )
+
+    traces = [
+        record.getMessage()
+        for record in caplog.records
+        if "Research evaluation trace:" in record.getMessage()
+    ]
+    assert any(
+        "attempt=initial" in trace
+        and "validation_status=invalid" in trace
+        and "mechanism_match=direct" in trace
+        and "relevance_score=0.25" in trace
+        for trace in traces
+    )
+    assert any(
+        "attempt=retry" in trace
+        and "validation_status=valid" in trace
+        and "mechanism_match=direct" in trace
+        and "relevance_score=0.82" in trace
+        for trace in traces
+    )
+
+
+def test_research_evaluation_service_retries_direct_mechanism_scored_adjacent(
+) -> None:
+    """A recognized direct mechanism cannot remain in the adjacent band."""
+
+    invalid = create_valid_provider_response()
+    invalid.structured_output["evaluations"][0].update(
+        {
+            "relevance_score": 25,
+            "mechanism_match": "direct",
+            "source_mechanism": (
+                "A video encoder matches token targets from a frozen CLIP "
+                "teacher through a distillation objective."
+            ),
+            "target_problem_dimension": (
+                "Semantic alignment of learned video representations."
+            ),
+            "required_adaptation": (
+                "Use the project's video encoder as the student."
+            ),
+            "evidence_support": [
+                "The supplied abstract describes a frozen CLIP teacher and "
+                "token-level alignment for video representations."
+            ],
+        }
+    )
+    corrected = create_valid_provider_response()
+    corrected.structured_output["evaluations"][0].update(
+        {
+            "relevance_score": 82,
+            "mechanism_match": "direct",
+            "source_mechanism": invalid.structured_output[
+                "evaluations"
+            ][0]["source_mechanism"],
+            "target_problem_dimension": invalid.structured_output[
+                "evaluations"
+            ][0]["target_problem_dimension"],
+            "required_adaptation": invalid.structured_output[
+                "evaluations"
+            ][0]["required_adaptation"],
+            "evidence_support": invalid.structured_output[
+                "evaluations"
+            ][0]["evidence_support"],
+        }
+    )
+
+    provider = SequentialStubProvider((invalid, corrected))
+    result = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    ).evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        (
+            create_paper_metadata(
+                source_id="arxiv:2303.16058",
+                title="Unmasked Teacher",
+            ),
+        ),
+    )
+
+    assert len(provider.requests) == 2
+    assert result[0].relevance_score == 0.82
+    assert result[0].mechanism_match is ResearchMechanismMatch.DIRECT
+
+
+def test_research_evaluation_service_preserves_structured_benchmark_bands(
+) -> None:
+    """Positive and control papers retain mechanism-consistent ordering."""
+
+    papers = (
+        create_paper_metadata(title="Unmasked Teacher"),
+        create_paper_metadata(title="Unmasked Token Alignment"),
+        create_paper_metadata(title="SemiCLIP"),
+    )
+    response = create_valid_provider_response(
+        evaluations=[
+            {
+                "source_id": "paper-001",
+                "relevance_score": 84,
+                "relevance_summary": "Direct video teacher alignment.",
+                "strengths": [],
+                "limitations": [],
+                "research_connections": ["Direct video mechanism."],
+                "warnings": [],
+                "mechanism_match": "direct",
+                "source_mechanism": "Frozen CLIP token distillation.",
+                "target_problem_dimension": "Video semantic alignment.",
+                "required_adaptation": "Use the target video encoder.",
+                "evidence_support": ["The mechanism is demonstrated on video."],
+            },
+            {
+                "source_id": "paper-002",
+                "relevance_score": 68,
+                "relevance_summary": "Transferable image teacher alignment.",
+                "strengths": [],
+                "limitations": [],
+                "research_connections": ["Transfer image alignment to video."],
+                "warnings": [],
+                "mechanism_match": "transferable",
+                "source_mechanism": "Frozen CLIP token alignment.",
+                "target_problem_dimension": "Video semantic alignment.",
+                "required_adaptation": "Extend token alignment across frames.",
+                "evidence_support": ["The mechanism is demonstrated on images."],
+            },
+            {
+                "source_id": "paper-003",
+                "relevance_score": 40,
+                "relevance_summary": "Adjacent general CLIP adaptation.",
+                "strengths": [],
+                "limitations": [],
+                "research_connections": ["Provides background only."],
+                "warnings": [],
+                "mechanism_match": "adjacent",
+                "source_mechanism": "Generic CLIP consistency training.",
+                "target_problem_dimension": "Broad multimodal robustness.",
+                "required_adaptation": "No concrete video transfer is shown.",
+                "evidence_support": ["The abstract discusses CLIP adaptation."],
+            },
+        ]
+    )
+
+    result = ResearchEvaluationService(
+        provider=StubProvider(response),
+        model_name="qwen3:8b",
+    ).evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        papers,
+    )
+
+    assert tuple(item.relevance_score for item in result) == (
+        0.84,
+        0.68,
+        0.40,
+    )
+    assert tuple(item.mechanism_match for item in result) == (
+        ResearchMechanismMatch.DIRECT,
+        ResearchMechanismMatch.TRANSFERABLE,
+        ResearchMechanismMatch.ADJACENT,
+    )
+
+
+def test_research_evaluation_service_corrects_video_teacher_alignment(
+) -> None:
+    """Explicit video teacher-token alignment cannot remain none."""
+
+    paper = create_paper_metadata(title="Video Foundation Model")
+    paper = PaperMetadata(
+        source_reference=paper.source_reference,
+        title=paper.title,
+        abstract=(
+            "We train a video encoder from scratch by aligning unmasked "
+            "video tokens with an image foundation model that serves as "
+            "the teacher. Semantic guidance produces multimodal-friendly "
+            "video representations."
+        ),
+    )
+    response = create_valid_provider_response()
+    response.structured_output["evaluations"][0].update(
+        {
+            "relevance_score": 24,
+            "mechanism_match": "none",
+            "source_mechanism": "",
+            "target_problem_dimension": "",
+            "required_adaptation": "",
+            "evidence_support": [],
+        }
+    )
+
+    result = ResearchEvaluationService(
+        provider=StubProvider(response),
+        model_name="qwen3:8b",
+    ).rank_candidates(
+        create_research_request(),
+        create_research_strategy(),
+        (paper,),
+    )
+
+    assert result[0].mechanism_match is ResearchMechanismMatch.DIRECT
+    assert result[0].relevance_score == 0.75
+    assert result[0].source_mechanism
+    assert result[0].target_problem_dimension
+    assert result[0].required_adaptation
+    assert result[0].evidence_support
+    assert "corrected deterministically" in result[0].warnings[-1]
+
+
+def test_research_evaluation_service_corrects_image_clip_token_alignment(
+) -> None:
+    """Image-only frozen-CLIP token alignment is transferable."""
+
+    paper = create_paper_metadata(title="Visual Token Alignment")
+    paper = PaperMetadata(
+        source_reference=paper.source_reference,
+        title=paper.title,
+        abstract=(
+            "The method trains a Vision Transformer from scratch by "
+            "aligning unmasked visual tokens with corresponding image "
+            "tokens from a frozen CLIP vision encoder. The ViT model is "
+            "automatically aligned with the CLIP text encoder."
+        ),
+    )
+    response = create_valid_provider_response()
+    response.structured_output["evaluations"][0].update(
+        {
+            "relevance_score": 24,
+            "mechanism_match": "none",
+            "source_mechanism": "",
+            "target_problem_dimension": "",
+            "required_adaptation": "",
+            "evidence_support": [],
+        }
+    )
+
+    result = ResearchEvaluationService(
+        provider=StubProvider(response),
+        model_name="qwen3:8b",
+    ).rank_candidates(
+        create_research_request(),
+        create_research_strategy(),
+        (paper,),
+    )
+
+    assert result[0].mechanism_match is ResearchMechanismMatch.TRANSFERABLE
+    assert result[0].relevance_score == 0.50
+    assert "temporally aggregated video" in result[0].required_adaptation
+
+
+def test_research_evaluation_service_corrects_clip_latent_autoencoder_band(
+) -> None:
+    """Image autoencoder alignment belongs in the transferable band."""
+
+    paper = create_paper_metadata(title="Context Autoencoder")
+    paper = PaperMetadata(
+        source_reference=paper.source_reference,
+        title=paper.title,
+        abstract=(
+            "A context autoencoder uses CLIP latent as the target for "
+            "visible latent alignment and masked latent alignment. The "
+            "visual encoder learns semantically rich representations."
+        ),
+    )
+    response = create_valid_provider_response()
+    response.structured_output["evaluations"][0].update(
+        {
+            "relevance_score": 50,
+            "mechanism_match": "adjacent",
+        }
+    )
+
+    result = ResearchEvaluationService(
+        provider=StubProvider(response),
+        model_name="qwen3:8b",
+    ).rank_candidates(
+        create_research_request(),
+        create_research_strategy(),
+        (paper,),
+    )
+
+    assert result[0].mechanism_match is ResearchMechanismMatch.TRANSFERABLE
+    assert result[0].relevance_score == 0.50
+
+
+def test_research_evaluation_service_caps_generic_clip_adaptation(
+) -> None:
+    """Generic CLIP adaptation lacks a teacher-target mechanism mapping."""
+
+    paper = create_paper_metadata(title="Semi-Supervised CLIP Adaptation")
+    paper = PaperMetadata(
+        source_reference=paper.source_reference,
+        title=paper.title,
+        abstract=(
+            "Semi-supervised CLIP adaptation uses semantic concept mining "
+            "and consistency regularization to improve downstream image "
+            "classification and retrieval with limited labeled data."
+        ),
+    )
+    response = create_valid_provider_response()
+    response.structured_output["evaluations"][0].update(
+        {
+            "relevance_score": 50,
+            "mechanism_match": "transferable",
+        }
+    )
+
+    result = ResearchEvaluationService(
+        provider=StubProvider(response),
+        model_name="qwen3:8b",
+    ).rank_candidates(
+        create_research_request(),
+        create_research_strategy(),
+        (paper,),
+    )
+
+    assert result[0].mechanism_match is ResearchMechanismMatch.ADJACENT
+    assert result[0].relevance_score == 0.49
 
 
 def test_research_evaluation_service_rejects_missing_structured_output() -> None:

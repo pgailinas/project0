@@ -178,6 +178,10 @@ def test_arxiv_provider_parses_response() -> None:
         <title>
           Example Video Representation Paper
         </title>
+        <summary>
+          We align learned video representations with a
+          frozen vision-language model embedding space.
+        </summary>
         <published>2024-01-01T00:00:00Z</published>
         <author>
           <name>Author One</name>
@@ -202,6 +206,31 @@ def test_arxiv_provider_parses_response() -> None:
     assert result[0].authors == (
         "Author One",
     )
+    assert result[0].metadata["abstract"] == (
+        "We align learned video representations with a "
+        "frozen vision-language model embedding space."
+    )
+
+
+def test_arxiv_provider_omits_missing_abstract() -> None:
+    """Verify entries without summaries remain valid."""
+
+    xml_response = """
+    <feed xmlns="http://www.w3.org/2005/Atom">
+      <entry>
+        <id>http://arxiv.org/abs/2401.12345</id>
+        <title>Paper Without Summary</title>
+        <published>2024-01-01T00:00:00Z</published>
+      </entry>
+    </feed>
+    """
+
+    result = ArxivSourceProvider._parse_response(
+        xml_response
+    )
+
+    assert len(result) == 1
+    assert "abstract" not in result[0].metadata
 
 
 def test_arxiv_provider_handles_http_failure(

@@ -83,6 +83,21 @@ class StubResearchReasoningProvider:
                     {
                         "source_id": "paper-001",
                         "relevance_score": 95,
+                        "mechanism_match": "direct",
+                        "source_mechanism": (
+                            "Semantically aligned visual representation "
+                            "learning."
+                        ),
+                        "target_problem_dimension": (
+                            "Semantic alignment of VideoQA representations."
+                        ),
+                        "required_adaptation": (
+                            "Apply the objective to the target video encoder."
+                        ),
+                        "evidence_support": [
+                            "The abstract describes semantic representation "
+                            "learning."
+                        ],
                         "relevance_summary": (
                             "The paper is highly relevant to "
                             "vision-language alignment for VideoQA."

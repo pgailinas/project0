@@ -258,6 +258,14 @@ class ArxivSourceProvider:
                 .strip()
             )
 
+            abstract = " ".join(
+                entry.findtext(
+                    "atom:summary",
+                    default="",
+                    namespaces=namespace,
+                ).split()
+            )
+
             published = (
                 entry.findtext(
                     "atom:published",
@@ -303,6 +311,9 @@ class ArxivSourceProvider:
                     break
 
             metadata = {}
+
+            if abstract:
+                metadata["abstract"] = abstract
 
             if document_url is not None:
                 metadata["document_url"] = document_url

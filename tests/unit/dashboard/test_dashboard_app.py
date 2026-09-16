@@ -531,6 +531,19 @@ def test_create_reasoning_provider_can_use_stub(
             {
                 "source_id": "stub-paper-001",
                 "relevance_score": 95,
+                "mechanism_match": "direct",
+                "source_mechanism": (
+                    "Semantic visual representation alignment"
+                ),
+                "target_problem_dimension": (
+                    "VideoQA representation semantic alignment"
+                ),
+                "required_adaptation": (
+                    "Apply the objective to the target video encoder"
+                ),
+                "evidence_support": [
+                    "The abstract describes semantic representation learning",
+                ],
                 "relevance_summary": (
                     "Stub research evaluation."
                 ),
@@ -567,9 +580,14 @@ def test_create_research_reasoning_provider_uses_request_source_id() -> None:
         )
     )
 
-    assert response.structured_output["evaluations"][0][
-        "source_id"
-    ] == "paper-001"
+    evaluation = response.structured_output["evaluations"][0]
+
+    assert evaluation["source_id"] == "paper-001"
+    assert evaluation["mechanism_match"] == "direct"
+    assert evaluation["source_mechanism"]
+    assert evaluation["target_problem_dimension"]
+    assert evaluation["required_adaptation"]
+    assert evaluation["evidence_support"]
 
 
 def test_create_reasoning_provider_rejects_unsupported_provider(

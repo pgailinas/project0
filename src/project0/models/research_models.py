@@ -74,6 +74,15 @@ class ResearchPaperEvidenceStatus(StrEnum):
     DISCOVERY_ONLY = "discovery_only"
 
 
+class ResearchMechanismMatch(StrEnum):
+    """Strength of a paper's mechanism-to-problem mapping."""
+
+    DIRECT = "direct"
+    TRANSFERABLE = "transferable"
+    ADJACENT = "adjacent"
+    NONE = "none"
+
+
 @dataclass(frozen=True, slots=True)
 class ResearchPaperEvidenceSection:
     """One bounded section of acquired research paper evidence."""
@@ -249,6 +258,11 @@ class ResearchEvaluation:
     limitations: tuple[str, ...] = ()
     research_connections: tuple[str, ...] = ()
     warnings: tuple[str, ...] = ()
+    mechanism_match: ResearchMechanismMatch | None = None
+    source_mechanism: str = ""
+    target_problem_dimension: str = ""
+    required_adaptation: str = ""
+    evidence_support: tuple[str, ...] = ()
 
     @property
     def is_recommended(self) -> bool:

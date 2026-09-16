@@ -31,6 +31,7 @@ from project0.interfaces.research_interfaces import (
     ResearchStrategyServiceProtocol,
 )
 from project0.models.research_models import (
+    ResearchMechanismMatch,
     ResearchRequest,
     ResearchResult,
     ResearchStatus,
@@ -489,8 +490,8 @@ class ResearchWorkflow:
         ranked = sorted(
             evaluations,
             key=lambda evaluation: (
-                ResearchWorkflow._evidence_candidate_tier(
-                    evaluation.paper,
+                ResearchWorkflow._evidence_evaluation_tier(
+                    evaluation,
                     strategy,
                 ),
                 -(
@@ -505,15 +506,42 @@ class ResearchWorkflow:
             evaluation.paper
             for evaluation in ranked
             if (
-                ResearchWorkflow._evidence_candidate_tier(
+                evaluation.mechanism_match
+                in {
+                    ResearchMechanismMatch.DIRECT,
+                    ResearchMechanismMatch.TRANSFERABLE,
+                }
+                or ResearchWorkflow._evidence_candidate_tier(
                     evaluation.paper,
                     strategy,
-                )
-                < 2
+                ) < 2
             )
         )
 
         return eligible[:limit]
+
+    @staticmethod
+    def _evidence_evaluation_tier(
+        evaluation: object,
+        strategy: object,
+    ) -> int:
+        """Prioritize validated mechanism matches over lexical heuristics."""
+
+        mechanism_match = getattr(
+            evaluation,
+            "mechanism_match",
+            None,
+        )
+
+        if mechanism_match is ResearchMechanismMatch.DIRECT:
+            return 0
+        if mechanism_match is ResearchMechanismMatch.TRANSFERABLE:
+            return 1
+
+        return 2 + ResearchWorkflow._evidence_candidate_tier(
+            evaluation.paper,
+            strategy,
+        )
 
     @staticmethod
     def _evidence_candidate_tier(

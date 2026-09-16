@@ -13,6 +13,8 @@ from __future__ import annotations
 
 import json
 import logging
+import re
+from dataclasses import dataclass
 from typing import Any
 
 from project0.interfaces.reasoning_interfaces import (
@@ -24,6 +26,7 @@ from project0.models.reasoning_models import (
 )
 from project0.models.research_models import (
     PaperMetadata,
+    ResearchMechanismMatch,
     ResearchPaperEvidenceStatus,
     ResearchEvaluation,
     ResearchRequest,
@@ -35,6 +38,12 @@ LOGGER = logging.getLogger(__name__)
 
 
 HIGH_RELEVANCE_SCORE = 0.75
+MECHANISM_SCORE_BANDS = {
+    ResearchMechanismMatch.DIRECT: (0.75, 1.0),
+    ResearchMechanismMatch.TRANSFERABLE: (0.50, 0.74),
+    ResearchMechanismMatch.ADJACENT: (0.25, 0.49),
+    ResearchMechanismMatch.NONE: (0.0, 0.24),
+}
 HIGH_RELEVANCE_CONTRADICTION_MARKERS = (
     "no concrete transfer path",
     "no metadata-supported transfer path",
@@ -43,6 +52,21 @@ HIGH_RELEVANCE_CONTRADICTION_MARKERS = (
     "cannot support a concrete transfer path",
     "insufficient metadata",
 )
+
+
+@dataclass(frozen=True, slots=True)
+class _MechanismReconciliation:
+    """Evidence-derived correction to one provider mechanism decision."""
+
+    mechanism_match: ResearchMechanismMatch
+    relevance_score: float | None
+    relevance_summary: str
+    research_connections: tuple[str, ...]
+    source_mechanism: str
+    target_problem_dimension: str
+    required_adaptation: str
+    evidence_support: tuple[str, ...]
+    warning: str | None = None
 
 
 class ResearchEvaluationService:
@@ -197,6 +221,7 @@ class ResearchEvaluationService:
                 papers=papers,
                 provider_response=provider_response,
                 enforce_evidence=not preliminary,
+                evaluation_attempt="initial",
             )
         except ValueError as error:
             if not self._is_retryable_evaluation_error(
@@ -214,6 +239,7 @@ class ResearchEvaluationService:
                 provider_response=provider_response,
                 enforce_evidence=not preliminary,
                 tolerate_identifier_errors=True,
+                evaluation_attempt="initial_recovery",
             )
 
         if not missing_papers:
@@ -234,6 +260,7 @@ class ResearchEvaluationService:
                 papers=missing_papers,
                 provider_response=retry_response,
                 enforce_evidence=not preliminary,
+                evaluation_attempt="retry",
             )
             unresolved_papers = ()
         except ValueError as error:
@@ -251,6 +278,7 @@ class ResearchEvaluationService:
                     provider_response=retry_response,
                     enforce_evidence=not preliminary,
                     tolerate_identifier_errors=True,
+                    evaluation_attempt="retry_recovery",
                 )
             )
 
@@ -279,6 +307,7 @@ class ResearchEvaluationService:
         provider_response: ProviderResponse,
         enforce_evidence: bool = True,
         tolerate_identifier_errors: bool = False,
+        evaluation_attempt: str = "initial",
     ) -> tuple[
         tuple[ResearchEvaluation, ...],
         tuple[PaperMetadata, ...],
@@ -346,6 +375,8 @@ class ResearchEvaluationService:
                     paper=paper,
                     mapping=mapping,
                     enforce_evidence=enforce_evidence,
+                    evaluation_attempt=evaluation_attempt,
+                    batch_source_id=source_id,
                 )
             except ValueError as error:
                 if (
@@ -476,6 +507,28 @@ class ResearchEvaluationService:
                                 "minimum": 0,
                                 "maximum": 100,
                             },
+                            "mechanism_match": {
+                                "type": "string",
+                                "enum": [
+                                    match.value
+                                    for match in ResearchMechanismMatch
+                                ],
+                            },
+                            "source_mechanism": {
+                                "type": "string",
+                            },
+                            "target_problem_dimension": {
+                                "type": "string",
+                            },
+                            "required_adaptation": {
+                                "type": "string",
+                            },
+                            "evidence_support": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                },
+                            },
                             "relevance_summary": {
                                 "type": "string",
                             },
@@ -507,6 +560,11 @@ class ResearchEvaluationService:
                         "required": [
                             "source_id",
                             "relevance_score",
+                            "mechanism_match",
+                            "source_mechanism",
+                            "target_problem_dimension",
+                            "required_adaptation",
+                            "evidence_support",
                             "relevance_summary",
                             "strengths",
                             "limitations",
@@ -557,7 +615,50 @@ class ResearchEvaluationService:
                 "uses a related mechanism with a plausible but incomplete "
                 "transfer path; 25-49 is primarily background or adjacent "
                 "research without a specific mechanism-to-problem mapping; "
-                "0-24 is weakly related or off-topic. Evaluate "
+                "0-24 is weakly related or off-topic. "
+                "Before assigning the score, classify mechanism_match as "
+                "direct, transferable, adjacent, or none. Use direct only "
+                "when the paper's demonstrated mechanism directly addresses "
+                "the target problem dimension; use transferable when the "
+                "same mechanism is demonstrated in another modality or task "
+                "and has a concrete adaptation path; use adjacent for useful "
+                "background without a specific mechanism-to-problem mapping; "
+                "use none for off-topic work. The classification fixes the "
+                "allowed score band: direct 75-100, transferable 50-74, "
+                "adjacent 25-49, and none 0-24. "
+                "Populate source_mechanism with the paper's actual training "
+                "objective or transformation, target_problem_dimension with "
+                "the exact research limitation it addresses, "
+                "required_adaptation with what must change for the target "
+                "setting (or state that none is needed), and evidence_support "
+                "with one or more concise facts grounded in the supplied "
+                "metadata or evidence sections. For direct and transferable "
+                "matches, all four fields must be substantive. "
+                "Evaluate the central "
+                "technical mechanism before literal task, dataset, or model "
+                "name overlap. Do not require a paper to use the same "
+                "architecture label as the research question when its "
+                "objective and transformation operate on the corresponding "
+                "learned representation. In particular, training a student "
+                "visual or video encoder to match token-level or feature-level "
+                "targets from a frozen vision-language teacher is a concrete "
+                "mechanism for aligning learned representations with that "
+                "teacher's shared embedding space; do not classify such a "
+                "paper as background merely because it uses terms such as "
+                "ViT, masked modeling, teacher-student learning, or "
+                "distillation instead of autoencoder. A paper applying that "
+                "mechanism directly to video addresses a major technical "
+                "dimension and ordinarily belongs in the 75-89 band when the "
+                "metadata supports the mapping. The analogous mechanism "
+                "demonstrated only on images ordinarily belongs in the 50-74 "
+                "band unless the supplied evidence establishes a concrete "
+                "video transfer path sufficient for a higher score. General "
+                "CLIP adaptation, broad multimodal learning, or thematic "
+                "alignment terminology without training an external learned "
+                "representation into the frozen teacher space remains below "
+                "50. Treat explicit seed status or user preference as a "
+                "request for careful evaluation, not as evidence and not as "
+                "an automatic score increase. Evaluate "
                 "transferability explicitly: a different application, "
                 "task, or modality must not by itself cap relevance below "
                 "75 when the supplied metadata supports an analogous "
@@ -617,6 +718,7 @@ class ResearchEvaluationService:
         papers: tuple[PaperMetadata, ...],
         provider_response: ProviderResponse,
         enforce_evidence: bool = True,
+        evaluation_attempt: str = "initial",
     ) -> tuple[ResearchEvaluation, ...]:
         """Create research evaluations from a provider response."""
 
@@ -669,6 +771,8 @@ class ResearchEvaluationService:
                     paper=paper,
                     mapping=mapping,
                     enforce_evidence=enforce_evidence,
+                    evaluation_attempt=evaluation_attempt,
+                    batch_source_id=source_id,
                 )
             )
 
@@ -711,6 +815,13 @@ class ResearchEvaluationService:
                 "High relevance score requires a concrete, "
                 "metadata-supported transfer path:"
             )
+            or message.startswith(
+                "Mechanism match and relevance score disagree:"
+            )
+            or message.startswith(
+                "Direct or transferable mechanism match requires "
+                "structured evidence:"
+            )
         )
 
     def _create_evaluation(
@@ -718,6 +829,8 @@ class ResearchEvaluationService:
         paper: PaperMetadata,
         mapping: dict[str, Any],
         enforce_evidence: bool = True,
+        evaluation_attempt: str = "initial",
+        batch_source_id: str = "unknown",
     ) -> ResearchEvaluation:
         """Create one validated research evaluation."""
 
@@ -732,14 +845,96 @@ class ResearchEvaluationService:
             mapping.get("research_connections"),
             "research_connections",
         )
+        mechanism_match = self._parse_mechanism_match(
+            mapping.get("mechanism_match")
+        )
+        source_mechanism = self._require_string(
+            mapping,
+            "source_mechanism",
+        )
+        target_problem_dimension = self._require_string(
+            mapping,
+            "target_problem_dimension",
+        )
+        required_adaptation = self._require_string(
+            mapping,
+            "required_adaptation",
+        )
+        evidence_support = self._parse_string_tuple(
+            mapping.get("evidence_support"),
+            "evidence_support",
+        )
+        warnings = self._parse_string_tuple(
+            mapping.get("warnings"),
+            "warnings",
+        )
 
-        if enforce_evidence:
-            self._validate_high_relevance_transfer_path(
+        reconciliation = self._reconcile_mechanism_with_paper_evidence(
+            paper=paper,
+            mechanism_match=mechanism_match,
+            relevance_score=relevance_score,
+            relevance_summary=relevance_summary,
+            research_connections=research_connections,
+            source_mechanism=source_mechanism,
+            target_problem_dimension=target_problem_dimension,
+            required_adaptation=required_adaptation,
+            evidence_support=evidence_support,
+        )
+        mechanism_match = reconciliation.mechanism_match
+        relevance_score = reconciliation.relevance_score
+        relevance_summary = reconciliation.relevance_summary
+        research_connections = reconciliation.research_connections
+        source_mechanism = reconciliation.source_mechanism
+        target_problem_dimension = (
+            reconciliation.target_problem_dimension
+        )
+        required_adaptation = reconciliation.required_adaptation
+        evidence_support = reconciliation.evidence_support
+        if reconciliation.warning is not None:
+            warnings = (*warnings, reconciliation.warning)
+
+        validation_error: ValueError | None = None
+        try:
+            self._validate_mechanism_score_band(
                 paper=paper,
                 relevance_score=relevance_score,
-                relevance_summary=relevance_summary,
-                research_connections=research_connections,
+                mechanism_match=mechanism_match,
             )
+            self._validate_structured_mechanism_evidence(
+                paper=paper,
+                mechanism_match=mechanism_match,
+                source_mechanism=source_mechanism,
+                target_problem_dimension=target_problem_dimension,
+                required_adaptation=required_adaptation,
+                evidence_support=evidence_support,
+            )
+
+            if enforce_evidence:
+                self._validate_high_relevance_transfer_path(
+                    paper=paper,
+                    relevance_score=relevance_score,
+                    relevance_summary=relevance_summary,
+                    research_connections=research_connections,
+                )
+        except ValueError as error:
+            validation_error = error
+
+        self._log_evaluation_trace(
+            paper=paper,
+            batch_source_id=batch_source_id,
+            evaluation_attempt=evaluation_attempt,
+            enforce_evidence=enforce_evidence,
+            relevance_score=relevance_score,
+            mechanism_match=mechanism_match,
+            source_mechanism=source_mechanism,
+            target_problem_dimension=target_problem_dimension,
+            required_adaptation=required_adaptation,
+            evidence_support=evidence_support,
+            validation_error=validation_error,
+        )
+
+        if validation_error is not None:
+            raise validation_error
 
         return ResearchEvaluation(
             paper=paper,
@@ -754,10 +949,397 @@ class ResearchEvaluationService:
                 "limitations",
             ),
             research_connections=research_connections,
-            warnings=self._parse_string_tuple(
-                mapping.get("warnings"),
-                "warnings",
-            ),
+            warnings=warnings,
+            mechanism_match=mechanism_match,
+            source_mechanism=source_mechanism,
+            target_problem_dimension=target_problem_dimension,
+            required_adaptation=required_adaptation,
+            evidence_support=evidence_support,
+        )
+
+    @classmethod
+    def _reconcile_mechanism_with_paper_evidence(
+        cls,
+        *,
+        paper: PaperMetadata,
+        mechanism_match: ResearchMechanismMatch,
+        relevance_score: float | None,
+        relevance_summary: str,
+        research_connections: tuple[str, ...],
+        source_mechanism: str,
+        target_problem_dimension: str,
+        required_adaptation: str,
+        evidence_support: tuple[str, ...],
+    ) -> _MechanismReconciliation:
+        """Correct provider labels contradicted by explicit paper evidence."""
+
+        evidence_text = cls._paper_mechanism_evidence_text(paper)
+        inferred_match = cls._infer_mechanism_match(evidence_text)
+
+        if inferred_match is None or inferred_match is mechanism_match:
+            return _MechanismReconciliation(
+                mechanism_match=mechanism_match,
+                relevance_score=relevance_score,
+                relevance_summary=relevance_summary,
+                research_connections=research_connections,
+                source_mechanism=source_mechanism,
+                target_problem_dimension=target_problem_dimension,
+                required_adaptation=required_adaptation,
+                evidence_support=evidence_support,
+            )
+
+        corrected_score = cls._score_for_inferred_match(
+            relevance_score,
+            inferred_match,
+        )
+        grounded_support = cls._select_mechanism_evidence(
+            paper,
+        )
+        original_match = mechanism_match
+
+        if inferred_match is ResearchMechanismMatch.DIRECT:
+            source_mechanism = (
+                "A learned video representation is aligned to a pretrained "
+                "foundation-model teacher through token, feature, latent, "
+                "or representation matching."
+            )
+            target_problem_dimension = (
+                "Semantic alignment of learned video representations with "
+                "a pretrained vision-language embedding space."
+            )
+            required_adaptation = (
+                "Apply the demonstrated video alignment objective to the "
+                "target video encoder."
+            )
+            relevance_summary = (
+                "Supplied paper evidence describes a direct teacher-target "
+                "alignment mechanism for learned video representations."
+            )
+        elif inferred_match is ResearchMechanismMatch.TRANSFERABLE:
+            source_mechanism = (
+                "A learned visual representation is aligned to a pretrained "
+                "foundation-model teacher through token, feature, latent, "
+                "or representation matching."
+            )
+            target_problem_dimension = (
+                "Semantic alignment of a learned representation with a "
+                "pretrained vision-language embedding space."
+            )
+            required_adaptation = (
+                "Extend the demonstrated image alignment objective to "
+                "temporally aggregated video representations."
+            )
+            relevance_summary = (
+                "Supplied paper evidence describes a transferable "
+                "teacher-target alignment mechanism demonstrated on images."
+            )
+        else:
+            relevance_summary = (
+                "Supplied paper evidence supports adjacent vision-language "
+                "research but not an external-representation-to-teacher "
+                "alignment mechanism."
+            )
+
+        connection = (
+            "Deterministic evidence screening maps the paper to the "
+            f"{inferred_match.value} mechanism band."
+        )
+        warning = (
+            "Mechanism classification corrected deterministically from "
+            f"'{original_match.value}' to '{inferred_match.value}' using "
+            "supplied paper evidence."
+        )
+        LOGGER.warning(
+            "%s Paper: %s",
+            warning,
+            paper.title,
+        )
+
+        return _MechanismReconciliation(
+            mechanism_match=inferred_match,
+            relevance_score=corrected_score,
+            relevance_summary=relevance_summary,
+            research_connections=(*research_connections, connection),
+            source_mechanism=source_mechanism,
+            target_problem_dimension=target_problem_dimension,
+            required_adaptation=required_adaptation,
+            evidence_support=grounded_support or evidence_support,
+            warning=warning,
+        )
+
+    @staticmethod
+    def _paper_mechanism_evidence_text(paper: PaperMetadata) -> str:
+        """Return normalized title, abstract, and acquired evidence text."""
+
+        parts = [paper.title, paper.abstract or ""]
+        parts.extend(section.content for section in paper.evidence_sections)
+        return " ".join(part for part in parts if part).lower()
+
+    @staticmethod
+    def _infer_mechanism_match(
+        evidence_text: str,
+    ) -> ResearchMechanismMatch | None:
+        """Infer a mechanism band from explicit, general evidence signals."""
+
+        if not evidence_text.strip():
+            return None
+
+        has_foundation_target = any(
+            marker in evidence_text
+            for marker in (
+                "clip",
+                "foundation model",
+                "foundation-model",
+                "ifm",
+            )
+        )
+        has_teacher_target_relation = any(
+            marker in evidence_text
+            for marker in (
+                "teacher",
+                "frozen",
+                "alignment target",
+                "prediction target",
+                "clip latent as target",
+                "clip features as target",
+                "clip supervision",
+                "semantic guidance",
+            )
+        ) or re.search(
+            r"clip.{0,50}(?:as (?:a |the )?target|target feature)",
+            evidence_text,
+        ) is not None
+        has_alignment_objective = (
+            any(
+                marker in evidence_text
+                for marker in (
+                    "align",
+                    "distill",
+                    "mimic",
+                    "matching",
+                    "match ",
+                    "predict",
+                )
+            )
+            and any(
+                marker in evidence_text
+                for marker in (
+                    "token",
+                    "feature",
+                    "latent",
+                    "representation",
+                    "embedding",
+                )
+            )
+        )
+        has_external_representation = any(
+            marker in evidence_text
+            for marker in (
+                "autoencoder",
+                "student",
+                "from scratch",
+                "vision transformer",
+                "vit model",
+                "vit encoder",
+                "video encoder",
+                "visual encoder",
+                "learned representation",
+                "unmasked token",
+                "masked image modeling",
+                "masked video modeling",
+            )
+        )
+
+        has_complete_mapping = all(
+            (
+                has_foundation_target,
+                has_teacher_target_relation,
+                has_alignment_objective,
+                has_external_representation,
+            )
+        )
+        if has_complete_mapping:
+            if "video" in evidence_text:
+                return ResearchMechanismMatch.DIRECT
+            return ResearchMechanismMatch.TRANSFERABLE
+
+        has_adjacent_connection = (
+            has_foundation_target
+            and any(
+                marker in evidence_text
+                for marker in (
+                    "align",
+                    "representation",
+                    "embedding",
+                    "contrastive",
+                    "multimodal",
+                    "multi-modal",
+                    "adaptation",
+                    "consistency",
+                )
+            )
+        )
+        if has_adjacent_connection:
+            return ResearchMechanismMatch.ADJACENT
+
+        return None
+
+    @staticmethod
+    def _score_for_inferred_match(
+        relevance_score: float | None,
+        inferred_match: ResearchMechanismMatch,
+    ) -> float:
+        """Clamp a provider score into the evidence-derived score band."""
+
+        minimum, maximum = MECHANISM_SCORE_BANDS[inferred_match]
+        if relevance_score is None:
+            return minimum
+        return min(max(relevance_score, minimum), maximum)
+
+    @staticmethod
+    def _select_mechanism_evidence(
+        paper: PaperMetadata,
+    ) -> tuple[str, ...]:
+        """Select concise source sentences supporting mechanism inference."""
+
+        source_text = " ".join(
+            part
+            for part in (
+                paper.abstract or "",
+                *(section.content for section in paper.evidence_sections),
+            )
+            if part
+        )
+        sentences = tuple(
+            sentence.strip()
+            for sentence in re.split(r"(?<=[.!?])\s+", source_text)
+            if sentence.strip()
+        )
+        selected = tuple(
+            sentence
+            for sentence in sentences
+            if any(
+                marker in sentence.lower()
+                for marker in (
+                    "align",
+                    "teacher",
+                    "clip",
+                    "distill",
+                    "latent",
+                    "token",
+                )
+            )
+        )
+        return selected[:2] or sentences[:1]
+
+    @staticmethod
+    def _log_evaluation_trace(
+        *,
+        paper: PaperMetadata,
+        batch_source_id: str,
+        evaluation_attempt: str,
+        enforce_evidence: bool,
+        relevance_score: float | None,
+        mechanism_match: ResearchMechanismMatch,
+        source_mechanism: str,
+        target_problem_dimension: str,
+        required_adaptation: str,
+        evidence_support: tuple[str, ...],
+        validation_error: ValueError | None,
+    ) -> None:
+        """Log the complete structured mechanism decision for diagnosis."""
+
+        LOGGER.debug(
+            "Research evaluation trace: stage=%s attempt=%s "
+            "batch_source_id=%s paper_source=%s title=%r "
+            "mechanism_match=%s relevance_score=%s "
+            "source_mechanism=%r target_problem_dimension=%r "
+            "required_adaptation=%r evidence_support=%r "
+            "validation_status=%s validation_error=%r",
+            "final" if enforce_evidence else "preliminary",
+            evaluation_attempt,
+            batch_source_id,
+            paper.source_reference.source_id,
+            paper.title,
+            mechanism_match.value,
+            relevance_score,
+            source_mechanism,
+            target_problem_dimension,
+            required_adaptation,
+            evidence_support,
+            "invalid" if validation_error is not None else "valid",
+            str(validation_error) if validation_error is not None else None,
+        )
+
+    @staticmethod
+    def _parse_mechanism_match(value: Any) -> ResearchMechanismMatch:
+        """Parse the required mechanism-match classification."""
+
+        if not isinstance(value, str):
+            raise TypeError("mechanism_match must be a string.")
+
+        try:
+            return ResearchMechanismMatch(value)
+        except ValueError as error:
+            supported = ", ".join(
+                match.value for match in ResearchMechanismMatch
+            )
+            raise ValueError(
+                "mechanism_match must be one of: " + supported
+            ) from error
+
+    @staticmethod
+    def _validate_mechanism_score_band(
+        paper: PaperMetadata,
+        relevance_score: float | None,
+        mechanism_match: ResearchMechanismMatch,
+    ) -> None:
+        """Require the numeric score to agree with mechanism strength."""
+
+        if relevance_score is None:
+            return
+
+        minimum, maximum = MECHANISM_SCORE_BANDS[mechanism_match]
+        if minimum <= relevance_score <= maximum:
+            return
+
+        raise ValueError(
+            "Mechanism match and relevance score disagree: "
+            f"{paper.title!r} classified as {mechanism_match.value!r} "
+            f"but received {round(relevance_score * 100)}; expected "
+            f"{round(minimum * 100)}-{round(maximum * 100)}."
+        )
+
+    @staticmethod
+    def _validate_structured_mechanism_evidence(
+        paper: PaperMetadata,
+        mechanism_match: ResearchMechanismMatch,
+        source_mechanism: str,
+        target_problem_dimension: str,
+        required_adaptation: str,
+        evidence_support: tuple[str, ...],
+    ) -> None:
+        """Require an auditable mapping for meaningful mechanism matches."""
+
+        if mechanism_match not in {
+            ResearchMechanismMatch.DIRECT,
+            ResearchMechanismMatch.TRANSFERABLE,
+        }:
+            return
+
+        values = (
+            source_mechanism,
+            target_problem_dimension,
+            required_adaptation,
+        )
+        if all(value.strip() for value in values) and any(
+            item.strip() for item in evidence_support
+        ):
+            return
+
+        raise ValueError(
+            "Direct or transferable mechanism match requires structured "
+            f"evidence: {paper.title!r}."
         )
 
     @staticmethod

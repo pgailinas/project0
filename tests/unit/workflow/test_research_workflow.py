@@ -25,6 +25,7 @@ from project0.models.research_models import (
     ResearchDirectionAnalysis,
     ResearchEvaluation,
     ResearchFinding,
+    ResearchMechanismMatch,
     ResearchPaperAnalysisBasis,
     ResearchPaperEvidenceSection,
     ResearchPaperEvidenceStatus,
@@ -477,12 +478,14 @@ def _paper_metadata_with_evidence(
 def _evaluation(
     paper: PaperMetadata,
     relevance_score: float | None = 0.9,
+    mechanism_match: ResearchMechanismMatch | None = None,
 ) -> ResearchEvaluation:
     """Create a research evaluation for workflow tests."""
 
     return ResearchEvaluation(
         paper=paper,
         relevance_score=relevance_score,
+        mechanism_match=mechanism_match,
         relevance_summary="Highly relevant to the research question.",
         strengths=(
             "Uses semantic representation learning.",
@@ -1914,6 +1917,73 @@ def test_workflow_prioritizes_direct_evidence_candidates() -> None:
         8,
         synthesis_strategy,
     ) == (generative_video,)
+
+
+def test_workflow_retains_validated_direct_candidate_when_lexical_tier_misses(
+) -> None:
+    """Validated direct evidence overrides an incomplete lexical profile."""
+
+    direct = _paper_metadata(
+        _source_reference(
+            source_id="validated-direct",
+            title=(
+                "Unmasked Teacher: Training-Efficient Video "
+                "Foundation Models"
+            ),
+        )
+    )
+    lexical_candidate = _paper_metadata(
+        _source_reference(
+            source_id="lexical-candidate",
+            title="Video CLIP Text Representation Alignment",
+        )
+    )
+
+    selected = ResearchWorkflow._select_evidence_candidates(
+        (
+            _evaluation(
+                lexical_candidate,
+                relevance_score=0.99,
+            ),
+            _evaluation(
+                direct,
+                relevance_score=0.75,
+                mechanism_match=ResearchMechanismMatch.DIRECT,
+            ),
+        ),
+        1,
+        _research_strategy(),
+    )
+
+    assert selected == (direct,)
+
+
+def test_workflow_retains_validated_transferable_candidate_when_lexical_tier_misses(
+) -> None:
+    """Validated transferable evidence remains eligible for acquisition."""
+
+    transferable = _paper_metadata(
+        _source_reference(
+            source_id="validated-transferable",
+            title="Unmasked Token Teacher Objective",
+        )
+    )
+
+    selected = ResearchWorkflow._select_evidence_candidates(
+        (
+            _evaluation(
+                transferable,
+                relevance_score=0.50,
+                mechanism_match=(
+                    ResearchMechanismMatch.TRANSFERABLE
+                ),
+            ),
+        ),
+        8,
+        _research_strategy(),
+    )
+
+    assert selected == (transferable,)
 
 
 def test_workflow_separates_preliminary_ranking_from_final_evaluation(

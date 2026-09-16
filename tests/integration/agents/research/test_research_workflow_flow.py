@@ -91,6 +91,15 @@ def _provider_response(
 ) -> ProviderResponse:
     """Create a deterministic research evaluation response."""
 
+    if relevance_score >= 75:
+        mechanism_match = "direct"
+    elif relevance_score >= 50:
+        mechanism_match = "transferable"
+    elif relevance_score >= 25:
+        mechanism_match = "adjacent"
+    else:
+        mechanism_match = "none"
+
     return ProviderResponse(
         provider_name="stub",
         model_name="stub-model",
@@ -100,6 +109,20 @@ def _provider_response(
                 {
                     "source_id": "paper-001",
                     "relevance_score": relevance_score,
+                    "mechanism_match": mechanism_match,
+                    "source_mechanism": (
+                        "Semantically aligned visual representation learning."
+                    ),
+                    "target_problem_dimension": (
+                        "Semantic alignment of VideoQA representations."
+                    ),
+                    "required_adaptation": (
+                        "Apply the objective to the target video encoder."
+                    ),
+                    "evidence_support": [
+                        "The abstract describes semantic representation "
+                        "learning."
+                    ],
                     "relevance_summary": (
                         "The paper is highly relevant to "
                         "vision-language alignment for VideoQA."

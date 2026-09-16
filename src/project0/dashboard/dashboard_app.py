@@ -190,6 +190,16 @@ def _create_reasoning_provider():
                     '{"evaluations": ['
                     '{"paper_id": "stub-paper-001", '
                     '"relevance_score": 95, '
+                    '"mechanism_match": "direct", '
+                    '"source_mechanism": '
+                    '"Semantic visual representation alignment", '
+                    '"target_problem_dimension": '
+                    '"VideoQA representation semantic alignment", '
+                    '"required_adaptation": '
+                    '"Apply the objective to the target video encoder", '
+                    '"evidence_support": '
+                    '["The abstract describes semantic representation '
+                    'learning"], '
                     '"research_connections": '
                     '["vision-language alignment"], '
                     '"summary": "Stub research evaluation.", '
@@ -202,6 +212,21 @@ def _create_reasoning_provider():
                         {
                             "source_id": "stub-paper-001",
                             "relevance_score": 95,
+                            "mechanism_match": "direct",
+                            "source_mechanism": (
+                                "Semantic visual representation alignment"
+                            ),
+                            "target_problem_dimension": (
+                                "VideoQA representation semantic alignment"
+                            ),
+                            "required_adaptation": (
+                                "Apply the objective to the target video "
+                                "encoder"
+                            ),
+                            "evidence_support": [
+                                "The abstract describes semantic "
+                                "representation learning",
+                            ],
                             "relevance_summary": (
                                 "Stub research evaluation."
                             ),
@@ -326,6 +351,20 @@ class _ResearchStubReasoningProvider:
                     {
                         "source_id": source_id,
                         "relevance_score": 95,
+                        "mechanism_match": "direct",
+                        "source_mechanism": (
+                            "Semantic visual representation alignment"
+                        ),
+                        "target_problem_dimension": (
+                            "VideoQA representation semantic alignment"
+                        ),
+                        "required_adaptation": (
+                            "Apply the objective to the target video encoder"
+                        ),
+                        "evidence_support": [
+                            "The abstract describes semantic representation "
+                            "learning",
+                        ],
                         "relevance_summary": (
                             "Stub research evaluation."
                         ),
