@@ -1,8 +1,8 @@
 # Project Directory Structure
 
-**Version:** 0.9  
+**Version:** 0.10  
 **Owner:** Project0  
-**Last Updated:** 2026-09-14
+**Last Updated:** 2026-09-16
 
 ---
 
@@ -21,11 +21,9 @@ implementation authority; generated MkDocs/GitHub Pages output is not.
 project0/
 ├── docs/
 │   ├── index.md
-│   ├── agents/
-│   │   ├── documentation/
-│   │   └── research/
-│   ├── platform/
-│   └── project/
+│   ├── documentation-agent/
+│   ├── research-agent/
+│   └── platform/
 ├── notebooks/
 │   └── Project0_Colab_Launcher.ipynb
 ├── skills/
@@ -66,8 +64,7 @@ project0/
 | `docs/` | Authoritative Markdown and MkDocs source |
 | `docs/documentation-agent/` | Documentation Agent charter through test records |
 | `docs/research-agent/` | Research Agent charter through test records |
-| `docs/platform/` | Shared platform design, contracts, and UI status data |
-| `docs/platform/` | Project governance, environment, status, roadmap, and testing references |
+| `docs/platform/` | Shared platform design, contracts, and UI status data; project governance, environment, status, roadmap, and testing references |
 | `notebooks/` | Student-access launchers, including the Google Colab environment for the Project0 codebase |
 | `skills/` | Repository-local skill packages loaded by Skill Registry |
 | `src/project0/agents/` | Agent-specific providers, services, routes, views, templates, and CSS |
