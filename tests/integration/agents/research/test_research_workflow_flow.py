@@ -565,6 +565,36 @@ def test_research_workflow_completes_real_service_pipeline(
         "discovery_only_count": 0,
     }
 
+    irrelevant_provider = StubReasoningProvider(
+        _provider_response(relevance_score=24)
+    )
+    irrelevant_result = _create_workflow(
+        irrelevant_provider
+    ).execute(
+        ResearchRequest(
+            question=(
+                "How can self-supervised video representations "
+                "be improved for VideoQA?"
+            ),
+            guidance=(
+                "Focus on vision-language alignment. "
+                "video representation learning"
+            ),
+        )
+    )
+
+    assert irrelevant_result.papers == ()
+    assert irrelevant_result.evaluations == ()
+    assert irrelevant_result.warnings == (
+        "No research papers met the minimum relevance threshold.",
+    )
+    assert irrelevant_result.metadata["evidence_review"] == {
+        "shortlisted_count": 1,
+        "reviewed_count": 0,
+        "recommended_count": 0,
+        "discovery_only_count": 0,
+    }
+
 
 def test_research_workflow_uses_richest_publication_version() -> None:
     """Duplicate publication locations produce one metadata-rich paper."""

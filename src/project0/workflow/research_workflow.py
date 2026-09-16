@@ -41,6 +41,7 @@ logger = logging.getLogger(__name__)
 
 
 EVIDENCE_CANDIDATE_LIMIT = 8
+MINIMUM_EVIDENCE_RELEVANCE_SCORE = 0.50
 
 _RESEARCH_PROGRESS_LOCK = Lock()
 _RESEARCH_PROGRESS: dict[str, object] = {
@@ -683,14 +684,19 @@ class ResearchWorkflow:
         evaluations: tuple,
         max_results: int,
     ) -> tuple[tuple, tuple, tuple]:
-        """Preserve a bounded set of evidence-reviewed papers."""
+        """Select a bounded set of sufficiently relevant reviewed papers."""
 
         ranked_evaluations = tuple(
             sorted(
                 (
                     evaluation
                     for evaluation in evaluations
-                    if evaluation.paper.evidence_sections
+                    if (
+                        evaluation.paper.evidence_sections
+                        and evaluation.relevance_score is not None
+                        and evaluation.relevance_score
+                        >= MINIMUM_EVIDENCE_RELEVANCE_SCORE
+                    )
                 ),
                 key=lambda evaluation: (
                     evaluation.relevance_score

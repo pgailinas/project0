@@ -568,6 +568,42 @@ def test_context_analysis_service_retries_duplicate_mechanisms() -> None:
 
     assert len(result.inferred_solution_search_concepts) == 3
     assert len(provider.requests) == 2
+    retry_payload = json.loads(provider.requests[1].user_prompt)
+    assert retry_payload["validation_feedback"] == (
+        "Provider field 'inferred_solution_search_concepts' items must use "
+        "distinct solution mechanisms."
+    )
+
+
+def test_context_analysis_service_skips_duplicate_mechanisms_after_retry() -> None:
+    """Verify repeated invalid enrichment does not discard valid context."""
+
+    first_response = create_valid_provider_response()
+    first_response.structured_output[
+        "inferred_solution_search_concepts"
+    ][1]["solution_mechanism"] = "feature distillation"
+    second_response = create_valid_provider_response()
+    second_response.structured_output[
+        "inferred_solution_search_concepts"
+    ][1]["solution_mechanism"] = "feature distillation"
+    provider = SequentialStubProvider((first_response, second_response))
+
+    result = ExistingResearchContextAnalysisService(
+        provider=provider,
+        model_name="qwen3:8b",
+    ).analyze(
+        create_context_document(),
+        research_question=(
+            "How can autoencoder video representations align with frozen "
+            "CLIP embeddings?"
+        ),
+    )
+
+    assert len(provider.requests) == 2
+    assert result.inferred_solution_search_concepts == ()
+    assert result.research_problem is not None
+    assert result.findings
+    assert result.limitations
 
 
 def test_context_analysis_service_retries_missing_structured_output() -> None:

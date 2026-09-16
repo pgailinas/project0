@@ -1987,8 +1987,8 @@ def test_workflow_separates_preliminary_ranking_from_final_evaluation(
     assert "candidates=10 selected=8" in caplog.text
 
 
-def test_workflow_preserves_evidence_review_when_threshold_is_unmet() -> None:
-    """Evidence-reviewed papers remain visible below the threshold."""
+def test_workflow_filters_low_relevance_evidence_before_analysis() -> None:
+    """Low-relevance evidence does not enter results or synthesis."""
 
     references = (
         _source_reference(
@@ -2008,8 +2008,10 @@ def test_workflow_preserves_evidence_review_when_threshold_is_unmet() -> None:
         _evaluation(papers[0], relevance_score=0.25),
         _evaluation(papers[1], relevance_score=0.50),
     )
-    analyses = tuple(_paper_analysis(paper) for paper in papers)
-    analysis_service = StubPaperAnalysisService(analyses=analyses)
+    selected_analysis = _paper_analysis(papers[1])
+    analysis_service = StubPaperAnalysisService(
+        analyses=(selected_analysis,)
+    )
     direction_service = StubResearchDirectionAnalysisService()
     components = _create_workflow(
         references=references,
@@ -2031,29 +2033,24 @@ def test_workflow_preserves_evidence_review_when_threshold_is_unmet() -> None:
     assert tuple(
         evaluation.relevance_score
         for evaluation in result.evaluations
-    ) == (0.50, 0.25)
-    assert result.papers == (papers[1], papers[0])
+    ) == (0.50,)
+    assert result.papers == (papers[1],)
     assert analysis_service.requests == [
         (
             request,
             result.strategy,
-            result.papers,
+            (papers[1],),
         )
     ]
-    assert direction_service.requests == [
-        (
-            request,
-            result.existing_research_context,
-            analyses,
-        )
-    ]
+    assert result.paper_analyses == (selected_analysis,)
+    assert direction_service.requests == []
     assert result.warnings == (
         "No evidence-reviewed papers met the minimum relevance threshold; "
-        "displaying 2 reviewed paper(s).",
+        "displaying 1 reviewed paper(s).",
     )
     assert result.metadata["evidence_review"] == {
         "shortlisted_count": 2,
-        "reviewed_count": 2,
+        "reviewed_count": 1,
         "recommended_count": 0,
         "discovery_only_count": 0,
     }
@@ -2136,4 +2133,3 @@ def test_workflow_retains_clip_latent_alignment_as_transferable_evidence() -> No
     )
 
     assert selected == (transferable,)
-

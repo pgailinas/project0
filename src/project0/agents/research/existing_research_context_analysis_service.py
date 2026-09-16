@@ -68,6 +68,7 @@ class ExistingResearchContextAnalysisService:
                 document=document,
                 provider_response=provider_response,
                 research_question=research_question,
+                skip_invalid_search_concepts=False,
             )
         except ValueError as error:
             if not self._is_retryable_analysis_error(
@@ -80,7 +81,13 @@ class ExistingResearchContextAnalysisService:
                 "structural or traceability validation; retrying once: %s",
                 error,
             )
+            validation_error = str(error)
 
+        provider_request = self._build_provider_request(
+            document=document,
+            research_question=research_question,
+            validation_error=validation_error,
+        )
         provider_response = self._provider.generate(
             provider_request
         )
@@ -89,12 +96,14 @@ class ExistingResearchContextAnalysisService:
             document=document,
             provider_response=provider_response,
             research_question=research_question,
+            skip_invalid_search_concepts=True,
         )
 
     def _build_provider_request(
         self,
         document: ResearchContextDocument,
         research_question: str,
+        validation_error: str | None = None,
     ) -> ProviderRequest:
         """Build a provider-neutral existing research context request."""
 
@@ -104,6 +113,7 @@ class ExistingResearchContextAnalysisService:
                 "source_name": document.source_name,
                 "document_type": document.document_type,
                 "research_question": research_question.strip(),
+                "validation_feedback": validation_error,
                 "extracted_text": document.extracted_text,
             },
             indent=2,
@@ -231,6 +241,10 @@ class ExistingResearchContextAnalysisService:
                 "mechanism. Keep each field concise. "
                 "Each concept must use a distinct solution mechanism; do "
                 "not return alternative wording for the same mechanism. "
+                "When validation_feedback is supplied, correct the reported "
+                "problem in the complete response. If it reports duplicate "
+                "solution mechanisms, replace the duplicates with technically "
+                "distinct mechanisms grounded in the document and question. "
                 "The service will combine these fields into the search phrase. "
                 "These concepts may introduce established "
                 "technical terminology for adjacent solution mechanisms, "
@@ -261,6 +275,7 @@ class ExistingResearchContextAnalysisService:
         document: ResearchContextDocument,
         provider_response: ProviderResponse,
         research_question: str = "",
+        skip_invalid_search_concepts: bool = False,
     ) -> ExistingResearchContext:
         """Create structured existing research context from a response."""
 
@@ -275,6 +290,25 @@ class ExistingResearchContextAnalysisService:
             raise ValueError(
                 "Provider structured output must be an object."
             )
+
+        try:
+            inferred_solution_search_concepts = self._parse_search_concepts(
+                structured_output.get("inferred_solution_search_concepts"),
+                required_model_anchors=(
+                    self._required_model_anchors(research_question)
+                ),
+                require_three=bool(research_question.strip()),
+            )
+        except ValueError as error:
+            if not skip_invalid_search_concepts:
+                raise
+
+            LOGGER.warning(
+                "Skipping invalid inferred solution-search concepts after "
+                "the corrective retry: %s",
+                error,
+            )
+            inferred_solution_search_concepts = ()
 
         return ExistingResearchContext(
             research_problem=self._parse_optional_finding(
@@ -313,15 +347,7 @@ class ExistingResearchContextAnalysisService:
                 field_name="stated_future_work",
             ),
             inferred_solution_search_concepts=(
-                self._parse_search_concepts(
-                    structured_output.get(
-                        "inferred_solution_search_concepts"
-                    ),
-                    required_model_anchors=(
-                        self._required_model_anchors(research_question)
-                    ),
-                    require_three=bool(research_question.strip()),
-                )
+                inferred_solution_search_concepts
             ),
         )
 

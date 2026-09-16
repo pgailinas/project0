@@ -262,6 +262,63 @@ def test_metadata_analysis_constructs_paper_provenance() -> None:
     assert evidence.section == "Abstract"
 
 
+def test_empty_optional_limitation_is_skipped_without_retry() -> None:
+    """An empty optional limitation does not discard the paper analysis."""
+
+    response = create_valid_response()
+    response.structured_output["limitations"] = [
+        {
+            "content": "",
+            "section": None,
+        },
+        {
+            "content": "The abstract does not evaluate VideoQA.",
+            "section": None,
+        },
+    ]
+    provider = StubProvider(response)
+
+    result = PaperAnalysisService(
+        provider=provider,
+        model_name="qwen3:8b",
+    ).analyze(
+        create_request(),
+        create_strategy(),
+        (create_paper(),),
+    )
+
+    assert len(provider.requests) == 1
+    assert len(result) == 1
+    assert tuple(
+        finding.content for finding in result[0].limitations
+    ) == ("The abstract does not evaluate VideoQA.",)
+
+
+def test_empty_required_problem_still_retries() -> None:
+    """A malformed required finding remains a strict validation failure."""
+
+    invalid_response = create_valid_response()
+    invalid_response.structured_output["problem"]["content"] = ""
+    provider = SequentialStubProvider(
+        (invalid_response, create_valid_response())
+    )
+
+    result = PaperAnalysisService(
+        provider=provider,
+        model_name="qwen3:8b",
+    ).analyze(
+        create_request(),
+        create_strategy(),
+        (create_paper(),),
+    )
+
+    assert len(provider.requests) == 2
+    assert len(result) == 1
+    assert result[0].problem.content == (
+        "The paper studies semantic alignment."
+    )
+
+
 def test_metadata_request_supplies_abstract_without_full_text() -> None:
     """Verify paper analysis supplies metadata and abstract only."""
 

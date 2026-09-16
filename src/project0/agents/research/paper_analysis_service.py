@@ -391,14 +391,27 @@ class PaperAnalysisService:
                 f"Provider field '{field_name}' must be an array."
             )
 
-        return tuple(
-            self._parse_finding(
-                paper=paper,
-                value=item,
-                field_name=field_name,
-            )
-            for item in value
-        )
+        findings: list[ResearchFinding] = []
+
+        for item in value:
+            try:
+                finding = self._parse_finding(
+                    paper=paper,
+                    value=item,
+                    field_name=field_name,
+                )
+            except ValueError as error:
+                LOGGER.warning(
+                    "Skipping invalid optional retained-paper finding for "
+                    "field '%s': %s",
+                    field_name,
+                    error,
+                )
+                continue
+
+            findings.append(finding)
+
+        return tuple(findings)
 
     def _parse_finding(
         self,
