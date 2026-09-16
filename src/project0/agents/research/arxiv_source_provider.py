@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import time
 import xml.etree.ElementTree as ET
 
@@ -57,16 +58,27 @@ class ArxivSourceProvider:
     ) -> tuple[ResearchSourceReference, ...]:
         """Search arXiv using strategy search terms."""
 
+        arxiv_ids = self._extract_arxiv_ids(strategy)
         query = self._build_query(strategy)
 
-        if not query:
+        if not query and not arxiv_ids:
             return ()
 
-        params = {
-            "search_query": f"all:{query}",
-            "start": 0,
-            "max_results": self.max_results,
-        }
+        params = (
+            {
+                "id_list": ",".join(arxiv_ids),
+                "max_results": min(
+                    self.max_results,
+                    len(arxiv_ids),
+                ),
+            }
+            if arxiv_ids
+            else {
+                "search_query": f"all:{query}",
+                "start": 0,
+                "max_results": self.max_results,
+            }
+        )
 
         headers = {
             "User-Agent": self.user_agent,
@@ -159,6 +171,33 @@ class ArxivSourceProvider:
             self.retry_delay_seconds
             * (2 ** (attempt - 1))
         )
+
+    @staticmethod
+    def _extract_arxiv_ids(
+        strategy: ResearchStrategy,
+    ) -> tuple[str, ...]:
+        """Extract exact arXiv identifiers from provider search terms."""
+
+        identifiers: list[str] = []
+        pattern = re.compile(
+            r"(?:https?://(?:www\.)?arxiv\.org/"
+            r"(?:abs|html|pdf)/|arxiv\s*:\s*)?"
+            r"(\d{4}\.\d{4,5})(?:v\d+)?(?:\.pdf)?",
+            flags=re.IGNORECASE,
+        )
+
+        for term in strategy.search_terms:
+            match = pattern.fullmatch(term.strip())
+
+            if match is None:
+                continue
+
+            identifier = match.group(1)
+
+            if identifier not in identifiers:
+                identifiers.append(identifier)
+
+        return tuple(identifiers)
 
     @staticmethod
     def _build_query(

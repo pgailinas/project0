@@ -95,6 +95,79 @@ def test_arxiv_provider_returns_empty_query() -> None:
     assert provider._build_query(strategy) == ""
 
 
+@pytest.mark.parametrize(
+    ("seed", "expected_identifier"),
+    (
+        ("arXiv:2303.16058", "2303.16058"),
+        (
+            "https://arxiv.org/html/2405.19009v2",
+            "2405.19009",
+        ),
+    ),
+)
+def test_arxiv_provider_uses_direct_identifier_lookup(
+    monkeypatch: pytest.MonkeyPatch,
+    seed: str,
+    expected_identifier: str,
+) -> None:
+    """Explicit arXiv seeds bypass fuzzy keyword search."""
+
+    captured_params = {}
+    xml_response = (
+        '<feed xmlns="http://www.w3.org/2005/Atom"></feed>'
+    )
+
+    def mock_get(
+        url,
+        *,
+        params,
+        headers,
+        timeout,
+    ):
+        del headers
+        del timeout
+        captured_params.update(params)
+
+        return httpx.Response(
+            200,
+            text=xml_response,
+            request=httpx.Request("GET", url),
+        )
+
+    monkeypatch.setattr(
+        "project0.agents.research.arxiv_source_provider.httpx.get",
+        mock_get,
+    )
+
+    strategy = ResearchStrategy(
+        concepts=(),
+        search_terms=(seed,),
+        seed_terms=(seed,),
+        source_names=("arxiv",),
+    )
+
+    ArxivSourceProvider().search(strategy)
+
+    assert captured_params == {
+        "id_list": expected_identifier,
+        "max_results": 1,
+    }
+
+
+def test_arxiv_provider_does_not_treat_identifier_as_keyword() -> None:
+    """Versioned arXiv identifiers are recognized as direct seeds."""
+
+    strategy = ResearchStrategy(
+        concepts=(),
+        search_terms=("arXiv:2405.19009v2",),
+        source_names=("arxiv",),
+    )
+
+    assert ArxivSourceProvider._extract_arxiv_ids(strategy) == (
+        "2405.19009",
+    )
+
+
 def test_arxiv_provider_parses_response() -> None:
     """Verify arXiv XML is converted into references."""
 
@@ -437,4 +510,3 @@ def test_arxiv_provider_uses_exponential_backoff_for_rate_limit(
         2.0,
         4.0,
     ]
-
