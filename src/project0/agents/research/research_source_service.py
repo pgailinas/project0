@@ -641,10 +641,10 @@ class ResearchSourceService:
         query_terms = cls._meaningful_terms(query)
 
         return (
-            len(title_terms & anchor_terms),
-            len(content_terms & anchor_terms),
-            len(title_terms & query_terms),
             len(content_terms & query_terms),
+            len(title_terms & query_terms),
+            len(content_terms & anchor_terms),
+            len(title_terms & anchor_terms),
         )
 
     @classmethod

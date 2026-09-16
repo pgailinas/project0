@@ -381,6 +381,50 @@ def test_research_source_service_prioritizes_query_anchor_matches() -> None:
     assert service.last_candidate_trace[1]["evaluation_rank"] == 1
 
 
+def test_research_source_service_prioritizes_full_query_evidence_over_title(
+) -> None:
+    """Abstract query coverage outranks a shallow title-anchor match."""
+
+    shallow_title_match = replace(
+        create_reference("shallow"),
+        title="Visual CLIP Representation Alignment",
+        metadata={
+            "abstract": "A general-purpose vision-language method.",
+        },
+    )
+    mechanism_match = replace(
+        create_reference("mechanism"),
+        title="Context Autoencoder with CLIP Latent Alignment",
+        metadata={
+            "abstract": (
+                "The visual encoder aligns representations with CLIP "
+                "latent targets."
+            ),
+        },
+    )
+    provider = QueryMappedResearchSourceProvider(
+        {
+            "visual representations CLIP latent alignment": (
+                shallow_title_match,
+                mechanism_match,
+            ),
+        }
+    )
+    service = ResearchSourceService(
+        providers={"openreview": provider},
+        evaluation_candidate_limit=1,
+    )
+    strategy = ResearchStrategy(
+        concepts=("visual language representation alignment",),
+        search_terms=(
+            "visual representations CLIP latent alignment",
+        ),
+        source_names=("openreview",),
+    )
+
+    assert service.search(strategy) == (mechanism_match,)
+
+
 def test_research_source_service_excludes_alignment_profile_mismatch() -> None:
     """Alignment strategies require a concrete transfer path."""
 
@@ -959,4 +1003,3 @@ def test_research_source_service_retains_clip_latent_alignment_transfer():
     )
 
     assert service.search(strategy) == (transferable_alignment,)
-

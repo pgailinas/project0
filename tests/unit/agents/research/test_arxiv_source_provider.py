@@ -52,8 +52,7 @@ def test_arxiv_provider_builds_query() -> None:
     )
 
     assert query == (
-        "video representation learning "
-        "multimodal alignment"
+        "all:video AND all:alignment AND all:representation"
     )
 
 
@@ -76,7 +75,43 @@ def test_arxiv_provider_removes_duplicate_terms() -> None:
 
     query = provider._build_query(strategy)
 
-    assert query == "video learning"
+    assert query == "all:video AND all:learning"
+
+
+@pytest.mark.parametrize(
+    ("search_term", "expected_query"),
+    (
+        (
+            "video representations teacher guided feature alignment",
+            "all:video AND all:teacher AND all:alignment",
+        ),
+        (
+            "visual representations CLIP token alignment",
+            "all:clip AND all:token AND all:alignment",
+        ),
+        (
+            "visual representations CLIP latent alignment",
+            "all:clip AND all:latent AND all:alignment",
+        ),
+        (
+            "visual representations CLIP knowledge distillation",
+            "all:clip AND all:distillation AND all:representations",
+        ),
+    ),
+)
+def test_arxiv_provider_builds_fielded_mechanism_query(
+    search_term: str,
+    expected_query: str,
+) -> None:
+    """Mechanism searches retain a target, mechanism, and relation."""
+
+    strategy = ResearchStrategy(
+        concepts=(),
+        search_terms=(search_term,),
+        source_names=("arxiv",),
+    )
+
+    assert ArxivSourceProvider._build_query(strategy) == expected_query
 
 
 def test_arxiv_provider_returns_empty_query() -> None:

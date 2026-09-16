@@ -74,7 +74,7 @@ class ArxivSourceProvider:
             }
             if arxiv_ids
             else {
-                "search_query": f"all:{query}",
+                "search_query": query,
                 "start": 0,
                 "max_results": self.max_results,
             }
@@ -203,22 +203,71 @@ class ArxivSourceProvider:
     def _build_query(
         strategy: ResearchStrategy,
     ) -> str:
-        """Build deterministic arXiv query text."""
+        """Build a fielded arXiv query from target and mechanism terms."""
 
-        terms = []
+        words: list[str] = []
 
         for term in strategy.search_terms:
-            normalized = " ".join(
-                term.split()[:8]
-            ).strip()
+            for word in re.findall(
+                r"[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*",
+                term,
+            ):
+                lowered = word.casefold()
 
-            if normalized and normalized not in terms:
-                terms.append(normalized)
+                if lowered not in words:
+                    words.append(lowered)
 
-            if len(terms) >= 4:
+        if not words:
+            return ""
+
+        selected: list[str] = []
+
+        for preferred in ("clip", "video"):
+            if preferred in words:
+                selected.append(preferred)
                 break
 
-        return " ".join(terms)
+        for preferred in (
+            "teacher",
+            "token",
+            "latent",
+            "distillation",
+            "distill",
+        ):
+            if preferred in words and preferred not in selected:
+                selected.append(preferred)
+                break
+
+        if "alignment" in words and "alignment" not in selected:
+            selected.append("alignment")
+
+        ignored_words = {
+            "and",
+            "for",
+            "from",
+            "guided",
+            "knowledge",
+            "of",
+            "on",
+            "or",
+            "the",
+            "to",
+            "visual",
+            "with",
+        }
+
+        for word in words:
+            if len(selected) >= 3:
+                break
+            if word in ignored_words or word in selected:
+                continue
+
+            selected.append(word)
+
+        return " AND ".join(
+            f"all:{word}"
+            for word in selected[:3]
+        )
 
     @staticmethod
     def _parse_response(

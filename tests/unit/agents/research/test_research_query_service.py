@@ -238,6 +238,42 @@ def test_research_query_service_uses_focus_constraint_when_needed():
     )
 
 
+def test_research_query_service_preserves_focus_mechanism_dimensions():
+    """Explicit mechanism lists become separate provider searches."""
+
+    strategy = ResearchStrategy(
+        concepts=(
+            (
+                "What methods can align autoencoder-generated video "
+                "representations with frozen CLIP"
+            ),
+        ),
+        search_terms=(),
+        objective=(
+            "What methods can align autoencoder-generated video "
+            "representations with frozen CLIP?"
+        ),
+        constraints=(
+            (
+                "Focus on methods that align learned visual or video "
+                "representations with frozen CLIP or other pretrained "
+                "vision-language embedding spaces, including "
+                "teacher-guided feature alignment, token alignment, "
+                "latent alignment, and knowledge distillation."
+            ),
+        ),
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms == (
+        "video representations teacher guided feature alignment",
+        "visual representations CLIP token alignment",
+        "visual representations CLIP latent alignment",
+        "visual representations CLIP knowledge distillation",
+    )
+
+
 def test_research_query_service_preserves_follow_on_and_domain_queries():
     """Verify distinct follow-on and domain queries are preserved."""
 
@@ -749,4 +785,3 @@ def test_research_query_service_rejects_degenerate_derived_role_query():
 
     assert result.search_terms == inferred_concepts
     assert "alignment representations" not in result.search_terms
-

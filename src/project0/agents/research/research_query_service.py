@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass, replace
+import re
 from typing import ClassVar
 
 from project0.models.research_models import ResearchStrategy
@@ -135,9 +136,14 @@ class ResearchQueryService:
         queries: list[str] = list(inferred_queries)
         directive_queries: list[str] = []
         constraint_queries = tuple(
-            self._focus_constraint_query(constraint)
+            query
             for constraint in strategy.constraints
-            if self._focus_constraint_query(constraint)
+            for query in self._focus_constraint_queries(constraint)
+        )
+        mechanism_focus_queries = (
+            constraint_queries
+            if len(constraint_queries) > 1
+            else ()
         )
         candidates = (
             *strategy.search_terms,
@@ -239,19 +245,24 @@ class ResearchQueryService:
                     )
                 )
 
-        discovery_queries = self._select_bounded_queries(
-            self._deduplicate_complementary_queries(queries),
-            prioritized_queries=(
-                *directive_queries,
-                *(
-                    query
-                    for query, _role in derived_role_queries
+        if mechanism_focus_queries:
+            discovery_queries = self._deduplicate_queries(
+                list(mechanism_focus_queries)
+            )
+        else:
+            discovery_queries = self._select_bounded_queries(
+                self._deduplicate_complementary_queries(queries),
+                prioritized_queries=(
+                    *directive_queries,
+                    *(
+                        query
+                        for query, _role in derived_role_queries
+                    ),
+                    *inferred_queries,
                 ),
-                *inferred_queries,
-            ),
-            directive_queries=tuple(directive_queries),
-            role_queries=tuple(role_queries),
-        )
+                directive_queries=tuple(directive_queries),
+                role_queries=tuple(role_queries),
+            )
         discovery_queries = tuple(
             query
             for query in discovery_queries
@@ -1129,18 +1140,81 @@ class ResearchQueryService:
 
         return " ".join(query.split()).strip()
 
-    @staticmethod
-    def _focus_constraint_query(
+    @classmethod
+    def _focus_constraint_queries(
+        cls,
         constraint: str,
-    ) -> str:
-        """Return a query phrase from a Focus on constraint."""
+    ) -> tuple[str, ...]:
+        """Return bounded queries from a Focus on constraint."""
 
         normalized = " ".join(constraint.split()).strip()
 
         if not normalized.casefold().startswith("focus on "):
-            return ""
+            return ()
 
-        return normalized[9:].rstrip(".?").strip()
+        focus = normalized[9:].rstrip(".?").strip()
+        components = re.split(
+            r"\s*,?\s+including\s+",
+            focus,
+            maxsplit=1,
+            flags=re.IGNORECASE,
+        )
+
+        if len(components) == 1:
+            return (focus,) if focus else ()
+
+        mechanism_items = tuple(
+            re.sub(
+                r"^and\s+",
+                "",
+                item.strip(" ,"),
+                flags=re.IGNORECASE,
+            )
+            for item in re.split(
+                r"\s*,\s*|\s+and\s+",
+                components[1],
+                flags=re.IGNORECASE,
+            )
+            if item.strip(" ,")
+        )
+
+        if len(mechanism_items) < 2:
+            return (focus,) if focus else ()
+
+        mechanism_queries = tuple(
+            cls._build_focus_mechanism_query(item)
+            for item in mechanism_items
+        )
+
+        return cls._deduplicate_queries(
+            [query for query in mechanism_queries if query]
+        )
+
+    @classmethod
+    def _build_focus_mechanism_query(
+        cls,
+        mechanism: str,
+    ) -> str:
+        """Anchor one requested mechanism to the target representation task."""
+
+        mechanism_words = cls._query_words(
+            mechanism.replace("-", " ")
+        )
+        lowered_words = {
+            word.casefold()
+            for word in mechanism_words
+        }
+        anchors = (
+            ("video", "representations")
+            if "teacher" in lowered_words
+            else ("visual", "representations", "CLIP")
+        )
+
+        return " ".join(
+            cls._deduplicate_words(
+                (*anchors, *mechanism_words)
+            ).split()[:8]
+        )
 
     @staticmethod
     def _deduplicate_queries(
