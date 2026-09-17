@@ -2057,8 +2057,8 @@ def test_workflow_separates_preliminary_ranking_from_final_evaluation(
     assert "candidates=10 selected=8" in caplog.text
 
 
-def test_workflow_filters_low_relevance_evidence_before_analysis() -> None:
-    """Low-relevance evidence does not enter results or synthesis."""
+def test_workflow_retains_scored_evidence_across_relevance_bands() -> None:
+    """Adjacent reviewed evidence fills results after stronger evidence."""
 
     references = (
         _source_reference(
@@ -2078,9 +2078,9 @@ def test_workflow_filters_low_relevance_evidence_before_analysis() -> None:
         _evaluation(papers[0], relevance_score=0.25),
         _evaluation(papers[1], relevance_score=0.50),
     )
-    selected_analysis = _paper_analysis(papers[1])
+    selected_analyses = tuple(_paper_analysis(paper) for paper in papers)
     analysis_service = StubPaperAnalysisService(
-        analyses=(selected_analysis,)
+        analyses=selected_analyses
     )
     direction_service = StubResearchDirectionAnalysisService()
     components = _create_workflow(
@@ -2103,27 +2103,61 @@ def test_workflow_filters_low_relevance_evidence_before_analysis() -> None:
     assert tuple(
         evaluation.relevance_score
         for evaluation in result.evaluations
-    ) == (0.50,)
-    assert result.papers == (papers[1],)
+    ) == (0.50, 0.25)
+    assert result.papers == (papers[1], papers[0])
     assert analysis_service.requests == [
         (
             request,
             result.strategy,
-            (papers[1],),
+            (papers[1], papers[0]),
         )
     ]
-    assert result.paper_analyses == (selected_analysis,)
-    assert direction_service.requests == []
+    assert result.paper_analyses == selected_analyses
+    assert len(direction_service.requests) == 1
     assert result.warnings == (
-        "No evidence-reviewed papers met the minimum relevance threshold; "
-        "displaying 1 reviewed paper(s).",
+        "No evidence-reviewed papers met the recommendation threshold; "
+        "displaying 2 reviewed paper(s).",
     )
     assert result.metadata["evidence_review"] == {
         "shortlisted_count": 2,
-        "reviewed_count": 1,
+        "reviewed_count": 2,
         "recommended_count": 0,
         "discovery_only_count": 0,
     }
+
+
+def test_workflow_excludes_unscored_evidence_results() -> None:
+    """Persistent invalid evaluations remain excluded from final results."""
+
+    references = tuple(
+        _source_reference(
+            source_id=f"paper-{index:03d}",
+            title=f"Reviewed Paper {index}",
+        )
+        for index in range(1, 4)
+    )
+    papers = tuple(
+        _paper_metadata_with_evidence(reference)
+        for reference in references
+    )
+    evaluations = (
+        _evaluation(papers[0], relevance_score=0.25),
+        _evaluation(papers[1], relevance_score=None),
+        _evaluation(papers[2], relevance_score=0.50),
+    )
+    components = _create_workflow(
+        references=references,
+        papers=papers,
+        evaluations=evaluations,
+        artifacts=(),
+    )
+    metadata_service = components[4]
+    metadata_service.acquire_evidence = lambda candidates: candidates
+
+    result = components[0].execute(_research_request(max_results=2))
+
+    assert result.papers == (papers[2], papers[0])
+    assert result.evaluations == (evaluations[2], evaluations[0])
 
 
 def test_workflow_synthesizes_reviewed_evidence_across_thresholds() -> None:

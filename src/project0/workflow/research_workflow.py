@@ -42,7 +42,6 @@ logger = logging.getLogger(__name__)
 
 
 EVIDENCE_CANDIDATE_LIMIT = 8
-MINIMUM_EVIDENCE_RELEVANCE_SCORE = 0.50
 
 _RESEARCH_PROGRESS_LOCK = Lock()
 _RESEARCH_PROGRESS: dict[str, object] = {
@@ -331,7 +330,7 @@ class ResearchWorkflow:
                 and not recommended_evaluations
             ):
                 warnings.append(
-                    "No evidence-reviewed papers met the minimum relevance "
+                    "No evidence-reviewed papers met the recommendation "
                     f"threshold; displaying {len(evaluations)} reviewed "
                     "paper(s)."
                 )
@@ -712,7 +711,7 @@ class ResearchWorkflow:
         evaluations: tuple,
         max_results: int,
     ) -> tuple[tuple, tuple, tuple]:
-        """Select a bounded set of sufficiently relevant reviewed papers."""
+        """Select scored, evidence-reviewed papers in relevance order."""
 
         ranked_evaluations = tuple(
             sorted(
@@ -722,8 +721,6 @@ class ResearchWorkflow:
                     if (
                         evaluation.paper.evidence_sections
                         and evaluation.relevance_score is not None
-                        and evaluation.relevance_score
-                        >= MINIMUM_EVIDENCE_RELEVANCE_SCORE
                     )
                 ),
                 key=lambda evaluation: (

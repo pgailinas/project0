@@ -47,7 +47,7 @@ Current bounds are 3 seeds, 3 discovery queries, up to 6 search terms, normally 
 
 Record commit, date/environment, exact command, passed/failed/skipped totals, duration, provider/model configuration, live versus stub sources, and environmental failures. Stub output is not live-model quality evidence.
 
-Partial provider/query failures may be logged but not returned as warnings when another group succeeds. Papers below 0.75 may still be displayed as reviewed but not recommended. Discovery-only papers lack usable evidence and are excluded from final evidence results. Direction Analysis requires two valid analyses and may be omitted with a warning.
+Partial provider/query failures may be logged but not returned as warnings when another group succeeds. Scored papers below 0.75 may still be displayed as reviewed but not recommended, including adjacent papers below 0.50 when result slots remain. Discovery-only and persistently unscored papers are excluded from final evidence results. Direction Analysis requires two valid analyses and may be omitted with a warning.
 
 ## 5. Troubleshooting
 

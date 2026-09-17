@@ -32,7 +32,7 @@ When more than eight candidates reach evidence processing, preliminary metadata 
 
 Final evaluation shall use batches of no more than three and opaque batch-local identifiers. Scores are integers from 0 through 100 or null, normalized to 0.0 through 1.0; 0.75 is the recommendation threshold. When deterministic paper evidence changes a mechanism classification, the resulting summary, structured mechanism fields, connection, and applicable limitations shall agree with the corrected classification. Unrelated limitations shall remain. Missing, duplicate, corrupt, invented, or contradictory-high-score entries are retried once while valid partial results are retained. Persistent unresolved papers become unscored invalid-response evaluations. Non-retryable schema/type errors and provider failures propagate.
 
-Evidence-free papers are excluded from final selection. Evidence-reviewed results are sorted by descending score with null last and limited by Maximum Results, but are not removed solely for scoring below 0.75.
+Evidence-free and persistently unscored papers are excluded from final selection. Scored, evidence-reviewed results are sorted by descending score and limited by Maximum Results. Adjacent reviewed evidence may fill remaining result slots and is not removed solely for scoring below 0.50 or below the 0.75 recommendation threshold.
 
 ### Analysis and presentation
 
