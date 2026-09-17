@@ -203,6 +203,22 @@ class ResearchSourceService:
                     )
                     continue
 
+        fallback_seed_references = self._fallback_arxiv_seed_references(
+            strategy=strategy,
+            references=tuple(references),
+        )
+        if fallback_seed_references:
+            references.extend(fallback_seed_references)
+            reference_groups.append(fallback_seed_references)
+            reference_group_origins.append(
+                ("guidance_seed_fallback", "")
+            )
+            LOGGER.warning(
+                "Synthesized %d canonical arXiv guidance seed reference(s) "
+                "after configured providers did not return an exact match.",
+                len(fallback_seed_references),
+            )
+
         if not references and failures:
             raise RuntimeError(
                 "All research sources failed: "
@@ -247,14 +263,16 @@ class ResearchSourceService:
             "retrieved_count": len(references),
             "deduplicated_count": len(deduplicated_references),
             "seed_preserved_count": len(seed_references),
+            "seed_fallback_count": len(fallback_seed_references),
             "evaluation_candidate_count": len(selected_references),
         }
         LOGGER.info(
             "Research source selection: retrieved=%d deduplicated=%d "
-            "seed_preserved=%d evaluation_candidates=%d",
+            "seed_preserved=%d seed_fallback=%d evaluation_candidates=%d",
             self.last_search_statistics["retrieved_count"],
             self.last_search_statistics["deduplicated_count"],
             self.last_search_statistics["seed_preserved_count"],
+            self.last_search_statistics["seed_fallback_count"],
             self.last_search_statistics["evaluation_candidate_count"],
         )
 
@@ -682,6 +700,53 @@ class ResearchSourceService:
                 return True
 
         return False
+
+    @classmethod
+    def _fallback_arxiv_seed_references(
+        cls,
+        *,
+        strategy: ResearchStrategy,
+        references: tuple[ResearchSourceReference, ...],
+    ) -> tuple[ResearchSourceReference, ...]:
+        """Create canonical references for unresolved explicit arXiv seeds."""
+
+        fallback_references: list[ResearchSourceReference] = []
+
+        for seed in strategy.seed_terms:
+            identifier = cls._extract_arxiv_identifier(seed)
+            if identifier is None:
+                continue
+
+            candidate = ResearchSourceReference(
+                source_name="arxiv",
+                source_id=f"https://arxiv.org/abs/{identifier}",
+                title=f"arXiv:{identifier}",
+                source_url=f"https://arxiv.org/abs/{identifier}",
+                metadata={
+                    "document_url": f"https://arxiv.org/pdf/{identifier}",
+                    "seed_resolution": "canonical_fallback",
+                },
+            )
+            if cls._matches_any_seed(candidate, (seed,)) and not any(
+                cls._references_match(reference, candidate)
+                for reference in (*references, *fallback_references)
+            ):
+                fallback_references.append(candidate)
+
+        return tuple(fallback_references)
+
+    @staticmethod
+    def _extract_arxiv_identifier(value: str) -> str | None:
+        """Return a normalized modern arXiv identifier from one seed term."""
+
+        match = re.fullmatch(
+            r"(?:arxiv\s*:\s*|https?://(?:www\.)?arxiv\.org/"
+            r"(?:abs|html|pdf)/)?"
+            r"(\d{4}\.\d{4,5})(?:v\d+)?(?:\.pdf)?",
+            value.strip(),
+            flags=re.IGNORECASE,
+        )
+        return match.group(1) if match is not None else None
 
     @classmethod
     def _annotate_guidance_seed(

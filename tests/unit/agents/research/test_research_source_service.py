@@ -339,6 +339,7 @@ def test_research_source_service_bounds_balanced_evaluation_pool() -> None:
         "retrieved_count": 9,
         "deduplicated_count": 8,
         "seed_preserved_count": 1,
+        "seed_fallback_count": 0,
         "evaluation_candidate_count": 5,
     }
 
@@ -1032,6 +1033,74 @@ def test_research_source_service_falls_back_after_provider_failure() -> None:
     assert result == (
         create_reference("fallback-paper"),
     )
+
+
+def test_research_source_service_synthesizes_unresolved_arxiv_seed() -> None:
+    """An explicit arXiv seed survives complete provider failure."""
+
+    service = ResearchSourceService(
+        providers={"arxiv": FailingResearchSourceProvider()},
+    )
+    strategy = ResearchStrategy(
+        concepts=("video representation alignment",),
+        search_terms=("arXiv:2303.16058",),
+        seed_terms=("arXiv:2303.16058",),
+        guidance_seeds=(
+            ResearchGuidanceSeed(
+                term="arXiv:2303.16058",
+                relevance=ResearchGuidanceRelevance.HIGH,
+            ),
+        ),
+        source_names=("arxiv",),
+    )
+
+    result = service.search(strategy)
+
+    assert len(result) == 1
+    assert result[0].source_name == "arxiv"
+    assert result[0].source_id == "https://arxiv.org/abs/2303.16058"
+    assert result[0].source_url == "https://arxiv.org/abs/2303.16058"
+    assert result[0].is_guidance_seed is True
+    assert result[0].guidance_relevance is ResearchGuidanceRelevance.HIGH
+    assert result[0].metadata == {
+        "document_url": "https://arxiv.org/pdf/2303.16058",
+        "seed_resolution": "canonical_fallback",
+    }
+    assert service.last_search_statistics == {
+        "retrieved_count": 1,
+        "deduplicated_count": 1,
+        "seed_preserved_count": 1,
+        "seed_fallback_count": 1,
+        "evaluation_candidate_count": 1,
+    }
+
+
+def test_research_source_service_does_not_duplicate_resolved_arxiv_seed() -> None:
+    """A provider-resolved seed does not receive a fallback duplicate."""
+
+    seed = ResearchSourceReference(
+        source_name="arxiv",
+        source_id="http://arxiv.org/abs/2303.16058v2",
+        title="Unmasked Teacher",
+        source_url="http://arxiv.org/abs/2303.16058v2",
+    )
+    service = ResearchSourceService(
+        providers={
+            "arxiv": StubResearchSourceProvider(references=(seed,)),
+        },
+    )
+    strategy = ResearchStrategy(
+        concepts=("video representation alignment",),
+        search_terms=("arXiv:2303.16058",),
+        seed_terms=("arXiv:2303.16058",),
+        source_names=("arxiv",),
+    )
+
+    result = service.search(strategy)
+
+    assert len(result) == 1
+    assert result[0].title == "Unmasked Teacher"
+    assert service.last_search_statistics["seed_fallback_count"] == 0
 
 
 def test_research_source_service_continues_after_query_failure() -> None:

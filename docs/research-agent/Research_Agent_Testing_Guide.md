@@ -49,6 +49,8 @@ Record commit, date/environment, exact command, passed/failed/skipped totals, du
 
 Partial provider/query failures may be logged but not returned as warnings when another group succeeds. Scored papers below 0.75 may still be displayed as reviewed but not recommended, including adjacent papers below 0.50 when result slots remain. Discovery-only and persistently unscored papers are excluded from final evidence results. Direction Analysis requires two valid analyses and may be omitted with a warning.
 
+Explicit modern arXiv guidance seeds remain candidates when provider lookup fails: source statistics report `seed_fallback_count`, the candidate trace reports `preserved_seed`, and metadata/evidence acquisition proceeds from canonical arXiv URLs. A fallback seed can still become discovery-only when authoritative content cannot be acquired.
+
 ## 5. Troubleshooting
 
 - **Ollama unavailable:** Confirm service, base URL, installed Research model, and provider tests.

@@ -1196,6 +1196,7 @@ def test_research_workflow_evaluates_explicit_publication_seed() -> None:
         "retrieved_count": len(seed_provider.requests),
         "deduplicated_count": 1,
         "seed_preserved_count": 1,
+        "seed_fallback_count": 0,
         "evaluation_candidate_count": 1,
     }
     assert source_service.last_candidate_trace == (
