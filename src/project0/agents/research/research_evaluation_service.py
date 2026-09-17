@@ -270,7 +270,8 @@ class ResearchEvaluationService:
 
             LOGGER.warning(
                 "Research evaluation retry remained invalid; preserving "
-                "valid evaluations and marking unresolved papers unscored: %s",
+                "valid evaluations and attempting narrow score-boundary "
+                "recovery before marking unresolved papers unscored: %s",
                 error,
             )
             retry_evaluations, unresolved_papers = (
@@ -279,7 +280,8 @@ class ResearchEvaluationService:
                     provider_response=retry_response,
                     enforce_evidence=not preliminary,
                     tolerate_identifier_errors=True,
-                    evaluation_attempt="retry_recovery",
+                    evaluation_attempt="boundary_recovery",
+                    recover_one_point_boundaries=True,
                 )
             )
 
@@ -309,6 +311,7 @@ class ResearchEvaluationService:
         enforce_evidence: bool = True,
         tolerate_identifier_errors: bool = False,
         evaluation_attempt: str = "initial",
+        recover_one_point_boundaries: bool = False,
     ) -> tuple[
         tuple[ResearchEvaluation, ...],
         tuple[PaperMetadata, ...],
@@ -380,6 +383,18 @@ class ResearchEvaluationService:
                     batch_source_id=source_id,
                 )
             except ValueError as error:
+                if recover_one_point_boundaries:
+                    recovered = self._recover_one_point_score_boundary(
+                        paper=paper,
+                        mapping=mapping,
+                        error=error,
+                        enforce_evidence=enforce_evidence,
+                        batch_source_id=source_id,
+                    )
+                    if recovered is not None:
+                        evaluations.append(recovered)
+                        seen_source_ids.add(source_id)
+                        continue
                 if (
                     not tolerate_identifier_errors
                     or not self._is_retryable_evaluation_error(error)
@@ -403,6 +418,74 @@ class ResearchEvaluationService:
         )
 
         return tuple(evaluations), missing_papers
+
+    def _recover_one_point_score_boundary(
+        self,
+        *,
+        paper: PaperMetadata,
+        mapping: dict[str, Any],
+        error: ValueError,
+        enforce_evidence: bool,
+        batch_source_id: str,
+    ) -> ResearchEvaluation | None:
+        """Recover an exact one-point score-band error after retry."""
+
+        if not str(error).startswith(
+            "Mechanism match and relevance score disagree:"
+        ):
+            return None
+
+        mechanism_match = self._parse_mechanism_match(
+            mapping.get("mechanism_match")
+        )
+        relevance_score = self._parse_score(
+            mapping.get("relevance_score")
+        )
+        if relevance_score is None:
+            return None
+
+        minimum, maximum = MECHANISM_SCORE_BANDS[mechanism_match]
+        corrected_score: float | None = None
+        if round((minimum - relevance_score) * 100) == 1:
+            corrected_score = minimum
+        elif round((relevance_score - maximum) * 100) == 1:
+            corrected_score = maximum
+
+        if corrected_score is None:
+            return None
+
+        original_integer = round(relevance_score * 100)
+        corrected_integer = round(corrected_score * 100)
+        recovery_warning = (
+            "Relevance score corrected from "
+            f"{original_integer} to {corrected_integer} after retry because "
+            f"the {mechanism_match.value} mechanism band is "
+            f"{round(minimum * 100)}-{round(maximum * 100)}."
+        )
+        corrected_mapping = dict(mapping)
+        corrected_mapping["relevance_score"] = corrected_integer
+        corrected_mapping["warnings"] = [
+            *self._parse_string_tuple(mapping.get("warnings"), "warnings"),
+            recovery_warning,
+        ]
+
+        try:
+            evaluation = self._create_evaluation(
+                paper=paper,
+                mapping=corrected_mapping,
+                enforce_evidence=enforce_evidence,
+                evaluation_attempt="boundary_recovery",
+                batch_source_id=batch_source_id,
+            )
+        except (TypeError, ValueError):
+            return None
+
+        LOGGER.warning(
+            "%s Paper: %s",
+            recovery_warning,
+            paper.title,
+        )
+        return evaluation
 
     @staticmethod
     def _invalid_response_evaluation(

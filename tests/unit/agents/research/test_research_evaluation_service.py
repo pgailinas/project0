@@ -13,6 +13,8 @@ from __future__ import annotations
 
 import logging
 
+import pytest
+
 from project0.agents.research.research_evaluation_service import (
     ResearchEvaluationService,
 )
@@ -573,6 +575,128 @@ def test_research_evaluation_service_stops_after_one_retry() -> None:
     assert result[0].warnings == (
         "Excluded from scoring after an invalid evaluation response.",
     )
+
+
+@pytest.mark.parametrize(
+    ("mechanism_match", "raw_score", "expected_score"),
+    (
+        ("direct", 74, 0.75),
+        ("transferable", 49, 0.50),
+        ("transferable", 75, 0.74),
+        ("adjacent", 24, 0.25),
+        ("adjacent", 50, 0.49),
+        ("none", 25, 0.24),
+    ),
+)
+def test_research_evaluation_service_recovers_one_point_boundary_after_retry(
+    mechanism_match: str,
+    raw_score: int,
+    expected_score: float,
+) -> None:
+    """Only exact neighboring-band scores recover after normal retry."""
+
+    responses = []
+    for _ in range(2):
+        response = create_valid_provider_response()
+        response.structured_output["evaluations"][0].update(
+            {
+                "relevance_score": raw_score,
+                "mechanism_match": mechanism_match,
+            }
+        )
+        responses.append(response)
+    provider = SequentialStubProvider(tuple(responses))
+    service = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    )
+
+    result = service.evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        (create_paper_metadata(),),
+    )
+
+    assert len(provider.requests) == 2
+    assert result[0].relevance_score == expected_score
+    assert result[0].mechanism_match.value == mechanism_match
+    assert len(result[0].warnings) == 1
+    assert "Relevance score corrected" in result[0].warnings[0]
+    assert "after retry" in result[0].warnings[0]
+
+
+def test_research_evaluation_service_rejects_large_boundary_disagreement() -> None:
+    """A material score/mechanism contradiction remains unscored."""
+
+    responses = []
+    for _ in range(2):
+        response = create_valid_provider_response()
+        response.structured_output["evaluations"][0].update(
+            {
+                "relevance_score": 85,
+                "mechanism_match": "transferable",
+            }
+        )
+        responses.append(response)
+    provider = SequentialStubProvider(tuple(responses))
+
+    result = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    ).evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        (create_paper_metadata(),),
+    )
+
+    assert result[0].relevance_score is None
+    assert result[0].warnings == (
+        "Excluded from scoring after an invalid evaluation response.",
+    )
+
+
+def test_boundary_recovery_preserves_guidance_seed_provenance() -> None:
+    """Boundary correction does not replace candidate provenance."""
+
+    responses = []
+    for _ in range(2):
+        response = create_valid_provider_response()
+        response.structured_output["evaluations"][0].update(
+            {
+                "relevance_score": 75,
+                "mechanism_match": "transferable",
+            }
+        )
+        responses.append(response)
+    paper = create_paper_metadata()
+    paper = PaperMetadata(
+        source_reference=ResearchSourceReference(
+            source_name="arxiv",
+            source_id="https://arxiv.org/abs/2405.19009",
+            title=paper.title,
+            is_guidance_seed=True,
+            guidance_relevance=ResearchGuidanceRelevance.HIGH,
+        ),
+        title=paper.title,
+        abstract=paper.abstract,
+        evidence_status=ResearchPaperEvidenceStatus.AVAILABLE,
+    )
+
+    result = ResearchEvaluationService(
+        provider=SequentialStubProvider(tuple(responses)),
+        model_name="qwen3:8b",
+    ).evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        (paper,),
+    )
+
+    assert result[0].paper.source_reference.is_guidance_seed is True
+    assert (
+        result[0].paper.source_reference.guidance_relevance
+        is ResearchGuidanceRelevance.HIGH
+    )
+    assert result[0].relevance_score == 0.74
 
 
 def test_research_evaluation_service_continues_after_invalid_batch() -> None:

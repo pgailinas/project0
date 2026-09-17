@@ -51,6 +51,8 @@ Partial provider/query failures may be logged but not returned as warnings when 
 
 Explicit modern arXiv guidance seeds remain candidates when provider lookup fails: source statistics report `seed_fallback_count`, the candidate trace reports `preserved_seed`, and metadata/evidence acquisition proceeds from canonical arXiv URLs. A fallback seed can still become discovery-only when authoritative content cannot be acquired.
 
+Evaluation retries recover exact one-point band mistakes such as transferable 75 to 74 and adjacent 50 to 49, with a visible correction warning. Confirm that larger disagreements such as transferable 85 or direct 8 remain unscored and that every existing structural and evidence validation still applies.
+
 ## 5. Troubleshooting
 
 - **Ollama unavailable:** Confirm service, base URL, installed Research model, and provider tests.

@@ -28,6 +28,8 @@ For strategies containing visual, language, and alignment-mechanism anchors, the
 
 Metadata shall be normalized for every supported provider. Semantic Scholar uses a detail request with search-result fallback after exhausted HTTP failures; other providers use normalized search metadata.
 
+After the single evaluation retry, an otherwise valid result whose integer score is exactly one point outside its declared mechanism band shall be corrected to the nearest boundary and annotated with a warning. Larger score-band contradictions and any result failing another structural or evidence validation remain unscored.
+
 When configured providers do not return an exact match for an explicit modern arXiv guidance seed, source selection shall synthesize a canonical arXiv reference from the supplied identifier. The fallback retains seed provenance and canonical abstract/PDF URLs; it does not invent title, author, abstract, or evaluation evidence.
 
 When more than eight candidates reach evidence processing, preliminary metadata ranking shall select at most eight. Evidence acquisition may include abstracts and provider-authoritative or derived arXiv PDFs. Retrieved content must be a PDF. Recognized Abstract, Method/Methodology/Approach/Model, and Experiment/Results/Evaluation sections are extracted with page provenance, an 8,000-character section limit, and 24,000-character total limit. Retrieval or extraction failure falls back to an available abstract; a paper without usable evidence is `discovery_only`.
