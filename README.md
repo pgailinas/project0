@@ -9,10 +9,9 @@ The platform is designed around specialized AI agents that reuse common services
 The published Project0 documentation is available at:
 
 - **Documentation Portal:** https://pgailinas.github.io/project0/
-- **Project Documentation:** https://pgailinas.github.io/project0/project/
-- **Platform Documentation:** https://pgailinas.github.io/project0/platform/
-- **Documentation Agent Documentation:** https://pgailinas.github.io/project0/agents/documentation/
-- **Research Agent Documentation:** https://pgailinas.github.io/project0/agents/research/
+- **Project0 Platform Documentation:** https://pgailinas.github.io/project0/platform/
+- **Documentation Agent Documentation:** https://pgailinas.github.io/project0/documentation-agent/
+- **Research Agent Documentation:** https://pgailinas.github.io/project0/research-agent/
 
 The documentation site is the preferred entry point for architecture, design, implementation status, testing, validation, and agent-specific details.
 
@@ -49,7 +48,7 @@ Current capabilities include:
 
 Documentation:
 
-https://pgailinas.github.io/project0/agents/documentation/
+https://pgailinas.github.io/project0/documentation-agent/
 
 ### Research Agent
 
@@ -71,7 +70,7 @@ Current capabilities include:
 
 Documentation:
 
-https://pgailinas.github.io/project0/agents/research/
+https://pgailinas.github.io/project0/research-agent/
 
 ## Research Workflow
 
@@ -132,7 +131,7 @@ proxy.
 
 The Colab launcher notebook provides eight steps:
 
-1. Clone or update Project0 using the Colab secret `PROJECT0_GITHUB_TOKEN`.
+1. Clone or update the public Project0.
 2. Install Project0 in the current Colab runtime.
 3. Verify the Colab GPU.
 4. Install and start Ollama.
