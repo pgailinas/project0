@@ -61,6 +61,7 @@ class _MechanismReconciliation:
     mechanism_match: ResearchMechanismMatch
     relevance_score: float | None
     relevance_summary: str
+    limitations: tuple[str, ...]
     research_connections: tuple[str, ...]
     source_mechanism: str
     target_problem_dimension: str
@@ -845,6 +846,10 @@ class ResearchEvaluationService:
             mapping.get("research_connections"),
             "research_connections",
         )
+        limitations = self._parse_string_tuple(
+            mapping.get("limitations"),
+            "limitations",
+        )
         mechanism_match = self._parse_mechanism_match(
             mapping.get("mechanism_match")
         )
@@ -874,6 +879,7 @@ class ResearchEvaluationService:
             mechanism_match=mechanism_match,
             relevance_score=relevance_score,
             relevance_summary=relevance_summary,
+            limitations=limitations,
             research_connections=research_connections,
             source_mechanism=source_mechanism,
             target_problem_dimension=target_problem_dimension,
@@ -883,6 +889,7 @@ class ResearchEvaluationService:
         mechanism_match = reconciliation.mechanism_match
         relevance_score = reconciliation.relevance_score
         relevance_summary = reconciliation.relevance_summary
+        limitations = reconciliation.limitations
         research_connections = reconciliation.research_connections
         source_mechanism = reconciliation.source_mechanism
         target_problem_dimension = (
@@ -944,10 +951,7 @@ class ResearchEvaluationService:
                 mapping.get("strengths"),
                 "strengths",
             ),
-            limitations=self._parse_string_tuple(
-                mapping.get("limitations"),
-                "limitations",
-            ),
+            limitations=limitations,
             research_connections=research_connections,
             warnings=warnings,
             mechanism_match=mechanism_match,
@@ -965,6 +969,7 @@ class ResearchEvaluationService:
         mechanism_match: ResearchMechanismMatch,
         relevance_score: float | None,
         relevance_summary: str,
+        limitations: tuple[str, ...],
         research_connections: tuple[str, ...],
         source_mechanism: str,
         target_problem_dimension: str,
@@ -981,6 +986,7 @@ class ResearchEvaluationService:
                 mechanism_match=mechanism_match,
                 relevance_score=relevance_score,
                 relevance_summary=relevance_summary,
+                limitations=limitations,
                 research_connections=research_connections,
                 source_mechanism=source_mechanism,
                 target_problem_dimension=target_problem_dimension,
@@ -1044,6 +1050,13 @@ class ResearchEvaluationService:
             "Deterministic evidence screening maps the paper to the "
             f"{inferred_match.value} mechanism band."
         )
+        if inferred_match in {
+            ResearchMechanismMatch.DIRECT,
+            ResearchMechanismMatch.TRANSFERABLE,
+        }:
+            limitations = cls._remove_contradictory_limitations(
+                limitations
+            )
         warning = (
             "Mechanism classification corrected deterministically from "
             f"'{original_match.value}' to '{inferred_match.value}' using "
@@ -1059,12 +1072,39 @@ class ResearchEvaluationService:
             mechanism_match=inferred_match,
             relevance_score=corrected_score,
             relevance_summary=relevance_summary,
-            research_connections=(*research_connections, connection),
+            limitations=limitations,
+            research_connections=(connection,),
             source_mechanism=source_mechanism,
             target_problem_dimension=target_problem_dimension,
             required_adaptation=required_adaptation,
             evidence_support=grounded_support or evidence_support,
             warning=warning,
+        )
+
+    @staticmethod
+    def _remove_contradictory_limitations(
+        limitations: tuple[str, ...],
+    ) -> tuple[str, ...]:
+        """Remove limitations negated by a corrected alignment mapping."""
+
+        contradiction_markers = (
+            "does not address the research question",
+            "does not provide any mechanism",
+            "does not provide a mechanism",
+            "lacks a concrete transfer path",
+            "no concrete transfer path",
+            "not relevant to the research question",
+            "off-topic",
+            "unrelated to the research question",
+        )
+
+        return tuple(
+            limitation
+            for limitation in limitations
+            if not any(
+                marker in limitation.casefold()
+                for marker in contradiction_markers
+            )
         )
 
     @staticmethod

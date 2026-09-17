@@ -1606,6 +1606,19 @@ def test_research_evaluation_service_corrects_image_clip_token_alignment(
         {
             "relevance_score": 24,
             "mechanism_match": "none",
+            "limitations": [
+                (
+                    "Does not address the research question of aligning "
+                    "video representations with frozen CLIP."
+                ),
+                "The image-only method still requires video validation.",
+            ],
+            "research_connections": [
+                (
+                    "The paper is off-topic and does not provide any "
+                    "alignment mechanism."
+                ),
+            ],
             "source_mechanism": "",
             "target_problem_dimension": "",
             "required_adaptation": "",
@@ -1625,6 +1638,13 @@ def test_research_evaluation_service_corrects_image_clip_token_alignment(
     assert result[0].mechanism_match is ResearchMechanismMatch.TRANSFERABLE
     assert result[0].relevance_score == 0.50
     assert "temporally aggregated video" in result[0].required_adaptation
+    assert result[0].research_connections == (
+        "Deterministic evidence screening maps the paper to the "
+        "transferable mechanism band.",
+    )
+    assert result[0].limitations == (
+        "The image-only method still requires video validation.",
+    )
 
 
 def test_research_evaluation_service_corrects_clip_latent_autoencoder_band(
