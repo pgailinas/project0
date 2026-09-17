@@ -23,6 +23,7 @@ from project0.agents.research.paper_metadata_service import (
 )
 from project0.models.research_models import (
     PaperMetadata,
+    ResearchPaperEvidenceSection,
     ResearchPaperEvidenceStatus,
     ResearchSourceReference,
 )
@@ -1185,6 +1186,108 @@ def test_paper_metadata_service_retains_abstract_after_pdf_http_failure(
     assert result[0].evidence_sections[0].content == (
         "Available abstract evidence."
     )
+
+
+def test_paper_metadata_service_enriches_canonical_seed_title_from_pdf(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Authoritative PDF metadata replaces only a fallback placeholder."""
+
+    reference = ResearchSourceReference(
+        source_name="arxiv",
+        source_id="https://arxiv.org/abs/2303.16058",
+        title="arXiv:2303.16058",
+        source_url="https://arxiv.org/abs/2303.16058",
+        metadata={
+            "document_url": "https://arxiv.org/pdf/2303.16058",
+            "seed_resolution": "canonical_fallback",
+        },
+    )
+    paper = PaperMetadataService().retrieve_metadata((reference,))[0]
+    section = ResearchPaperEvidenceSection(
+        section="Abstract",
+        content="Authoritative paper evidence.",
+        page_number=1,
+    )
+    monkeypatch.setattr(
+        PaperMetadataService,
+        "_retrieve_pdf_evidence",
+        lambda self, pdf_url: (
+            "Unmasked Teacher: Towards Training-Efficient Video "
+            "Foundation Models",
+            (section,),
+        ),
+    )
+
+    result = PaperMetadataService().acquire_evidence((paper,))[0]
+
+    assert result.title == (
+        "Unmasked Teacher: Towards Training-Efficient Video Foundation "
+        "Models"
+    )
+    assert result.source_reference.title == result.title
+    assert result.source_reference.source_id == reference.source_id
+    assert result.source_reference.is_guidance_seed is reference.is_guidance_seed
+    assert result.evidence_sections == (section,)
+
+
+def test_paper_metadata_service_preserves_provider_title_during_pdf_acquisition(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """PDF metadata cannot replace an ordinary provider-supplied title."""
+
+    reference = ResearchSourceReference(
+        source_name="arxiv",
+        source_id="https://arxiv.org/abs/2303.16058",
+        title="Provider Supplied Title",
+        source_url="https://arxiv.org/abs/2303.16058",
+    )
+    paper = PaperMetadataService().retrieve_metadata((reference,))[0]
+    monkeypatch.setattr(
+        PaperMetadataService,
+        "_retrieve_pdf_evidence",
+        lambda self, pdf_url: ("Different PDF Title", ()),
+    )
+
+    result = PaperMetadataService().acquire_evidence((paper,))[0]
+
+    assert result.title == "Provider Supplied Title"
+    assert result.source_reference.title == "Provider Supplied Title"
+
+
+@pytest.mark.parametrize(
+    "document_title",
+    (None, "", "Untitled", "2303.16058", "arXiv:2303.16058"),
+)
+def test_paper_metadata_service_rejects_unusable_pdf_seed_title(
+    monkeypatch: pytest.MonkeyPatch,
+    document_title: str | None,
+) -> None:
+    """Missing or generic PDF metadata leaves the seed placeholder intact."""
+
+    reference = ResearchSourceReference(
+        source_name="arxiv",
+        source_id="https://arxiv.org/abs/2303.16058",
+        title="arXiv:2303.16058",
+        source_url="https://arxiv.org/abs/2303.16058",
+        metadata={"seed_resolution": "canonical_fallback"},
+    )
+    paper = PaperMetadataService().retrieve_metadata((reference,))[0]
+    monkeypatch.setattr(
+        PaperMetadataService,
+        "_retrieve_pdf_evidence",
+        lambda self, pdf_url: (
+            PaperMetadataService._normalize_pdf_document_title(
+                document_title
+            ),
+            (),
+        ),
+    )
+
+    result = PaperMetadataService().acquire_evidence((paper,))[0]
+
+    assert result.title == "arXiv:2303.16058"
+    assert result.source_reference.title == "arXiv:2303.16058"
 
 
 def test_paper_metadata_service_extracts_page_preserving_sections() -> None:

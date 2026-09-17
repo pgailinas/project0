@@ -137,6 +137,7 @@ class PaperMetadataService:
         """Acquire authoritative abstract or PDF evidence for one paper."""
 
         sections: list[ResearchPaperEvidenceSection] = []
+        authoritative_title: str | None = None
 
         if paper.abstract is not None and paper.abstract.strip():
             sections.append(
@@ -150,9 +151,10 @@ class PaperMetadataService:
 
         if pdf_url is not None:
             try:
-                sections.extend(
+                authoritative_title, pdf_sections = (
                     self._retrieve_pdf_evidence(pdf_url)
                 )
+                sections.extend(pdf_sections)
             except (
                 httpx.HTTPError,
                 OSError,
@@ -176,8 +178,22 @@ class PaperMetadataService:
             else ResearchPaperEvidenceStatus.DISCOVERY_ONLY
         )
 
+        title = paper.title
+        source_reference = paper.source_reference
+        if (
+            authoritative_title is not None
+            and self._uses_fallback_seed_title(paper)
+        ):
+            title = authoritative_title
+            source_reference = replace(
+                source_reference,
+                title=authoritative_title,
+            )
+
         return replace(
             paper,
+            source_reference=source_reference,
+            title=title,
             evidence_status=status,
             evidence_sections=tuple(sections),
         )
@@ -185,8 +201,11 @@ class PaperMetadataService:
     def _retrieve_pdf_evidence(
         self,
         pdf_url: str,
-    ) -> tuple[ResearchPaperEvidenceSection, ...]:
-        """Retrieve and extract bounded Abstract, Method, and Results text."""
+    ) -> tuple[
+        str | None,
+        tuple[ResearchPaperEvidenceSection, ...],
+    ]:
+        """Retrieve authoritative PDF title and bounded paper evidence."""
 
         response = httpx.get(
             pdf_url,
@@ -207,14 +226,58 @@ class PaperMetadataService:
                 "PDF evidence extraction requires pypdf."
             ) from error
 
+        reader = PdfReader(BytesIO(response.content))
+        document_title = self._normalize_pdf_document_title(
+            getattr(reader.metadata, "title", None)
+            if reader.metadata is not None
+            else None
+        )
         pages = tuple(
             (page_number, (page.extract_text() or "").strip())
             for page_number, page in enumerate(
-                PdfReader(BytesIO(response.content)).pages,
+                reader.pages,
                 start=1,
             )
         )
-        return self._extract_evidence_sections(pages)
+        return document_title, self._extract_evidence_sections(pages)
+
+    @staticmethod
+    def _uses_fallback_seed_title(paper: PaperMetadata) -> bool:
+        """Return whether a canonical seed still has its placeholder title."""
+
+        return (
+            paper.source_reference.metadata.get("seed_resolution")
+            == "canonical_fallback"
+            and re.fullmatch(
+                r"arxiv:\d{4}\.\d{4,5}",
+                paper.title.strip(),
+                flags=re.IGNORECASE,
+            )
+            is not None
+        )
+
+    @staticmethod
+    def _normalize_pdf_document_title(value: object) -> str | None:
+        """Normalize a usable authoritative PDF document title."""
+
+        if not isinstance(value, str):
+            return None
+
+        title = " ".join(value.split()).strip()
+        if (
+            not title
+            or len(title) > 500
+            or title.casefold() in {"untitled", "unknown"}
+            or re.fullmatch(
+                r"(?:arxiv:)?\d{4}\.\d{4,5}(?:v\d+)?(?:\.pdf)?",
+                title,
+                flags=re.IGNORECASE,
+            )
+            is not None
+        ):
+            return None
+
+        return title
 
     def _extract_evidence_sections(
         self,
