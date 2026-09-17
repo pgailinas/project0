@@ -22,6 +22,7 @@ from project0.models.reasoning_models import (
 )
 from project0.models.research_models import (
     PaperMetadata,
+    ResearchGuidanceRelevance,
     ResearchMechanismMatch,
     ResearchPaperEvidenceStatus,
     ResearchRequest,
@@ -1099,6 +1100,42 @@ def test_research_evaluation_service_instructs_relevance_rubric() -> None:
         "Use the same relevance standard for every paper in the batch"
         in system_instructions
     )
+
+
+def test_research_evaluation_service_supplies_guidance_provenance() -> None:
+    """Paper-specific seed designation reaches the evaluation request."""
+
+    provider = StubProvider(create_valid_provider_response())
+    service = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    )
+    paper = create_paper_metadata()
+    paper = PaperMetadata(
+        source_reference=ResearchSourceReference(
+            source_name=paper.source_reference.source_name,
+            source_id=paper.source_reference.source_id,
+            title=paper.source_reference.title,
+            is_guidance_seed=True,
+            guidance_relevance=ResearchGuidanceRelevance.HIGH,
+        ),
+        title=paper.title,
+        abstract=paper.abstract,
+        evidence_status=ResearchPaperEvidenceStatus.AVAILABLE,
+    )
+
+    service.evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        (paper,),
+    )
+
+    payload = provider.requests[0].user_prompt
+    assert '"is_guidance_seed": true' in payload
+    assert '"guidance_relevance": "high"' in payload
+    instructions = provider.requests[0].system_instructions
+    assert "provenance/context only" in instructions
+    assert "must not force mechanism_match" in instructions
 
 
 def test_research_evaluation_service_instructs_transferability_rubric() -> None:

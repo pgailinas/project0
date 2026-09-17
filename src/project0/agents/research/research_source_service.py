@@ -209,8 +209,9 @@ class ResearchSourceService:
                 + "; ".join(failures)
             )
 
-        deduplicated_references = self._deduplicate_references(
-            references
+        deduplicated_references = tuple(
+            self._annotate_guidance_seed(reference, strategy)
+            for reference in self._deduplicate_references(references)
         )
         seed_references = tuple(
             reference
@@ -681,6 +682,40 @@ class ResearchSourceService:
                 return True
 
         return False
+
+    @classmethod
+    def _annotate_guidance_seed(
+        cls,
+        reference: ResearchSourceReference,
+        strategy: ResearchStrategy,
+    ) -> ResearchSourceReference:
+        """Attach matched guidance provenance to a candidate reference."""
+
+        matching_seeds = tuple(
+            seed
+            for seed in strategy.guidance_seeds
+            if cls._matches_any_seed(reference, (seed.term,))
+        )
+        is_seed = bool(matching_seeds) or cls._matches_any_seed(
+            reference,
+            strategy.seed_terms,
+        )
+        if not is_seed:
+            return reference
+
+        relevance = next(
+            (
+                seed.relevance
+                for seed in matching_seeds
+                if seed.relevance is not None
+            ),
+            None,
+        )
+        return replace(
+            reference,
+            is_guidance_seed=True,
+            guidance_relevance=relevance,
+        )
 
     @classmethod
     def _contains_reference(

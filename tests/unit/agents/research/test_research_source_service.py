@@ -23,6 +23,8 @@ from project0.agents.research.stub_research_source_provider import (
     StubResearchSourceProvider,
 )
 from project0.models.research_models import (
+    ResearchGuidanceRelevance,
+    ResearchGuidanceSeed,
     ResearchSourceReference,
     ResearchStrategy,
 )
@@ -324,7 +326,7 @@ def test_research_source_service_bounds_balanced_evaluation_pool() -> None:
 
     result = service.search(strategy)
 
-    assert result[0] == seed
+    assert result[0] == replace(seed, is_guidance_seed=True)
     assert len(result) == 5
     assert {reference.source_id for reference in result} == {
         "2405.19009",
@@ -339,6 +341,40 @@ def test_research_source_service_bounds_balanced_evaluation_pool() -> None:
         "seed_preserved_count": 1,
         "evaluation_candidate_count": 5,
     }
+
+
+def test_research_source_service_attaches_guidance_relevance() -> None:
+    """Matched candidates retain high-relevance guidance provenance."""
+
+    seed = ResearchSourceReference(
+        source_name="arxiv",
+        source_id="2405.19009",
+        title="Unmasked Token Alignment",
+        source_url="https://arxiv.org/abs/2405.19009",
+    )
+    service = ResearchSourceService(
+        providers={"stub": StubResearchSourceProvider(references=(seed,))},
+    )
+    strategy = ResearchStrategy(
+        concepts=("alignment",),
+        search_terms=("arXiv:2405.19009",),
+        seed_terms=("arXiv:2405.19009",),
+        guidance_seeds=(
+            ResearchGuidanceSeed(
+                term="arXiv:2405.19009",
+                relevance=ResearchGuidanceRelevance.HIGH,
+            ),
+        ),
+        source_names=("stub",),
+    )
+
+    result = service.search(strategy)
+
+    assert result[0].is_guidance_seed is True
+    assert (
+        result[0].guidance_relevance
+        is ResearchGuidanceRelevance.HIGH
+    )
 
 
 def test_research_source_service_prioritizes_query_anchor_matches() -> None:

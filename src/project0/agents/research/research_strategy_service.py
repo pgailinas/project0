@@ -16,6 +16,8 @@ import re
 
 from project0.models.research_models import (
     ExistingResearchContext,
+    ResearchGuidanceRelevance,
+    ResearchGuidanceSeed,
     ResearchRequest,
     ResearchStrategy,
 )
@@ -46,6 +48,7 @@ class ResearchStrategyService:
         request_concepts = self._build_concepts(request)
         concepts = self._build_concepts(request, context)
         seed_terms = self._build_seed_terms(request)
+        guidance_seeds = self._build_guidance_seeds(request)
         sub_questions = self._build_sub_questions(request)
 
         LOGGER.debug(
@@ -68,6 +71,7 @@ class ResearchStrategyService:
                 concepts=(),
                 search_terms=(),
                 seed_terms=(),
+                guidance_seeds=(),
                 objective=None,
                 sub_questions=(),
                 constraints=(),
@@ -86,6 +90,7 @@ class ResearchStrategyService:
             concepts=concepts,
             search_terms=(),
             seed_terms=seed_terms,
+            guidance_seeds=guidance_seeds,
             objective=objective,
             sub_questions=sub_questions,
             constraints=constraints,
@@ -223,6 +228,44 @@ class ResearchStrategyService:
         """Extract explicit publication seeds from research guidance."""
 
         guidance = " ".join(request.guidance.split()).strip()
+        return cls._extract_seed_terms(guidance)
+
+    @classmethod
+    def _build_guidance_seeds(
+        cls,
+        request: ResearchRequest,
+    ) -> tuple[ResearchGuidanceSeed, ...]:
+        """Retain publication seeds with their explicit designation."""
+
+        seeds: list[ResearchGuidanceSeed] = []
+
+        for item in cls._guidance_items(request.guidance):
+            relevance = (
+                ResearchGuidanceRelevance.HIGH
+                if re.search(
+                    r"\b(?:highly relevant|high[- ]relevance)\b",
+                    item,
+                    flags=re.IGNORECASE,
+                )
+                else None
+            )
+            for term in cls._extract_seed_terms(item):
+                candidate = ResearchGuidanceSeed(
+                    term=term,
+                    relevance=relevance,
+                )
+                if candidate not in seeds:
+                    seeds.append(candidate)
+
+        return tuple(seeds[:3])
+
+    @classmethod
+    def _extract_seed_terms(
+        cls,
+        guidance: str,
+    ) -> tuple[str, ...]:
+        """Extract ordered publication titles and identifiers from text."""
+
         seed_terms: list[str] = []
 
         for match in re.finditer(

@@ -12,8 +12,13 @@
 from __future__ import annotations
 
 from project0.config.constants import DEFAULT_RESEARCH_SOURCE_PROVIDERS
-from project0.models.research_models import ExistingResearchContext, ResearchFinding
-from project0.models.research_models import ResearchRequest
+from project0.models.research_models import (
+    ExistingResearchContext,
+    ResearchFinding,
+    ResearchGuidanceRelevance,
+    ResearchGuidanceSeed,
+    ResearchRequest,
+)
 from project0.agents.research.research_strategy_service import (
     ResearchStrategyService,
 )
@@ -146,6 +151,35 @@ def test_build_strategy_preserves_explicit_publication_seeds() -> None:
     assert any(
         "arXiv:2405.19009v2" in concept
         for concept in result.concepts
+    )
+
+
+def test_build_strategy_structures_high_relevance_seed_designation() -> None:
+    """High relevance is retained separately from publication identity."""
+
+    request = ResearchRequest(
+        question="How can video representations align with CLIP?",
+        guidance=(
+            "Treat arXiv:2303.16058 and arXiv:2405.19009v2 as highly "
+            "relevant seed papers. Compare DOI:10.1000/related as related "
+            "work."
+        ),
+    )
+
+    result = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    ).build_strategy(request)
+
+    assert result.guidance_seeds == (
+        ResearchGuidanceSeed(
+            term="arXiv:2303.16058",
+            relevance=ResearchGuidanceRelevance.HIGH,
+        ),
+        ResearchGuidanceSeed(
+            term="arXiv:2405.19009",
+            relevance=ResearchGuidanceRelevance.HIGH,
+        ),
+        ResearchGuidanceSeed(term="doi:10.1000/related"),
     )
 
 

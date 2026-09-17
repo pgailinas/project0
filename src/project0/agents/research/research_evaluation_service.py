@@ -453,6 +453,14 @@ class ResearchEvaluationService:
                 "publication_year": paper.publication_year,
                 "abstract": paper.abstract,
                 "venue": paper.venue,
+                "is_guidance_seed": (
+                    paper.source_reference.is_guidance_seed
+                ),
+                "guidance_relevance": (
+                    paper.source_reference.guidance_relevance.value
+                    if paper.source_reference.guidance_relevance is not None
+                    else None
+                ),
                 "evidence_status": (
                     "pending_acquisition"
                     if preliminary
@@ -659,7 +667,10 @@ class ResearchEvaluationService:
                 "representation into the frozen teacher space remains below "
                 "50. Treat explicit seed status or user preference as a "
                 "request for careful evaluation, not as evidence and not as "
-                "an automatic score increase. Evaluate "
+                "an automatic score increase. The per-paper is_guidance_seed "
+                "and guidance_relevance fields are provenance/context only; "
+                "they must not force mechanism_match or override the "
+                "evidence-based relevance_score. Evaluate "
                 "transferability explicitly: a different application, "
                 "task, or modality must not by itself cap relevance below "
                 "75 when the supplied metadata supports an analogous "

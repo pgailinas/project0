@@ -83,6 +83,20 @@ class ResearchMechanismMatch(StrEnum):
     NONE = "none"
 
 
+class ResearchGuidanceRelevance(StrEnum):
+    """User-supplied relevance designation for a guidance seed."""
+
+    HIGH = "high"
+
+
+@dataclass(frozen=True, slots=True)
+class ResearchGuidanceSeed:
+    """One publication seed extracted from research guidance."""
+
+    term: str
+    relevance: ResearchGuidanceRelevance | None = None
+
+
 @dataclass(frozen=True, slots=True)
 class ResearchPaperEvidenceSection:
     """One bounded section of acquired research paper evidence."""
@@ -113,6 +127,7 @@ class ResearchStrategy:
     concepts: tuple[str, ...]
     search_terms: tuple[str, ...]
     seed_terms: tuple[str, ...] = ()
+    guidance_seeds: tuple[ResearchGuidanceSeed, ...] = ()
     objective: str | None = None
     sub_questions: tuple[str, ...] = ()
     constraints: tuple[str, ...] = ()
@@ -131,6 +146,8 @@ class ResearchSourceReference:
     source_url: str | None = None
     authors: tuple[str, ...] = ()
     publication_year: int | None = None
+    is_guidance_seed: bool = False
+    guidance_relevance: ResearchGuidanceRelevance | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
