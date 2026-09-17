@@ -26,7 +26,7 @@ Context reasoning returns an optional research problem; prior work, approaches, 
 
 ### Strategy and queries
 
-Strategy construction is deterministic. Ordered concepts combine programmatic focus, guidance, question, context-inferred concepts, unresolved questions, future work, limitations, findings, and research problem, removing exact duplicates. Constraints include programmatic values and guidance beginning `prefer`, `focus`, `avoid`, or `require`; question-form guidance becomes sub-questions. The first three unique quoted titles, arXiv IDs, or DOI IDs become seeds.
+Strategy construction is deterministic. Ordered concepts combine programmatic focus, guidance, question, and context-inferred solution-search concepts, removing exact duplicates. Existing-project findings, limitations, unresolved questions, stated future work, and research-problem prose remain context evidence and do not become literature-search concepts. Constraints include programmatic values and guidance beginning `prefer`, `focus`, `avoid`, or `require`; question-form guidance becomes sub-questions. The first three unique quoted titles, arXiv IDs, or DOI IDs become seeds.
 
 The Query Service normalizes seeds, derives compact context queries and direct/mechanism/transfer/application dimensions, removes exact and high-overlap candidates, selects at most three discovery queries, removes queries with at least 60% term-stem overlap with a seed, and returns seeds first. Discovery candidates overlap substantially at 75% of the smaller meaningful-term set. At most three seeds plus three normally eight-word discovery queries produce six search terms.
 
@@ -36,7 +36,7 @@ Provider names are `semantic_scholar`, `openalex`, `openreview`, `crossref`, `ar
 
 The Source Service calls each provider for each query, skipping Crossref for arXiv-only input. Duplicate identity uses provider/source ID, normalized DOI/arXiv ID, or normalized title with compatible year and overlapping authors. Canonical richness considers abstract length, author count, metadata count, year, and URL; missing fields are merged.
 
-The alignment profile activates when strategy terms collectively contain visual, language, and mechanism vocabulary. Seeds bypass exclusion. Hard-coded visual/video-language rules also influence evidence tiers and are not general domain-independent ranking. Within provider/query groups, deterministic overlap ranking precedes round-robin selection to the default 24-candidate pool.
+The alignment profile activates when strategy terms collectively contain visual, language, and mechanism vocabulary. Seeds bypass exclusion. Non-seed candidates must provide either a direct video-language representation-alignment path or a transferable visual-language representation-alignment mechanism; generic lexical matches without that complete path are excluded. Hard-coded visual/video-language rules also influence evidence tiers and are not general domain-independent ranking. Within provider/query groups, deterministic overlap ranking precedes round-robin selection to the default 24-candidate pool.
 
 ### Metadata, evidence, and evaluation
 

@@ -149,9 +149,13 @@ def test_research_source_service_dispatches_to_provider() -> None:
 def test_research_source_service_dispatches_each_query_independently() -> None:
     """Verify each provider receives one strategy query per request."""
 
+    reference = replace(
+        create_reference("paper-001"),
+        title="Video CLIP Representation Alignment",
+    )
     provider = StubResearchSourceProvider(
         references=(
-            create_reference("paper-001"),
+            reference,
         ),
     )
     service = ResearchSourceService(
@@ -174,7 +178,7 @@ def test_research_source_service_dispatches_each_query_independently() -> None:
     result = service.search(strategy)
 
     assert result == (
-        create_reference("paper-001"),
+        reference,
     )
     assert provider.requests == [
         replace(
@@ -486,6 +490,78 @@ def test_research_source_service_excludes_alignment_profile_mismatch() -> None:
     )
 
 
+def test_research_source_service_excludes_lexical_alignment_noise() -> None:
+    """Alignment retrieval requires a concrete visual-language mechanism."""
+
+    person_reidentification = replace(
+        create_reference("person-reidentification"),
+        title=(
+            "Person Re-identification by Deep Learning Multi-scale "
+            "Representations"
+        ),
+        metadata={
+            "abstract": (
+                "A teacher-guided feature model learns representations "
+                "for identifying people across surveillance cameras."
+            ),
+        },
+    )
+    teacher_identity = replace(
+        create_reference("teacher-identity"),
+        title=(
+            "Understanding Teacher Identity in Teachers' "
+            "Professional Lives"
+        ),
+        metadata={
+            "abstract": "A systematic review of teacher education.",
+        },
+    )
+    video_llava = replace(
+        create_reference("video-llava"),
+        title=(
+            "Video-LLaVA: Learning United Visual Representation by "
+            "Alignment Before Projection"
+        ),
+        metadata={
+            "abstract": (
+                "The method aligns image and video representations with "
+                "language embeddings in a shared vision-language space "
+                "before projection."
+            ),
+        },
+    )
+    provider = QueryMappedResearchSourceProvider(
+        {
+            "video representations teacher guided feature alignment": (
+                person_reidentification,
+                teacher_identity,
+                video_llava,
+            ),
+        }
+    )
+    service = ResearchSourceService(
+        providers={"openalex": provider},
+        evaluation_candidate_limit=3,
+    )
+    strategy = ResearchStrategy(
+        concepts=("video language representation alignment",),
+        search_terms=(
+            "video representations teacher guided feature alignment",
+        ),
+        source_names=("openalex",),
+    )
+
+    assert service.search(strategy) == (video_llava,)
+    assert tuple(
+        candidate["selection_status"]
+        for candidate in service.last_candidate_trace
+    ) == (
+        "outside_alignment_profile",
+        "outside_alignment_profile",
+        "balanced_selection",
+    )
+
+
 def test_research_source_service_allows_synthesis_for_synthesis_strategy() -> None:
     """A synthesis-focused strategy does not apply representation exclusions."""
 
@@ -584,7 +660,7 @@ def test_research_source_service_traces_excluded_candidate_provenance(
     assert service.last_candidate_trace[0] == {
         "deduplicated_rank": 1,
         "evaluation_rank": None,
-        "selection_status": "outside_balanced_candidate_limit",
+        "selection_status": "outside_alignment_profile",
         "title": "Paper selected",
         "canonical_source_name": "stub",
         "source_id": "selected",
@@ -607,7 +683,7 @@ def test_research_source_service_traces_excluded_candidate_provenance(
     }
     assert "Video CLIP Autoencoder" in caplog.text
     assert "Paper selected" in caplog.text
-    assert "outside_balanced_candidate_limit" in caplog.text
+    assert "outside_alignment_profile" in caplog.text
 
 
 def test_research_source_service_rejects_invalid_candidate_limit() -> None:

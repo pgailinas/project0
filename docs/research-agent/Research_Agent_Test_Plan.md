@@ -28,9 +28,9 @@ Verify route registration, ready state, normalization and multiline preservation
 
 ### Strategy, queries, and providers
 
-Verify ordered concepts/constraints/sub-questions, seed extraction and ordering, context-derived concepts, objective deduplication, at most three complementary discovery dimensions, overlap removal, eight-word compaction, role diversity, deterministic empty input, and all six provider-factory entries.
+Verify ordered concepts/constraints/sub-questions, seed extraction and ordering, context-inferred solution concepts, exclusion of existing-project findings and conclusions from search concepts, objective deduplication, at most three complementary discovery dimensions, overlap removal, eight-word compaction, role diversity, deterministic empty input, and all six provider-factory entries.
 
-Provider scenarios shall cover request construction, parsing, credentials, retries/failures, independent provider/query dispatch, Crossref omission for arXiv-only queries, multi-provider aggregation, partial and aggregate failure, 24-candidate bound, round-robin balance, query-anchor priority, seed preservation, DOI/arXiv/title-author-year identity, richest-version merge, trace reasons, and alignment-profile inclusion/exclusion.
+Provider scenarios shall cover request construction, parsing, credentials, retries/failures, independent provider/query dispatch, Crossref omission for arXiv-only queries, multi-provider aggregation, partial and aggregate failure, 24-candidate bound, round-robin balance, query-anchor priority, seed preservation, DOI/arXiv/title-author-year identity, richest-version merge, trace reasons, alignment-profile inclusion/exclusion, and rejection of generic teacher/representation lexical matches without a complete visual-language alignment mechanism.
 
 ### Metadata, evidence, and evaluation
 

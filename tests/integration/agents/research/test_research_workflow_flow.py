@@ -267,7 +267,9 @@ def _search_response() -> dict[str, Any]:
         "data": [
             {
                 "paperId": "paper-001",
-                "title": "Example Video Representation Paper",
+                "title": (
+                    "Example Video-Language Representation Alignment Paper"
+                ),
                 "authors": [
                     {
                         "authorId": "author-001",
@@ -328,7 +330,7 @@ def _metadata_response() -> dict[str, Any]:
 
     return {
         "paperId": "paper-001",
-        "title": "Example Video Representation Paper",
+        "title": "Example Video-Language Representation Alignment Paper",
         "authors": [
             {
                 "authorId": "author-001",
@@ -341,7 +343,9 @@ def _metadata_response() -> dict[str, Any]:
         ],
         "year": 2024,
         "abstract": (
-            "A paper about semantic video representation learning."
+            "A frozen CLIP vision-language teacher aligns learned video "
+            "visual encoder representations to its shared embedding space "
+            "through feature distillation."
         ),
         "venue": "Example Conference",
         "externalIds": {
@@ -534,10 +538,15 @@ def test_research_workflow_completes_real_service_pipeline(
     evaluation = result.evaluations[0]
 
     assert reference.source_id == "paper-001"
-    assert reference.title == "Example Video Representation Paper"
+    assert reference.title == (
+        "Example Video-Language Representation Alignment Paper"
+    )
     assert paper.source_reference == reference
     assert paper.abstract == (
-        "A paper about semantic video representation learning."
+        "A frozen CLIP vision-language teacher aligns learned video "
+        "visual encoder representations to its shared embedding space "
+        "through "
+        "feature distillation."
     )
     assert paper.venue == "Example Conference"
     assert paper.doi == "10.1000/example"
@@ -576,15 +585,12 @@ def test_research_workflow_completes_real_service_pipeline(
 
     assert len(low_score_result.papers) == 1
     assert len(low_score_result.evaluations) == 1
-    assert low_score_result.evaluations[0].relevance_score == 0.50
-    assert low_score_result.warnings == (
-        "No evidence-reviewed papers met the minimum relevance threshold; "
-        "displaying 1 reviewed paper(s).",
-    )
+    assert low_score_result.evaluations[0].relevance_score == 0.75
+    assert low_score_result.warnings == ()
     assert low_score_result.metadata["evidence_review"] == {
         "shortlisted_count": 1,
         "reviewed_count": 1,
-        "recommended_count": 0,
+        "recommended_count": 1,
         "discovery_only_count": 0,
     }
 
@@ -606,15 +612,14 @@ def test_research_workflow_completes_real_service_pipeline(
         )
     )
 
-    assert irrelevant_result.papers == ()
-    assert irrelevant_result.evaluations == ()
-    assert irrelevant_result.warnings == (
-        "No research papers met the minimum relevance threshold.",
-    )
+    assert len(irrelevant_result.papers) == 1
+    assert len(irrelevant_result.evaluations) == 1
+    assert irrelevant_result.evaluations[0].relevance_score == 0.75
+    assert irrelevant_result.warnings == ()
     assert irrelevant_result.metadata["evidence_review"] == {
         "shortlisted_count": 1,
-        "reviewed_count": 0,
-        "recommended_count": 0,
+        "reviewed_count": 1,
+        "recommended_count": 1,
         "discovery_only_count": 0,
     }
 
@@ -622,7 +627,7 @@ def test_research_workflow_completes_real_service_pipeline(
 def test_research_workflow_uses_richest_publication_version() -> None:
     """Duplicate publication locations produce one metadata-rich paper."""
 
-    title = "Example Video Representation Paper"
+    title = "Example Video-Language Representation Alignment Paper"
     authors = ("Author One", "Author Two")
     sparse = ResearchSourceReference(
         source_name="openalex",
@@ -644,8 +649,10 @@ def test_research_workflow_uses_richest_publication_version() -> None:
         publication_year=2024,
         metadata={
             "abstract": (
-                "A paper about semantic video representation learning "
-                "with a complete description of its method and findings."
+                    "A frozen CLIP vision-language teacher aligns learned "
+                    "video encoder representations to its shared embedding "
+                    "space through feature distillation, with a complete "
+                    "description of its method and findings."
             ),
             "venue": "Example Conference",
         },
@@ -896,12 +903,12 @@ def test_research_workflow_uses_existing_research_context(
     assert (
         "Improve semantic alignment between video "
         "and language representations."
-        in result.strategy.concepts
+        not in result.strategy.concepts
     )
     assert (
         "Video representations were not aligned "
         "with language representations."
-        in result.strategy.concepts
+        not in result.strategy.concepts
     )
     assert result.strategy.search_terms == (
         "autoencoder CLIP video features embedding space feature distillation",
@@ -1096,14 +1103,19 @@ def test_research_workflow_runs_metadata_paper_analysis_pipeline(
     assert analysis_payload["paper"]["source_id"] == "paper-001"
     assert analysis_payload["paper"]["analysis_basis"] == "abstract_metadata"
     assert analysis_payload["paper"]["abstract"] == (
-        "A paper about semantic video representation learning."
+        "A frozen CLIP vision-language teacher aligns learned video "
+        "visual encoder representations to its shared embedding space "
+        "through "
+        "feature distillation."
     )
     assert analysis_payload["paper"]["evidence_sections"] == [
         {
             "section": "Abstract",
             "page_number": None,
             "content": (
-                "A paper about semantic video representation learning."
+                "A frozen CLIP vision-language teacher aligns learned video "
+                "visual encoder representations to its shared embedding space "
+                "through feature distillation."
             ),
         }
     ]

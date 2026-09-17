@@ -232,7 +232,9 @@ def _search_response() -> dict[str, Any]:
         "data": [
             {
                 "paperId": "paper-001",
-                "title": "Example Video Representation Paper",
+                "title": (
+                    "Example Video-Language Representation Alignment Paper"
+                ),
                 "authors": [
                     {
                         "authorId": "author-001",
@@ -281,7 +283,7 @@ def _metadata_response() -> dict[str, Any]:
 
     return {
         "paperId": "paper-001",
-        "title": "Example Video Representation Paper",
+        "title": "Example Video-Language Representation Alignment Paper",
         "authors": [
             {
                 "authorId": "author-001",
@@ -294,7 +296,9 @@ def _metadata_response() -> dict[str, Any]:
         ],
         "year": 2024,
         "abstract": (
-            "A paper about semantic video representation learning."
+            "A frozen CLIP vision-language teacher aligns learned video "
+            "visual encoder representations to its shared embedding space "
+            "through feature distillation."
         ),
         "venue": "Example Conference",
         "externalIds": {
@@ -459,7 +463,7 @@ def test_INT_RA_FUN_002_research_source_discovery(
     assert len(result.source_references) == 1
     assert result.source_references[0].source_id == "paper-001"
     assert result.source_references[0].title == (
-        "Example Video Representation Paper"
+        "Example Video-Language Representation Alignment Paper"
     )
 
 
@@ -483,7 +487,10 @@ def test_INT_RA_FUN_003_paper_metadata_retrieval(
 
     assert len(result.papers) == 1
     assert result.papers[0].abstract == (
-        "A paper about semantic video representation learning."
+        "A frozen CLIP vision-language teacher aligns learned video "
+        "visual encoder representations to its shared embedding space "
+        "through "
+        "feature distillation."
     )
     assert result.papers[0].venue == "Example Conference"
     assert result.papers[0].doi == "10.1000/example"

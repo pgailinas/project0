@@ -157,26 +157,8 @@ class ResearchStrategyService:
             concepts.append(question_concept)
 
         if context is not None:
-            context_findings = (
-                context.unresolved_questions
-                + context.stated_future_work
-                + context.limitations
-                + context.findings
-                + (
-                    (context.research_problem,)
-                    if context.research_problem is not None
-                    else ()
-                )
-            )
-
             for concept in context.inferred_solution_search_concepts:
                 normalized = concept.strip()
-
-                if normalized and normalized not in concepts:
-                    concepts.append(normalized)
-
-            for finding in context_findings:
-                normalized = finding.content.strip()
 
                 if normalized and normalized not in concepts:
                     concepts.append(normalized)

@@ -23,6 +23,9 @@ from project0.agents.research.openreview_source_provider import (
 from project0.agents.research.research_source_provider_factory import (
     create_research_source_providers,
 )
+from project0.agents.research.research_source_service import (
+    ResearchSourceService,
+)
 from project0.agents.research.semantic_scholar_source_provider import (
     SemanticScholarSourceProvider,
 )
@@ -33,6 +36,7 @@ from project0.agents.research.research_source_provider import (
     ResearchSourceProviderProtocol,
 )
 from project0.config.settings import ProjectSettings
+from project0.models.research_models import ResearchStrategy
 
 
 def test_factory_creates_supported_research_source_providers():
@@ -165,3 +169,28 @@ def test_stub_provider_contains_expected_reference():
 
     assert len(references) == 1
     assert references[0].source_name == "stub"
+    assert references[0].title == (
+        "Self-Supervised Video Representation Alignment "
+        "with Frozen CLIP for VideoQA"
+    )
+    assert references[0].metadata["abstract"] == (
+        "A learned video encoder aligns its representations with a frozen "
+        "CLIP vision-language teacher through feature matching in the "
+        "shared embedding space."
+    )
+
+
+def test_stub_provider_survives_strict_alignment_selection() -> None:
+    """Dashboard stub evidence satisfies the production alignment gate."""
+
+    providers = create_research_source_providers(("stub",))
+    strategy = ResearchStrategy(
+        concepts=("video vision-language representation alignment",),
+        search_terms=("video representations CLIP feature alignment",),
+        source_names=("stub",),
+    )
+
+    result = ResearchSourceService(providers=providers).search(strategy)
+
+    assert len(result) == 1
+    assert result[0].source_id == "stub-paper-001"

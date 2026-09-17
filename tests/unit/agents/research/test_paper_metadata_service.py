@@ -339,6 +339,34 @@ def test_paper_metadata_service_returns_empty_for_no_references() -> None:
     assert result == ()
 
 
+def test_paper_metadata_service_returns_alignment_grounded_stub_metadata(
+) -> None:
+    """Stub metadata remains eligible for strict alignment evaluation."""
+
+    reference = ResearchSourceReference(
+        source_name="stub",
+        source_id="stub-paper-001",
+        title=(
+            "Self-Supervised Video Representation Alignment "
+            "with Frozen CLIP for VideoQA"
+        ),
+        source_url="https://example.com/stub-paper-001",
+        authors=("Project0 Research Stub",),
+        publication_year=2026,
+    )
+
+    result = PaperMetadataService().retrieve_metadata((reference,))
+
+    assert len(result) == 1
+    assert result[0].source_reference == reference
+    assert result[0].abstract == (
+        "A learned video encoder aligns its representations with a frozen "
+        "CLIP vision-language teacher through feature matching in the "
+        "shared embedding space."
+    )
+    assert result[0].venue == "Project0 Research Stub"
+
+
 def test_paper_metadata_service_retrieves_multiple_references(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

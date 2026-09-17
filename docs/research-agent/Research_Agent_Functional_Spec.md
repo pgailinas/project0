@@ -12,7 +12,7 @@ This specification defines the implemented inputs, processing behavior, outputs,
 
 ### Strategy and query generation
 
-The agent shall construct a deterministic strategy containing the research objective, ordered concepts, up to three explicit publication seeds, sub-questions, constraints, configured sources, rationale, and solution-search concepts inferred from Existing Research Context. With a research question, context analysis must return exactly three concepts, each identifying a source representation or model, target model or space, and distinct mechanism. Explicit model, encoder, or decoder anchors omitted by reasoning output shall be restored.
+The agent shall construct a deterministic strategy containing the research objective, ordered concepts, up to three explicit publication seeds, sub-questions, constraints, configured sources, rationale, and solution-search concepts inferred from Existing Research Context. Existing-project findings, limitations, unresolved questions, stated future work, and research-problem prose shall remain context evidence and shall not be copied into literature-search concepts. With a research question, context analysis must return exactly three concepts, each identifying a source representation or model, target model or space, and distinct mechanism. Explicit model, encoder, or decoder anchors omitted by reasoning output shall be restored.
 
 The Query Service shall preserve exact seeds first, create at most three discovery queries, emit at most six total terms, normally limit discovery queries to eight words, remove exact and substantially overlapping queries, and select complementary direct, mechanism, transfer, and application roles when available. Query generation is deterministic and provider-independent.
 
@@ -22,7 +22,7 @@ Supported provider names are `semantic_scholar`, `openalex`, `openreview`, `cros
 
 Duplicates match by provider/source identifier, normalized DOI or arXiv identifier, or normalized title with compatible year and overlapping authors when both author sets exist. The richest record becomes canonical and complementary metadata is merged. Explicit seeds are preserved first; remaining candidates are ranked within provider/query groups and selected round-robin to the default 24-candidate evaluation limit.
 
-For strategies containing visual, language, and alignment-mechanism anchors, the implemented eligibility profile may retain direct alignment, transferable visual-language, preserved-seed, and non-contradictory candidates while excluding clearly unrelated modalities, tasks, or representation-learning synthesis/generation candidates. This heuristic is not a general relevance guarantee.
+For strategies containing visual, language, and alignment-mechanism anchors, the implemented eligibility profile shall retain preserved seeds and non-seed candidates with either a direct video-language representation-alignment path or a transferable visual-language representation-alignment mechanism. Generic lexical matches that do not establish that complete path, unrelated modalities or tasks, and representation-learning synthesis/generation candidates shall be excluded. This heuristic is not a general relevance guarantee.
 
 ### Metadata, evidence, and evaluation
 

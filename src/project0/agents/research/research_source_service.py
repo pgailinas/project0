@@ -113,13 +113,6 @@ class ResearchSourceService:
             "generative",
         }
     )
-    _EXPLICITLY_UNRELATED_TERMS: ClassVar[frozenset[str]] = frozenset(
-        {
-            "audio",
-            "ecg",
-            "flood",
-        }
-    )
     _SYNTHESIS_TERMS: ClassVar[frozenset[str]] = frozenset(
         {
             "diffusion",
@@ -580,27 +573,7 @@ class ResearchSourceService:
             )
         )
 
-        if is_direct or is_transferable:
-            return True
-
-        profile_terms = (
-            cls._VISUAL_ALIGNMENT_TERMS
-            | cls._LANGUAGE_ALIGNMENT_TERMS
-            | cls._MECHANISM_ALIGNMENT_TERMS
-        )
-
-        if not candidate_terms & profile_terms:
-            return True
-
-        return not (
-            candidate_terms
-            & (cls._LANGUAGE_ALIGNMENT_TERMS - {"semantic"})
-            or candidate_terms & cls._EXPLICITLY_UNRELATED_TERMS
-            or (
-                prioritize_representation_learning
-                and is_synthesis_candidate
-            )
-        )
+        return is_direct or is_transferable
 
     @classmethod
     def _strategy_prioritizes_representation_learning(

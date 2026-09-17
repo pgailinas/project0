@@ -648,8 +648,9 @@ class PaperMetadataService:
             authors=reference.authors,
             publication_year=reference.publication_year,
             abstract=(
-                "Deterministic Project0 stub metadata "
-                "for acceptance testing."
+                "A learned video encoder aligns its representations with "
+                "a frozen CLIP vision-language teacher through feature "
+                "matching in the shared embedding space."
             ),
             venue="Project0 Research Stub",
             source_url=reference.source_url,

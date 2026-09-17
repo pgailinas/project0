@@ -57,12 +57,20 @@ def create_research_source_providers(
                     source_name="stub",
                     source_id="stub-paper-001",
                     title=(
-                        "Self-Supervised Video Representation "
-                        "Learning for VideoQA"
+                        "Self-Supervised Video Representation Alignment "
+                        "with Frozen CLIP for VideoQA"
                     ),
                     source_url="https://example.com/stub-paper-001",
                     authors=("Project0 Research Stub",),
                     publication_year=2026,
+                    metadata={
+                        "abstract": (
+                            "A learned video encoder aligns its "
+                            "representations with a frozen CLIP "
+                            "vision-language teacher through feature "
+                            "matching in the shared embedding space."
+                        ),
+                    },
                 ),
             ),
         ),

@@ -496,8 +496,8 @@ def test_build_strategy_extracts_benchmark_question_concept() -> None:
     )
 
 
-def test_build_strategy_includes_existing_research_context() -> None:
-    """Verify unresolved existing research informs strategy concepts."""
+def test_build_strategy_includes_only_searchable_context_concepts() -> None:
+    """Verify context contributes only inferred search concepts."""
 
     context = ExistingResearchContext(
         research_problem=ResearchFinding(
@@ -545,16 +545,6 @@ def test_build_strategy_includes_existing_research_context() -> None:
         "What should I investigate next",
         "feature distillation frozen teacher representations",
         "token-level alignment learned visual representations",
-        (
-            "How should video and text representations "
-            "be aligned?"
-        ),
-        "Investigate semantic alignment objectives.",
-        (
-            "Reconstruction quality does not ensure "
-            "semantic usefulness."
-        ),
-        "Video representations lack semantic alignment.",
     )
     assert result.rationale == (
         "Research strategy derived from the submitted "
@@ -567,8 +557,8 @@ def test_build_strategy_includes_existing_research_context() -> None:
     )
 
 
-def test_build_strategy_uses_findings_but_ignores_completed_approaches() -> None:
-    """Verify findings inform search without repeating prior approaches."""
+def test_build_strategy_excludes_existing_project_claims() -> None:
+    """Verify project findings and conclusions do not become concepts."""
 
     context = ExistingResearchContext(
         prior_work=(
@@ -583,7 +573,10 @@ def test_build_strategy_uses_findings_but_ignores_completed_approaches() -> None
         ),
         findings=(
             ResearchFinding(
-                content="Reconstruction performance improved.",
+                content=(
+                    "Hybrid methods performed worse than the "
+                    "self-supervised autoencoder."
+                ),
             ),
         ),
         limitations=(
@@ -604,8 +597,6 @@ def test_build_strategy_uses_findings_but_ignores_completed_approaches() -> None
 
     assert result.concepts == (
         "Find relevant follow-on research",
-        "Semantic alignment remains unresolved.",
-        "Reconstruction performance improved.",
     )
 
 
@@ -686,8 +677,8 @@ def test_build_strategy_context_only_does_not_execute() -> None:
     assert result.inferred_solution_search_concepts == ()
 
 
-def test_build_strategy_prioritizes_follow_on_context_concepts() -> None:
-    """Verify follow-on context precedes broad problem prose."""
+def test_build_strategy_uses_inferred_concepts_not_context_prose() -> None:
+    """Verify technical mechanisms replace project-context prose."""
 
     context = ExistingResearchContext(
         research_problem=ResearchFinding(
@@ -739,20 +730,4 @@ def test_build_strategy_prioritizes_follow_on_context_concepts() -> None:
         "What should I investigate next",
         "feature distillation frozen teacher representations",
         "token-level alignment learned visual representations",
-        (
-            "How should video representations be aligned "
-            "with language representations?"
-        ),
-        (
-            "Investigate semantic alignment objectives for "
-            "video representations."
-        ),
-        (
-            "Current reconstruction metrics do not measure "
-            "semantic alignment with language."
-        ),
-        (
-            "The primary challenge is learning compact "
-            "representations that preserve useful information."
-        ),
     )
