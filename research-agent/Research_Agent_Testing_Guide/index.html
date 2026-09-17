@@ -1581,6 +1581,7 @@
 <p>Record commit, date/environment, exact command, passed/failed/skipped totals, duration, provider/model configuration, live versus stub sources, and environmental failures. Stub output is not live-model quality evidence.</p>
 <p>Partial provider/query failures may be logged but not returned as warnings when another group succeeds. Scored papers below 0.75 may still be displayed as reviewed but not recommended, including adjacent papers below 0.50 when result slots remain. Discovery-only and persistently unscored papers are excluded from final evidence results. Direction Analysis requires two valid analyses and may be omitted with a warning.</p>
 <p>Explicit modern arXiv guidance seeds remain candidates when provider lookup fails: source statistics report <code>seed_fallback_count</code>, the candidate trace reports <code>preserved_seed</code>, and metadata/evidence acquisition proceeds from canonical arXiv URLs. A fallback seed can still become discovery-only when authoritative content cannot be acquired.</p>
+<p>Evaluation retries recover exact one-point band mistakes such as transferable 75 to 74 and adjacent 50 to 49, with a visible correction warning. Confirm that larger disagreements such as transferable 85 or direct 8 remain unscored and that every existing structural and evidence validation still applies.</p>
 <h2 id="5-troubleshooting">5. Troubleshooting</h2>
 <ul>
 <li><strong>Ollama unavailable:</strong> Confirm service, base URL, installed Research model, and provider tests.</li>
