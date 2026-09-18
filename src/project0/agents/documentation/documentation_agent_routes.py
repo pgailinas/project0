@@ -103,11 +103,13 @@ def create_documentation_agent_router(
                 error_message=run.error_message,
             )
         else:
-            page = DocumentationAgentPageView(
-                page_status=DocumentationAgentPageStatus.PROCESSING,
-                status_message="The documentation workflow is processing.",
-                request_form=DocumentationRequestForm(),
-            )
+            page = run.interim_result
+            if page is None:
+                page = DocumentationAgentPageView(
+                    page_status=DocumentationAgentPageStatus.PROCESSING,
+                    status_message="The documentation workflow is processing.",
+                    request_form=DocumentationRequestForm(),
+                )
         return _render_page(
             templates=template_engine,
             request=request,
@@ -145,6 +147,11 @@ def create_documentation_agent_router(
 
         parsed_source_paths = _parse_source_paths(source_paths)
         parsed_target_paths = _parse_target_paths(target_paths)
+        processing_page = _create_documentation_processing_page(
+            user_request=user_request,
+            source_paths=parsed_source_paths,
+            target_paths=parsed_target_paths,
+        )
         run = background_runs.submit(
             "documentation",
             lambda: ui_service.submit_request(
@@ -152,6 +159,7 @@ def create_documentation_agent_router(
                 source_paths=parsed_source_paths,
                 target_paths=parsed_target_paths,
             ),
+            interim_result=processing_page,
         )
         return RedirectResponse(
             url=f"{DOCUMENTATION_AGENT_ROUTE_PREFIX}/runs/{run.run_id}",
@@ -269,6 +277,24 @@ def _elapsed_since(started_at: datetime) -> str:
     )
     minutes, seconds = divmod(total_seconds, 60)
     return f"{minutes:02d}:{seconds:02d}"
+
+
+def _create_documentation_processing_page(
+    user_request: str,
+    source_paths: tuple[str, ...],
+    target_paths: tuple[str, ...],
+) -> DocumentationAgentPageView:
+    """Create processing state without discarding submitted form values."""
+
+    return DocumentationAgentPageView(
+        page_status=DocumentationAgentPageStatus.PROCESSING,
+        status_message="The documentation workflow is processing.",
+        request_form=DocumentationRequestForm(
+            user_request=user_request.strip(),
+            source_paths=source_paths,
+            target_paths=target_paths,
+        ),
+    )
 
 
 def _get_documentation_run(

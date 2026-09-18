@@ -16,6 +16,7 @@ After reviewing and approving the proposed changes, apply them.
 3. **Approve proposed changes** by a designated reviewer.
 4. Apply approved documentation changes.
 5. Verify changes and update version history.
+# Updated Documentation\n\nWorkflow changes require approval before applying documentation changes.\n
 ## Documentation Agent Revision Workflow
 
 After the initial review, users can make revisions to proposed documentation changes before approval.

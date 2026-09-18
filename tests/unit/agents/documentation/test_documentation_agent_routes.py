@@ -22,6 +22,7 @@ from fastapi.testclient import TestClient
 from project0.agents.documentation.documentation_agent_routes import (
     DOCUMENTATION_AGENT_ROUTE_PREFIX,
     DOCUMENTATION_AGENT_TEMPLATE_NAME,
+    _create_documentation_processing_page,
     _parse_source_paths,
     _parse_target_paths,
     create_documentation_agent_router,
@@ -110,6 +111,9 @@ def _build_templates(tmp_path: Path) -> Jinja2Templates:
                 <p id="active-navigation">{{ active_navigation }}</p>
                 <p id="active-page">{{ active_page }}</p>
                 <p id="project-name">{{ project_name }}</p>
+                <p id="user-request">{{ page.request_form.user_request }}</p>
+                <p id="source-paths">{{ page.request_form.source_paths | join("|") }}</p>
+                <p id="target-paths">{{ page.request_form.target_paths | join("|") }}</p>
                 {% for agent in agents %}
                 <p class="dashboard-agent">
                     {{ agent.name }}:{{ agent.available }}
@@ -169,6 +173,23 @@ def test_route_constants() -> None:
     assert DOCUMENTATION_AGENT_ROUTE_PREFIX == "/agents/documentation"
     assert DOCUMENTATION_AGENT_TEMPLATE_NAME == (
         "documentation_agent_home.html"
+    )
+
+
+def test_processing_page_preserves_submitted_form_values() -> None:
+    """Processing state should retain normalized submitted values."""
+
+    page = _create_documentation_processing_page(
+        user_request="  Preserve this request.  ",
+        source_paths=("src/one.py", "src/two.py"),
+        target_paths=("docs/one.md", "docs/two.md"),
+    )
+
+    assert page.page_status is DocumentationAgentPageStatus.PROCESSING
+    assert page.request_form == DocumentationRequestForm(
+        user_request="Preserve this request.",
+        source_paths=("src/one.py", "src/two.py"),
+        target_paths=("docs/one.md", "docs/two.md"),
     )
 
 

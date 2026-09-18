@@ -123,11 +123,13 @@ def create_research_agent_router(
                 error_message=run.error_message,
             )
         else:
-            page = ResearchAgentPageView(
-                page_status=ResearchAgentPageStatus.PROCESSING,
-                status_message="The research workflow is processing.",
-                request_form=ResearchRequestForm(),
-            )
+            page = run.interim_result
+            if page is None:
+                page = ResearchAgentPageView(
+                    page_status=ResearchAgentPageStatus.PROCESSING,
+                    status_message="The research workflow is processing.",
+                    request_form=ResearchRequestForm(),
+                )
 
         return _render_page(
             templates=template_engine,
@@ -158,6 +160,12 @@ def create_research_agent_router(
             context_source_name = context_document.filename
             context_content = await context_document.read()
 
+        processing_page = _create_research_processing_page(
+            question=question,
+            guidance=guidance,
+            max_results=max_results,
+            context_source_name=context_source_name,
+        )
         run = background_runs.submit(
             "research",
             lambda: ui_service.submit_request(
@@ -167,6 +175,7 @@ def create_research_agent_router(
                 context_source_name=context_source_name,
                 context_content=context_content,
             ),
+            interim_result=processing_page,
         )
         return RedirectResponse(
             url=f"{RESEARCH_AGENT_ROUTE_PREFIX}/runs/{run.run_id}",
@@ -262,6 +271,26 @@ def _elapsed_since(started_at: datetime) -> str:
     """Format elapsed wall-clock time for a background run."""
 
     return _format_elapsed((datetime.now(UTC) - started_at).total_seconds())
+
+
+def _create_research_processing_page(
+    question: str,
+    guidance: str,
+    max_results: int,
+    context_source_name: str | None,
+) -> ResearchAgentPageView:
+    """Create processing state without discarding submitted form values."""
+
+    return ResearchAgentPageView(
+        page_status=ResearchAgentPageStatus.PROCESSING,
+        status_message="The research workflow is processing.",
+        request_form=ResearchRequestForm(
+            question=question.strip(),
+            guidance=guidance.strip(),
+            max_results=max_results,
+            context_source_name=context_source_name,
+        ),
+    )
 
 
 def _get_research_run(

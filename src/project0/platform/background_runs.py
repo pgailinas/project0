@@ -33,6 +33,7 @@ class BackgroundRun(Generic[ResultT]):
     created_at: datetime
     started_at: datetime | None = None
     completed_at: datetime | None = None
+    interim_result: ResultT | None = None
     result: ResultT | None = None
     error_message: str | None = None
 
@@ -52,6 +53,7 @@ class BackgroundRunManager:
         self,
         agent_identifier: str,
         operation: Callable[[], ResultT],
+        interim_result: ResultT | None = None,
     ) -> BackgroundRun[ResultT]:
         """Create a run and return without waiting for its operation."""
 
@@ -60,6 +62,7 @@ class BackgroundRunManager:
             agent_identifier=agent_identifier,
             state=BackgroundRunState.QUEUED,
             created_at=datetime.now(UTC),
+            interim_result=interim_result,
         )
         with self._lock:
             self._runs[run.run_id] = run

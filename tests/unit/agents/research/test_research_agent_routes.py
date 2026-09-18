@@ -22,6 +22,7 @@ from fastapi.testclient import TestClient
 from project0.agents.research.research_agent_routes import (
     RESEARCH_AGENT_ROUTE_PREFIX,
     RESEARCH_AGENT_TEMPLATE_NAME,
+    _create_research_processing_page,
     create_research_agent_router,
 )
 from project0.agents.research.research_agent_view_models import (
@@ -96,6 +97,10 @@ def _build_templates(tmp_path: Path) -> Jinja2Templates:
                 <p id="system-state">{{ system_state }}</p>
                 <p id="system-operation">{{ system_operation or "" }}</p>
                 <p id="system-elapsed">{{ elapsed_time or "" }}</p>
+                <p id="question">{{ page.request_form.question }}</p>
+                <p id="guidance">{{ page.request_form.guidance }}</p>
+                <p id="context-source-name">{{ page.request_form.context_source_name or "" }}</p>
+                <p id="max-results">{{ page.request_form.max_results }}</p>
                 {% for agent in agents %}
                 <p class="dashboard-agent">
                     {{ agent.name }}:{{ agent.available }}
@@ -165,6 +170,25 @@ def test_research_system_status_maps_processing_state() -> None:
         "system_operation": "Research",
         "elapsed_time": "01:23",
     }
+
+
+def test_processing_page_preserves_submitted_form_values() -> None:
+    """Processing state should retain normalized submitted values."""
+
+    page = _create_research_processing_page(
+        question="  Preserve this question.  ",
+        guidance="  Preserve this guidance.  ",
+        max_results=15,
+        context_source_name="context.md",
+    )
+
+    assert page.page_status is ResearchAgentPageStatus.PROCESSING
+    assert page.request_form == ResearchRequestForm(
+        question="Preserve this question.",
+        guidance="Preserve this guidance.",
+        max_results=15,
+        context_source_name="context.md",
+    )
 
 
 def test_research_system_status_maps_failed_state() -> None:

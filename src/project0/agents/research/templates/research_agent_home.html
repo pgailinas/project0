@@ -1034,6 +1034,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (workflowProgress) {
+            workflowProgress.classList.remove(
+                "workflow-progress--ready",
+                "workflow-progress--processing",
+                "workflow-progress--completed",
+                "workflow-progress--completed_with_warnings",
+                "workflow-progress--failed"
+            );
             workflowProgress.classList.add(
                 "workflow-progress--client-processing"
             );

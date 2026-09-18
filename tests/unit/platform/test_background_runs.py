@@ -19,6 +19,22 @@ def test_submit_returns_before_operation_completes() -> None:
     release.set()
 
 
+def test_pending_run_retains_interim_result() -> None:
+    release = Event()
+    manager = BackgroundRunManager(max_workers=1)
+
+    run = manager.submit(
+        "research",
+        lambda: release.wait(1),
+        interim_result="submitted values",
+    )
+
+    snapshot = manager.get(run.run_id)
+    assert snapshot is not None
+    assert snapshot.interim_result == "submitted values"
+    release.set()
+
+
 def test_completed_run_retains_result() -> None:
     completed = Event()
     manager = BackgroundRunManager(max_workers=1)
