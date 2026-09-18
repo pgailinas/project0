@@ -1,8 +1,8 @@
 # Implementation Status
 
-**Version:** 1.1  
+**Version:** 1.2  
 **Owner:** Project0  
-**Last Updated:** 2026-09-11
+**Last Updated:** 2026-09-18
 
 ---
 
@@ -64,8 +64,9 @@ environment settings, logging, repository-structure startup validation,
 repository containment and Markdown-safe updates, Git differences,
 deterministic context and repository-knowledge processing, provider-neutral
 structured reasoning, Ollama and stub providers, composable documentation
-validation, synchronous workflow/dispatcher composition, and the shared
-FastAPI/Jinja2 Dashboard shell.
+validation, synchronous workflow/dispatcher composition, the shared
+FastAPI/Jinja2 Dashboard shell, and process-local background execution for
+long-running agent submissions.
 
 Startup validation does not verify dependencies, compilation, tests, MkDocs,
 Git state, Ollama, models, or research providers. Knowledge retrieval has no
@@ -86,6 +87,8 @@ Markdown application, preliminary/final validation, Git differences, and
 Dashboard presentation. Review state is in memory; only approved supported
 updates are applied; deterministic rules remain authoritative over model output;
 and no automatic commit, push, pull request, publication, or deployment occurs.
+Dashboard request and review submissions return promptly and continue through
+platform-managed, process-local background runs.
 
 ### Research Agent
 
@@ -94,7 +97,8 @@ Semantic Scholar/OpenAlex/OpenReview/Crossref/arXiv/stub adapters, optional PDF,
 Markdown, or text context, provenance, evidence acquisition, per-paper analysis,
 evaluation, synthesis, grounded Direction Analysis, and Dashboard presentation.
 Live behavior depends on configured providers; deterministic regression uses
-stubs; no durable research-session store exists; and the shared Skill Registry
+stubs; Dashboard submission uses a process-local background run; no durable
+research-session store exists; and the shared Skill Registry
 is not passed to the Research Workflow.
 
 ### Agent Skills
@@ -139,7 +143,7 @@ Verified gaps and current operational boundaries are:
 - companion PDF/ODS status artifacts were not verified;
 - workflow, review, research-session, audit, telemetry, and activity state are
   not durable;
-- asynchronous/distributed execution, authentication, role-based access,
+- durable or distributed execution, authentication, role-based access,
   dynamic registration, external skill trust/installation, automatic Git or
   publication operations, semantic retrieval, and CI/CD are not implemented;
 - `/activity` and `/settings` are placeholders; and

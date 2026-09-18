@@ -725,6 +725,26 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
+    const updateDocumentationRun = async () => {
+        {% if run_id %}
+        try {
+            const response = await fetch(
+                "/agents/documentation/runs/{{ run_id }}/status",
+                { cache: "no-store" }
+            );
+            if (!response.ok) {
+                return;
+            }
+            const run = await response.json();
+            if (["completed", "failed"].includes(run.run_state)) {
+                window.location.replace(run.result_url);
+            }
+        } catch (error) {
+            return;
+        }
+        {% endif %}
+    };
+
     if (!form) {
         updateSystemStatus();
         return;
@@ -781,6 +801,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         let elapsedSeconds = 0;
 
+        if (elapsed && /^\d+:\d{2}$/.test(elapsed.textContent.trim())) {
+            const [minutes, seconds] = elapsed.textContent
+                .trim()
+                .split(":")
+                .map(Number);
+            elapsedSeconds = (minutes * 60) + seconds;
+        }
+
         if (elapsed) {
             elapsed.textContent = formatElapsed(elapsedSeconds);
         }
@@ -797,6 +825,14 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }, 1000);
     };
+
+    {% if run_id and page.page_status.value == "processing" %}
+    beginDocumentationSystemStatus();
+    updateSystemStatus();
+    updateDocumentationRun();
+    window.setInterval(updateSystemStatus, 2000);
+    window.setInterval(updateDocumentationRun, 1000);
+    {% endif %}
 
     form.addEventListener("submit", (event) => {
         event.preventDefault();

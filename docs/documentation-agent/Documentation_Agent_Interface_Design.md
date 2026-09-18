@@ -1,8 +1,8 @@
 # Documentation Agent Interface Design
 
-**Version:** 1.1  
+**Version:** 1.2  
 **Owner:** Project0  
-**Last Updated:** 2026-09-11
+**Last Updated:** 2026-09-18
 
 ## 1. Purpose and Scope
 
@@ -23,10 +23,12 @@ Browser/UI layers do not select documents, generate edits, validate Markdown, or
 | Method | Path | Input | Result |
 | --- | --- | --- | --- |
 | `GET` | `/agents/documentation` | None | Ready Work Area. |
-| `POST` | `/agents/documentation/request` | Request and optional source/target paths | Run the synchronous workflow and render current state. |
-| `POST` | `/agents/documentation/review` | Workflow ID, proposal ID, decision, optional feedback | Submit one decision and render updated state. |
+| `POST` | `/agents/documentation/request` | Request and optional source/target paths | Enqueue the workflow and return `303` to its run page. |
+| `POST` | `/agents/documentation/review` | Workflow ID, proposal ID, decision, optional feedback | Enqueue a valid decision and return `303` to its run page. |
+| `GET` | `/agents/documentation/runs/{run_id}` | Run ID | Render processing, failed, review, revision, or completed state. |
+| `GET` | `/agents/documentation/runs/{run_id}/status` | Run ID | Return run lifecycle state and result URL. |
 
-Path fields are newline-separated, trimmed, and stripped of blank entries; route parsing does not guarantee normalization or deduplication. Blank requests fail in UI or dispatcher. Reviews require retained workflow/proposal IDs and one supported decision. Unsupported decision strings render a failed page. Synchronous UI calls execute in a worker thread.
+Path fields are newline-separated, trimmed, and stripped of blank entries; route parsing does not guarantee normalization or deduplication. Blank requests fail in UI or dispatcher. Reviews require retained workflow/proposal IDs and one supported decision. Unsupported decision strings render a failed page without creating a run. Valid request and review operations execute through the platform background-run manager rather than inside the originating POST lifetime.
 
 ### Platform port
 
@@ -75,4 +77,4 @@ Route/UI exceptions produce a failed page; workflow warnings/errors remain separ
 
 The interfaces guarantee explicit workflow requests, proposal snapshots, independent human decisions, write authorization only through approval, inspectable review/validation/warning/application outcomes, and non-mutating preview.
 
-They do not provide durable state across restarts, automatic regeneration after revise, multi-proposal transactions or rollback, document creation/deletion, Git publication, or assurance that every reasoning proposal passes deterministic checks. Final validation does not imply rollback, and prior approved proposals may already be present while later reviews remain pending.
+They do not provide durable run or workflow state across restarts, shared run state across server processes, automatic run expiration, automatic regeneration after revise, multi-proposal transactions or rollback, document creation/deletion, Git publication, or assurance that every reasoning proposal passes deterministic checks. Final validation does not imply rollback, and prior approved proposals may already be present while later reviews remain pending.

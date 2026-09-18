@@ -1,8 +1,8 @@
 # Research Agent Interface Design
 
-**Version:** 0.5  
+**Version:** 0.6  
 **Owner:** Project0  
-**Last Updated:** 2026-09-11
+**Last Updated:** 2026-09-18
 
 ## 1. Purpose and Scope
 
@@ -21,11 +21,13 @@ The browser and UI validate and map requests but do not implement retrieval, evi
 | Method | Route | Behavior |
 | --- | --- | --- |
 | `GET` | `/agents/research` | Render the ready Work Area. |
-| `POST` | `/agents/research/request` | Read form/upload values, run the UI service in a thread pool, and render the result. |
+| `POST` | `/agents/research/request` | Read form/upload values, enqueue a background run, and return `303` to its run page. |
+| `GET` | `/agents/research/runs/{run_id}` | Render the run's processing, failed, or retained result page. |
+| `GET` | `/agents/research/progress?run_id={run_id}` | Return workflow stage, run lifecycle state, and result URL. |
 
 The form accepts optional `.pdf`, `.md`, `.markdown`, or `.txt` context; a required nonblank question; optional guidance; and Maximum Results of 5, 10, 15, or 20 with 10 as default. Client and server validation prevent blank questions from invoking the workflow.
 
-Page states are `ready`, `processing`, `completed`, `completed_with_warnings`, and `failed`. JavaScript disables submission, shows the Research Workflow operation and elapsed time, and polls status while awaiting the synchronous response; displayed progress labels are presentation states, not server stage events.
+Page states are `ready`, `processing`, `completed`, `completed_with_warnings`, and `failed`. JavaScript disables submission and shows immediate processing feedback. After the redirect, the processing page restores elapsed time and polls the progress endpoint. A terminal run lifecycle causes the browser to replace the processing page with the same run URL, which then renders the retained final page model. Stage values come from the backend Research workflow snapshot; run lifecycle and result lookup are scoped by run ID.
 
 The page may show request values, context filename/findings, consolidated paper cards, Direction Analysis, summary counts, warnings, model, and GPU. Embedded paper analyses appear in cards; separate analysis and legacy-artifact panels remain disabled. **Save Results** serializes the visible completed package to `project0_research_results.md` using `showSaveFilePicker` or Blob download.
 
@@ -85,5 +87,6 @@ Evaluation handles are batch-local `paper-NNN` values returned exactly once with
 - Evidence handles resolve only against the supplied catalog.
 - Missing information remains absent, unscored, warned, or failed under the relevant contract.
 - Client-saved Markdown is a user download, not a repository write.
-- Browser progress is not server-emitted stage telemetry.
+- Research stage telemetry is backend-generated but remains a single global workflow snapshot; one Research background worker prevents concurrent executions from interleaving it.
+- Run state and retained results are process-local, non-durable, not shared across server processes, and have no automatic expiration.
 - Dynamic legacy-method detection preserves compatible test doubles but does not broaden the documented primary contracts.

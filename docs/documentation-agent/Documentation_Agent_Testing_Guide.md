@@ -1,8 +1,8 @@
 # Documentation Agent Testing Guide
 
-**Version:** 0.7  
+**Version:** 0.8  
 **Owner:** Project0  
-**Last Updated:** 2026-09-11
+**Last Updated:** 2026-09-18
 
 ## 1. Purpose and Scope
 
@@ -47,7 +47,7 @@ python -m pytest tests/acceptance/agents/documentation -v -s --headed --ui-slowm
 PWDEBUG=1 python -m pytest tests/acceptance/agents/documentation -v -s --headed
 ```
 
-Use Playwright waiting for synchronization. Manual scenarios shall cover ordinary/source-grounded requests, preserved filenames, rationales/diffs, reject/skip/revise non-mutation, approval in a disposable repository, validation, counters, Git diff, filtered-proposal warnings, and unchanged unrelated files.
+Use Playwright waiting for synchronization. Manual scenarios shall verify that request and valid review submissions redirect promptly to `/agents/documentation/runs/{run_id}`, that processing pages update elapsed time and poll run state, and that terminal reload presents review, revision, failure, or completion correctly. They shall also cover ordinary/source-grounded requests, preserved filenames, rationales/diffs, reject/skip/revise non-mutation, approval in a disposable repository, validation, counters, Git diff, filtered-proposal warnings, and unchanged unrelated files.
 
 Repository-safety acceptance shall confirm root/target containment; Markdown/existence enforcement; fail-closed anchors, semantic locations, and Python declarations; non-writing reject/skip/revise; approval-only writes; stale-snapshot rejection; per-file atomicity; unrelated-content preservation; applied-path-only diff; and explicit failed final validation without implied rollback. Unauthorized mutation is release-blocking.
 
@@ -67,6 +67,7 @@ Defect regression proceeds from smallest safe reproduction and classification th
 - **Every proposal skipped:** Check allowlist, type, location/anchor ambiguity, semantics, fenced code, and declaration fidelity.
 - **Approval failure:** Check containment, existence, permissions, and stale snapshot.
 - **Workflow ID missing:** A process restart loses in-memory review state.
+- **Run ID missing:** A process restart also loses Dashboard run state and retained page results.
 - **Final validation failed:** Inspect the written file and messages; no rollback occurs.
 - **Acceptance collection failed:** Install Playwright/Chromium and use supported pytest options.
 

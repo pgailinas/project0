@@ -1,14 +1,16 @@
 # Component Communication Design
 
-**Version:** 0.9  
+**Version:** 1.0  
 **Owner:** Project0  
-**Last Updated:** 2026-09-11  
-**Source Baseline:** `main` at `da217ae42f7ceeffc95a84c6baad3dc4376a18f9`
+**Last Updated:** 2026-09-18  
+**Source Baseline:** working tree based on `e23a957a152d500649b7a8bf2702347bc308464f`
 
 ## Executive Summary
 
-Project0 components communicate through synchronous, in-process calls and
-typed, boundary-specific requests and results. `PlatformDispatcher` assembles
+Project0 components communicate through typed, in-process requests and results.
+Workflow and reasoning implementations remain synchronous, while Dashboard
+submission routes can delegate long-running calls to the shared background-run
+manager and return before those calls finish. `PlatformDispatcher` assembles
 shared services and directly invokes the Documentation and Research workflows;
 the generic `WorkflowEngine` orchestrates only generic task sequences and the
 context startup path. Human review and deterministic safeguards remain between
@@ -22,7 +24,7 @@ algorithms remain in agent documentation. [Shared Data Models and Error
 Contracts](Shared_Data_Models_and_Error_Contracts.md) owns detailed object
 definitions.
 
-The design uses synchronous request/response calls, typed protocols, frozen
+The design uses direct calls plus process-local background execution, typed protocols, frozen
 dataclass results where defined, repository-relative paths, deterministic
 services when reasoning is unnecessary, explicit review before writes, and
 dependency injection. Frozen records provide shallow rather than deep
@@ -121,6 +123,12 @@ are `/`, `/documentation`, `/agents/{agent_identifier}`, `/api/status`,
 provider/model and instantaneous GPU data, not workflow telemetry or durable
 state.
 
+`BackgroundRunManager` accepts an agent identifier and callable, assigns a UUID,
+and records queued, running, completed, or failed state with timestamps. Agent
+routes retain ownership of run/status URLs and presentation. Research augments
+run lifecycle with its existing backend workflow-stage snapshot. Documentation
+polls platform run lifecycle and reloads its run URL for review or completion.
+
 Typed protocol families cover repository, generic workflow/events, context,
 knowledge, reasoning/provider, validation, artifacts, skills, Documentation,
 review/update/diff, and Research boundaries. Project0 does not route every call
@@ -141,10 +149,14 @@ boundary instead of assuming exception-only or result-only behavior.
 
 ## Constraints and Verification
 
-All current workflows and reasoning calls are synchronous and in process. There
-is no message queue, worker, distributed transport, durable workflow/review
-store, or live server-side stage telemetry. State is retained in returned
-results or the Documentation Workflow instance and is lost on restart.
+All current workflows and reasoning calls are synchronous and in process. The
+Dashboard runs selected calls in a local thread-pool executor, but there is no
+message queue, external worker, distributed transport, or durable workflow/run/
+review store. State is retained in background-run records, returned results, or
+the Documentation Workflow instance and is lost on restart. Run records do not
+expire automatically and are not shared across server processes. Each agent
+router defaults to one background worker; Research stage telemetry remains a
+single global snapshot.
 
 Focused unit and integration sources cover dispatch, workflows, repository,
 context/knowledge, reasoning, validation, locations, updates, Git differences,

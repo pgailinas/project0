@@ -11,12 +11,12 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from pathlib import Path
 
-from fastapi import APIRouter, Form, Request
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Form, HTTPException, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from starlette.concurrency import run_in_threadpool
 
 from project0.agents.documentation.documentation_agent_ui_service import (
     DocumentationAgentUIService,
@@ -28,6 +28,10 @@ from project0.agents.documentation.documentation_agent_view_models import (
 )
 from project0.models.documentation_workflow_models import ReviewDecision
 from project0.dashboard.dashboard_routes import build_dashboard_shell_context
+from project0.platform.background_runs import (
+    BackgroundRunManager,
+    BackgroundRunState,
+)
 
 
 DOCUMENTATION_AGENT_ROUTE_PREFIX = "/agents/documentation"
@@ -37,6 +41,7 @@ DOCUMENTATION_AGENT_TEMPLATE_NAME = "documentation_agent_home.html"
 def create_documentation_agent_router(
     ui_service: DocumentationAgentUIService,
     templates: Jinja2Templates | None = None,
+    run_manager: BackgroundRunManager | None = None,
 ) -> APIRouter:
     """
     Create the Documentation Agent router.
@@ -58,6 +63,7 @@ def create_documentation_agent_router(
         tags=["documentation-agent"],
     )
     template_engine = templates or _create_template_engine()
+    background_runs = run_manager or BackgroundRunManager()
 
     @router.get(
         "",
@@ -75,6 +81,55 @@ def create_documentation_agent_router(
             page=page,
         )
 
+    @router.get(
+        "/runs/{run_id}",
+        response_class=HTMLResponse,
+        name="documentation_agent_run",
+    )
+    async def documentation_agent_run(
+        request: Request,
+        run_id: str,
+    ) -> HTMLResponse:
+        """Render the processing or completed state for one run."""
+
+        run = _get_documentation_run(background_runs, run_id)
+        if run.state is BackgroundRunState.COMPLETED and run.result is not None:
+            page = run.result
+        elif run.state is BackgroundRunState.FAILED:
+            page = DocumentationAgentPageView(
+                page_status=DocumentationAgentPageStatus.FAILED,
+                status_message="The documentation workflow could not be completed.",
+                request_form=DocumentationRequestForm(),
+                error_message=run.error_message,
+            )
+        else:
+            page = DocumentationAgentPageView(
+                page_status=DocumentationAgentPageStatus.PROCESSING,
+                status_message="The documentation workflow is processing.",
+                request_form=DocumentationRequestForm(),
+            )
+        return _render_page(
+            templates=template_engine,
+            request=request,
+            page=page,
+            run_id=run_id,
+            elapsed_time=_elapsed_since(run.started_at or run.created_at),
+        )
+
+    @router.get(
+        "/runs/{run_id}/status",
+        name="documentation_agent_run_status",
+    )
+    async def documentation_agent_run_status(run_id: str) -> dict[str, str]:
+        """Return the platform lifecycle state for one documentation run."""
+
+        run = _get_documentation_run(background_runs, run_id)
+        return {
+            "run_id": run.run_id,
+            "run_state": run.state.value,
+            "result_url": f"{DOCUMENTATION_AGENT_ROUTE_PREFIX}/runs/{run_id}",
+        }
+
     @router.post(
         "/request",
         response_class=HTMLResponse,
@@ -88,17 +143,19 @@ def create_documentation_agent_router(
     ) -> HTMLResponse:
         """Submit a documentation request and render the resulting state."""
 
-        page = await run_in_threadpool(
-            ui_service.submit_request,
-            user_request=user_request,
-            source_paths=_parse_source_paths(source_paths),
-            target_paths=_parse_target_paths(target_paths),
+        parsed_source_paths = _parse_source_paths(source_paths)
+        parsed_target_paths = _parse_target_paths(target_paths)
+        run = background_runs.submit(
+            "documentation",
+            lambda: ui_service.submit_request(
+                user_request=user_request,
+                source_paths=parsed_source_paths,
+                target_paths=parsed_target_paths,
+            ),
         )
-
-        return _render_page(
-            templates=template_engine,
-            request=request,
-            page=page,
+        return RedirectResponse(
+            url=f"{DOCUMENTATION_AGENT_ROUTE_PREFIX}/runs/{run.run_id}",
+            status_code=303,
         )
 
     @router.post(
@@ -126,12 +183,18 @@ def create_documentation_agent_router(
                 error_message=f"Unsupported review decision: {decision}",
             )
         else:
-            page = await run_in_threadpool(
-                ui_service.submit_review_decision,
-                workflow_id=workflow_id,
-                proposal_id=proposal_id,
-                decision=review_decision,
-                feedback=feedback,
+            run = background_runs.submit(
+                "documentation",
+                lambda: ui_service.submit_review_decision(
+                    workflow_id=workflow_id,
+                    proposal_id=proposal_id,
+                    decision=review_decision,
+                    feedback=feedback,
+                ),
+            )
+            return RedirectResponse(
+                url=f"{DOCUMENTATION_AGENT_ROUTE_PREFIX}/runs/{run.run_id}",
+                status_code=303,
             )
 
         return _render_page(
@@ -154,6 +217,8 @@ def _render_page(
     templates: Jinja2Templates,
     request: Request,
     page: object,
+    run_id: str | None = None,
+    elapsed_time: str | None = None,
 ) -> HTMLResponse:
     """Render the Documentation Agent template with shared context."""
 
@@ -165,6 +230,8 @@ def _render_page(
         {
             "page": page,
             "active_navigation": "documentation-agent",
+            "run_id": run_id,
+            "elapsed_time": elapsed_time,
         }
     )
 
@@ -193,3 +260,22 @@ def _parse_target_paths(value: str) -> tuple[str, ...]:
         for line in value.splitlines()
         if line.strip()
     )
+
+
+def _elapsed_since(started_at: datetime) -> str:
+    total_seconds = max(
+        0,
+        int((datetime.now(UTC) - started_at).total_seconds()),
+    )
+    minutes, seconds = divmod(total_seconds, 60)
+    return f"{minutes:02d}:{seconds:02d}"
+
+
+def _get_documentation_run(
+    run_manager: BackgroundRunManager,
+    run_id: str,
+):
+    run = run_manager.get(run_id)
+    if run is None or run.agent_identifier != "documentation":
+        raise HTTPException(status_code=404, detail="Documentation run not found.")
+    return run

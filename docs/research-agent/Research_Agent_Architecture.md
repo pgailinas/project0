@@ -1,12 +1,12 @@
 # Research Agent Architecture
 
-**Version:** 0.6  
+**Version:** 0.7  
 **Owner:** Project0  
-**Last Updated:** 2026-09-11
+**Last Updated:** 2026-09-18
 
 ## 1. Executive Summary
 
-The Project0 Research Agent is a synchronous, local-first workflow hosted in the shared Dashboard and invoked through the Platform Dispatcher. Deterministic services control context ingestion, strategy, bounded query generation, provider dispatch, deduplication, shortlist boundaries, validation, and presentation mapping. Schema-constrained reasoning services perform context interpretation, evidence evaluation, retained-paper analysis, and research-direction synthesis. Generated findings remain distinct from source metadata and evidence, and recoverable defects are reported rather than silently treated as supported conclusions.
+The Project0 Research Agent is a local-first workflow hosted in the shared Dashboard and invoked through the Platform Dispatcher. Its workflow remains synchronous internally, while the Dashboard executes it as a platform-managed background run so the submission request returns immediately. Deterministic services control context ingestion, strategy, bounded query generation, provider dispatch, deduplication, shortlist boundaries, validation, and presentation mapping. Schema-constrained reasoning services perform context interpretation, evidence evaluation, retained-paper analysis, and research-direction synthesis. Generated findings remain distinct from source metadata and evidence, and recoverable defects are reported rather than silently treated as supported conclusions.
 
 ## 2. Purpose and Scope
 
@@ -31,11 +31,12 @@ flowchart TD
     EA --> RV["Result and browser view"]
 ```
 
-The workflow is synchronous. The browser shows a client-side processing state while the POST request runs in a Starlette thread pool; it receives no per-stage server progress events.
+The workflow is synchronous internally. The request route submits the UI-service call to the shared `BackgroundRunManager` and immediately redirects the browser to a run page. The run page polls run-scoped lifecycle state plus the Research workflow's backend stage snapshot, restores elapsed time from the run timestamp, and reloads the same URL to render the retained final page model.
 
 ### Browser and platform components
 
-- **Research Agent routes** expose `GET /agents/research` and `POST /agents/research/request`, read optional upload bytes, delegate blocking work through `run_in_threadpool`, and render the resulting page state.
+- **Research Agent routes** expose the ready page, request submission, run page, and progress endpoint; read optional upload bytes before background submission; return a `303` redirect; and render processing or retained final page state by run ID.
+- **Background Run Manager** assigns run IDs, serializes Research runs through the router's default worker, records lifecycle timestamps and terminal results, and captures unexpected failures outside the UI service.
 - **UI Service and view models** validate the question, invoke the dispatcher, map `ResearchResult` into immutable browser models, consolidate paper data by source identity, merge evaluation warnings into relevance limitations, and derive page status.
 - **Platform Dispatcher** constructs `ResearchRequest`, invokes the Research Workflow, and wires the current services, providers, and agent-specific model.
 
@@ -99,7 +100,9 @@ Research output validation occurs inside context, evaluation, paper-analysis, an
 
 Current constraints are:
 
-- Execution is synchronous and local-first with no server progress events.
+- Workflow execution is synchronous and local-first inside a process-managed background worker; the originating POST does not remain open.
+- Run records and results are process-local, non-durable, not shared across server processes, and have no automatic expiration.
+- Research stage telemetry remains one global workflow snapshot, so the Research router uses one background worker and queues overlapping submissions.
 - Context chunking and OCR are not implemented.
 - Retrieval and evidence bounds limit coverage.
 - Alignment-specific heuristics may affect non-ECE research when their trigger vocabulary appears.
@@ -108,4 +111,4 @@ Current constraints are:
 - Legacy artifacts and browser-saved Markdown are separate output mechanisms.
 - Human review of underlying papers remains required.
 
-Potential asynchronous execution, progress events, configurable candidate profiles, additional providers, caching, chunking, OCR, richer evidence extraction, source-failure reporting, and citation-aware export are future possibilities rather than current capabilities.
+Potential durable or distributed execution, run cleanup, fully run-scoped stage events, configurable candidate profiles, additional providers, caching, chunking, OCR, richer evidence extraction, source-failure reporting, and citation-aware export are future possibilities rather than current capabilities.

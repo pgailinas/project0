@@ -1,8 +1,8 @@
 # Documentation Agent Architecture
 
-**Version:** 0.8  
+**Version:** 0.9  
 **Owner:** Project0  
-**Last Updated:** 2026-09-11
+**Last Updated:** 2026-09-18
 
 ## 1. Executive Summary
 
@@ -18,12 +18,13 @@ The architecture keeps agent-specific workflow and presentation behavior outside
 
 ### Runtime topology
 
-The Dashboard router accepts requests and individual review decisions. The UI Service normalizes browser values, invokes the Platform Dispatcher, and maps workflow objects into presentation models. The dispatcher calls `DocumentationWorkflow` directly; the assembled generic `WorkflowEngine` is not its current execution engine.
+The Dashboard router accepts requests and individual review decisions, submits valid operations to the shared background-run manager, and immediately redirects the browser to a run page. The UI Service normalizes browser values, invokes the Platform Dispatcher, and maps workflow objects into presentation models. The dispatcher calls `DocumentationWorkflow` directly; the assembled generic `WorkflowEngine` is not its current execution engine.
 
 ```mermaid
 flowchart TD
     B["Documentation Work Area"] --> R["FastAPI routes"]
-    R --> U["Documentation UI Service"]
+    R --> B["Background Run Manager"]
+    B --> U["Documentation UI Service"]
     U --> P["Platform Dispatcher"]
     P --> W["Documentation Workflow"]
     W --> S["Review state or result"]
@@ -34,7 +35,8 @@ flowchart TD
 
 ### Browser and orchestration components
 
-- **Documentation Agent Routes** expose the Work Area, request, and review endpoints; parse newline-separated paths and decisions; delegate blocking calls through the thread pool; and render the shared shell.
+- **Documentation Agent Routes** expose the Work Area, request, review, run, and run-status endpoints; parse newline-separated paths and decisions; enqueue valid workflow operations; return `303` redirects; and render processing or retained final page state.
+- **Background Run Manager** assigns run IDs, executes Documentation calls through the router's default worker, records lifecycle timestamps and terminal results, and captures unexpected failures outside the UI service.
 - **Documentation Agent UI Service** normalizes fields, invokes the workflow port, maps domain data to immutable view models, creates focused differences using the shared application helper, and converts errors to page states.
 - **Platform Dispatcher** exposes workflow execution, review submission, and state retrieval; validates top-level inputs; and assembles dependencies.
 - **Documentation Workflow** owns context selection, reasoning, gap deduplication, proposal construction and filtering, validation, in-memory review state, application, Git diff, statuses, warnings, and summary counts.
@@ -100,10 +102,11 @@ Current constraints are:
 - Source-grounded context is limited to explicit targets and sources.
 - Preliminary validation examines current files, not a candidate tree.
 - Review state is in memory and decisions are processed per proposal.
+- Dashboard run state and retained page results are also in memory, are not shared across server processes, and have no automatic expiration.
 - Revise does not regenerate a proposal automatically.
 - Writes are atomic per file but not transactional across proposals.
 - Final validation provides no rollback.
 - Documentation Consistency Validator is not in the default validator tuple.
 - The workflow performs no Git publication operation.
 
-Durable state, candidate-tree validation, automatic revision, transactions or rollback, controlled create/delete, semantic retrieval, repository-event awareness, asynchronous execution, more providers, and multi-agent coordination are future possibilities, not current capabilities.
+Durable or distributed run execution, run cleanup, durable workflow state, candidate-tree validation, automatic revision, transactions or rollback, controlled create/delete, semantic retrieval, repository-event awareness, more providers, and multi-agent coordination are future possibilities, not current capabilities.

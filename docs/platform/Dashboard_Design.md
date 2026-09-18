@@ -1,9 +1,9 @@
 # Dashboard Design
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Owner:** Project0  
-**Last Updated:** 2026-09-11  
-**Source Baseline:** `main` at `da217ae42f7ceeffc95a84c6baad3dc4376a18f9`
+**Last Updated:** 2026-09-18  
+**Source Baseline:** working tree based on `e23a957a152d500649b7a8bf2702347bc308464f`
 
 ## Executive Summary
 
@@ -12,7 +12,9 @@ persistent shared shell and separately owned Documentation and Research agent
 interfaces. The configured factory registers both agents through dedicated
 dispatchers; the bare factory can create only the shared shell. Routing,
 navigation, configuration snapshots, and GPU status are shared, while workflow
-forms and results remain agent-owned. Execution is synchronous and process-local.
+forms and results remain agent-owned. Long-running Dashboard operations execute
+through a shared, process-local background-run manager so HTTP submission
+requests return before agent workflows finish.
 
 ## Purpose and Scope
 
@@ -102,6 +104,14 @@ dispatcher calls, view models, results/warnings/validation/differences, toolbar
 actions, scripts, templates, and CSS. UI services call `PlatformDispatcher`;
 the Dashboard does not duplicate workflow logic.
 
+The shared `BackgroundRunManager` owns run identifiers, queued/running/completed/
+failed lifecycle state, timestamps, worker execution, retained results, and
+unexpected failure capture. Agent routes submit callables and expose agent-owned
+run and status URLs. A `303 See Other` response redirects the browser from a
+submission to its processing page. Processing pages restore elapsed time, poll
+run state, and replace themselves with the same run URL when work reaches a
+terminal state; the run page then renders the retained agent page model.
+
 System status accepts an optional agent selector. With Ollama, Research uses
 `PROJECT0_RESEARCH_OLLAMA_MODEL`, then `PROJECT0_OLLAMA_MODEL`, defaulting to
 `qwen2.5:7b`; Documentation uses its agent variable, then the shared variable,
@@ -118,8 +128,10 @@ durable activity.
 
 MkDocs is separate at `127.0.0.1:8000`; the Dashboard redirects to it but does
 not start or host it. Unknown non-agent routes use FastAPI's normal 404.
-Workflow calls remain synchronous even when routes are declared `async`, so
-browser processing feedback is not a separate background job.
+Agent workflow implementations and dispatcher calls remain synchronous, but the
+Dashboard executes them outside the originating HTTP request through the
+background-run manager. Initial Research requests and Documentation request and
+review submissions therefore do not hold their POST connections open.
 
 Below 900 px, the shell becomes one column; below 640 px, Header/Footer stack,
 toolbar actions wrap, and status/summary rows stack. Semantic elements,
@@ -130,9 +142,13 @@ formal compliance.
 ## Constraints and Verification
 
 The shared Dashboard lacks authentication/authorization, profiles/logout, Help,
-Activity and Settings pages, persistent activity/history, background jobs,
-server-side progress, automatic/embedded MkDocs, deployment configuration, dark
-mode, dynamic plugin/agent discovery, and configuration-only installation.
+Activity and Settings pages, persistent activity/history, durable or distributed
+background jobs, automatic/embedded MkDocs, deployment configuration, dark mode,
+dynamic plugin/agent discovery, and configuration-only installation. Run state
+and results are held in memory, are not shared across server processes, and are
+lost on restart. Runs do not yet expire automatically. Each agent router uses a
+single worker by default; this preserves the Research workflow's existing single
+global progress snapshot and queues overlapping runs for that agent.
 
 Unit coverage in `test_dashboard_app.py` and `test_dashboard_routes.py` addresses
 factories, state, conditional registration, precedence, configuration, shell,

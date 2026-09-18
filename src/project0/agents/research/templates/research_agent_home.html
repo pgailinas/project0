@@ -872,7 +872,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const updateResearchProgress = async () => {
         try {
             const response = await fetch(
-                "/agents/research/progress",
+                "/agents/research/progress{% if run_id %}?run_id={{ run_id }}{% endif %}",
                 { cache: "no-store" }
             );
 
@@ -911,6 +911,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 } else if (progress.state === "failed") {
                     state.textContent = "Failed";
                 }
+            }
+
+            if (
+                progress.result_url
+                && ["completed", "failed"].includes(progress.run_state)
+            ) {
+                window.location.replace(progress.result_url);
             }
         } catch (error) {
             return;
@@ -961,6 +968,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         let elapsedSeconds = 0;
 
+        if (elapsed && /^\d+:\d{2}$/.test(elapsed.textContent.trim())) {
+            const [minutes, seconds] = elapsed.textContent
+                .trim()
+                .split(":")
+                .map(Number);
+            elapsedSeconds = (minutes * 60) + seconds;
+        }
+
         if (elapsed) {
             elapsed.textContent = formatElapsed(elapsedSeconds);
         }
@@ -977,6 +992,14 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }, 1000);
     };
+
+    {% if run_id and page.page_status.value == "processing" %}
+    beginResearchSystemStatus();
+    updateSystemStatus();
+    updateResearchProgress();
+    window.setInterval(updateSystemStatus, 2000);
+    window.setInterval(updateResearchProgress, 1000);
+    {% endif %}
 
     form.addEventListener("submit", (event) => {
         event.preventDefault();
