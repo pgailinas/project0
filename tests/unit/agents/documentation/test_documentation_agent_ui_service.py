@@ -37,6 +37,7 @@ class FakeWorkflow:
     error: Exception | None = None
     review_result: object | None = None
     review_error: Exception | None = None
+    workflow_state: object | None = None
     received_arguments: dict[str, Any] | None = None
     received_review: tuple[str, object] | None = None
 
@@ -81,7 +82,11 @@ class FakeWorkflow:
     ) -> object:
         """Return preserved workflow request context for revise tests."""
 
-        return self.review_result
+        return (
+            self.workflow_state
+            if self.workflow_state is not None
+            else self.review_result
+        )
 
 
 def test_create_ready_page() -> None:
@@ -721,6 +726,9 @@ def test_submit_review_decision_normalizes_feedback_and_maps_result() -> None:
         review_result={
             "workflow_id": "workflow-6",
             "status": "completed",
+            "user_request": "Update the documentation.",
+            "source_paths": ("src/project0/example.py",),
+            "target_paths": ("docs/Example.md",),
             "proposals": (
                 {
                     "proposal_id": "proposal-1",
@@ -765,6 +773,9 @@ def test_submit_review_decision_normalizes_feedback_and_maps_result() -> None:
     assert page.workflow_id == "workflow-6"
     assert page.proposals[0].selected_decision is ReviewDecision.APPROVE
     assert page.proposals[0].feedback == "Looks correct."
+    assert page.request_form.user_request == "Update the documentation."
+    assert page.request_form.source_paths == ("src/project0/example.py",)
+    assert page.request_form.target_paths == ("docs/Example.md",)
 
 
 
@@ -836,7 +847,12 @@ def test_submit_review_decision_handles_exception() -> None:
     """Workflow review exceptions should become failure pages."""
 
     workflow = FakeWorkflow(
-        review_error=RuntimeError("Review state was not found.")
+        review_error=RuntimeError("Review state was not found."),
+        workflow_state={
+            "user_request": "Preserve this submitted request.",
+            "source_paths": ("src/project0/example.py",),
+            "target_paths": ("docs/Example.md",),
+        },
     )
     service = DocumentationAgentUIService(workflow=workflow)
 
@@ -853,6 +869,70 @@ def test_submit_review_decision_handles_exception() -> None:
     )
     assert page.error_message == "Review state was not found."
     assert page.workflow_id == "workflow-8"
+    assert page.request_form.user_request == (
+        "Preserve this submitted request."
+    )
+    assert page.request_form.source_paths == ("src/project0/example.py",)
+    assert page.request_form.target_paths == ("docs/Example.md",)
+
+
+def test_terminal_review_decisions_preserve_submitted_parameters() -> None:
+    """Terminal review outcomes should retain submitted request values."""
+
+    for decision in (ReviewDecision.REJECT, ReviewDecision.SKIP):
+        workflow = FakeWorkflow(
+            review_result={
+                "workflow_id": f"workflow-{decision.value}",
+                "status": "completed",
+                "user_request": "Retain the request parameters.",
+                "source_paths": ("src/project0/example.py",),
+                "target_paths": ("docs/Example.md",),
+            }
+        )
+        service = DocumentationAgentUIService(workflow=workflow)
+
+        page = service.submit_review_decision(
+            workflow_id=f"workflow-{decision.value}",
+            proposal_id="proposal-1",
+            decision=decision,
+        )
+
+        assert page.request_form.user_request == (
+            "Retain the request parameters."
+        )
+        assert page.request_form.source_paths == (
+            "src/project0/example.py",
+        )
+        assert page.request_form.target_paths == ("docs/Example.md",)
+
+
+def test_failed_review_result_preserves_submitted_parameters() -> None:
+    """Failed workflow results should retain submitted request values."""
+
+    workflow = FakeWorkflow(
+        review_result={
+            "workflow_id": "workflow-failed-application",
+            "status": "failed",
+            "user_request": "Apply the approved documentation update.",
+            "source_paths": ("src/project0/example.py",),
+            "target_paths": ("docs/Example.md",),
+            "error_message": "The approved change could not be applied.",
+        }
+    )
+    service = DocumentationAgentUIService(workflow=workflow)
+
+    page = service.submit_review_decision(
+        workflow_id="workflow-failed-application",
+        proposal_id="proposal-1",
+        decision=ReviewDecision.APPROVE,
+    )
+
+    assert page.page_status is DocumentationAgentPageStatus.FAILED
+    assert page.request_form.user_request == (
+        "Apply the approved documentation update."
+    )
+    assert page.request_form.source_paths == ("src/project0/example.py",)
+    assert page.request_form.target_paths == ("docs/Example.md",)
 
 
 def test_unknown_mapped_values_use_safe_defaults() -> None:

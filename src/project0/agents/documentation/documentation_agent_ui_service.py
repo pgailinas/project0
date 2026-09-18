@@ -145,7 +145,12 @@ class DocumentationAgentUIService:
         if not isinstance(decision, ReviewDecision):
             decision = ReviewDecision(str(decision))
 
-        request_form = DocumentationRequestForm()
+        try:
+            workflow_state = self.workflow.get_workflow_state(workflow_id)
+        except Exception:
+            workflow_state = None
+
+        request_form = self._request_form_from_workflow(workflow_state)
 
         try:
             review_result = self.workflow.submit_documentation_review(
@@ -165,38 +170,10 @@ class DocumentationAgentUIService:
                 workflow_id=workflow_id,
             )
 
-        if decision is ReviewDecision.REVISE:
-            workflow_state = (
-                self.workflow.get_workflow_state(
-                    workflow_id
-                )
-            )
-
-            request_form = DocumentationRequestForm(
-                user_request=str(
-                    self._read_value(
-                        workflow_state,
-                        "user_request",
-                        default="",
-                    )
-                ),
-                source_paths=tuple(
-                    str(path)
-                    for path in self._read_value(
-                        workflow_state,
-                        "source_paths",
-                        default=(),
-                    )
-                ),
-                target_paths=tuple(
-                    str(path)
-                    for path in self._read_value(
-                        workflow_state,
-                        "target_paths",
-                        default=(),
-                    )
-                ),
-            )
+        request_form = self._request_form_from_workflow(
+            review_result,
+            fallback=request_form,
+        )
 
         return self._map_workflow_result(
             workflow_result=review_result,
@@ -205,6 +182,44 @@ class DocumentationAgentUIService:
                 DocumentationAgentPageStatus.REVISION_REQUIRED
                 if decision is ReviewDecision.REVISE
                 else None
+            ),
+        )
+
+    def _request_form_from_workflow(
+        self,
+        workflow_result: object | None,
+        fallback: DocumentationRequestForm | None = None,
+    ) -> DocumentationRequestForm:
+        """Restore submitted request values from workflow state or result."""
+
+        fallback_form = fallback or DocumentationRequestForm()
+
+        if workflow_result is None:
+            return fallback_form
+
+        return DocumentationRequestForm(
+            user_request=str(
+                self._read_value(
+                    workflow_result,
+                    "user_request",
+                    default=fallback_form.user_request,
+                )
+            ),
+            source_paths=tuple(
+                str(path)
+                for path in self._read_value(
+                    workflow_result,
+                    "source_paths",
+                    default=fallback_form.source_paths,
+                )
+            ),
+            target_paths=tuple(
+                str(path)
+                for path in self._read_value(
+                    workflow_result,
+                    "target_paths",
+                    default=fallback_form.target_paths,
+                )
             ),
         )
 
