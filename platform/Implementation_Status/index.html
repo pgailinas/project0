@@ -1651,9 +1651,9 @@
 
 
 <h1 id="implementation-status">Implementation Status</h1>
-<p><strong>Version:</strong> 1.1<br />
+<p><strong>Version:</strong> 1.2<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-11</p>
+<strong>Last Updated:</strong> 2026-09-18</p>
 <hr />
 <h2 id="purpose-and-authority">Purpose and Authority</h2>
 <p>This document summarizes Project0 capabilities visible in source, tests,
@@ -1770,8 +1770,9 @@ environment settings, logging, repository-structure startup validation,
 repository containment and Markdown-safe updates, Git differences,
 deterministic context and repository-knowledge processing, provider-neutral
 structured reasoning, Ollama and stub providers, composable documentation
-validation, synchronous workflow/dispatcher composition, and the shared
-FastAPI/Jinja2 Dashboard shell.</p>
+validation, synchronous workflow/dispatcher composition, the shared
+FastAPI/Jinja2 Dashboard shell, and process-local background execution for
+long-running agent submissions.</p>
 <p>Startup validation does not verify dependencies, compilation, tests, MkDocs,
 Git state, Ollama, models, or research providers. Knowledge retrieval has no
 embedding model, vector store, semantic service, or durable index. The generic
@@ -1787,14 +1788,17 @@ source-grounded reasoning, localized proposals, human review, controlled
 Markdown application, preliminary/final validation, Git differences, and
 Dashboard presentation. Review state is in memory; only approved supported
 updates are applied; deterministic rules remain authoritative over model output;
-and no automatic commit, push, pull request, publication, or deployment occurs.</p>
+and no automatic commit, push, pull request, publication, or deployment occurs.
+Dashboard request and review submissions return promptly and continue through
+platform-managed, process-local background runs.</p>
 <h3 id="research-agent">Research Agent</h3>
 <p>The Research Agent implements research planning, bounded multi-query retrieval,
 Semantic Scholar/OpenAlex/OpenReview/Crossref/arXiv/stub adapters, optional PDF,
 Markdown, or text context, provenance, evidence acquisition, per-paper analysis,
 evaluation, synthesis, grounded Direction Analysis, and Dashboard presentation.
 Live behavior depends on configured providers; deterministic regression uses
-stubs; no durable research-session store exists; and the shared Skill Registry
+stubs; Dashboard submission uses a process-local background run; no durable
+research-session store exists; and the shared Skill Registry
 is not passed to the Research Workflow.</p>
 <h3 id="agent-skills">Agent Skills</h3>
 <p>Implemented skill support includes repository-local <code>SKILL.md</code> files, immutable
@@ -1831,7 +1835,7 @@ execution evidence.</p>
 <li>companion PDF/ODS status artifacts were not verified;</li>
 <li>workflow, review, research-session, audit, telemetry, and activity state are
   not durable;</li>
-<li>asynchronous/distributed execution, authentication, role-based access,
+<li>durable or distributed execution, authentication, role-based access,
   dynamic registration, external skill trust/installation, automatic Git or
   publication operations, semantic retrieval, and CI/CD are not implemented;</li>
 <li><code>/activity</code> and <code>/settings</code> are placeholders; and</li>

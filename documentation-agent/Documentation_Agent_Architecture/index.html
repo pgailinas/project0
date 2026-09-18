@@ -1707,9 +1707,9 @@
 
 
 <h1 id="documentation-agent-architecture">Documentation Agent Architecture</h1>
-<p><strong>Version:</strong> 0.8<br />
+<p><strong>Version:</strong> 0.9<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-11</p>
+<strong>Last Updated:</strong> 2026-09-18</p>
 <h2 id="1-executive-summary">1. Executive Summary</h2>
 <p>The Documentation Agent is a source-grounded, human-reviewed Markdown update workflow hosted by the shared Project0 Dashboard. It composes separate repository, context, reasoning, location, validation, review, update, and Git-diff services behind typed boundaries. Reasoning proposes changes; deterministic guards establish eligibility and location; individual human approval authorizes each write. Approved files are replaced atomically, but the proposal set is not transactional and failed final validation does not roll back a completed write.</p>
 <h2 id="2-purpose-and-scope">2. Purpose and Scope</h2>
@@ -1717,10 +1717,11 @@
 <p>The architecture keeps agent-specific workflow and presentation behavior outside the shared Dashboard shell. It treats supplied source files as read-only evidence, existing Markdown targets as controlled artifacts, provider output as untrusted structured input, and ambiguous source-grounded proposals as warnings rather than best-effort writes.</p>
 <h2 id="3-architecture-and-components">3. Architecture and Components</h2>
 <h3 id="runtime-topology">Runtime topology</h3>
-<p>The Dashboard router accepts requests and individual review decisions. The UI Service normalizes browser values, invokes the Platform Dispatcher, and maps workflow objects into presentation models. The dispatcher calls <code>DocumentationWorkflow</code> directly; the assembled generic <code>WorkflowEngine</code> is not its current execution engine.</p>
+<p>The Dashboard router accepts requests and individual review decisions, submits valid operations to the shared background-run manager, and immediately redirects the browser to a run page. The UI Service normalizes browser values, invokes the Platform Dispatcher, and maps workflow objects into presentation models. The dispatcher calls <code>DocumentationWorkflow</code> directly; the assembled generic <code>WorkflowEngine</code> is not its current execution engine.</p>
 <pre class="mermaid"><code>flowchart TD
     B["Documentation Work Area"] --&gt; R["FastAPI routes"]
-    R --&gt; U["Documentation UI Service"]
+    R --&gt; B["Background Run Manager"]
+    B --&gt; U["Documentation UI Service"]
     U --&gt; P["Platform Dispatcher"]
     P --&gt; W["Documentation Workflow"]
     W --&gt; S["Review state or result"]
@@ -1728,7 +1729,8 @@
 <p><code>create_project0_dashboard_app()</code> constructs separate Documentation and Research dispatchers. In Ollama mode they may share a provider while using agent-specific model names. The Documentation model resolves from <code>PROJECT0_DOCUMENTATION_OLLAMA_MODEL</code>, then <code>PROJECT0_OLLAMA_MODEL</code>, with <code>gemma3:4b</code> as default. Stub mode supplies separate deterministic providers.</p>
 <h3 id="browser-and-orchestration-components">Browser and orchestration components</h3>
 <ul>
-<li><strong>Documentation Agent Routes</strong> expose the Work Area, request, and review endpoints; parse newline-separated paths and decisions; delegate blocking calls through the thread pool; and render the shared shell.</li>
+<li><strong>Documentation Agent Routes</strong> expose the Work Area, request, review, run, and run-status endpoints; parse newline-separated paths and decisions; enqueue valid workflow operations; return <code>303</code> redirects; and render processing or retained final page state.</li>
+<li><strong>Background Run Manager</strong> assigns run IDs, executes Documentation calls through the router's default worker, records lifecycle timestamps and terminal results, and captures unexpected failures outside the UI service.</li>
 <li><strong>Documentation Agent UI Service</strong> normalizes fields, invokes the workflow port, maps domain data to immutable view models, creates focused differences using the shared application helper, and converts errors to page states.</li>
 <li><strong>Platform Dispatcher</strong> exposes workflow execution, review submission, and state retrieval; validates top-level inputs; and assembles dependencies.</li>
 <li><strong>Documentation Workflow</strong> owns context selection, reasoning, gap deduplication, proposal construction and filtering, validation, in-memory review state, application, Git diff, statuses, warnings, and summary counts.</li>
@@ -1783,13 +1785,14 @@
 <li>Source-grounded context is limited to explicit targets and sources.</li>
 <li>Preliminary validation examines current files, not a candidate tree.</li>
 <li>Review state is in memory and decisions are processed per proposal.</li>
+<li>Dashboard run state and retained page results are also in memory, are not shared across server processes, and have no automatic expiration.</li>
 <li>Revise does not regenerate a proposal automatically.</li>
 <li>Writes are atomic per file but not transactional across proposals.</li>
 <li>Final validation provides no rollback.</li>
 <li>Documentation Consistency Validator is not in the default validator tuple.</li>
 <li>The workflow performs no Git publication operation.</li>
 </ul>
-<p>Durable state, candidate-tree validation, automatic revision, transactions or rollback, controlled create/delete, semantic retrieval, repository-event awareness, asynchronous execution, more providers, and multi-agent coordination are future possibilities, not current capabilities.</p>
+<p>Durable or distributed run execution, run cleanup, durable workflow state, candidate-tree validation, automatic revision, transactions or rollback, controlled create/delete, semantic retrieval, repository-event awareness, more providers, and multi-agent coordination are future possibilities, not current capabilities.</p>
 
 
 

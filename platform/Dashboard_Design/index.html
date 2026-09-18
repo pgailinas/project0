@@ -1651,17 +1651,19 @@
 
 
 <h1 id="dashboard-design">Dashboard Design</h1>
-<p><strong>Version:</strong> 1.0<br />
+<p><strong>Version:</strong> 1.1<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-11<br />
-<strong>Source Baseline:</strong> <code>main</code> at <code>da217ae42f7ceeffc95a84c6baad3dc4376a18f9</code></p>
+<strong>Last Updated:</strong> 2026-09-18<br />
+<strong>Source Baseline:</strong> working tree based on <code>e23a957a152d500649b7a8bf2702347bc308464f</code></p>
 <h2 id="executive-summary">Executive Summary</h2>
 <p>The Project0 Dashboard is a local FastAPI/Jinja2 browser application with a
 persistent shared shell and separately owned Documentation and Research agent
 interfaces. The configured factory registers both agents through dedicated
 dispatchers; the bare factory can create only the shared shell. Routing,
 navigation, configuration snapshots, and GPU status are shared, while workflow
-forms and results remain agent-owned. Execution is synchronous and process-local.</p>
+forms and results remain agent-owned. Long-running Dashboard operations execute
+through a shared, process-local background-run manager so HTTP submission
+requests return before agent workflows finish.</p>
 <h2 id="purpose-and-scope">Purpose and Scope</h2>
 <p>This document defines the implemented Dashboard composition, shared shell,
 navigation, routes, status presentation, extension boundary, responsive
@@ -1790,6 +1792,13 @@ templates/styles, and service extension points. Agents own exact routes, forms,
 dispatcher calls, view models, results/warnings/validation/differences, toolbar
 actions, scripts, templates, and CSS. UI services call <code>PlatformDispatcher</code>;
 the Dashboard does not duplicate workflow logic.</p>
+<p>The shared <code>BackgroundRunManager</code> owns run identifiers, queued/running/completed/
+failed lifecycle state, timestamps, worker execution, retained results, and
+unexpected failure capture. Agent routes submit callables and expose agent-owned
+run and status URLs. A <code>303 See Other</code> response redirects the browser from a
+submission to its processing page. Processing pages restore elapsed time, poll
+run state, and replace themselves with the same run URL when work reaches a
+terminal state; the run page then renders the retained agent page model.</p>
 <p>System status accepts an optional agent selector. With Ollama, Research uses
 <code>PROJECT0_RESEARCH_OLLAMA_MODEL</code>, then <code>PROJECT0_OLLAMA_MODEL</code>, defaulting to
 <code>qwen2.5:7b</code>; Documentation uses its agent variable, then the shared variable,
@@ -1803,8 +1812,10 @@ durable activity.</p>
 <h2 id="configuration-and-failure-behavior">Configuration and Failure Behavior</h2>
 <p>MkDocs is separate at <code>127.0.0.1:8000</code>; the Dashboard redirects to it but does
 not start or host it. Unknown non-agent routes use FastAPI's normal 404.
-Workflow calls remain synchronous even when routes are declared <code>async</code>, so
-browser processing feedback is not a separate background job.</p>
+Agent workflow implementations and dispatcher calls remain synchronous, but the
+Dashboard executes them outside the originating HTTP request through the
+background-run manager. Initial Research requests and Documentation request and
+review submissions therefore do not hold their POST connections open.</p>
 <p>Below 900 px, the shell becomes one column; below 640 px, Header/Footer stack,
 toolbar actions wrap, and status/summary rows stack. Semantic elements,
 <code>lang="en"</code>, viewport metadata, breadcrumb/toolbar/grid labels,
@@ -1812,9 +1823,13 @@ toolbar actions wrap, and status/summary rows stack. Semantic elements,
 formal compliance.</p>
 <h2 id="constraints-and-verification">Constraints and Verification</h2>
 <p>The shared Dashboard lacks authentication/authorization, profiles/logout, Help,
-Activity and Settings pages, persistent activity/history, background jobs,
-server-side progress, automatic/embedded MkDocs, deployment configuration, dark
-mode, dynamic plugin/agent discovery, and configuration-only installation.</p>
+Activity and Settings pages, persistent activity/history, durable or distributed
+background jobs, automatic/embedded MkDocs, deployment configuration, dark mode,
+dynamic plugin/agent discovery, and configuration-only installation. Run state
+and results are held in memory, are not shared across server processes, and are
+lost on restart. Runs do not yet expire automatically. Each agent router uses a
+single worker by default; this preserves the Research workflow's existing single
+global progress snapshot and queues overlapping runs for that agent.</p>
 <p>Unit coverage in <code>test_dashboard_app.py</code> and <code>test_dashboard_routes.py</code> addresses
 factories, state, conditional registration, precedence, configuration, shell,
 overview, fallbacks, redirects, status/model/GPU behavior, and unknown routes.

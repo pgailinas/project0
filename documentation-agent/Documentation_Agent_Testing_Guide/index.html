@@ -1551,9 +1551,9 @@
 
 
 <h1 id="documentation-agent-testing-guide">Documentation Agent Testing Guide</h1>
-<p><strong>Version:</strong> 0.7<br />
+<p><strong>Version:</strong> 0.8<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-11</p>
+<strong>Last Updated:</strong> 2026-09-18</p>
 <h2 id="1-purpose-and-scope">1. Purpose and Scope</h2>
 <p>This guide supplements the repository-wide Testing Guide with Documentation Agent verification, commands, browser/live-provider checks, repository-safety requirements, interpretation, and troubleshooting. It does not replace the Test Plan or Test Results.</p>
 <p>Testing shall verify both context modes, bounded source-grounded reasoning, fail-closed proposal guards, preliminary/final validation boundaries, all human decisions, stale-content protection, atomic approved writes, path-scoped diffs, Dashboard behavior, explicit failure reporting, and shared-platform regression safety.</p>
@@ -1583,7 +1583,7 @@
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/acceptance/agents/documentation<span class="w"> </span>-v<span class="w"> </span>-s<span class="w"> </span>--headed<span class="w"> </span>--ui-slowmo<span class="o">=</span><span class="m">750</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nv">PWDEBUG</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/acceptance/agents/documentation<span class="w"> </span>-v<span class="w"> </span>-s<span class="w"> </span>--headed
 </span></code></pre></div>
-<p>Use Playwright waiting for synchronization. Manual scenarios shall cover ordinary/source-grounded requests, preserved filenames, rationales/diffs, reject/skip/revise non-mutation, approval in a disposable repository, validation, counters, Git diff, filtered-proposal warnings, and unchanged unrelated files.</p>
+<p>Use Playwright waiting for synchronization. Manual scenarios shall verify that request and valid review submissions redirect promptly to <code>/agents/documentation/runs/{run_id}</code>, that processing pages update elapsed time and poll run state, and that terminal reload presents review, revision, failure, or completion correctly. They shall also cover ordinary/source-grounded requests, preserved filenames, rationales/diffs, reject/skip/revise non-mutation, approval in a disposable repository, validation, counters, Git diff, filtered-proposal warnings, and unchanged unrelated files.</p>
 <p>Repository-safety acceptance shall confirm root/target containment; Markdown/existence enforcement; fail-closed anchors, semantic locations, and Python declarations; non-writing reject/skip/revise; approval-only writes; stale-snapshot rejection; per-file atomicity; unrelated-content preservation; applied-path-only diff; and explicit failed final validation without implied rollback. Unauthorized mutation is release-blocking.</p>
 <h2 id="4-result-interpretation">4. Result Interpretation</h2>
 <p>The agent is ready only when focused unit tests, relevant platform integration, browser request/review/approval acceptance, all decision semantics, both context modes, safeguards, stale protection, validation boundaries, and full Project0 regression pass; live-provider behavior is separately reviewed; and documentation matches implementation.</p>
@@ -1597,6 +1597,7 @@
 <li><strong>Every proposal skipped:</strong> Check allowlist, type, location/anchor ambiguity, semantics, fenced code, and declaration fidelity.</li>
 <li><strong>Approval failure:</strong> Check containment, existence, permissions, and stale snapshot.</li>
 <li><strong>Workflow ID missing:</strong> A process restart loses in-memory review state.</li>
+<li><strong>Run ID missing:</strong> A process restart also loses Dashboard run state and retained page results.</li>
 <li><strong>Final validation failed:</strong> Inspect the written file and messages; no rollback occurs.</li>
 <li><strong>Acceptance collection failed:</strong> Install Playwright/Chromium and use supported pytest options.</li>
 </ul>

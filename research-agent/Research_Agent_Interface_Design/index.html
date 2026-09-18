@@ -1629,9 +1629,9 @@
 
 
 <h1 id="research-agent-interface-design">Research Agent Interface Design</h1>
-<p><strong>Version:</strong> 0.5<br />
+<p><strong>Version:</strong> 0.6<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-11</p>
+<strong>Last Updated:</strong> 2026-09-18</p>
 <h2 id="1-purpose-and-scope">1. Purpose and Scope</h2>
 <p>This document defines the implemented browser, dispatcher, service, provider, model, presentation, status, and safety interfaces of the Project0 Research Agent. It describes public boundaries and contracts rather than internal algorithms.</p>
 <h2 id="2-interface-boundaries">2. Interface Boundaries</h2>
@@ -1656,12 +1656,22 @@
 <tr>
 <td><code>POST</code></td>
 <td><code>/agents/research/request</code></td>
-<td>Read form/upload values, run the UI service in a thread pool, and render the result.</td>
+<td>Read form/upload values, enqueue a background run, and return <code>303</code> to its run page.</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/agents/research/runs/{run_id}</code></td>
+<td>Render the run's processing, failed, or retained result page.</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/agents/research/progress?run_id={run_id}</code></td>
+<td>Return workflow stage, run lifecycle state, and result URL.</td>
 </tr>
 </tbody>
 </table>
 <p>The form accepts optional <code>.pdf</code>, <code>.md</code>, <code>.markdown</code>, or <code>.txt</code> context; a required nonblank question; optional guidance; and Maximum Results of 5, 10, 15, or 20 with 10 as default. Client and server validation prevent blank questions from invoking the workflow.</p>
-<p>Page states are <code>ready</code>, <code>processing</code>, <code>completed</code>, <code>completed_with_warnings</code>, and <code>failed</code>. JavaScript disables submission, shows the Research Workflow operation and elapsed time, and polls status while awaiting the synchronous response; displayed progress labels are presentation states, not server stage events.</p>
+<p>Page states are <code>ready</code>, <code>processing</code>, <code>completed</code>, <code>completed_with_warnings</code>, and <code>failed</code>. JavaScript disables submission and shows immediate processing feedback. After the redirect, the processing page restores elapsed time and polls the progress endpoint. A terminal run lifecycle causes the browser to replace the processing page with the same run URL, which then renders the retained final page model. Stage values come from the backend Research workflow snapshot; run lifecycle and result lookup are scoped by run ID.</p>
 <p>The page may show request values, context filename/findings, consolidated paper cards, Direction Analysis, summary counts, warnings, model, and GPU. Embedded paper analyses appear in cards; separate analysis and legacy-artifact panels remain disabled. <strong>Save Results</strong> serializes the visible completed package to <code>project0_research_results.md</code> using <code>showSaveFilePicker</code> or Blob download.</p>
 <h3 id="ui-and-dispatcher">UI and dispatcher</h3>
 <p><code>ResearchAgentUIService</code> and <code>PlatformDispatcher.run_research_workflow</code> expose compatible operations:</p>
@@ -1745,7 +1755,8 @@
 <li>Evidence handles resolve only against the supplied catalog.</li>
 <li>Missing information remains absent, unscored, warned, or failed under the relevant contract.</li>
 <li>Client-saved Markdown is a user download, not a repository write.</li>
-<li>Browser progress is not server-emitted stage telemetry.</li>
+<li>Research stage telemetry is backend-generated but remains a single global workflow snapshot; one Research background worker prevents concurrent executions from interleaving it.</li>
+<li>Run state and retained results are process-local, non-durable, not shared across server processes, and have no automatic expiration.</li>
 <li>Dynamic legacy-method detection preserves compatible test doubles but does not broaden the documented primary contracts.</li>
 </ul>
 
