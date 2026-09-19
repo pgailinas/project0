@@ -1,9 +1,9 @@
 # Implementation Status
 
-**Version:** 1.5  
+**Version:** 1.6  
 **Owner:** Project0  
 **Last Updated:** 2026-09-19  
-**Source Baseline:** `main` at `eedad41a4a055ca79cdaf623a598103b5db902df`
+**Source Baseline:** `main` at `0caecccde37ca8a0e1c02bb8014b4fe1da906d87`
 
 ---
 
@@ -32,7 +32,7 @@ the platform display record reports the Dashboard's current test text.
 
 **Latest named roadmap phase:** Phase 14 — Project0 Agent Skills Foundation  
 **Implementation state:** Source corresponding to Phases 1–14 is present  
-**Repository-wide verification state:** Deterministic pytest passed; other gates remain incomplete  
+**Repository-wide verification state:** Complete regression not established for the current baseline  
 
 The complete phase register below presents Phases 1–14 in roadmap order,
 including Phase 12 — Documentation Agent Enhancement. Current defects and
@@ -117,10 +117,11 @@ models; Python retains deterministic policy enforcement.
 
 ## Evidence and Dependencies
 
-The repository validation record reports **1410 passed, 11 skipped** for the
-deterministic pytest suite at the source baseline. Browser acceptance, strict
-MkDocs, compilation, and live-provider execution are separate gates and are not
-established by that count.
+The historical repository validation record reports **1410 passed, 11 skipped**
+for a deterministic pytest suite at `eedad41`. That result is not attributed to
+the current source baseline. Browser acceptance, strict MkDocs, compilation,
+and live-provider execution are separate gates and are not established by that
+count.
 
 Browser tests import Playwright and use pytest browser fixtures, but the browser dependencies are absent from `pyproject.toml`.
 
@@ -128,9 +129,10 @@ Browser tests import Playwright and use pytest browser fixtures, but the browser
 
 Verified gaps and current operational boundaries are:
 
-- the Dashboard hard-codes the stale Phase 11 project label;
+- the Dashboard current-phase display is hard-coded rather than sourced from
+  the roadmap or implementation status;
 - Documentation Consistency is absent from the default Documentation Workflow;
-- two test modules are empty and browser dependencies are undeclared;
+- browser dependencies are undeclared;
 - no checked-in CI workflow exists;
 - companion PDF/ODS status artifacts were not verified;
 - workflow, review, research-session, audit, telemetry, and activity state are
@@ -142,10 +144,7 @@ Verified gaps and current operational boundaries are:
 - `/documentation` redirects to local MkDocs but does not start or host it.
 
 Immediate priorities are to decide and align the default validator set; make
-the Dashboard phase authoritative; define the Playwright environment; populate
-or remove empty test modules; run strict MkDocs and the remaining browser/live
-gates against the corrected commit; record exact results; and add CI only after
-its environment and gates are defined.
+the Dashboard phase authoritative; define the Playwright environment; and add CI only after its environment and gates are defined.
 
 ## Update Rules
 

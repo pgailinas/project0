@@ -29,7 +29,7 @@ theme:
       accent: custom
       toggle:
         icon: material/weather-night
-        name: Switch to light mode
+        name: Switch to dark mode
 
     # Light mode
     - scheme: slate
@@ -37,7 +37,7 @@ theme:
       accent: custom
       toggle:
         icon: material/weather-sunny
-        name: Switch to dark mode
+        name: Switch to light mode
 
 extra_css:
   - stylesheets/project0-colors.css

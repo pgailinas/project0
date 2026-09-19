@@ -78,8 +78,6 @@ python -m pytest tests/integration/platform/test_validation_service_flow.py -v
 python -m pytest tests/integration/platform/test_dashboard_flow.py -v
 ```
 
-`tests/acceptance/platform/test_ollama_acceptance.py` exists but is empty at the pinned commit and supplies no executable coverage.
-
 ## 5. Documentation Agent Suites
 
 ```bash

@@ -87,7 +87,7 @@ python -m pytest \
   -v -s --headed --ui-slowmo=750
 ```
 
-`--ui-slowmo` defaults to 0 and rejects negatives. It is an observation aid, not synchronization. `tests/acceptance/platform/test_ollama_acceptance.py` is empty and provides no coverage.
+`--ui-slowmo` defaults to 0 and rejects negatives. It is an observation aid, not synchronization.
 
 ### Integrity and change procedure
 
