@@ -170,7 +170,7 @@ docs/
 ├── index.md
 ├── platform/
 │   └── index.md
-└── documentation-agent/
+├── documentation-agent/
 │   └── index.md
 └── research-agent/
     └── index.md
