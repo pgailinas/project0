@@ -60,7 +60,7 @@ Structural protocols cover repository, context, knowledge, reasoning, validation
 
 ## 4. Interactions and Contracts
 
-Source-grounded processing flows through browser normalization, dispatcher request creation, exact target/source reading, gap analysis, deduplication, strict-skill Stage 2 proposal generation, deterministic guards, preliminary validation, focused-difference presentation, individual decisions, immediate approved application, final validation, applied-path diff, and completion display.
+Source-grounded processing flows through browser normalization, dispatcher request creation, exact target/source reading, gap analysis, deduplication, strict-skill Stage 2 proposal generation, deterministic guards, preliminary validation, focused-difference presentation, individual decisions, immediate approved application, final validation, applied-path diff, and completion display. Stage 1 endpoint-return analysis must inspect the function's returned payload rather than infer the payload contract from its docstring. The workflow extracts literal keys from returned dictionaries and rejects a narrow class of false contradictions when at least two compound payload keys are already represented in the exact endpoint claim; an actually absent claimed field remains eligible as a gap.
 
 Ordinary processing substitutes Knowledge Service context, omits gap analysis and the strict skill, and retains universal scope, operation, containment, existence, review, and stale-snapshot checks. Revise performs no write or automatic provider call; the user edits and resubmits restored inputs.
 

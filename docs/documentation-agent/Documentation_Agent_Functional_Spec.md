@@ -57,7 +57,7 @@ Repository Update Service shall validate matching proposal/review IDs, require a
 
 ### Reasoning outputs
 
-Stage 1 `documentation_gap_analysis` output shall contain summary, gaps, assumptions, and warnings. Each gap identifies its target document, optional section, description, source evidence, and optional confidence. Exact semantic duplicates are removed. No returned gaps produces retained intermediate state without Stage 2.
+Stage 1 `documentation_gap_analysis` output shall contain summary, gaps, assumptions, and warnings. Each gap identifies its target document, optional section, description, source evidence, and optional confidence. Exact semantic duplicates are removed. For an HTTP endpoint return claim, analysis shall ground the contract in returned payload fields rather than docstring wording. A claimed contradiction is rejected when deterministic inspection establishes that at least two compound returned-dictionary keys named by the exact target claim are present; a claim for an absent payload field is not rejected by this guard. No returned gaps produces retained intermediate state without Stage 2.
 
 Stage 2 receives the complete deduplicated gap set and may not introduce new gaps or design changes. When configured, `strict-documentation-editor` is loaded for Stage 2 only. Ordinary mode issues one `documentation_update` request with built-in Markdown-only, minimum-change, style-preservation, no-invention, source-read-only, and target-scope constraints when no skill is active.
 

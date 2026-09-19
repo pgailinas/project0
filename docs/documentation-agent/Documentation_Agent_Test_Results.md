@@ -29,7 +29,9 @@ for the following Documentation Agent boundaries:
 - ordinary and source-grounded context selection, two-stage reasoning,
   schemas, parsing, heading extraction, deduplication, and skill loading;
 - fail-closed proposal safeguards for paths, operations, anchors, sections,
-  semantic alignment, concrete Markdown, and Python declarations;
+  semantic alignment, concrete Markdown, Python declarations, and endpoint
+  return claims checked against literal returned-dictionary fields rather than
+  docstring paraphrases, with absent-field gaps preserved;
 - validation models and aggregation, Markdown, links, MkDocs, and assembled
   validation flows;
 - approve, revise, reject, and skip decisions; stale-content detection;

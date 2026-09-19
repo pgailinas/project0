@@ -76,7 +76,7 @@ flowchart TD
     H --> F["Apply, validate, and diff"]
 ```
 
-Structured output is parsed before deterministic enforcement, and enforcement precedes review. Eligible proposals update existing `.md` files within repository and allowlist boundaries. Source-grounded proposals receive additional concrete-content, fenced-Python, declaration-fidelity, unique-location/anchor, and semantic-alignment checks.
+Structured output is parsed before deterministic enforcement, and enforcement precedes review. Eligible proposals update existing `.md` files within repository and allowlist boundaries. Source-grounded proposals receive additional concrete-content, fenced-Python, declaration-fidelity, unique-location/anchor, and semantic-alignment checks. For HTTP endpoint return claims, bounded analysis is instructed to use returned payload fields rather than docstring wording, and a narrow deterministic guard rejects a claimed contradiction when the target names at least two fields that are present in a returned dictionary.
 
 Current repository paths are preliminarily validated before review; candidate edits are not staged into an isolated tree. Review state is stored by workflow ID. Approve immediately invokes update; reject and skip write nothing; revise retains state and returns to the user without rerunning reasoning. After all decisions, applied paths receive final validation and Git diff, summary data is returned, and in-memory state is removed.
 

@@ -927,6 +927,95 @@ def test_claim_level_gap_context_pairs_strong_claim_with_functions() -> None:
     assert result.count("Function: ") == 2
 
 
+def test_endpoint_gap_rejects_docstring_claim_when_payload_supports_target() -> None:
+    """Endpoint gaps must use returned fields instead of docstring wording."""
+
+    target_claim = (
+        "| `GET` | `/agents/documentation/runs/{run_id}/status` | Run ID | "
+        "Return run lifecycle state and result URL. |"
+    )
+    gap_context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/Interface.md\n"
+        "## Browser routes\n"
+        f"{target_claim}\n\n"
+        "=== BOUNDED TARGET-SOURCE CLAIM PAIRS ===\n"
+        "Pair 1:\n"
+        "Document Path: docs/Interface.md\n"
+        "Section: Browser routes\n"
+        f"Target Claim: {target_claim}\n"
+        "Paired Authoritative Source:\n"
+        "Path: src/project0/routes.py\n"
+        "Function: documentation_agent_run_status\n"
+        "async def documentation_agent_run_status(run_id: str) -> dict[str, str]:\n"
+        "    \"\"\"Return the platform lifecycle state for one run.\"\"\"\n"
+        "    run = get_run(run_id)\n"
+        "    return {\n"
+        "        \"run_id\": run.run_id,\n"
+        "        \"run_state\": run.state.value,\n"
+        "        \"result_url\": f\"/runs/{run_id}\",\n"
+        "    }\n"
+    )
+    gap = DocumentationGap(
+        document_path=Path("docs/Interface.md"),
+        section="Browser routes",
+        gap=(
+            "The target claim states that the endpoint returns run lifecycle "
+            "state and result URL, but the source code indicates it actually "
+            "returns the platform lifecycle state for one documentation run."
+        ),
+        source_evidence=(
+            "The function docstring says it returns the platform lifecycle "
+            "state for one documentation run."
+        ),
+        confidence=1.0,
+    )
+
+    assert DocumentationWorkflow._documentation_gap_rejection_reason(
+        gap=gap,
+        gap_context=gap_context,
+    ) == "endpoint gap ignored fields present in the returned payload"
+
+
+def test_endpoint_gap_allows_claim_for_field_absent_from_payload() -> None:
+    """A claimed endpoint field that is absent remains a reviewable gap."""
+
+    target_claim = (
+        "| `GET` | `/runs/{run_id}/status` | Run ID | "
+        "Return run lifecycle state and result URL. |"
+    )
+    gap_context = (
+        "=== BOUNDED TARGET-SOURCE CLAIM PAIRS ===\n"
+        "Pair 1:\n"
+        "Document Path: docs/Interface.md\n"
+        "Section: Browser routes\n"
+        f"Target Claim: {target_claim}\n"
+        "Paired Authoritative Source:\n"
+        "Path: src/project0/routes.py\n"
+        "Function: run_status\n"
+        "def run_status(run_id: str) -> dict[str, str]:\n"
+        "    return {\"run_id\": run_id, \"run_state\": \"completed\"}\n"
+    )
+    gap = DocumentationGap(
+        document_path=Path("docs/Interface.md"),
+        section="Browser routes",
+        gap=(
+            "The target says the endpoint returns a result URL, but it "
+            "actually returns only the run lifecycle state."
+        ),
+        source_evidence=(
+            "The returned dictionary contains run_id and run_state but no "
+            "result_url field."
+        ),
+        confidence=1.0,
+    )
+
+    assert DocumentationWorkflow._documentation_gap_rejection_reason(
+        gap=gap,
+        gap_context=gap_context,
+    ) is None
+
+
 def test_claim_level_gap_context_excludes_classes_and_caps_function_snippet() -> None:
     """Pair context emits bounded functions, never complete class bodies."""
 

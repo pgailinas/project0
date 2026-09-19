@@ -604,7 +604,9 @@ class DocumentationWorkflow:
                     "paired snippet is not evidence that the target claim is "
                     "wrong. Return a gap only when the paired source positively "
                     "contradicts the claim or positively establishes that the "
-                    "claim is materially incomplete."
+                    "claim is materially incomplete. For an endpoint return "
+                    "claim, inspect the returned payload fields; do not infer "
+                    "the payload contract from a docstring alone."
                 ),
             )
         )
@@ -711,7 +713,9 @@ class DocumentationWorkflow:
                         "Evaluate only this exact target claim against "
                         "the paired authoritative source snippets below. "
                         "A missing fact in a paired snippet is not evidence "
-                        "that the target claim is wrong."
+                        "that the target claim is wrong. For an endpoint return "
+                        "claim, inspect the returned payload fields; do not "
+                        "infer the payload contract from a docstring alone."
                     ),
                     "Pair 1:",
                     f"Document Path: {document_path}",
@@ -774,6 +778,16 @@ class DocumentationWorkflow:
         ):
             return "gap treated a paired implementation helper name as required documentation"
 
+        if (
+            target_claim is not None
+            and cls._endpoint_gap_ignores_returned_payload(
+                gap_text=gap_text,
+                target_claim=target_claim,
+                gap_context=gap_context,
+            )
+        ):
+            return "endpoint gap ignored fields present in the returned payload"
+
         if not cls._gap_has_substantive_source_evidence(
             gap=gap,
             gap_context=gap_context,
@@ -791,6 +805,98 @@ class DocumentationWorkflow:
             return "gap reversed positive authoritative source behavior"
 
         return None
+
+    @classmethod
+    def _endpoint_gap_ignores_returned_payload(
+        cls,
+        gap_text: str,
+        target_claim: str,
+        gap_context: str,
+    ) -> bool:
+        """Reject endpoint contradictions disproved by returned dictionary keys.
+
+        This guard is deliberately narrow. It applies only to an HTTP endpoint
+        claim, an asserted contrast about what the endpoint returns, and at
+        least two returned dictionary keys whose complete component tokens are
+        named by the target claim. It prevents a provider from treating a
+        docstring paraphrase as the payload contract while preserving gaps for
+        genuinely absent fields.
+        """
+
+        if not (
+            "/" in target_claim
+            and re.search(
+                r"\b(?:GET|POST|PUT|PATCH|DELETE)\b",
+                target_claim,
+                re.IGNORECASE,
+            )
+        ):
+            return False
+
+        if not re.search(
+            r"(?:\b(?:but|however)\b.{0,160}\b(?:actually\s+)?returns?\b|"
+            r"\bsource code indicates\b.{0,160}\b(?:actually\s+)?returns?\b|"
+            r"\brather than\b)",
+            gap_text,
+            re.IGNORECASE,
+        ):
+            return False
+
+        target_tokens = cls._claim_pairing_tokens(target_claim)
+        returned_keys = cls._extract_returned_dictionary_keys(gap_context)
+        supported_keys = sum(
+            1
+            for key in returned_keys
+            if (
+                (key_tokens := cls._claim_pairing_tokens(key))
+                and len(key_tokens) >= 2
+                and key_tokens.issubset(target_tokens)
+            )
+        )
+
+        return supported_keys >= 2
+
+    @classmethod
+    def _extract_returned_dictionary_keys(
+        cls,
+        gap_context: str,
+    ) -> frozenset[str]:
+        """Extract literal keys from dictionaries returned by paired functions."""
+
+        source_block = cls._extract_paired_authoritative_source(gap_context)
+        if not source_block:
+            return frozenset()
+
+        snippet_parts = re.split(
+            r"(?m)^Path:\s+.+\nFunction:\s+[A-Za-z_][A-Za-z0-9_]*\s*$",
+            source_block,
+        )
+        keys: set[str] = set()
+
+        for snippet in snippet_parts:
+            source = snippet.strip()
+            if not source:
+                continue
+
+            try:
+                module = ast.parse(source)
+            except SyntaxError:
+                continue
+
+            for node in ast.walk(module):
+                if not isinstance(node, ast.Return):
+                    continue
+                if not isinstance(node.value, ast.Dict):
+                    continue
+
+                for key_node in node.value.keys:
+                    if (
+                        isinstance(key_node, ast.Constant)
+                        and isinstance(key_node.value, str)
+                    ):
+                        keys.add(key_node.value)
+
+        return frozenset(keys)
 
     @staticmethod
     def _extract_bounded_target_claim(
