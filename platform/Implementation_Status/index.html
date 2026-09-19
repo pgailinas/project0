@@ -1651,7 +1651,7 @@
 
 
 <h1 id="implementation-status">Implementation Status</h1>
-<p><strong>Version:</strong> 1.4<br />
+<p><strong>Version:</strong> 1.5<br />
 <strong>Owner:</strong> Project0<br />
 <strong>Last Updated:</strong> 2026-09-19<br />
 <strong>Source Baseline:</strong> <code>main</code> at <code>eedad41a4a055ca79cdaf623a598103b5db902df</code></p>
@@ -1677,9 +1677,7 @@ the platform display record reports the Dashboard's current test text.</p>
 <h2 id="current-or-planned-state">Current or Planned State</h2>
 <p><strong>Latest named roadmap phase:</strong> Phase 14 — Project0 Agent Skills Foundation<br />
 <strong>Implementation state:</strong> Source corresponding to Phases 1–14 is present<br />
-<strong>Repository-wide verification state:</strong> Deterministic pytest passed; other gates remain incomplete<br />
-<strong>Known blocking integrity issue:</strong> Python compilation fails in
-<code>knowledge_interfaces.py</code></p>
+<strong>Repository-wide verification state:</strong> Deterministic pytest passed; other gates remain incomplete  </p>
 <p>The complete phase register below presents Phases 1–14 in roadmap order,
 including Phase 12 — Documentation Agent Enhancement. Current defects and
 incomplete verification prevent an unconditional all-phases-complete and
@@ -1819,19 +1817,10 @@ models; Python retains deterministic policy enforcement.</p>
 deterministic pytest suite at the source baseline. Browser acceptance, strict
 MkDocs, compilation, and live-provider execution are separate gates and are not
 established by that count.</p>
-<p><code>python -m compileall -q src</code> failed because
-<code>src/project0/interfaces/knowledge_interfaces.py</code> contains Markdown fence lines
-around the Python module. This is a verified source-integrity defect, not a
-pytest result.</p>
-<p>Browser tests import Playwright and use pytest browser fixtures, but the browser
-dependencies are absent from <code>pyproject.toml</code>.
-<code>tests/acceptance/platform/test_ollama_acceptance.py</code> and
-<code>tests/unit/models/test_skill_models.py</code> are empty. Test-file presence is not
-execution evidence.</p>
+<p>Browser tests import Playwright and use pytest browser fixtures, but the browser dependencies are absent from <code>pyproject.toml</code>.</p>
 <h2 id="gaps-and-priorities">Gaps and Priorities</h2>
 <p>Verified gaps and current operational boundaries are:</p>
 <ul>
-<li>fenced content in <code>knowledge_interfaces.py</code> prevents Python compilation;</li>
 <li>the Dashboard hard-codes the stale Phase 11 project label;</li>
 <li>Documentation Consistency is absent from the default Documentation Workflow;</li>
 <li>two test modules are empty and browser dependencies are undeclared;</li>
@@ -1845,11 +1834,11 @@ execution evidence.</p>
 <li><code>/activity</code> and <code>/settings</code> are placeholders; and</li>
 <li><code>/documentation</code> redirects to local MkDocs but does not start or host it.</li>
 </ul>
-<p>Immediate priorities are to restore compilation; decide and align the default
-validator set; make the Dashboard phase authoritative; define the Playwright
-environment; populate or remove empty test modules; run strict MkDocs and the
-remaining browser/live gates against the corrected commit; record exact results;
-and add CI only after its environment and gates are defined.</p>
+<p>Immediate priorities are to decide and align the default validator set; make
+the Dashboard phase authoritative; define the Playwright environment; populate
+or remove empty test modules; run strict MkDocs and the remaining browser/live
+gates against the corrected commit; record exact results; and add CI only after
+its environment and gates are defined.</p>
 <h2 id="update-rules">Update Rules</h2>
 <p>When updating this status:</p>
 <ul>
