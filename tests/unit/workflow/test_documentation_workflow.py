@@ -44,6 +44,7 @@ from project0.models.validation_models import (
     ValidationStatus,
 )
 from project0.models.skill_models import SkillDefinition
+from project0.repository.repository_update_service import RepositoryUpdateService
 from project0.workflow.documentation_workflow import DocumentationWorkflow
 
 
@@ -356,6 +357,7 @@ def _create_workflow(
         tuple[ArtifactLocation, ...],
     ] | None = None,
     skill_registry=None,
+    repository_update_service=None,
 ):
     """Create a workflow and its test doubles."""
 
@@ -366,7 +368,11 @@ def _create_workflow(
     )
     validation_service = StubValidationService(validation_results)
     review_coordinator = StubReviewCoordinator(decisions)
-    update_service = StubRepositoryUpdateService(status_by_path)
+    update_service = (
+        repository_update_service
+        if repository_update_service is not None
+        else StubRepositoryUpdateService(status_by_path)
+    )
     git_service = StubGitDiffService(git_diff, git_error)
     captured_context_requests: list[DocumentationWorkflowRequest] = []
 
@@ -2450,6 +2456,169 @@ def test_review_decisions_are_summarized(tmp_path: Path) -> None:
     assert result.summary.rejected_count == 1
     assert result.summary.applied_count == 1
     assert result.git_diff == "diff output"
+
+
+def test_same_file_approved_proposals_apply_in_sequence(
+    tmp_path: Path,
+) -> None:
+    """A workflow update becomes the trusted snapshot for its next approval."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text(
+        "# First\n\n# Second\n",
+        encoding="utf-8",
+    )
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(
+                _update_change(
+                    proposed_content="# First Updated",
+                    anchor_text="# First",
+                ),
+                _update_change(
+                    proposed_content="# Second Updated",
+                    anchor_text="# Second",
+                ),
+            )
+        ),
+        validation_results=(
+            _validation_result(ValidationStatus.PASSED),
+            _validation_result(ValidationStatus.PASSED),
+        ),
+        repository_update_service=RepositoryUpdateService(tmp_path),
+    )[0]
+
+    state = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Update both sections.",
+            target_paths=("docs/index.md",),
+            source_paths=("src/project0/example.py",),
+            workflow_id="workflow-same-file-sequence",
+        )
+    )
+
+    state = workflow.submit_review(
+        state.workflow_id,
+        _review(state.proposals[0]),
+    )
+    result = workflow.submit_review(
+        state.workflow_id,
+        _review(state.proposals[1]),
+    )
+
+    assert result.status is DocumentationWorkflowStatus.COMPLETED
+    assert result.summary.applied_count == 2
+    assert document.read_text(encoding="utf-8") == (
+        "# First Updated\n\n# Second Updated\n"
+    )
+
+
+def test_same_file_sequence_still_rejects_external_edit(
+    tmp_path: Path,
+) -> None:
+    """An unrelated edit after the first approval remains a stale failure."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text(
+        "# First\n\n# Second\n",
+        encoding="utf-8",
+    )
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(
+                _update_change(
+                    proposed_content="# First Updated",
+                    anchor_text="# First",
+                ),
+                _update_change(
+                    proposed_content="# Second Updated",
+                    anchor_text="# Second",
+                ),
+            )
+        ),
+        validation_results=(
+            _validation_result(ValidationStatus.PASSED),
+            _validation_result(ValidationStatus.PASSED),
+        ),
+        repository_update_service=RepositoryUpdateService(tmp_path),
+    )[0]
+
+    state = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Update both sections.",
+            target_paths=("docs/index.md",),
+            source_paths=("src/project0/example.py",),
+            workflow_id="workflow-same-file-external-edit",
+        )
+    )
+    state = workflow.submit_review(
+        state.workflow_id,
+        _review(state.proposals[0]),
+    )
+    document.write_text(
+        document.read_text(encoding="utf-8") + "\nExternal edit.\n",
+        encoding="utf-8",
+    )
+    result = workflow.submit_review(
+        state.workflow_id,
+        _review(state.proposals[1]),
+    )
+
+    assert result.status is DocumentationWorkflowStatus.FAILED
+    assert result.summary.applied_count == 1
+    assert result.summary.failed_count == 1
+    assert result.applied_changes[1].error_message == (
+        "The documentation file has changed since the proposal was created."
+    )
+    assert "# Second Updated" not in document.read_text(encoding="utf-8")
+
+
+def test_same_file_sequence_relocates_unchanged_line_range() -> None:
+    """A line-range target follows earlier inserted lines by exact content."""
+
+    location = ArtifactLocation(
+        location_id="second-section",
+        repository_path="docs/index.md",
+        location_type=ArtifactLocationType.SECTION,
+        locator="Second",
+        start_line=3,
+        end_line=4,
+    )
+
+    relocated = DocumentationWorkflow._relocate_artifact_location(
+        location=location,
+        original_content="# First\n\n# Second\nDetails.\n",
+        expected_content=(
+            "# First\nAdded line.\n\n# Second\nDetails.\n"
+        ),
+    )
+
+    assert relocated is not None
+    assert relocated.start_line == 4
+    assert relocated.end_line == 5
+
+
+def test_same_file_sequence_rejects_ambiguous_line_range() -> None:
+    """A repeated target cannot be relocated safely after an earlier write."""
+
+    location = ArtifactLocation(
+        location_id="repeated",
+        repository_path="docs/index.md",
+        location_type=ArtifactLocationType.LINE_RANGE,
+        locator="Repeated.",
+        start_line=2,
+        end_line=2,
+    )
+
+    assert DocumentationWorkflow._relocate_artifact_location(
+        location=location,
+        original_content="# Title\nRepeated.\n",
+        expected_content="# Title\nRepeated.\nRepeated.\n",
+    ) is None
 
 
 def test_no_approved_changes_skip_final_validation_and_diff(

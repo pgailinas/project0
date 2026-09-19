@@ -78,7 +78,7 @@ flowchart TD
 
 Structured output is parsed before deterministic enforcement, and enforcement precedes review. Eligible proposals update existing `.md` files within repository and allowlist boundaries. Source-grounded proposals receive additional concrete-content, fenced-Python, declaration-fidelity, unique-location/anchor, and semantic-alignment checks. For HTTP endpoint return claims, bounded analysis is instructed to use returned payload fields rather than docstring wording, and a narrow deterministic guard rejects a claimed contradiction when the target names at least two fields that are present in a returned dictionary.
 
-Current repository paths are preliminarily validated before review; candidate edits are not staged into an isolated tree. Review state is stored by workflow ID. Approve immediately invokes update; reject and skip write nothing; revise retains state and returns to the user without rerunning reasoning. After all decisions, applied paths receive final validation and Git diff, summary data is returned, and in-memory state is removed.
+Current repository paths are preliminarily validated before review; candidate edits are not staged into an isolated tree. Review state is stored by workflow ID. Approve immediately invokes update; reject and skip write nothing; revise retains state and returns to the user without rerunning reasoning. When multiple approved proposals target one file, each successful workflow write becomes the expected snapshot for the next approval. Unchanged line-range targets are relocated by exact content, overlapping or whole-file combinations fail closed, and any unrelated on-disk edit still fails the repository service's stale-snapshot check. After all decisions, unique applied paths receive final validation and Git diff, summary data is returned, and in-memory state is removed.
 
 ### External dependencies
 
@@ -92,7 +92,7 @@ Current repository paths are preliminarily validated before review; candidate ed
 
 ## 5. Boundaries and Constraints
 
-Provider output is untrusted. Review state is process-local and not durable or shared. Approval mutates one proposal immediately, so earlier writes may coexist with pending proposals. Atomicity is per file, not across the set. Final validation occurs after writing and reports failure without restoring the original document.
+Provider output is untrusted. Review state is process-local and not durable or shared. Approval mutates one proposal immediately, so earlier writes may coexist with pending proposals. Same-file approvals are sequenced only from successful writes in the current workflow; they do not authorize external changes or overlapping replacements. Atomicity is per file, not across the set. Final validation occurs after writing and reports failure without restoring the original document.
 
 Handled boundaries include: aborting source-grounded context on read failure; converting expected provider, parsing, I/O, runtime, type, and value failures to failed results; skipping invalid proposals with warnings; converting validator exceptions to failed validator results; rejecting stale snapshots, unknown IDs, duplicate reviews, and unsupported decisions.
 

@@ -43,7 +43,7 @@ The default workflow uses Markdown, Link, and MkDocs validators; Documentation C
 
 Final validation checks only successfully applied paths and is absent when nothing was applied. Its warnings or failures affect status but do not roll back completed writes. Unexpected validator exceptions become failed validator results while remaining validators continue.
 
-Repository Update Service shall validate matching proposal/review IDs, require approval, resolve the existing Markdown target within the repository, reject stale snapshots, apply the selected unique location or anchor, write UTF-8 through a temporary file and atomic replacement, preserve an existing final newline, clean up temporary files when possible, and return applied, skipped, or failed status.
+Repository Update Service shall validate matching proposal/review IDs, require approval, resolve the existing Markdown target within the repository, reject stale snapshots, apply the selected unique location or anchor, write UTF-8 through a temporary file and atomic replacement, preserve an existing final newline, clean up temporary files when possible, and return applied, skipped, or failed status. Before a later same-file approval, Documentation Workflow may rebase the proposal only onto the latest successful write from that workflow. Anchor targets must remain valid, and line-range targets must be uniquely relocatable by unchanged exact content. Whole-file or overlapping combinations fail closed. The repository service shall still compare the rebased expected snapshot with current disk content so external edits are not accepted implicitly.
 
 ## 3. Inputs and Outputs
 
@@ -96,7 +96,7 @@ After context construction, the workflow performs the applicable reasoning stage
 
 Each proposal accepts exactly `approve`, `revise`, `reject`, or `skip`; unknown workflows/proposals and duplicate reviews are rejected. Approve, reject, and skip are passed to Repository Update Service, but only approve may write. Revise records the review, performs no write, and repopulates the original browser fields for user resubmission; it does not automatically rerun reasoning.
 
-Approval is applied immediately per proposal, so the complete proposal set is not transactional. Completion occurs after all proposals have decisions. Final validation then checks applied paths, and Git diff is requested only for those paths; no applied paths produces an empty diff. Diff generation never stages, commits, pushes, merges, branches, or opens a pull request.
+Approval is applied immediately per proposal, so the complete proposal set is not transactional. Successful proposals for the same file are applied in review order against the evolving workflow snapshot. Completion occurs after all proposals have decisions. Final validation then checks each unique applied path, and Git diff is requested only for those paths; no applied paths produces an empty diff. Diff generation never stages, commits, pushes, merges, branches, or opens a pull request.
 
 ### Dashboard behavior
 

@@ -35,8 +35,10 @@ for the following Documentation Agent boundaries:
 - validation models and aggregation, Markdown, links, MkDocs, and assembled
   validation flows;
 - approve, revise, reject, and skip decisions; stale-content detection;
+  ordered compatible same-file approvals with external-edit rejection;
   unique-anchor application; unrelated-content preservation; atomic Markdown
-  replacement; application records; summaries; and Git differences;
+  replacement; unique applied-path validation; application records; summaries;
+  and Git differences;
 - stub and Ollama provider boundaries, configuration, structured output,
   parsing, timeouts, and provider errors; and
 - Dashboard composition, routing, effective-model display, dispatch, and

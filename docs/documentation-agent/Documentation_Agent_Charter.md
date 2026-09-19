@@ -44,7 +44,7 @@ Shared reasoning models can represent create and delete operations, but the curr
 
 ### Human authority and repository safety
 
-Each proposal is reviewed independently. `approve` authorizes immediate application; `reject` and `skip` perform no write; `revise` retains state and returns the original request fields for revision and resubmission. Earlier approved proposals may be written while later proposals remain under review, so the proposal set is human-controlled but not transactional.
+Each proposal is reviewed independently. `approve` authorizes immediate application; compatible approvals for the same file are sequenced in review order against successful writes owned by the current workflow, while external or conflicting changes remain fail-closed. `reject` and `skip` perform no write; `revise` retains state and returns the original request fields for revision and resubmission. Earlier approved proposals may be written while later proposals remain under review, so the proposal set is human-controlled but not transactional.
 
 Executable proposals are limited to existing permitted Markdown files. Each proposal retains the original document snapshot; stale approved changes are refused; successful writes use temporary files and atomic replacement; unapplied or failed proposals remain unchanged; and failures are reported explicitly. AI reasoning recommends changes but has no independent repository authority.
 

@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 import ast
+from dataclasses import replace
 from datetime import UTC, datetime
 import logging
 from pathlib import Path
@@ -2015,11 +2016,28 @@ class DocumentationWorkflow:
             self._workflow_states[workflow_id] = revised_state
             return revised_state
 
+        proposal_to_apply = self._sequence_same_file_proposal(
+            state=state,
+            proposal=proposal,
+            decision=review.decision,
+        )
         applied_change = self._repository_update_service.apply(
-            proposal,
+            proposal_to_apply,
             review,
         )
         applied_changes = (*state.applied_changes, applied_change)
+        proposals = state.proposals
+
+        if (
+            applied_change.status is ChangeApplicationStatus.APPLIED
+            and proposal_to_apply is not proposal
+        ):
+            proposals = tuple(
+                proposal_to_apply
+                if candidate.proposal_id == proposal.proposal_id
+                else candidate
+                for candidate in state.proposals
+            )
 
         if len(reviews) < len(state.proposals):
             updated_state = DocumentationWorkflowState(
@@ -2030,7 +2048,7 @@ class DocumentationWorkflow:
                 target_paths=state.target_paths,
                 source_paths=state.source_paths,
                 reasoning_result=state.reasoning_result,
-                proposals=state.proposals,
+                proposals=proposals,
                 reviews=reviews,
                 applied_changes=applied_changes,
                 preliminary_validation=state.preliminary_validation,
@@ -2044,7 +2062,7 @@ class DocumentationWorkflow:
             workflow_id=state.workflow_id,
             started_at=state.started_at,
             reasoning_result=state.reasoning_result,
-            proposals=state.proposals,
+            proposals=proposals,
             reviews=reviews,
             applied_changes=applied_changes,
             preliminary_validation=state.preliminary_validation,
@@ -2052,6 +2070,114 @@ class DocumentationWorkflow:
         )
         self._workflow_states.pop(workflow_id, None)
         return result
+
+    @classmethod
+    def _sequence_same_file_proposal(
+        cls,
+        state: DocumentationWorkflowState,
+        proposal: DocumentationChangeProposal,
+        decision: ReviewDecision,
+    ) -> DocumentationChangeProposal:
+        """Rebase an approval after the latest same-workflow file update.
+
+        Only a successfully applied proposal from this workflow establishes an
+        eligible next snapshot. The repository update service still compares
+        that expected snapshot with the file on disk, so unrelated external
+        edits remain stale-content failures.
+        """
+
+        if decision is not ReviewDecision.APPROVE:
+            return proposal
+
+        previous_change = next(
+            (
+                change
+                for change in reversed(state.applied_changes)
+                if (
+                    change.status is ChangeApplicationStatus.APPLIED
+                    and change.repository_path == proposal.repository_path
+                )
+            ),
+            None,
+        )
+
+        if previous_change is None:
+            return proposal
+
+        previous_proposal = next(
+            candidate
+            for candidate in state.proposals
+            if candidate.proposal_id == previous_change.proposal_id
+        )
+
+        try:
+            expected_content = apply_documentation_change(
+                original_content=previous_proposal.original_content,
+                proposed_content=previous_proposal.proposed_content,
+                artifact_location=previous_proposal.artifact_location,
+                anchor_text=previous_proposal.anchor_text,
+                anchor_mode=previous_proposal.anchor_mode,
+            )
+        except ValueError:
+            return proposal
+
+        artifact_location = proposal.artifact_location
+
+        if artifact_location is not None:
+            artifact_location = cls._relocate_artifact_location(
+                location=artifact_location,
+                original_content=proposal.original_content,
+                expected_content=expected_content,
+            )
+            if artifact_location is None:
+                return proposal
+        elif proposal.anchor_text is None:
+            # A whole-document replacement cannot be composed safely with an
+            # earlier same-file update because it would discard that update.
+            return proposal
+
+        return replace(
+            proposal,
+            original_content=expected_content,
+            artifact_location=artifact_location,
+        )
+
+    @staticmethod
+    def _relocate_artifact_location(
+        location: ArtifactLocation,
+        original_content: str,
+        expected_content: str,
+    ) -> ArtifactLocation | None:
+        """Relocate an unchanged line-range target in evolved file content."""
+
+        if location.start_line is None or location.end_line is None:
+            return None
+
+        original_lines = original_content.splitlines()
+        start = location.start_line - 1
+        end = location.end_line
+
+        if start < 0 or end > len(original_lines) or start >= end:
+            return None
+
+        target_lines = original_lines[start:end]
+        expected_lines = expected_content.splitlines()
+        width = len(target_lines)
+        matches = [
+            index
+            for index in range(len(expected_lines) - width + 1)
+            if expected_lines[index:index + width] == target_lines
+        ]
+
+        if len(matches) != 1:
+            return None
+
+        relocated_start = matches[0] + 1
+        return replace(
+            location,
+            start_line=relocated_start,
+            end_line=relocated_start + width - 1,
+        )
 
     def _complete_workflow(
         self,
@@ -2070,9 +2196,11 @@ class DocumentationWorkflow:
         git_diff: str | None = None
 
         applied_paths = tuple(
-            change.repository_path
-            for change in applied_changes
-            if change.status is ChangeApplicationStatus.APPLIED
+            dict.fromkeys(
+                change.repository_path
+                for change in applied_changes
+                if change.status is ChangeApplicationStatus.APPLIED
+            )
         )
 
         if applied_paths:
