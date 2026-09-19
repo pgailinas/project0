@@ -163,20 +163,17 @@ https://pgailinas.github.io/project0/platform/Project0_Validation_Status/
 
 ## Documentation Structure
 
-Repository documentation is organized into four primary areas:
+Repository documentation is organized into three primary areas:
 
 ```text
 docs/
 ├── index.md
-├── project/
-│   └── index.md
 ├── platform/
 │   └── index.md
-└── agents/
-    ├── documentation/
-    │   └── index.md
-    └── research/
-        └── index.md
+└── documentation-agent/
+│   └── index.md
+└── research-agent/
+    └── index.md
 ```
 
 Each documentation area has an overview page that links to its detailed design, architecture, testing, status, and validation documents.
