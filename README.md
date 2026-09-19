@@ -126,8 +126,8 @@ The Dashboard provides access to:
 
 Students without a local NVIDIA GPU can use Google Colab to view and exercise
 the same Project0 codebase. The launcher runs Ollama with `qwen2.5:7b` on a
-Colab GPU and displays the Project0 Dashboard through Colab's embedded port
-proxy.
+Colab GPU and makes the Project0 Dashboard available through a temporary
+Cloudflare Quick Tunnel HTTPS link.
 
 The Colab launcher notebook provides eight steps:
 
@@ -137,7 +137,7 @@ The Colab launcher notebook provides eight steps:
 4. Install and start Ollama.
 5. Load and verify `qwen2.5:7b`.
 6. Configure and start Project0 on `http://127.0.0.1:8001`.
-7. Open the Dashboard through Colab's port proxy in an embedded browser frame.
+7. Open the temporary Cloudflare Quick Tunnel link in a new browser tab.
 8. Optionally stop Project0 when finished.
 
 [Open the Project0 Colab launcher notebook](notebooks/Project0_Colab_Launcher.ipynb)
