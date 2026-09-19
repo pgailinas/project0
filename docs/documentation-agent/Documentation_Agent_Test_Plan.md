@@ -1,8 +1,8 @@
 # Documentation Agent Test Plan
 
-**Version:** 1.1  
+**Version:** 1.2  
 **Owner:** Project0  
-**Last Updated:** 2026-09-11
+**Last Updated:** 2026-09-19
 
 ## 1. Purpose and Scope
 
@@ -29,7 +29,7 @@ Verification levels include direct agent units, workflow/model units, supporting
 
 - **DA-FUN-001 — Request processing:** Verify ready route, normalized request/path input, blank failure, correct source/target roles, and no invalid-input mutation.
 - **DA-FUN-002 — Context selection:** Verify ordinary Knowledge Service behavior with baseline disabled and exact source-grounded reads/labels with fail-closed read errors.
-- **DA-FUN-003 — Reasoning mode:** Verify ordinary one-stage updates versus source-grounded gap analysis, deduplication, established-gap-only Stage 2, no-gap behavior, and safe Stage 1 failure.
+- **DA-FUN-003 — Reasoning mode:** Verify ordinary one-stage updates versus source-grounded gap analysis, deduplication, compact established-gap-only Stage 2 with one proposal-generation call, no-gap behavior, and safe Stage 1 failure.
 - **DA-FUN-004 — Proposal construction:** Verify path, snapshot, concrete content, rationale, ID, location/anchor, structured parsing, and deterministic guards before review.
 - **DA-FUN-005 — Preliminary validation:** Verify distinct proposal paths, Markdown/Link/MkDocs tuple, pass/warn/fail mapping, retained proposals, and no assumption that Consistency Validator is included.
 - **DA-FUN-006 — Review:** Verify one decision per proposal; rejection of unknown/duplicate/unsupported input; immediate approve, non-writing reject/skip, retained revise with repopulated request, and no automatic regeneration.
@@ -44,7 +44,7 @@ Verification levels include direct agent units, workflow/model units, supporting
 - **DA-SAF-004 — Stale proposals:** Change target after proposal generation and verify failed application preserves intervening work.
 - **DA-SAF-005 — Minimum change:** Compare original, candidate preview, final file, and Git diff; preserve unrelated content/files.
 - **DA-SAF-006 — Non-transactional set:** Approve one proposal while another is pending/rejected and verify independent effects without rollback assumptions. Approve compatible proposals for the same file in sequence and confirm both persist; introduce an external edit between approvals and confirm the later proposal fails stale without overwriting that edit.
-- **DA-SAF-007 — Exact-claim content preservation:** Reject a source-grounded replacement that only restates meaning already present in the exact target claim, reject loss of most values from an established inline-code contract enumeration, retain a concise replacement that introduces a corrected factual value, and verify that an exact unique subclaim anchor preserves surrounding prose on the same Markdown line while an unverified anchor cannot narrow the established boundary.
+- **DA-SAF-007 — Exact-claim content preservation:** Reject a source-grounded replacement that only restates meaning already present in the exact target claim, reject loss of most values from an established inline-code contract enumeration, retain a concise replacement that introduces a corrected factual value, verify that a sole established claim deterministically replaces a missing or invented model anchor, verify that an exact unique subclaim anchor preserves surrounding prose on the same Markdown line while an unverified anchor cannot narrow the established boundary, and reject contradictory fail-closed continuation wording.
 - **DA-SAF-008 — Exact-claim insertion grounding:** Reject an insertion that restates its target, exposes a paired private helper, or promotes an already named identifier to standalone response prose; retain a material insertion and verify that it is anchored directly after the resolved established claim. When multiple claims share a section, verify that a normalized proposal anchor selects only its unique matching claim and that a missing or ambiguous anchor fails closed.
 
 Any unauthorized or unintended repository mutation is release-blocking.

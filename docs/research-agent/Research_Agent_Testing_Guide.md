@@ -1,8 +1,8 @@
 # Research Agent Testing Guide
 
-**Version:** 0.9  
+**Version:** 1.0  
 **Owner:** Project0  
-**Last Updated:** 2026-09-18
+**Last Updated:** 2026-09-19
 
 ## 1. Purpose and Scope
 
@@ -39,7 +39,7 @@ python -m pytest
 
 Focused component files use the corresponding `test_research_strategy_service.py`, `test_research_query_service.py`, source-provider/service tests, `test_research_context_ingestion_service.py`, `test_existing_research_context_analysis_service.py`, `test_paper_metadata_service.py`, `test_research_evaluation_service.py`, `test_paper_analysis_service.py`, `test_research_direction_analysis_service.py`, route/UI/view-model tests, and `test_research_agent_ui_flow.py`. Evidence acquisition belongs to `PaperMetadataService.acquire_evidence`; no separate paper-acquisition/ingestion test files exist.
 
-Manual validation shall start the Dashboard, open `/agents/research`, confirm the Research model, submit a focused request and optional supported context, verify that submission redirects promptly to `/agents/research/runs/{run_id}`, observe backend stage and elapsed-time updates, inspect retained form values/warnings/cards after terminal reload, verify evidence-backed analysis and Direction claims against papers, and inspect saved `project0_research_results.md`. The originating POST must not remain open for workflow duration.
+Manual validation shall start the Dashboard, open `/agents/research`, confirm the Research model, submit a focused request and optional supported context, verify that submission redirects promptly to `/agents/research/runs/{run_id}`, observe backend stage and elapsed-time updates, and confirm that question, guidance, Maximum Results, and context filename remain visible in processing and terminal states. After completion, submit another request and confirm that the previous completed/error workflow styling is cleared before new progress begins. Inspect retained warnings/cards, verify evidence-backed analysis and Direction claims against papers, and inspect saved `project0_research_results.md`. The originating POST must not remain open for workflow duration.
 
 Current bounds are 3 seeds, 3 discovery queries, up to 6 search terms, normally 10 provider results/query, 24 evaluation candidates, batches of 3, 8 evidence papers, 8,000 characters/section, 24,000 characters/paper, first 3 analyses for Direction, and 0.75 recommendation threshold. Maximum Results does not enlarge upstream bounds.
 

@@ -1,8 +1,8 @@
 # Research Agent Interface Design
 
-**Version:** 0.6  
+**Version:** 0.7  
 **Owner:** Project0  
-**Last Updated:** 2026-09-18
+**Last Updated:** 2026-09-19
 
 ## 1. Purpose and Scope
 
@@ -27,7 +27,7 @@ The browser and UI validate and map requests but do not implement retrieval, evi
 
 The form accepts optional `.pdf`, `.md`, `.markdown`, or `.txt` context; a required nonblank question; optional guidance; and Maximum Results of 5, 10, 15, or 20 with 10 as default. Client and server validation prevent blank questions from invoking the workflow.
 
-Page states are `ready`, `processing`, `completed`, `completed_with_warnings`, and `failed`. JavaScript disables submission and shows immediate processing feedback. After the redirect, the processing page restores elapsed time and polls the progress endpoint. A terminal run lifecycle causes the browser to replace the processing page with the same run URL, which then renders the retained final page model. Stage values come from the backend Research workflow snapshot; run lifecycle and result lookup are scoped by run ID.
+Page states are `ready`, `processing`, `completed`, `completed_with_warnings`, and `failed`. JavaScript disables submission, removes prior workflow-step state classes, and shows immediate processing feedback. After the redirect, the processing page restores elapsed time and polls the progress endpoint. A terminal run lifecycle causes the browser to replace the processing page with the same run URL, which then renders the retained final page model. Processing and terminal models retain the normalized question, guidance, Maximum Results, and context filename; **New Request** returns to an empty ready form. Stage values come from the backend Research workflow snapshot; run lifecycle and result lookup are scoped by run ID.
 
 The page may show request values, context filename/findings, consolidated paper cards, Direction Analysis, summary counts, warnings, model, and GPU. Embedded paper analyses appear in cards; separate analysis and legacy-artifact panels remain disabled. **Save Results** serializes the visible completed package to `project0_research_results.md` using `showSaveFilePicker` or Blob download.
 

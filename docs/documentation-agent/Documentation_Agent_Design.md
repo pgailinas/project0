@@ -1,8 +1,8 @@
 # Documentation Agent Design
 
-**Version:** 0.8  
+**Version:** 0.9  
 **Owner:** Project0  
-**Last Updated:** 2026-09-11
+**Last Updated:** 2026-09-19
 
 ## 1. Executive Summary
 
@@ -19,7 +19,7 @@ The Platform Dispatcher invokes `DocumentationWorkflow.execute()` directly. Its 
 ### Dashboard, routes, and UI
 
 - **Dashboard Framework** owns shared layout, navigation, status, registration order, templates, and static mounting while remaining independent of Documentation business rules.
-- **Routes** expose `GET /agents/documentation`, `POST /agents/documentation/request`, and `POST /agents/documentation/review`; parse trimmed newline-separated paths and decisions; run synchronous work in the Starlette thread pool; and render invalid decisions as failed page state.
+- **Routes** expose the ready page, request and review submissions, run pages, and run-status endpoints; parse trimmed newline-separated paths and decisions; enqueue valid workflow operations in the shared process-local background-run manager; redirect immediately with `303`; and render invalid decisions as failed page state without creating a run.
 - **UI Service** normalizes inputs, rejects blank requests, invokes the workflow port, timestamps reviews in UTC, reloads retained state after revise, maps domain models to immutable views, and converts exceptions to displayable failures.
 - **Difference presentation** applies the shared change helper to the proposal snapshot in memory, compares original/candidate with `ndiff`, and shows changed lines plus three lines of context. A difference error affects only that proposal and never writes or substitutes for validation.
 
@@ -44,7 +44,7 @@ The Platform Dispatcher invokes `DocumentationWorkflow.execute()` directly. Its 
 
 Universal proposal checks require an allowed path when supplied, `update`, repository containment, an existing regular `.md` file, and a complete original snapshot. After location and anchor resolution, the workflow applies the candidate edit in memory and rejects exact no-op results before review. Source-grounded checks reject meta-instructions; unsafe fenced Python; non-authoritative declarations; unresolved, duplicate, ambiguous, or weakly aligned locations; and unsupported section choices. Whole-section replacements preserve the existing heading when necessary.
 
-Stage 1 failure ends the workflow; no gaps retains review state without proposals. Stage 2 receives only deduplicated established gaps and may not introduce new gaps/design changes. Ordinary mode uses one update request. Preliminary validation checks current files, not staged candidates; failure retains proposals for inspection, warnings retain review state.
+Stage 1 failure ends the workflow; no verified gaps completes without Stage 2. Stage 2 receives a compact context containing only the requested change, each exact target claim, verified gap, source evidence, and rewrite rules; it makes one proposal-generation call and may not introduce new gaps or design changes. The complete source-grounded context remains available to `_build_proposals()` for deterministic validation. Ordinary mode uses one update request. Preliminary validation checks current files, not staged candidates; failure retains proposals for inspection, warnings retain review state.
 
 ### Validation, review, and mutation
 
@@ -64,7 +64,7 @@ Source-grounded processing flows through browser normalization, dispatcher reque
 
 For same-file review sequencing, the workflow records the rebased proposal after each successful approval. The next approval reconstructs the expected content from the latest successful same-file proposal, rebases anchor-based changes directly, and relocates a line-range location only when its original target lines occur exactly once in the evolved content. A whole-file proposal after a same-file write, a changed/ambiguous range, or an externally modified file remains a stale or application failure rather than overwriting content.
 
-For source-grounded exact-claim edits, the workflow normalizes words, numbers, common singular/plural forms, and the `status`/`state` equivalent before comparing meaning. If every proposed meaning token is already present in the target claim, either a replacement or insertion is a redundant restatement and is skipped. Exact-claim insertions are additionally rejected when they expose a paired private helper not named by the target or turn an identifier already named by the target into standalone “included in the response” prose. An accepted insertion ignores a broader model-selected section or imperfect model anchor and uses the uniquely resolved established claim with `INSERT_AFTER`. For replacement, a model anchor narrows a verified paragraph only when its stripped text is an exact substring of the established claim and occurs exactly once in the current document. This bounded replacement preserves unrelated prose on the same Markdown line; otherwise the full established claim remains the replacement boundary. Separately, when a target claim contains at least three distinct inline-code contract literals, a replacement that preserves fewer than half is rejected as destructively incomplete. Numeric or other newly introduced factual values keep concise corrections eligible.
+For source-grounded exact-claim edits, the workflow normalizes words, numbers, common singular/plural forms, and the `status`/`state` equivalent before comparing meaning. If every proposed meaning token is already present in the target claim, either a replacement or insertion is a redundant restatement and is skipped. Exact-claim insertions are additionally rejected when they expose a paired private helper not named by the target or turn an identifier already named by the target into standalone “included in the response” prose. When the established-gap map provides one candidate for the proposal path, the workflow replaces a missing or invented model anchor with that exact claim. Multiple candidates still require unique normalized disambiguation. An accepted insertion uses the resolved established claim with `INSERT_AFTER`. For replacement, a model subclaim narrows a verified paragraph only when its stripped text is an exact substring of the established claim and occurs exactly once in the current document. This bounded replacement preserves unrelated prose on the same Markdown line; otherwise the deterministic full established claim remains the replacement boundary. Wording that says a failed or ambiguous resolution both fails closed and continues with a selection or edit is rejected. Separately, when a target claim contains at least three distinct inline-code contract literals, a replacement that preserves fewer than half is rejected as destructively incomplete. Numeric or other newly introduced factual values keep concise corrections eligible.
 
 Ordinary processing substitutes Knowledge Service context, omits gap analysis and the strict skill, and retains universal scope, operation, containment, existence, review, and stale-snapshot checks. Revise performs no write or automatic provider call; the user edits and resubmits restored inputs.
 
@@ -80,7 +80,7 @@ Final validation records warnings/failure but does not roll back. Failed prelimi
 
 ## 6. Constraints and Verification
 
-- Execution and review state are synchronous and process-local.
+- Workflow and review operations are synchronous internally, while Dashboard routes execute valid operations through process-local background runs. Workflow, review, and run state remain non-durable and process-local.
 - Only existing Markdown updates are executable.
 - Every requested source-grounded target/source must be readable.
 - Allowlisting uses exact repository-path strings.

@@ -1,8 +1,9 @@
 # Implementation Status
 
-**Version:** 1.2  
+**Version:** 1.3  
 **Owner:** Project0  
-**Last Updated:** 2026-09-18
+**Last Updated:** 2026-09-19  
+**Source Baseline:** `main` at `eedad41a4a055ca79cdaf623a598103b5db902df`
 
 ---
 
@@ -31,7 +32,7 @@ the platform display record reports the Dashboard's current test text.
 
 **Latest named roadmap phase:** Phase 14 — Project0 Agent Skills Foundation  
 **Implementation state:** Source corresponding to Phases 1–14 is present  
-**Repository-wide verification state:** Incomplete at the pinned commit  
+**Repository-wide verification state:** Deterministic pytest passed; other gates remain incomplete  
 **Known blocking integrity issue:** Python compilation fails in
 `knowledge_interfaces.py`
 
@@ -87,8 +88,12 @@ Markdown application, preliminary/final validation, Git differences, and
 Dashboard presentation. Review state is in memory; only approved supported
 updates are applied; deterministic rules remain authoritative over model output;
 and no automatic commit, push, pull request, publication, or deployment occurs.
-Dashboard request and review submissions return promptly and continue through
-platform-managed, process-local background runs.
+Source-grounded proposal generation sends a compact exact-claim rewrite context
+to the model while retaining full context for deterministic validation. When
+one verified claim is available, the workflow assigns its anchor rather than
+depending on model location output. Dashboard request and review submissions
+return promptly and continue through platform-managed, process-local background
+runs.
 
 ### Research Agent
 
@@ -114,20 +119,19 @@ models; Python retains deterministic policy enforcement.
 
 ## Evidence and Dependencies
 
-The audit found unit, integration, and browser-acceptance source across platform
-and agent directories. It did not execute pytest or strict MkDocs because those
-tools were unavailable in the audit environment.
+The repository validation record reports **1410 passed, 11 skipped** for the
+deterministic pytest suite at the source baseline. Browser acceptance, strict
+MkDocs, compilation, and live-provider execution are separate gates and are not
+established by that count.
 
 `python -m compileall -q src` failed because
 `src/project0/interfaces/knowledge_interfaces.py` contains Markdown fence lines
 around the Python module. This is a verified source-integrity defect, not a
 pytest result.
 
-The earlier platform display record reported `1265 passed, 11 skipped` on
-2026-09-09 without identifying a commit. It predates the pinned state and is
-historical execution information only. Browser tests import Playwright and use
-pytest browser fixtures, but the browser dependencies are absent from
-`pyproject.toml`. `tests/acceptance/platform/test_ollama_acceptance.py` and
+Browser tests import Playwright and use pytest browser fixtures, but the browser
+dependencies are absent from `pyproject.toml`.
+`tests/acceptance/platform/test_ollama_acceptance.py` and
 `tests/unit/models/test_skill_models.py` are empty. Test-file presence is not
 execution evidence.
 
@@ -139,7 +143,7 @@ Verified gaps and current operational boundaries are:
 - the Dashboard hard-codes the stale Phase 11 project label;
 - Documentation Consistency is absent from the default Documentation Workflow;
 - two test modules are empty and browser dependencies are undeclared;
-- no checked-in CI workflow or current commit-specific regression result exists;
+- no checked-in CI workflow exists;
 - companion PDF/ODS status artifacts were not verified;
 - workflow, review, research-session, audit, telemetry, and activity state are
   not durable;
@@ -151,9 +155,9 @@ Verified gaps and current operational boundaries are:
 
 Immediate priorities are to restore compilation; decide and align the default
 validator set; make the Dashboard phase authoritative; define the Playwright
-environment; populate or remove empty test modules; run compilation, pytest,
-and strict MkDocs against the corrected commit; record exact results; and add CI
-only after its environment and gates are defined.
+environment; populate or remove empty test modules; run strict MkDocs and the
+remaining browser/live gates against the corrected commit; record exact results;
+and add CI only after its environment and gates are defined.
 
 ## Update Rules
 

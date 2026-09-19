@@ -1,8 +1,8 @@
 # Research Agent Functional Specification
 
-**Version:** 0.6  
+**Version:** 0.7  
 **Owner:** Project0  
-**Last Updated:** 2026-09-11
+**Last Updated:** 2026-09-19
 
 ## 1. Purpose and Scope
 
@@ -45,6 +45,8 @@ Evidence-free and persistently unscored papers are excluded from final selection
 Each retained paper with usable evidence shall be analyzed independently. Problem and approach are required; representations, modalities, objectives, datasets/tasks, findings, limitations, and warnings are optional. Findings must cite supplied evidence and page numbers when present. A structurally invalid response is retried once; persistent structural failure skips that analysis, while a provider exception fails the workflow.
 
 Research Direction Analysis is enabled by default when configured and at least two valid paper analyses exist. It receives at most three analyses, uses opaque evidence handles, requires cross-paper findings to cite at least two papers, restricts performance ordering to directly supported claims, and enforces context/literature grounding for candidate directions. Invalid items may be omitted; semantic grounding or direction-structure errors cause one full retry. Persistent failure produces a warning and omits Direction Analysis.
+
+The browser shall enqueue valid long-running requests in the process-local background-run manager and return an immediate `303` redirect to the run page. The processing page shall poll run-scoped lifecycle state and the backend Research workflow snapshot, restore elapsed time across reloads, and retain the normalized question, guidance, Maximum Results, and context filename in processing and terminal page models. Starting another submission shall clear prior workflow-step completion and error styling before displaying new progress.
 
 The browser shall present workflow status, warnings, request values, context filename and findings, consolidated retained-paper cards, available analyses, Direction Analysis, and source/evaluation counts. **Save Results** shall create `project0_research_results.md` from the visible package. Legacy in-memory artifacts remain in the result model but are not rendered.
 

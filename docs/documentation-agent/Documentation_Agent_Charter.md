@@ -1,8 +1,8 @@
 # Documentation Agent Charter
 
-**Version:** 0.5  
+**Version:** 0.6  
 **Owner:** Project0  
-**Last Updated:** 2026-09-11
+**Last Updated:** 2026-09-19
 
 ## 1. Purpose and Objectives
 
@@ -14,7 +14,7 @@ The agent shall:
 - Identify material gaps and produce concrete, minimal, style-preserving Markdown proposals with a rationale.
 - Restrict proposals to permitted existing Markdown targets.
 - Present focused differences, warnings, and errors for human review.
-- Filter source-grounded exact-claim replacements or insertions that merely restate existing information, expose private implementation details, misrepresent already named identifiers as standalone response documentation, or destructively collapse an established contract enumeration; use uniquely verified anchors to select claims and bound replacements without discarding surrounding same-line prose.
+- Filter source-grounded exact-claim replacements or insertions that merely restate existing information, expose private implementation details, misrepresent already named identifiers as standalone response documentation, or destructively collapse an established contract enumeration; assign uniquely verified anchors deterministically and use model output only for bounded replacement wording or multi-claim disambiguation.
 - Support approve, revise, reject, and skip decisions for each proposal and apply only individually approved changes.
 - Validate affected documentation at the implemented workflow stages and provide a final Git diff.
 - Reuse generic Project0 services while keeping agent-specific behavior outside shared platform components.
@@ -28,7 +28,7 @@ Detailed behavior and contracts remain defined by the Documentation Agent Functi
 - Existing Markdown documentation in the configured local Git repository.
 - A required request with optional target-document and authoritative-source paths.
 - Repository-grounded context construction and provider-neutral structured reasoning.
-- Two-stage source-grounded gap analysis and proposal generation when source paths are supplied, or single-stage proposal generation otherwise.
+- Two-stage source-grounded gap analysis and compact exact-claim proposal generation when source paths are supplied, or single-stage proposal generation otherwise.
 - Deterministic safeguards for paths, content form, locations, sections, anchors, and Python declarations.
 - File-specific proposals, preliminary validation, individual review, atomic application, final validation, Git diff generation, and Dashboard presentation.
 

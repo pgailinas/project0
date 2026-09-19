@@ -1,8 +1,8 @@
 # Research Agent Test Plan
 
-**Version:** 0.9  
+**Version:** 1.0  
 **Owner:** Project0  
-**Last Updated:** 2026-09-11
+**Last Updated:** 2026-09-19
 
 ## 1. Purpose and Scope
 
@@ -14,7 +14,7 @@ Live Ollama and research APIs provide environment-dependent evidence and do not 
 
 - **Unit:** Isolate provider parsing, deterministic services, workflow decisions, models, UI mapping, routes, settings, and reasoning-provider behavior.
 - **Integration:** Assemble production components with controlled external boundaries and verify handoffs, consolidation, upload forwarding, rendering, and dispatcher behavior.
-- **Browser acceptance:** Exercise the local Dashboard form, processing state, consolidated results, unsupported-information safeguards, and end-to-end outcomes through Playwright.
+- **Browser acceptance:** Exercise the local Dashboard form, immediate background-run redirect, processing and elapsed-time state, progress polling, retained submitted values, progress reset between requests, consolidated results, unsupported-information safeguards, and end-to-end outcomes through Playwright.
 - **Live checks:** Evaluate Ollama and configured APIs separately, recording environmental failures, rate limits, rankings, and model variability independently from deterministic counts.
 - **Regression:** Run the complete Project0 suite so Research changes do not break shared platform or other-agent behavior.
 
@@ -24,7 +24,7 @@ Repository content and tests are authoritative. Missing evidence must remain abs
 
 ### Requests and context
 
-Verify route registration, ready state, normalization and multiline preservation, blank-question rejection without execution, paired filename/bytes, supported Markdown/text/PDF ingestion, safe failure for invalid or non-extractable content, provenance, exactly three distinct solution concepts, preservation of model anchors, and one retry for invalid structured output.
+Verify route registration, ready state, normalization and multiline preservation, blank-question rejection without execution, immediate `303` redirect for accepted requests, run-scoped processing/failure/completion lookup, elapsed-time restoration, submitted-value retention in processing and terminal models, paired filename/bytes, supported Markdown/text/PDF ingestion, safe failure for invalid or non-extractable content, provenance, exactly three distinct solution concepts, preservation of model anchors, and one retry for invalid structured output.
 
 ### Strategy, queries, and providers
 
@@ -42,7 +42,7 @@ Verify evidence-limited prompts, exact section/page citations, abstract versus f
 
 ### UI, save, and safety
 
-Verify consolidated cards, one title URL, recommended versus reviewed counts, warning/error states, context filename in form and analysis, Direction display, hidden legacy artifacts, completion-gated **Save Results**, and saved filename/content.
+Verify consolidated cards, one title URL, recommended versus reviewed counts, warning/error states, context filename in form and analysis, Direction display, hidden legacy artifacts, completion-gated **Save Results**, saved filename/content, and clearing of prior success/error workflow styling when a subsequent request starts.
 
 A test must fail if the agent executes a blank question; accepts unsupported context; invents metadata/evidence; confuses source IDs with model handles; accepts unknown/wrong-type evidence; presents unsupported performance comparisons or ungrounded non-speculative directions; scores evidence-free records as final evidence results; exceeds documented bounds; or writes to the Project0 repository.
 

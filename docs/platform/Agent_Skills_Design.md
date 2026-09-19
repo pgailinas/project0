@@ -1,10 +1,10 @@
 # Agent Skills Design
 
-**Version:** 0.6  
+**Version:** 0.7  
 **Owner:** Project0  
-**Last Updated:** 2026-09-13  
+**Last Updated:** 2026-09-19  
 **Status:** Implemented foundation with two repository-local skills; selective workflow integration  
-**Source Baseline:** `main` at `da217ae42f7ceeffc95a84c6baad3dc4376a18f9`
+**Source Baseline:** `main` at `eedad41a4a055ca79cdaf623a598103b5db902df`
 
 ## Executive Summary
 
@@ -102,9 +102,13 @@ unchanged and `skill_names` is empty.
 
 For source-grounded Documentation requests, gap analysis runs first without a
 skill and cannot propose edits. When gaps exist, proposal generation receives
-those gaps and the strict skill. No-gap processing stops without proposals. A
-required-skill load failure fails the source-grounded workflow. Ordinary
-Documentation requests do not activate the skill.
+the request, exact target claims, verified gaps, and source evidence in a
+compact rewrite context together with the strict skill. The workflow retains
+the full repository context for deterministic validation and assigns a uniquely
+known exact-claim anchor itself; the skill and model do not have location
+authority. No-gap processing stops without proposals. A required-skill load
+failure fails the source-grounded workflow. Ordinary Documentation requests do
+not activate the skill.
 
 ## Configuration and Failure Behavior
 

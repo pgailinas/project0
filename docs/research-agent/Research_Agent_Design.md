@@ -1,8 +1,8 @@
 # Research Agent Design
 
-**Version:** 0.6  
+**Version:** 0.7  
 **Owner:** Project0  
-**Last Updated:** 2026-09-11
+**Last Updated:** 2026-09-19
 
 ## 1. Executive Summary
 
@@ -18,7 +18,7 @@ This document records the current detailed Research Agent design. It describes i
 
 ### Request and context
 
-The POST route accepts `question`, `guidance`, integer `max_results` defaulting to 10, and optional `context_document`. The UI trims text, retains the normalized filename, and forwards bytes without storage.
+The POST route accepts `question`, `guidance`, integer `max_results` defaulting to 10, and optional `context_document`. The UI trims text, retains the normalized filename, and forwards bytes without storage. The route builds an interim processing model from normalized inputs, submits the synchronous UI-service operation to the shared background-run manager, and redirects to a run-scoped page. Processing and terminal models retain submitted parameters. Client-side submission removes prior terminal progress classes and applies a fresh processing state before navigation.
 
 Markdown/text are decoded as UTF-8. PDF page text is extracted with pypdf and joined with two newlines; page boundaries are not retained in `extracted_text`. `ResearchContextDocument` records UUID, filename, type, extraction method, status, and PDF page count. The service performs no OCR or chunking.
 

@@ -1,9 +1,9 @@
 # Component Communication Design
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Owner:** Project0  
-**Last Updated:** 2026-09-18  
-**Source Baseline:** working tree based on `e23a957a152d500649b7a8bf2702347bc308464f`
+**Last Updated:** 2026-09-19  
+**Source Baseline:** `main` at `eedad41a4a055ca79cdaf623a598103b5db902df`
 
 ## Executive Summary
 
@@ -108,9 +108,14 @@ Only source-grounded Documentation proposal generation currently loads
 
 Documentation Workflow coordinates context, reasoning, placement, validation,
 review, updates, and Git differences, retaining review state in memory. Gap
-analysis precedes source-grounded proposals; deterministic checks retain
-authority. Revise returns a proposal to reasoning; Reject and Skip do not write;
-Approve may proceed through application and final validation.
+analysis precedes source-grounded proposals. Stage 2 sends the provider a
+compact rewrite context containing the request, exact target claim, verified
+gap, and source evidence, while retaining the complete repository context for
+deterministic validation. When Stage 1 identifies exactly one claim for the
+proposal path, the workflow assigns that verified claim as the anchor instead
+of relying on provider location output. Deterministic checks retain authority.
+Revise returns inputs for resubmission; Reject and Skip do not write; Approve
+may proceed through application and final validation.
 
 Research Workflow directly coordinates strategy, queries, providers,
 metadata/evidence, evaluation, optional context analysis, paper analysis,

@@ -1,8 +1,8 @@
 # Research Agent Charter
 
-**Version:** 0.6  
+**Version:** 0.7  
 **Owner:** Project0  
-**Last Updated:** 2026-09-11
+**Last Updated:** 2026-09-19
 
 ## 1. Purpose and Objectives
 
@@ -18,6 +18,7 @@ The agent shall:
 - Preserve discovery-only status when usable evidence is unavailable.
 - Produce evidence-cited analyses and bounded Research Direction Analysis when at least two valid paper analyses exist and the feature is enabled.
 - Present consolidated results and allow the visible result package to be saved as Markdown.
+- Return long-running browser submissions immediately through process-local background execution, preserve submitted parameters for inspection and reuse, and reset prior progress presentation when a new request starts.
 - Fail or warn explicitly when inputs, evidence, provenance, or provider output are insufficient.
 
 Detailed behavior and contracts remain defined by the Research Agent Functional Specification, Architecture, Design, Interface Design, Testing Guide, Test Plan, and Test Results.

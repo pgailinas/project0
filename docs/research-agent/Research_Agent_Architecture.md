@@ -1,8 +1,8 @@
 # Research Agent Architecture
 
-**Version:** 0.7  
+**Version:** 0.8  
 **Owner:** Project0  
-**Last Updated:** 2026-09-18
+**Last Updated:** 2026-09-19
 
 ## 1. Executive Summary
 
@@ -31,11 +31,11 @@ flowchart TD
     EA --> RV["Result and browser view"]
 ```
 
-The workflow is synchronous internally. The request route submits the UI-service call to the shared `BackgroundRunManager` and immediately redirects the browser to a run page. The run page polls run-scoped lifecycle state plus the Research workflow's backend stage snapshot, restores elapsed time from the run timestamp, and reloads the same URL to render the retained final page model.
+The workflow is synchronous internally. The request route creates a processing page model that preserves the normalized question, guidance, maximum-results value, and optional context filename, submits the UI-service call to the shared `BackgroundRunManager`, and immediately redirects the browser to a run page. The run page polls run-scoped lifecycle state plus the Research workflow's backend stage snapshot, restores elapsed time from the run timestamp, and reloads the same URL to render the retained final page model. Starting a new request clears prior client-side progress classes before the new run begins.
 
 ### Browser and platform components
 
-- **Research Agent routes** expose the ready page, request submission, run page, and progress endpoint; read optional upload bytes before background submission; return a `303` redirect; and render processing or retained final page state by run ID.
+- **Research Agent routes** expose the ready page, request submission, run page, and progress endpoint; read optional upload bytes before background submission; retain submitted values in interim and terminal page models; return a `303` redirect; and render processing or retained final page state by run ID.
 - **Background Run Manager** assigns run IDs, serializes Research runs through the router's default worker, records lifecycle timestamps and terminal results, and captures unexpected failures outside the UI service.
 - **UI Service and view models** validate the question, invoke the dispatcher, map `ResearchResult` into immutable browser models, consolidate paper data by source identity, merge evaluation warnings into relevance limitations, and derive page status.
 - **Platform Dispatcher** constructs `ResearchRequest`, invokes the Research Workflow, and wires the current services, providers, and agent-specific model.

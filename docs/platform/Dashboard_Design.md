@@ -1,9 +1,9 @@
 # Dashboard Design
 
-**Version:** 1.1  
+**Version:** 1.2  
 **Owner:** Project0  
-**Last Updated:** 2026-09-18  
-**Source Baseline:** working tree based on `e23a957a152d500649b7a8bf2702347bc308464f`
+**Last Updated:** 2026-09-19  
+**Source Baseline:** `main` at `eedad41a4a055ca79cdaf623a598103b5db902df`
 
 ## Executive Summary
 
@@ -111,6 +111,9 @@ run and status URLs. A `303 See Other` response redirects the browser from a
 submission to its processing page. Processing pages restore elapsed time, poll
 run state, and replace themselves with the same run URL when work reaches a
 terminal state; the run page then renders the retained agent page model.
+Agent request fields remain populated when a retained review or terminal page
+is rendered. Starting a new request clears the prior run's workflow-stage
+presentation so completed progress markers are not carried into the next run.
 
 System status accepts an optional agent selector. With Ollama, Research uses
 `PROJECT0_RESEARCH_OLLAMA_MODEL`, then `PROJECT0_OLLAMA_MODEL`, defaulting to

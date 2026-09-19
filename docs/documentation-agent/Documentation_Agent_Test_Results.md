@@ -1,21 +1,25 @@
 # Documentation Agent Test Results
 
-**Version:** 1.1  
+**Version:** 1.2  
 **Owner:** Project0  
-**Last Updated:** 2026-09-11
+**Last Updated:** 2026-09-19
 
 ---
 
 ## Execution Basis
 
-The September 11, 2026 documentation audit inspected the Documentation Agent
-implementation, tests, templates, configuration, and Markdown documentation on
-GitHub `main` at commit `e4f96f4eb5f15b75018a2f3eddc399e317ef78a9`.
-It did not execute pytest, Playwright, MkDocs, or a live Ollama workflow.
+The current repository-level validation record is tied to GitHub `main` at
+commit `eedad41a4a055ca79cdaf623a598103b5db902df`. It records the deterministic
+regression suite as **1410 passed, 11 skipped** on September 19, 2026. The count
+includes Documentation Workflow regression coverage added for compact Stage 2
+proposal context, deterministic exact-claim anchors, bounded subclaim
+replacement, multi-claim disambiguation, and strict proposal filtering.
 
-Accordingly, test presence is reported as repository-supported coverage rather
-than execution success. No new passed, failed, or skipped count is claimed, and
-historical counts are not treated as evidence for the audited commit.
+This record does not claim that Playwright browser acceptance, strict MkDocs,
+source compilation, or a live Ollama workflow was part of that pytest result.
+Those remain separate evidence. Live runs demonstrated reduced Stage 2 context
+and a reviewable exact-claim proposal, but model output is qualitative evidence
+rather than a deterministic pass count.
 
 ## Results Summary
 
@@ -36,7 +40,10 @@ for the following Documentation Agent boundaries:
   identifier-response insertion rejection; unique normalized-anchor claim
   selection when one section contains multiple established claims; bounded
   exact-subclaim replacement that preserves surrounding same-line prose; exact
-  insertion anchoring; and established inline-code enumeration preservation;
+  insertion anchoring; deterministic replacement of missing or invented model
+  anchors when one verified claim exists; compact single-call Stage 2 proposal
+  context; contradictory fail-closed continuation rejection; and established
+  inline-code enumeration preservation;
 - validation models and aggregation, Markdown, links, MkDocs, and assembled
   validation flows;
 - approve, revise, reject, and skip decisions; stale-content detection;
@@ -69,11 +76,10 @@ command.
 
 ## Failures and Risks
 
-No runtime defect was established because tests were not run. The audit did
-identify and correct five reporting issues: a historical aggregate count was
-presented as current; a removed integration path was referenced; one browser
-case implied current acceptance status; “validation complete” exceeded the
-evidence; and test presence was conflated with test success.
+The recorded deterministic regression completed without test failures. That
+result does not remove separately known repository or environment limitations,
+and it does not convert unexecuted browser, MkDocs, compilation, or live-model
+checks into passing evidence.
 
 Current implementation constraints remain:
 
@@ -89,10 +95,11 @@ Current implementation constraints remain:
 
 ## Validation Decision
 
-Repository inspection shows coverage across the major functional, safety,
-provider, UI, and platform boundaries in the Documentation Agent Test Plan. It
-does not establish that those tests pass. Publication of a current aggregate
-result should wait for executed focused and full regression suites.
+The recorded deterministic regression passed at the identified commit and
+covers the major functional, safety, provider, UI, and platform boundaries in
+the Documentation Agent Test Plan. Browser acceptance, strict MkDocs, source
+compilation, and live-provider quality require their own explicit results and
+must not be inferred from the pytest count.
 
 ## Next Verification
 

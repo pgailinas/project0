@@ -1,8 +1,8 @@
 # Project Directory Structure
 
-**Version:** 0.10  
+**Version:** 0.11  
 **Owner:** Project0  
-**Last Updated:** 2026-09-16
+**Last Updated:** 2026-09-19
 
 ---
 
@@ -27,6 +27,8 @@ project0/
 ├── notebooks/
 │   └── Project0_Colab_Launcher.ipynb
 ├── skills/
+│   ├── evidence-grounded-research-analyst/
+│   │   └── SKILL.md
 │   └── strict-documentation-editor/
 │       └── SKILL.md
 ├── src/project0/
