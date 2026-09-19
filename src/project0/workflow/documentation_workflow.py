@@ -200,7 +200,8 @@ class DocumentationWorkflow:
 
             if source_grounded:
                 bounded_gap_context = self._build_claim_level_gap_context(
-                    context
+                    context,
+                    objective=request.user_request,
                 )
                 gap_contexts = self._split_bounded_gap_context(
                     bounded_gap_context
@@ -217,80 +218,128 @@ class DocumentationWorkflow:
                     gap_contexts,
                     start=1,
                 ):
-                    gap_result = self._reasoning_service.reason(
-                        ReasoningRequest(
-                            objective=request.user_request,
-                            context=gap_context,
-                            workflow_type="documentation_gap_analysis",
-                            target_paths=target_paths,
-                            constraints=(),
-                            skills=(),
-                            metadata={
-                                "workflow_id": request.workflow_id,
-                                "documentation_stage": "gap_analysis",
-                                "gap_pair_index": pair_index,
-                                "gap_pair_count": len(gap_contexts),
-                            },
+                    focused_constraints = (
+                        self._focused_gap_analysis_constraints(gap_context)
+                    )
+                    attempt_context = gap_context
+
+                    for attempt in range(1, 3):
+                        attempt_constraints = focused_constraints
+                        if attempt == 2:
+                            attempt_constraints = (
+                                *attempt_constraints,
+                                (
+                                    "This is one corrective retry. Report only "
+                                    "requested behavior positively established "
+                                    "by the paired source and absent from the "
+                                    "exact target claim."
+                                ),
+                            )
+
+                        gap_result = self._reasoning_service.reason(
+                            ReasoningRequest(
+                                objective=request.user_request,
+                                context=attempt_context,
+                                workflow_type="documentation_gap_analysis",
+                                target_paths=target_paths,
+                                constraints=attempt_constraints,
+                                skills=(),
+                                metadata={
+                                    "workflow_id": request.workflow_id,
+                                    "documentation_stage": "gap_analysis",
+                                    "gap_pair_index": pair_index,
+                                    "gap_pair_count": len(gap_contexts),
+                                    "gap_analysis_attempt": attempt,
+                                },
+                            )
                         )
-                    )
 
-                    self._log_reasoning_result(
-                        (
-                            "Documentation gap analysis "
-                            f"pair {pair_index}/{len(gap_contexts)}"
-                        ),
-                        gap_result,
-                    )
-
-                    if gap_result.status is ReasoningStatus.FAILED:
-                        return self._failed_result(
-                            request=request,
-                            started_at=started_at,
-                            reasoning_result=gap_result,
-                            error_message=(
-                                gap_result.error_message
-                                or "Documentation gap analysis failed."
+                        self._log_reasoning_result(
+                            (
+                                "Documentation gap analysis "
+                                f"pair {pair_index}/{len(gap_contexts)} "
+                                f"attempt {attempt}"
                             ),
-                            warnings=gap_result.warnings,
+                            gap_result,
                         )
 
-                    gap_results.append(gap_result)
-                    warnings.extend(
-                        self._select_reasoning_warnings(
-                            reasoning_result=gap_result,
-                            source_grounded=True,
-                        )
-                    )
+                        if gap_result.status is ReasoningStatus.FAILED:
+                            return self._failed_result(
+                                request=request,
+                                started_at=started_at,
+                                reasoning_result=gap_result,
+                                error_message=(
+                                    gap_result.error_message
+                                    or "Documentation gap analysis failed."
+                                ),
+                                warnings=gap_result.warnings,
+                            )
 
-                    for gap in gap_result.gaps:
-                        rejection_reason = (
-                            self._documentation_gap_rejection_reason(
-                                gap=gap,
-                                gap_context=gap_context,
+                        gap_results.append(gap_result)
+                        warnings.extend(
+                            self._select_reasoning_warnings(
+                                reasoning_result=gap_result,
+                                source_grounded=True,
                             )
                         )
+                        accepted_count = 0
+                        rejection_reasons: list[str] = []
 
-                        if rejection_reason is None:
-                            verified_gaps.append(gap)
-                            target_claim = self._extract_bounded_target_claim(
-                                gap_context
-                            )
-                            if target_claim is not None:
-                                verified_gap_target_claims.setdefault(
-                                    self._documentation_gap_key(gap),
-                                    target_claim,
+                        for gap in gap_result.gaps:
+                            rejection_reason = (
+                                self._documentation_gap_rejection_reason(
+                                    gap=gap,
+                                    gap_context=gap_context,
                                 )
-                        else:
-                            logger.debug(
-                                "Rejected documentation gap: reason=%r "
-                                "document_path=%r section=%r gap=%r "
-                                "source_evidence=%r",
-                                rejection_reason,
-                                gap.document_path.as_posix(),
-                                gap.section,
-                                gap.gap,
-                                gap.source_evidence,
                             )
+
+                            if rejection_reason is None:
+                                accepted_count += 1
+                                verified_gaps.append(gap)
+                                target_claim = (
+                                    self._extract_bounded_target_claim(
+                                        gap_context
+                                    )
+                                )
+                                if target_claim is not None:
+                                    verified_gap_target_claims.setdefault(
+                                        self._documentation_gap_key(gap),
+                                        target_claim,
+                                    )
+                            else:
+                                rejection_reasons.append(rejection_reason)
+                                logger.debug(
+                                    "Rejected documentation gap: reason=%r "
+                                    "document_path=%r section=%r gap=%r "
+                                    "source_evidence=%r",
+                                    rejection_reason,
+                                    gap.document_path.as_posix(),
+                                    gap.section,
+                                    gap.gap,
+                                    gap.source_evidence,
+                                )
+
+                        should_retry = (
+                            attempt == 1
+                            and bool(focused_constraints)
+                            and accepted_count == 0
+                            and bool(gap_result.gaps)
+                            and "absence of evidence was treated as contradiction"
+                            in rejection_reasons
+                        )
+
+                        if not should_retry:
+                            break
+
+                        attempt_context = (
+                            f"{gap_context.rstrip()}\n\n"
+                            "=== CORRECTIVE GAP RETRY ===\n"
+                            "The previous gap was rejected because it treated "
+                            "missing source discussion as contradictory "
+                            "evidence. Re-evaluate only whether the paired "
+                            "source positively establishes details requested "
+                            "by the user that the exact target claim omits."
+                        )
 
                 aggregate_gap_result = self._aggregate_gap_results(
                     gap_results=tuple(gap_results),
@@ -302,7 +351,7 @@ class DocumentationWorkflow:
                 if not aggregate_gap_result.gaps:
                     state = DocumentationWorkflowState(
                         workflow_id=request.workflow_id,
-                        status=DocumentationWorkflowStatus.REVIEW_REQUIRED,
+                        status=DocumentationWorkflowStatus.COMPLETED,
                         started_at=started_at,
                         user_request=request.user_request,
                         target_paths=request.target_paths,
@@ -319,18 +368,29 @@ class DocumentationWorkflow:
 
                 established_gaps = aggregate_gap_result.gaps
 
+                established_gap_context = self._format_established_gaps(
+                    established_gaps,
+                    verified_gap_target_claims,
+                )
+
                 context = (
                     f"{context.rstrip()}\n\n"
-                    + self._format_established_gaps(
-                        established_gaps,
-                        verified_gap_target_claims,
-                    )
+                    + established_gap_context
                 )
+
+            proposal_context = (
+                self._build_compact_proposal_context(
+                    objective=request.user_request,
+                    established_gap_context=established_gap_context,
+                )
+                if source_grounded
+                else context
+            )
 
             reasoning_result = self._reasoning_service.reason(
                 ReasoningRequest(
                     objective=request.user_request,
-                    context=context,
+                    context=proposal_context,
                     workflow_type="documentation_update",
                     target_paths=target_paths,
                     constraints=reasoning_constraints,
@@ -470,6 +530,7 @@ class DocumentationWorkflow:
     def _build_claim_level_gap_context(
         cls,
         context: str,
+        objective: str = "",
     ) -> str:
         """Build a bounded Stage 1 context around strong claim/source pairs.
 
@@ -477,7 +538,9 @@ class DocumentationWorkflow:
         functions or methods whose declaration names share at least two
         meaningful tokens with the claim. At most four claims and two source
         snippets per claim are included. Source snippets are capped by line
-        count, and class bodies are never emitted.
+        count, and class bodies are never emitted. When the user explicitly
+        names an authoritative function, matching claim/function pairs take
+        precedence over otherwise stronger generic pairs.
         """
 
         target_marker = "=== TARGET DOCUMENTATION ==="
@@ -494,8 +557,39 @@ class DocumentationWorkflow:
         if not claims or not source_functions:
             return cls._append_claim_candidates(context, claims)
 
+        objective_tokens = cls._claim_pairing_tokens(objective)
+        requested_function_names = {
+            function_name
+            for _, function_name, _ in source_functions
+            if re.search(
+                rf"(?<![A-Za-z0-9_]){re.escape(function_name)}"
+                r"(?![A-Za-z0-9_])",
+                objective,
+            )
+        }
+
+        if requested_function_names:
+            source_functions = (
+                cls._extract_authoritative_function_records(
+                    context,
+                    maximum_lines=32,
+                )
+            )
+            claims = tuple(
+                (
+                    document_path,
+                    section,
+                    bounded_claim,
+                )
+                for document_path, section, claim_text in claims
+                for bounded_claim in cls._split_prose_claim_sentences(
+                    claim_text
+                )
+            )
+
         pair_candidates: list[
             tuple[
+                int,
                 int,
                 str,
                 str | None,
@@ -508,14 +602,27 @@ class DocumentationWorkflow:
             claim_tokens = cls._claim_pairing_tokens(
                 f"{section or ''} {claim_text}"
             )
+            request_overlap = len(
+                claim_tokens.intersection(objective_tokens)
+            )
             ranked_functions: list[
-                tuple[int, str, str, str]
+                tuple[int, int, str, str, str]
             ] = []
 
             for source_path, function_name, snippet in source_functions:
+                if (
+                    requested_function_names
+                    and function_name not in requested_function_names
+                ):
+                    continue
+
                 name_tokens = cls._claim_pairing_tokens(function_name)
                 name_overlap = len(
                     claim_tokens.intersection(name_tokens)
+                )
+
+                requested_function = (
+                    function_name in requested_function_names
                 )
 
                 if name_overlap < 2:
@@ -525,10 +632,15 @@ class DocumentationWorkflow:
                 body_overlap = len(
                     claim_tokens.intersection(source_tokens)
                 )
-                score = (name_overlap * 100) + body_overlap
+                score = (
+                    (name_overlap * 100)
+                    + (request_overlap * 10)
+                    + body_overlap
+                )
 
                 ranked_functions.append(
                     (
+                        int(requested_function),
                         score,
                         source_path,
                         function_name,
@@ -542,8 +654,9 @@ class DocumentationWorkflow:
             ranked_functions.sort(
                 key=lambda item: (
                     -item[0],
-                    item[1],
+                    -item[1],
                     item[2],
+                    item[3],
                 )
             )
             selected_functions = tuple(
@@ -552,12 +665,17 @@ class DocumentationWorkflow:
                     function_name,
                     snippet,
                 )
-                for _, source_path, function_name, snippet
+                for _, _, source_path, function_name, snippet
                 in ranked_functions[:2]
+            )
+            requested_pair = any(
+                function_name in requested_function_names
+                for _, function_name, _ in selected_functions
             )
             pair_candidates.append(
                 (
-                    ranked_functions[0][0],
+                    int(requested_pair),
+                    ranked_functions[0][1],
                     document_path,
                     section,
                     claim_text,
@@ -568,15 +686,28 @@ class DocumentationWorkflow:
         if not pair_candidates:
             return cls._append_claim_candidates(context, claims)
 
+        if requested_function_names and any(
+            requested_pair
+            for requested_pair, _, _, _, _, _ in pair_candidates
+        ):
+            pair_candidates = [
+                candidate
+                for candidate in pair_candidates
+                if candidate[0]
+            ]
+
         pair_candidates.sort(
             key=lambda item: (
                 -item[0],
-                item[1],
-                item[2] or "",
-                item[3],
+                -item[1],
+                item[2],
+                item[3] or "",
+                item[4],
             )
         )
-        selected_pairs = pair_candidates[:4]
+        selected_pairs = pair_candidates[
+            :1 if requested_function_names else 4
+        ]
 
         lines = [
             "=== TARGET DOCUMENTATION ===",
@@ -584,7 +715,7 @@ class DocumentationWorkflow:
 
         emitted_sections: set[tuple[str, str | None]] = set()
 
-        for _, document_path, section, claim_text, _ in selected_pairs:
+        for _, _, document_path, section, claim_text, _ in selected_pairs:
             section_key = (document_path, section)
 
             if section_key not in emitted_sections:
@@ -599,6 +730,21 @@ class DocumentationWorkflow:
             (
                 "",
                 "=== BOUNDED TARGET-SOURCE CLAIM PAIRS ===",
+                *(
+                    (
+                        f"Requested Change: {objective.strip()}",
+                        (
+                            "For the explicitly named function, determine "
+                            "whether its source positively establishes "
+                            "requested behavior that is absent from the exact "
+                            "target sentence. Do not challenge unrelated "
+                            "target wording merely because the function does "
+                            "not discuss it."
+                        ),
+                    )
+                    if requested_function_names
+                    else ()
+                ),
                 (
                     "Evaluate only the exact target claims and paired "
                     "authoritative source snippets below. A missing fact in a "
@@ -613,6 +759,7 @@ class DocumentationWorkflow:
         )
 
         for index, (
+            _,
             _,
             document_path,
             section,
@@ -641,6 +788,52 @@ class DocumentationWorkflow:
         return "\n".join(lines)
 
     @staticmethod
+    def _split_prose_claim_sentences(claim_text: str) -> tuple[str, ...]:
+        """Split one prose line into exact sentence-level claim boundaries.
+
+        Request-named function pairing uses these boundaries so one relevant
+        sentence is not evaluated together with unrelated assertions from the
+        same Markdown paragraph. Non-prose structures that do not contain a
+        conventional sentence boundary remain unchanged.
+        """
+
+        sentences = tuple(
+            sentence.strip()
+            for sentence in re.split(
+                r"(?<=[.!?])\s+(?=[`*_]*[A-Z])",
+                claim_text.strip(),
+            )
+            if sentence.strip()
+        )
+
+        return sentences or (claim_text,)
+
+    @staticmethod
+    def _focused_gap_analysis_constraints(
+        gap_context: str,
+    ) -> tuple[str, ...]:
+        """Return strict constraints for request-named-function analysis."""
+
+        if "Requested Change:" not in gap_context:
+            return ()
+
+        return (
+            (
+                "Report only behavior requested by the user that is positively "
+                "established by the paired authoritative function and absent "
+                "from the exact target claim."
+            ),
+            (
+                "Do not weaken, negate, or dispute existing target behavior "
+                "merely because the paired function does not discuss it."
+            ),
+            (
+                "Treat missing source discussion as absence of evidence, not "
+                "as a contradiction or documentation gap."
+            ),
+        )
+
+    @staticmethod
     def _split_bounded_gap_context(
         gap_context: str,
     ) -> tuple[str, ...]:
@@ -655,6 +848,10 @@ class DocumentationWorkflow:
             return (gap_context,)
 
         _, pair_block = gap_context.split(marker, 1)
+        requested_change_match = re.search(
+            r"(?m)^Requested Change:\s*(.+)$",
+            pair_block,
+        )
         raw_pairs = tuple(
             part.strip()
             for part in re.split(
@@ -710,6 +907,20 @@ class DocumentationWorkflow:
                     claim_text,
                     "",
                     marker,
+                    *(
+                        (
+                            "Requested Change: "
+                            f"{requested_change_match.group(1).strip()}",
+                            (
+                                "For the explicitly named function, report "
+                                "only requested behavior positively "
+                                "established by the source and absent from "
+                                "this exact target claim."
+                            ),
+                        )
+                        if requested_change_match is not None
+                        else ()
+                    ),
                     (
                         "Evaluate only this exact target claim against "
                         "the paired authoritative source snippets below. "
@@ -984,6 +1195,8 @@ class DocumentationWorkflow:
             r"\bnot shown\b",
             r"\bnot present in (?:the )?(?:paired )?source\b",
             r"\bsource (?:does not|doesn't) (?:mention|document|establish)\b",
+            r"\bsource (?:code )?(?:does not|doesn't) "
+            r"(?:confirm|guarantee|support)\b",
             r"\babsence of (?:a fact|evidence)\b",
             r"\bcannot be verified from (?:the )?(?:paired )?source\b",
         )
@@ -1472,6 +1685,7 @@ class DocumentationWorkflow:
     def _extract_authoritative_function_records(
         cls,
         context: str,
+        maximum_lines: int = 16,
     ) -> tuple[tuple[str, str, str], ...]:
         """Extract bounded authoritative Python function and method snippets."""
 
@@ -1510,7 +1724,7 @@ class DocumentationWorkflow:
                 snippet = cls._bounded_function_source(
                     source_content=source_content,
                     node=node,
-                    maximum_lines=16,
+                    maximum_lines=maximum_lines,
                 )
 
                 if snippet:
@@ -1948,7 +2162,7 @@ class DocumentationWorkflow:
         if state.warnings:
             return DocumentationWorkflowStatus.COMPLETED_WITH_WARNINGS
 
-        return DocumentationWorkflowStatus.REVIEW_REQUIRED
+        return DocumentationWorkflowStatus.COMPLETED
 
     def get_workflow_state(
         self,
@@ -2269,6 +2483,40 @@ class DocumentationWorkflow:
             ),
         )
 
+    @staticmethod
+    def _build_compact_proposal_context(
+        objective: str,
+        established_gap_context: str,
+    ) -> str:
+        """Build the complete, bounded Stage 2 single-claim rewrite input."""
+
+        return (
+            "=== DOCUMENTATION REWRITE TASK ===\n"
+            f"Requested Change: {objective.strip()}\n\n"
+            f"{established_gap_context.strip()}\n\n"
+            "Rewrite only each supplied Target Claim to add its verified Gap. "
+            "Use only the supplied Source Evidence. Return concrete replacement "
+            "wording with edit_type replace, not an explanation of what the "
+            "documentation lacks. The workflow assigns the exact Target Claim "
+            "as the replacement anchor; do not locate, broaden, or invent an "
+            "anchor. Preserve every existing behavior in the Target Claim. "
+            "Failing closed means no selection or edit occurs; never combine "
+            "it with continuing an edit."
+        )
+
+    @staticmethod
+    def _combines_fail_closed_with_continuation(text: str) -> bool:
+        """Return whether wording contradicts fail-closed edit resolution."""
+
+        return bool(
+            re.search(
+                r"\bfail(?:s|ed|ing)?\s+closed\b.{0,160}\b(?:and|then)\b"
+                r".{0,160}\b(?:use|uses|using|select|selects|selected|edit|edits)\b",
+                " ".join(text.split()),
+                re.IGNORECASE,
+            )
+        )
+
     def _build_proposals(
         self,
         reasoning_result: ReasoningResult,
@@ -2364,6 +2612,24 @@ class DocumentationWorkflow:
 
             if (
                 source_grounded
+                and self._combines_fail_closed_with_continuation(
+                    " ".join(
+                        (
+                            proposed_change.documentation_meaning or "",
+                            proposed_content,
+                        )
+                    )
+                )
+            ):
+                warnings.append(
+                    "Proposed documentation content said fail-closed "
+                    "resolution continues with a selection or edit and was "
+                    f"skipped: {repository_path}."
+                )
+                continue
+
+            if (
+                source_grounded
                 and self._introduces_python_fence_without_target_form(
                     original_content=original_content,
                     proposed_content=proposed_content,
@@ -2416,11 +2682,53 @@ class DocumentationWorkflow:
                 ),
                 (),
             )
-            established_target_claim = (
-                established_claim_candidates[0]
-                if len(established_claim_candidates) == 1
-                else None
+            path_claim_candidates = tuple(
+                dict.fromkeys(
+                    claim
+                    for (path, _section), claims in (
+                        established_target_claims.items()
+                    )
+                    if path == repository_path
+                    for claim in claims
+                )
             )
+            deterministic_claim_candidates = (
+                established_claim_candidates
+                if established_claim_candidates
+                else path_claim_candidates
+            )
+
+            if len(deterministic_claim_candidates) == 1:
+                established_target_claim = (
+                    deterministic_claim_candidates[0]
+                )
+            else:
+                established_target_claim = (
+                    self._select_established_target_claim(
+                        candidates=deterministic_claim_candidates,
+                        anchor_text=proposed_change.anchor_text,
+                    )
+                )
+
+            if source_grounded and established_target_claim is not None:
+                deterministic_anchor = established_target_claim
+
+                if (
+                    proposed_change.edit_type
+                    is DocumentationEditType.REPLACE
+                ):
+                    deterministic_anchor = (
+                        self._bounded_exact_claim_replacement_anchor(
+                            target_claim=established_target_claim,
+                            proposed_anchor=proposed_change.anchor_text,
+                            original_content=original_content,
+                        )
+                    )
+
+                proposed_change = replace(
+                    proposed_change,
+                    anchor_text=deterministic_anchor,
+                )
 
             if (
                 source_grounded
@@ -2647,8 +2955,22 @@ class DocumentationWorkflow:
                     DocumentationEditType.REPLACE,
                 }
             ):
+                verified_anchor = established_target_claim
+
+                if (
+                    proposed_change.edit_type
+                    is DocumentationEditType.REPLACE
+                ):
+                    verified_anchor = (
+                        self._bounded_exact_claim_replacement_anchor(
+                            target_claim=established_target_claim,
+                            proposed_anchor=proposed_change.anchor_text,
+                            original_content=original_content,
+                        )
+                    )
+
                 anchor_count = original_content.count(
-                    established_target_claim
+                    verified_anchor
                 )
 
                 if anchor_count != 1:
@@ -2660,7 +2982,7 @@ class DocumentationWorkflow:
                     continue
 
                 proposal_artifact_location = None
-                proposal_anchor_text = established_target_claim
+                proposal_anchor_text = verified_anchor
                 proposal_anchor_mode = (
                     DocumentationAnchorMode.INSERT_AFTER
                     if proposed_change.edit_type
@@ -2753,6 +3075,68 @@ class DocumentationWorkflow:
             return "discarded most values from an established contract enumeration"
 
         return None
+
+    @staticmethod
+    def _select_established_target_claim(
+        candidates: tuple[str, ...],
+        anchor_text: str | None,
+    ) -> str | None:
+        """Resolve one established claim without guessing among candidates.
+
+        A section may contain more than one verified Stage 1 claim. In that
+        case, Stage 2 must identify the affected claim through its anchor.
+        Markdown table boundary pipes and surrounding whitespace are ignored
+        because reasoning output may omit a final pipe or add trailing space.
+        Ambiguous or unmatched anchors fail closed.
+        """
+
+        if len(candidates) == 1:
+            return candidates[0]
+
+        if not candidates or anchor_text is None:
+            return None
+
+        def normalize(value: str) -> str:
+            return " ".join(value.split()).strip(" |").casefold()
+
+        normalized_anchor = normalize(anchor_text)
+        matches = tuple(
+            candidate
+            for candidate in candidates
+            if normalize(candidate) == normalized_anchor
+        )
+
+        return matches[0] if len(matches) == 1 else None
+
+    @staticmethod
+    def _bounded_exact_claim_replacement_anchor(
+        target_claim: str,
+        proposed_anchor: str | None,
+        original_content: str,
+    ) -> str:
+        """Use a verified unique subclaim to preserve surrounding prose.
+
+        Stage 1 target extraction can return an entire Markdown paragraph even
+        when Stage 2 identifies one sentence within it. For a replacement, a
+        model anchor may narrow that verified boundary only when it is an exact
+        substring of the established claim and occurs exactly once in the
+        current document. Otherwise the full established claim remains the
+        fail-closed boundary.
+        """
+
+        if proposed_anchor is None:
+            return target_claim
+
+        bounded_anchor = proposed_anchor.strip()
+
+        if (
+            bounded_anchor
+            and bounded_anchor in target_claim
+            and original_content.count(bounded_anchor) == 1
+        ):
+            return bounded_anchor
+
+        return target_claim
 
     @classmethod
     def _exact_claim_insertion_rejection_reason(

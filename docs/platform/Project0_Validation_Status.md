@@ -8,7 +8,7 @@
 
 ## Current Regression Status
 
-**Tests:** 1399 passed, 11 skipped  
+**Tests:** 1410 passed, 11 skipped  
 **Validation:** Regression suite passed  
 **Last Run:** 2026-09-18
 

@@ -271,6 +271,7 @@ def _reasoning_result(
     *,
     status: ReasoningStatus = ReasoningStatus.COMPLETED,
     proposed_changes: tuple[ProposedDocumentationChange, ...] = (),
+    gaps: tuple[DocumentationGap, ...] = (),
     warnings: tuple[str, ...] = (),
     error_message: str | None = None,
 ) -> ReasoningResult:
@@ -282,6 +283,7 @@ def _reasoning_result(
         summary="Reasoning summary.",
         impacts=(),
         proposed_changes=proposed_changes,
+        gaps=gaps,
         created_at=datetime(2026, 8, 5, 12, 0, tzinfo=UTC),
         provider_name="stub",
         model_name="stub-model",
@@ -931,6 +933,102 @@ def test_claim_level_gap_context_pairs_strong_claim_with_functions() -> None:
     assert "Function: _parse_target_paths" in result
     assert "Function: unrelated_request" not in result
     assert result.count("Function: ") == 2
+
+
+def test_claim_pairing_prioritizes_function_named_in_request() -> None:
+    """An explicitly requested function excludes unrelated generic pairs."""
+
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/Design.md\n"
+        "# Design\n"
+        "## Parsing\n"
+        "Route path parsing trims and deduplicates route path values.\n"
+        "## Exact claims\n"
+        "Unrelated prose describes review counters and validation. "
+        "An established target claim supplies the exact edit boundary.\n"
+        "\n"
+        "=== AUTHORITATIVE SOURCE ===\n"
+        "Path: src/project0/workflow.py\n"
+        "def parse_route_paths(value: str) -> tuple[str, ...]:\n"
+        "    return tuple(dict.fromkeys(value.splitlines()))\n"
+        "\n"
+        "def _select_established_target_claim(\n"
+        "    candidates: tuple[str, ...],\n"
+        "    anchor_text: str | None,\n"
+        ") -> str | None:\n"
+        "    \"\"\"Resolve one claim from a normalized anchor.\"\"\"\n"
+        "    if len(candidates) == 1:\n"
+        "        return candidates[0]\n"
+        "    if anchor_text is None:\n"
+        "        return None\n"
+        + "".join(
+            f"    intermediate_{index} = candidates\n"
+            for index in range(12)
+        )
+        + "    normalized_anchor = anchor_text.casefold()\n"
+        "    return next(\n"
+        "        candidate for candidate in candidates\n"
+        "        if candidate.casefold() == normalized_anchor\n"
+        "    )\n"
+    )
+
+    result = DocumentationWorkflow._build_claim_level_gap_context(
+        context,
+        objective=(
+            "Document _select_established_target_claim when multiple "
+            "established claims share a section."
+        ),
+    )
+
+    assert result.count("Pair ") == 1
+    assert "Target Claim: An established target claim" in result
+    assert "Target Claim: Unrelated prose" not in result
+    assert "Function: _select_established_target_claim" in result
+    assert "normalized_anchor = anchor_text.casefold()" in result
+    assert (
+        "Requested Change: Document _select_established_target_claim"
+        in result
+    )
+    assert "positively establishes requested behavior" in result
+    assert "Function: parse_route_paths" not in result
+    assert "Route path parsing trims" not in result
+
+
+def test_claim_pairing_keeps_generic_ranking_without_named_function() -> None:
+    """Requests without exact function names preserve bounded pair ranking."""
+
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/Design.md\n"
+        "# Design\n"
+        "## Parsing\n"
+        "Route path parsing trims route path values.\n"
+        "\n"
+        "=== AUTHORITATIVE SOURCE ===\n"
+        "Path: src/project0/workflow.py\n"
+        "def parse_route_paths(value: str) -> tuple[str, ...]:\n"
+        "    return (value.strip(),)\n"
+    )
+
+    result = DocumentationWorkflow._build_claim_level_gap_context(
+        context,
+        objective="Document route parsing behavior.",
+    )
+
+    assert "Function: parse_route_paths" in result
+
+
+def test_gap_rejects_source_does_not_guarantee_reasoning() -> None:
+    """Missing source guarantees are absence, not contradictory evidence."""
+
+    assert DocumentationWorkflow._uses_absence_as_contradiction(
+        gap_text=(
+            "The target states that an insertion ignores a broader section, "
+            "but the source code does not guarantee this behavior."
+        ),
+        source_evidence="The source selects one established target claim.",
+    )
 
 
 def test_endpoint_gap_rejects_docstring_claim_when_payload_supports_target() -> None:
@@ -1939,8 +2037,139 @@ def test_source_grounded_workflow_stops_after_gap_analysis_when_no_gaps(
         "documentation_gap_analysis"
     )
     assert result.proposals == ()
+    assert result.status is DocumentationWorkflowStatus.COMPLETED
     assert result.preliminary_validation is None
     assert validation_service.requests == []
+
+
+def test_focused_gap_analysis_retries_absence_based_result(
+    tmp_path: Path,
+) -> None:
+    """A named-function pair receives one constrained corrective retry."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    target_claim = (
+        "An accepted insertion uses the uniquely resolved established claim "
+        "with `INSERT_AFTER`."
+    )
+    document.write_text(
+        f"# Design\n## Exact claims\n{target_claim}\n",
+        encoding="utf-8",
+    )
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/index.md\n"
+        "# Design\n"
+        "## Exact claims\n"
+        f"{target_claim}\n\n"
+        "=== AUTHORITATIVE SOURCE ===\n"
+        "Path: src/project0/workflow.py\n"
+        "def _select_established_target_claim(\n"
+        "    candidates: tuple[str, ...],\n"
+        "    anchor_text: str | None,\n"
+        ") -> str | None:\n"
+        "    if len(candidates) == 1:\n"
+        "        return candidates[0]\n"
+        "    if not candidates or anchor_text is None:\n"
+        "        return None\n"
+        "    normalized_anchor = anchor_text.strip().casefold()\n"
+        "    matches = tuple(\n"
+        "        candidate for candidate in candidates\n"
+        "        if candidate.strip().casefold() == normalized_anchor\n"
+        "    )\n"
+        "    return matches[0] if len(matches) == 1 else None\n"
+    )
+    rejected_gap = DocumentationGap(
+        document_path=Path("docs/index.md"),
+        section="Exact claims",
+        gap=(
+            "The target says the insertion uses the resolved claim, but the "
+            "source code does not guarantee this behavior."
+        ),
+        source_evidence=(
+            "The function may return None for an unmatched anchor."
+        ),
+    )
+    verified_gap = DocumentationGap(
+        document_path=Path("docs/index.md"),
+        section="Exact claims",
+        gap=(
+            "The target omits that one candidate is selected directly and "
+            "multiple candidates require one normalized anchor match."
+        ),
+        source_evidence=(
+            "The function returns candidates[0] for one candidate and returns "
+            "one match only when normalized matching is unique."
+        ),
+    )
+    replacement = (
+        "An accepted insertion uses the resolved established claim with "
+        "`INSERT_AFTER`. One candidate is selected directly; multiple "
+        "candidates require one normalized anchor match, otherwise selection "
+        "fails closed."
+    )
+    results = iter(
+        (
+            _reasoning_result(gaps=(rejected_gap,)),
+            _reasoning_result(gaps=(verified_gap,)),
+            _reasoning_result(
+                proposed_changes=(
+                    ProposedDocumentationChange(
+                        document_path=Path("docs/index.md"),
+                        operation=DocumentationChangeOperation.UPDATE,
+                        rationale="Document established-claim selection.",
+                        documentation_meaning=replacement,
+                        proposed_content=replacement,
+                        section="Exact claims",
+                        anchor_text=target_claim,
+                        edit_type=DocumentationEditType.REPLACE,
+                    ),
+                ),
+            ),
+        )
+    )
+
+    class SequenceReasoningService:
+        def __init__(self) -> None:
+            self.requests: list[ReasoningRequest] = []
+
+        def reason(self, request: ReasoningRequest) -> ReasoningResult:
+            self.requests.append(request)
+            return next(results)
+
+    reasoning_service = SequenceReasoningService()
+    components = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(),
+        validation_results=(_validation_result(ValidationStatus.PASSED),),
+        context_provider=lambda request: context,
+    )
+    workflow = components[0]
+    workflow._reasoning_service = reasoning_service
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request=(
+                "Document _select_established_target_claim when multiple "
+                "claims share a section."
+            ),
+            target_paths=("docs/index.md",),
+            source_paths=("src/project0/workflow.py",),
+            workflow_id="workflow-focused-gap-retry",
+        )
+    )
+
+    assert result.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+    assert len(result.proposals) == 1
+    assert len(reasoning_service.requests) == 3
+    first_request, retry_request, update_request = reasoning_service.requests
+    assert first_request.metadata["gap_analysis_attempt"] == 1
+    assert first_request.constraints
+    assert retry_request.metadata["gap_analysis_attempt"] == 2
+    assert "=== CORRECTIVE GAP RETRY ===" in retry_request.context
+    assert any("corrective retry" in item for item in retry_request.constraints)
+    assert update_request.workflow_type == "documentation_update"
 
 
 
@@ -1976,6 +2205,128 @@ def test_format_established_gaps_preserves_exact_target_claim() -> None:
     assert f"Target Claim: {claim}" in formatted
     assert "treat that exact text as the edit boundary" in formatted
     assert "Do not add helper-function explanation" in formatted
+
+
+def test_strict_proposal_generation_assigns_exact_claim_anchor(
+    tmp_path: Path,
+) -> None:
+    """A unique verified claim deterministically replaces a model anchor."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    target_claim = (
+        "An accepted insertion uses the uniquely resolved established claim "
+        "with `INSERT_AFTER`."
+    )
+    document.write_text(
+        f"# Design\n## Exact claims\n{target_claim}\n",
+        encoding="utf-8",
+    )
+    context = (
+        "=== TARGET DOCUMENTATION ===\n"
+        "Path: docs/index.md\n"
+        "# Design\n"
+        "## Exact claims\n"
+        f"{target_claim}\n\n"
+        "=== AUTHORITATIVE SOURCE ===\n"
+        "Path: src/project0/workflow.py\n"
+        "def _select_established_target_claim(candidates, anchor_text):\n"
+        "    if len(candidates) == 1:\n"
+        "        return candidates[0]\n"
+        "    matches = tuple(candidate for candidate in candidates "
+        "if candidate == anchor_text)\n"
+        "    return matches[0] if len(matches) == 1 else None\n"
+    )
+    gap = DocumentationGap(
+        document_path=Path("docs/index.md"),
+        section="Exact claims",
+        gap=(
+            "The target omits that unmatched or ambiguous anchors fail "
+            "closed."
+        ),
+        source_evidence=(
+            "The function returns a match only when len(matches) == 1; "
+            "otherwise it returns None."
+        ),
+    )
+    replacement = (
+        f"{target_claim} Unmatched or ambiguous anchors fail closed."
+    )
+    unanchored_change = ProposedDocumentationChange(
+        document_path=Path("docs/index.md"),
+        operation=DocumentationChangeOperation.UPDATE,
+        rationale=gap.gap,
+        documentation_meaning=replacement,
+        proposed_content=replacement,
+        section=None,
+        anchor_text=(
+            "The target documentation lacks fail-closed behavior.\n\n"
+            f"{target_claim}"
+        ),
+        edit_type=DocumentationEditType.REPLACE,
+    )
+    results = iter(
+        (
+            _reasoning_result(gaps=(gap,)),
+            _reasoning_result(proposed_changes=(unanchored_change,)),
+        )
+    )
+
+    class SequenceReasoningService:
+        def __init__(self) -> None:
+            self.requests: list[ReasoningRequest] = []
+
+        def reason(self, request: ReasoningRequest) -> ReasoningResult:
+            self.requests.append(request)
+            return next(results)
+
+    reasoning_service = SequenceReasoningService()
+    components = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(),
+        validation_results=(_validation_result(ValidationStatus.PASSED),),
+        context_provider=lambda request: context,
+    )
+    workflow = components[0]
+    workflow._reasoning_service = reasoning_service
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request=(
+                "Document _select_established_target_claim when multiple "
+                "claims share a section."
+            ),
+            target_paths=("docs/index.md",),
+            source_paths=("src/project0/workflow.py",),
+            workflow_id="workflow-deterministic-proposal-anchor",
+        )
+    )
+
+    assert result.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+    assert len(result.proposals) == 1
+    assert result.proposals[0].anchor_text == target_claim
+    assert result.proposals[0].anchor_mode is DocumentationAnchorMode.REPLACE
+    assert len(reasoning_service.requests) == 2
+    update_request = reasoning_service.requests[1]
+    assert "=== DOCUMENTATION REWRITE TASK ===" in update_request.context
+    assert "=== TARGET DOCUMENTATION ===" not in update_request.context
+    assert f"Target Claim: {target_claim}" in update_request.context
+    assert "workflow assigns the exact Target Claim" in update_request.context
+    assert not any(
+        "No unambiguous documentation location" in warning
+        for warning in result.warnings
+    )
+
+
+def test_fail_closed_wording_cannot_continue_with_selection() -> None:
+    """Strict proposals reject contradictory fail-closed continuation."""
+
+    assert DocumentationWorkflow._combines_fail_closed_with_continuation(
+        "An ambiguous anchor fails closed and uses the resolved claim."
+    )
+    assert not DocumentationWorkflow._combines_fail_closed_with_continuation(
+        "An ambiguous anchor fails closed without selecting a claim."
+    )
 
 
 def test_minimal_replacement_content_drops_extra_implementation_paragraph() -> None:
@@ -2172,6 +2523,94 @@ def test_source_grounded_established_claim_becomes_exact_replace_anchor(
     assert proposal.artifact_location is None
 
 
+def test_exact_claim_replacement_uses_unique_verified_subclaim_anchor(
+    tmp_path: Path,
+) -> None:
+    """A sentence replacement preserves other prose on the same line."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    prefix = (
+        "Universal checks require an allowed path and repository containment. "
+        "Unsafe declarations and ambiguous locations are rejected. "
+    )
+    target_sentence = (
+        "Whole-section replacements preserve the existing heading when "
+        "necessary."
+    )
+    target_claim = f"{prefix}{target_sentence}"
+    proposed_content = (
+        f"{target_sentence} Completed-with-warnings is a terminal status."
+    )
+    document.write_text(
+        f"# Design\n## Workflow\n{target_claim}\n",
+        encoding="utf-8",
+    )
+    change = ProposedDocumentationChange(
+        document_path=Path("docs/index.md"),
+        operation=DocumentationChangeOperation.UPDATE,
+        rationale="Clarify replacement and completion behavior.",
+        documentation_meaning=proposed_content,
+        proposed_content=proposed_content,
+        section="Workflow",
+        anchor_text=target_sentence,
+        edit_type=DocumentationEditType.REPLACE,
+        confidence=1.0,
+    )
+    reasoning_result = _reasoning_result(proposed_changes=(change,))
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=reasoning_result,
+        validation_results=(),
+    )[0]
+    context = (
+        "=== ESTABLISHED DOCUMENTATION GAPS ===\n"
+        "Gap 1:\n"
+        "Document Path: docs/index.md\n"
+        "Section: Workflow\n"
+        f"Target Claim: {target_claim}\n"
+        "Gap: Terminal completion behavior is not documented.\n"
+        "Source Evidence: Completion produces a terminal status.\n"
+    )
+
+    proposals, warnings = workflow._build_proposals(
+        reasoning_result=reasoning_result,
+        target_paths=("docs/index.md",),
+        source_grounded=True,
+        context=context,
+    )
+
+    assert warnings == ()
+    assert len(proposals) == 1
+    proposal = proposals[0]
+    assert proposal.artifact_location is None
+    assert proposal.anchor_text == target_sentence
+    assert proposal.anchor_mode is DocumentationAnchorMode.REPLACE
+
+    candidate_content = proposal.original_content.replace(
+        proposal.anchor_text,
+        proposal.proposed_content,
+        1,
+    )
+
+    assert prefix in candidate_content
+    assert proposed_content in candidate_content
+
+
+def test_exact_claim_replacement_rejects_unverified_subclaim_anchor() -> None:
+    """An anchor outside the verified claim cannot narrow its boundary."""
+
+    target_claim = "First sentence. Verified target sentence."
+
+    anchor = DocumentationWorkflow._bounded_exact_claim_replacement_anchor(
+        target_claim=target_claim,
+        proposed_anchor="Unverified sentence.",
+        original_content=f"{target_claim} Unverified sentence.",
+    )
+
+    assert anchor == target_claim
+
+
 def test_redundant_exact_claim_replacement_is_skipped(
     tmp_path: Path,
 ) -> None:
@@ -2321,6 +2760,117 @@ def test_private_helper_insertion_is_skipped() -> None:
     assert reason == (
         "exposed a private implementation helper not named by the target claim"
     )
+
+
+def test_anchor_selects_claim_when_section_has_multiple_candidates() -> None:
+    """A model anchor can disambiguate verified claims in one section."""
+
+    first_claim = (
+        "| `GET` | `/runs/{run_id}` | Run ID | Render the run state. |"
+    )
+    second_claim = (
+        "| `GET` | `/runs/{run_id}/status` | Run ID | Return status. |"
+    )
+
+    selected = DocumentationWorkflow._select_established_target_claim(
+        candidates=(first_claim, second_claim),
+        anchor_text=(
+            "| `GET` | `/runs/{run_id}/status` | Run ID | Return status. "
+        ),
+    )
+
+    assert selected == second_claim
+
+
+def test_ambiguous_multi_claim_anchor_fails_closed() -> None:
+    """A missing anchor cannot guess among claims in the same section."""
+
+    selected = DocumentationWorkflow._select_established_target_claim(
+        candidates=("First claim.", "Second claim."),
+        anchor_text=None,
+    )
+
+    assert selected is None
+
+
+def test_multi_claim_insertions_are_checked_against_anchored_claims(
+    tmp_path: Path,
+) -> None:
+    """Each anchored insertion receives guards despite a shared section."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    run_claim = (
+        "| `GET` | `/runs/{run_id}` | Run ID | Render the run state. |"
+    )
+    status_claim = (
+        "| `GET` | `/runs/{run_id}/status` | Run ID | Return lifecycle "
+        "state and result URL. |"
+    )
+    document.write_text(
+        "# Interface\n## Browser routes\n"
+        f"{run_claim}\n{status_claim}\n",
+        encoding="utf-8",
+    )
+    changes = (
+        ProposedDocumentationChange(
+            document_path=Path("docs/index.md"),
+            operation=DocumentationChangeOperation.UPDATE,
+            rationale="Add the returned identifier.",
+            proposed_content="**Run ID is included in the response**.",
+            section="Browser routes",
+            anchor_text=status_claim.rstrip("|").rstrip(),
+            edit_type=DocumentationEditType.INSERT,
+        ),
+        ProposedDocumentationChange(
+            document_path=Path("docs/index.md"),
+            operation=DocumentationChangeOperation.UPDATE,
+            rationale="Describe the run lookup.",
+            proposed_content=(
+                "The function _get_documentation_run checks whether a run "
+                "exists."
+            ),
+            section="Browser routes",
+            anchor_text=run_claim.rstrip("|").rstrip(),
+            edit_type=DocumentationEditType.INSERT,
+        ),
+    )
+    reasoning_result = _reasoning_result(proposed_changes=changes)
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=reasoning_result,
+        validation_results=(),
+    )[0]
+    context = (
+        "=== AUTHORITATIVE SOURCE ===\n"
+        "Path: src/project0/routes.py\n"
+        "def _get_documentation_run(run_id: str):\n"
+        "    return runs[run_id]\n\n"
+        "=== ESTABLISHED DOCUMENTATION GAPS ===\n"
+        "Gap 1:\n"
+        "Document Path: docs/index.md\n"
+        "Section: Browser routes\n"
+        f"Target Claim: {status_claim}\n"
+        "Gap: The response includes its run identifier.\n"
+        "Source Evidence: The returned mapping contains run_id.\n"
+        "Gap 2:\n"
+        "Document Path: docs/index.md\n"
+        "Section: Browser routes\n"
+        f"Target Claim: {run_claim}\n"
+        "Gap: The lookup helper should be documented.\n"
+        "Source Evidence: The private helper checks stored runs.\n"
+    )
+
+    proposals, warnings = workflow._build_proposals(
+        reasoning_result=reasoning_result,
+        target_paths=("docs/index.md",),
+        source_grounded=True,
+        context=context,
+    )
+
+    assert proposals == ()
+    assert any("recast an identifier" in warning for warning in warnings)
+    assert any("exposed a private implementation helper" in warning for warning in warnings)
 
 
 def test_valid_exact_claim_insertion_uses_verified_claim_anchor(
@@ -3152,7 +3702,7 @@ def test_source_grounded_workflow_omits_unverified_reasoning_warnings(
     )
 
     assert result.warnings == ()
-    assert result.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+    assert result.status is DocumentationWorkflowStatus.COMPLETED
 
 
 def test_source_grounded_workflow_preserves_provider_warnings(

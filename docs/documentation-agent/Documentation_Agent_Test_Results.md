@@ -33,8 +33,10 @@ for the following Documentation Agent boundaries:
   return claims checked against literal returned-dictionary fields rather than
   docstring paraphrases, with absent-field gaps preserved; exact-claim semantic
   subset rejection for replacements and insertions; private-helper and
-  identifier-response insertion rejection; exact insertion anchoring; and
-  established inline-code enumeration preservation;
+  identifier-response insertion rejection; unique normalized-anchor claim
+  selection when one section contains multiple established claims; bounded
+  exact-subclaim replacement that preserves surrounding same-line prose; exact
+  insertion anchoring; and established inline-code enumeration preservation;
 - validation models and aggregation, Markdown, links, MkDocs, and assembled
   validation flows;
 - approve, revise, reject, and skip decisions; stale-content detection;
