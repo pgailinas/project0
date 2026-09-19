@@ -1,4 +1,3 @@
-```python
 # ============================================================
 # Project0 - Knowledge Interfaces
 #
@@ -77,6 +76,4 @@ class KnowledgeServiceProtocol(Protocol):
         """Build repository knowledge for a request."""
 
         ...
-```
-
 

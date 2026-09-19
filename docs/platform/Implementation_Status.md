@@ -1,6 +1,6 @@
 # Implementation Status
 
-**Version:** 1.3  
+**Version:** 1.4  
 **Owner:** Project0  
 **Last Updated:** 2026-09-19  
 **Source Baseline:** `main` at `eedad41a4a055ca79cdaf623a598103b5db902df`
@@ -36,10 +36,10 @@ the platform display record reports the Dashboard's current test text.
 **Known blocking integrity issue:** Python compilation fails in
 `knowledge_interfaces.py`
 
-The earlier status record marked Phases 1–11, 13, and 14 “Completed” but omitted
-Phase 12. That list is not authoritative: Phase 12 source exists, while current
-defects and unavailable audit tools prevent an unconditional all-phases-complete
-and verified claim.
+The complete phase register below presents Phases 1–14 in roadmap order,
+including Phase 12 — Documentation Agent Enhancement. Current defects and
+incomplete verification prevent an unconditional all-phases-complete and
+verified claim.
 
 | Phase | Capability | Current state |
 | --- | --- | --- |
@@ -165,7 +165,8 @@ When updating this status:
 
 - identify the exact evidence commit or repository state;
 - separate implementation, test inventory, and executed verification;
-- align phase names and numbers with the roadmap, including Phase 12;
+- preserve the complete Phase 1–14 register and keep names aligned with the
+  roadmap;
 - never carry test counts forward to a changed commit;
 - record unavailable tools, skipped checks, and live-provider checks explicitly;
 - update PDF/ODS companions separately if they remain in use; and
