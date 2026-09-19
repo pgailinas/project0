@@ -129,9 +129,9 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
     
-      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
       </label>
     
@@ -139,9 +139,9 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
     
-      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
       </label>
     
@@ -1651,10 +1651,10 @@
 
 
 <h1 id="implementation-status">Implementation Status</h1>
-<p><strong>Version:</strong> 1.5<br />
+<p><strong>Version:</strong> 1.6<br />
 <strong>Owner:</strong> Project0<br />
 <strong>Last Updated:</strong> 2026-09-19<br />
-<strong>Source Baseline:</strong> <code>main</code> at <code>eedad41a4a055ca79cdaf623a598103b5db902df</code></p>
+<strong>Source Baseline:</strong> <code>main</code> at <code>0caecccde37ca8a0e1c02bb8014b4fe1da906d87</code></p>
 <hr />
 <h2 id="purpose-and-authority">Purpose and Authority</h2>
 <p>This document summarizes Project0 capabilities visible in source, tests,
@@ -1677,7 +1677,7 @@ the platform display record reports the Dashboard's current test text.</p>
 <h2 id="current-or-planned-state">Current or Planned State</h2>
 <p><strong>Latest named roadmap phase:</strong> Phase 14 — Project0 Agent Skills Foundation<br />
 <strong>Implementation state:</strong> Source corresponding to Phases 1–14 is present<br />
-<strong>Repository-wide verification state:</strong> Deterministic pytest passed; other gates remain incomplete  </p>
+<strong>Repository-wide verification state:</strong> Complete regression not established for the current baseline  </p>
 <p>The complete phase register below presents Phases 1–14 in roadmap order,
 including Phase 12 — Documentation Agent Enhancement. Current defects and
 incomplete verification prevent an unconditional all-phases-complete and
@@ -1813,17 +1813,19 @@ or installation, trust and approval, signing, version migration, remote
 distribution, and runtime user management are not implemented. Skills guide
 models; Python retains deterministic policy enforcement.</p>
 <h2 id="evidence-and-dependencies">Evidence and Dependencies</h2>
-<p>The repository validation record reports <strong>1410 passed, 11 skipped</strong> for the
-deterministic pytest suite at the source baseline. Browser acceptance, strict
-MkDocs, compilation, and live-provider execution are separate gates and are not
-established by that count.</p>
+<p>The historical repository validation record reports <strong>1410 passed, 11 skipped</strong>
+for a deterministic pytest suite at <code>eedad41</code>. That result is not attributed to
+the current source baseline. Browser acceptance, strict MkDocs, compilation,
+and live-provider execution are separate gates and are not established by that
+count.</p>
 <p>Browser tests import Playwright and use pytest browser fixtures, but the browser dependencies are absent from <code>pyproject.toml</code>.</p>
 <h2 id="gaps-and-priorities">Gaps and Priorities</h2>
 <p>Verified gaps and current operational boundaries are:</p>
 <ul>
-<li>the Dashboard hard-codes the stale Phase 11 project label;</li>
+<li>the Dashboard current-phase display is hard-coded rather than sourced from
+  the roadmap or implementation status;</li>
 <li>Documentation Consistency is absent from the default Documentation Workflow;</li>
-<li>two test modules are empty and browser dependencies are undeclared;</li>
+<li>browser dependencies are undeclared;</li>
 <li>no checked-in CI workflow exists;</li>
 <li>companion PDF/ODS status artifacts were not verified;</li>
 <li>workflow, review, research-session, audit, telemetry, and activity state are
@@ -1835,10 +1837,7 @@ established by that count.</p>
 <li><code>/documentation</code> redirects to local MkDocs but does not start or host it.</li>
 </ul>
 <p>Immediate priorities are to decide and align the default validator set; make
-the Dashboard phase authoritative; define the Playwright environment; populate
-or remove empty test modules; run strict MkDocs and the remaining browser/live
-gates against the corrected commit; record exact results; and add CI only after
-its environment and gates are defined.</p>
+the Dashboard phase authoritative; define the Playwright environment; and add CI only after its environment and gates are defined.</p>
 <h2 id="update-rules">Update Rules</h2>
 <p>When updating this status:</p>
 <ul>
