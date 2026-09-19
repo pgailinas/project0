@@ -2862,6 +2862,46 @@ def test_proposal_with_ambiguous_anchor_and_no_location_is_skipped(
     )
 
 
+def test_proposal_with_no_content_difference_is_skipped(
+    tmp_path: Path,
+) -> None:
+    """An exact no-op is not surfaced as a reviewable proposal."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text("# Original\n", encoding="utf-8")
+
+    components = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(
+                _update_change(proposed_content="# Original"),
+            )
+        ),
+        validation_results=(),
+    )
+    workflow = components[0]
+    validation_service = components[2]
+
+    result = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Update documentation.",
+            target_paths=("docs/index.md",),
+            source_paths=("src/project0/example.py",),
+            workflow_id="workflow-no-content-difference",
+        )
+    )
+
+    assert result.proposals == ()
+    assert result.preliminary_validation is None
+    assert validation_service.requests == []
+    assert any(
+        "produced no content difference"
+        in warning
+        for warning in result.warnings
+    )
+
+
 def test_source_grounded_meta_instruction_content_is_skipped(
     tmp_path: Path,
 ) -> None:

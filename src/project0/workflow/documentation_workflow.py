@@ -64,6 +64,9 @@ from project0.models.validation_models import (
     ValidationResult,
     ValidationStatus,
 )
+from project0.repository.repository_update_service import (
+    apply_documentation_change,
+)
 from project0.skills.skill_registry import SkillRegistry
 
 
@@ -2403,6 +2406,29 @@ class DocumentationWorkflow:
                 anchor_text=proposal_anchor_text,
                 anchor_mode=proposal_anchor_mode,
             )
+
+            try:
+                candidate_content = apply_documentation_change(
+                    original_content=proposal.original_content,
+                    proposed_content=proposal.proposed_content,
+                    artifact_location=proposal.artifact_location,
+                    anchor_text=proposal.anchor_text,
+                    anchor_mode=proposal.anchor_mode,
+                )
+            except ValueError:
+                candidate_content = None
+
+            if candidate_content == original_content:
+                logger.debug(
+                    "Rejected no-op documentation proposal for %s.",
+                    repository_path,
+                )
+                warnings.append(
+                    "Proposed documentation change produced no content "
+                    "difference and was skipped: "
+                    f"{repository_path}."
+                )
+                continue
 
             proposals.append(proposal)
 
