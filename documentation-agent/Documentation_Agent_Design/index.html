@@ -1771,7 +1771,7 @@
 <h2 id="5-configuration-and-failure-behavior">5. Configuration and Failure Behavior</h2>
 <p>The Dashboard model resolves from <code>PROJECT0_DOCUMENTATION_OLLAMA_MODEL</code>, then <code>PROJECT0_OLLAMA_MODEL</code>, with <code>gemma3:4b</code> as Documentation fallback. The shared provider may be Ollama or stub; Ollama uses its configured URL and timeout.</p>
 <p>Context read failure aborts source-grounded execution. Handled provider, parsing, I/O, runtime, type, and value failures become failed results. Invalid proposals are skipped with warnings. Validator exceptions become error issues without stopping remaining validators. Stale targets fail application. Unknown IDs, duplicate reviews, and unsupported decisions are rejected. Difference-construction errors remain proposal-local.</p>
-<p>Final validation records warnings/failure but does not roll back. Intermediate warning status can coexist with retained unreviewed proposals, so consumers must inspect proposal decisions as well as status.</p>
+<p>Final validation records warnings/failure but does not roll back. Failed preliminary validation takes precedence over review. Otherwise, retained unreviewed proposals keep the workflow in review-required status while accumulated warnings remain visible; completed-with-warnings is reserved for terminal results after all required decisions.</p>
 <h2 id="6-constraints-and-verification">6. Constraints and Verification</h2>
 <ul>
 <li>Execution and review state are synchronous and process-local.</li>

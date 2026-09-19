@@ -1874,7 +1874,7 @@
 <p>Update output shall contain summary, impacts, changes, assumptions, and warnings. Each change includes document path, operation, rationale, concrete content, edit type, confidence, and optional meaning, section, and anchor. Missing or invalid structured object output fails reasoning. Accepted confidence values are normalized to 0.0–1.0.</p>
 <h3 id="workflow-result">Workflow result</h3>
 <p>Results shall contain identity and timestamps; request, targets, and sources; reasoning; proposals and reviews; application records; available validation; Git diff; counters for proposed, approved, revised, rejected, skipped, applied, and failed changes; warnings; and optional error.</p>
-<p>Workflow statuses are pending, running, review required, completed, completed with warnings, and failed. Page states also include ready, processing, and revision required. Consumers must inspect proposal decisions as well as status because accumulated warnings may coexist with unreviewed state. Completed workflow state is removed from memory.</p>
+<p>Workflow statuses are pending, running, review required, completed, completed with warnings, and failed. Page states also include ready, processing, and revision required. Failed preliminary validation takes precedence; otherwise, any retained unreviewed proposal requires review regardless of accumulated warnings. Completed with warnings is a terminal status used only after no review decisions remain. Completed workflow state is removed from memory.</p>
 <h3 id="configuration">Configuration</h3>
 <table>
 <thead>
