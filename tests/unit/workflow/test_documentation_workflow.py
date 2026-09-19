@@ -2902,6 +2902,47 @@ def test_proposal_with_no_content_difference_is_skipped(
     )
 
 
+def test_pending_review_takes_precedence_over_filtered_proposal_warning(
+    tmp_path: Path,
+) -> None:
+    """Warnings do not mark a workflow complete while review is pending."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    document.write_text("# Original\n", encoding="utf-8")
+
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=_reasoning_result(
+            proposed_changes=(
+                _update_change(proposed_content="# Original"),
+                _update_change(proposed_content="# Updated"),
+            )
+        ),
+        validation_results=(
+            _validation_result(ValidationStatus.PASSED),
+        ),
+    )[0]
+
+    state = workflow.execute(
+        DocumentationWorkflowRequest(
+            user_request="Update documentation.",
+            target_paths=("docs/index.md",),
+            source_paths=("src/project0/example.py",),
+            workflow_id="workflow-review-with-filter-warning",
+        )
+    )
+
+    assert state.status is DocumentationWorkflowStatus.REVIEW_REQUIRED
+    assert len(state.proposals) == 1
+    assert state.proposals[0].proposed_content == "# Updated"
+    assert any(
+        "produced no content difference"
+        in warning
+        for warning in state.warnings
+    )
+
+
 def test_source_grounded_meta_instruction_content_is_skipped(
     tmp_path: Path,
 ) -> None:

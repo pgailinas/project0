@@ -1835,11 +1835,7 @@ class DocumentationWorkflow:
         ):
             return DocumentationWorkflowStatus.FAILED
 
-        if (
-            state.preliminary_validation is not None
-            and state.preliminary_validation.status
-            is ValidationStatus.PASSED_WITH_WARNINGS
-        ):
+        if state.proposals:
             return DocumentationWorkflowStatus.REVIEW_REQUIRED
 
         if state.warnings:

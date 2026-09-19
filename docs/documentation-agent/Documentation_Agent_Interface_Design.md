@@ -69,7 +69,7 @@ Configuration uses `PROJECT0_REASONING_PROVIDER`; `PROJECT0_DOCUMENTATION_OLLAMA
 
 `DocumentationAppliedChange` records proposal/path, `pending`, `applied`, `skipped`, or `failed`, optional time, and error. `DocumentationWorkflowState` retains request, reasoning, proposals, reviews, changes, preliminary validation, warnings, and error in process memory. `DocumentationWorkflowResult` adds completion time, final validation, diff, and summary counts.
 
-Workflow statuses are `pending`, `running`, `review_required`, `completed`, `completed_with_warnings`, and `failed`. Consumers must also inspect decisions because warnings may yield completed-with-warnings while proposals remain unreviewed. Summary counters describe workflow records, not Git publication.
+Workflow statuses are `pending`, `running`, `review_required`, `completed`, `completed_with_warnings`, and `failed`. Failed preliminary validation takes precedence; otherwise, retained proposals remain `review_required` until every proposal has a decision even when proposal-filtering or preliminary-validation warnings are present. `completed_with_warnings` is terminal and applies only after no review decisions remain. Summary counters describe workflow records, not Git publication.
 
 Route/UI exceptions produce a failed page; workflow warnings/errors remain separate fields; preview failures remain proposal-local. Unknown workflows/proposals, duplicate reviews, and unsupported decisions are rejected. Application failures remain on the affected record and workflow result. Preliminary-validation failure preserves proposals for inspection.
 

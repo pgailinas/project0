@@ -72,7 +72,7 @@ The Dashboard model resolves from `PROJECT0_DOCUMENTATION_OLLAMA_MODEL`, then `P
 
 Context read failure aborts source-grounded execution. Handled provider, parsing, I/O, runtime, type, and value failures become failed results. Invalid proposals are skipped with warnings. Validator exceptions become error issues without stopping remaining validators. Stale targets fail application. Unknown IDs, duplicate reviews, and unsupported decisions are rejected. Difference-construction errors remain proposal-local.
 
-Final validation records warnings/failure but does not roll back. Intermediate warning status can coexist with retained unreviewed proposals, so consumers must inspect proposal decisions as well as status.
+Final validation records warnings/failure but does not roll back. Failed preliminary validation takes precedence over review. Otherwise, retained unreviewed proposals keep the workflow in review-required status while accumulated warnings remain visible; completed-with-warnings is reserved for terminal results after all required decisions.
 
 ## 6. Constraints and Verification
 

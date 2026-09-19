@@ -72,7 +72,7 @@ Current implementation constraints remain:
 - final validation does not roll back already applied proposals;
 - the workflow supports updates, not create or delete operations;
 - proposal review and application are not transactional across a proposal set;
-- `completed_with_warnings` can coexist with outstanding review decisions;
+- warnings remain visible while outstanding proposals retain review-required status;
 - the Dashboard stub uses test data and is not evidence of live,
   source-grounded synchronization; and
 - live-model grounding and writing quality vary with model, prompt, context,

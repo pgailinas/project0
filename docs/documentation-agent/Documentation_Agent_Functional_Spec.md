@@ -67,7 +67,7 @@ Update output shall contain summary, impacts, changes, assumptions, and warnings
 
 Results shall contain identity and timestamps; request, targets, and sources; reasoning; proposals and reviews; application records; available validation; Git diff; counters for proposed, approved, revised, rejected, skipped, applied, and failed changes; warnings; and optional error.
 
-Workflow statuses are pending, running, review required, completed, completed with warnings, and failed. Page states also include ready, processing, and revision required. Consumers must inspect proposal decisions as well as status because accumulated warnings may coexist with unreviewed state. Completed workflow state is removed from memory.
+Workflow statuses are pending, running, review required, completed, completed with warnings, and failed. Page states also include ready, processing, and revision required. Failed preliminary validation takes precedence; otherwise, any retained unreviewed proposal requires review regardless of accumulated warnings. Completed with warnings is a terminal status used only after no review decisions remain. Completed workflow state is removed from memory.
 
 ### Configuration
 
