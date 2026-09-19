@@ -1651,7 +1651,7 @@
 
 
 <h1 id="implementation-status">Implementation Status</h1>
-<p><strong>Version:</strong> 1.3<br />
+<p><strong>Version:</strong> 1.4<br />
 <strong>Owner:</strong> Project0<br />
 <strong>Last Updated:</strong> 2026-09-19<br />
 <strong>Source Baseline:</strong> <code>main</code> at <code>eedad41a4a055ca79cdaf623a598103b5db902df</code></p>
@@ -1680,10 +1680,10 @@ the platform display record reports the Dashboard's current test text.</p>
 <strong>Repository-wide verification state:</strong> Deterministic pytest passed; other gates remain incomplete<br />
 <strong>Known blocking integrity issue:</strong> Python compilation fails in
 <code>knowledge_interfaces.py</code></p>
-<p>The earlier status record marked Phases 1–11, 13, and 14 “Completed” but omitted
-Phase 12. That list is not authoritative: Phase 12 source exists, while current
-defects and unavailable audit tools prevent an unconditional all-phases-complete
-and verified claim.</p>
+<p>The complete phase register below presents Phases 1–14 in roadmap order,
+including Phase 12 — Documentation Agent Enhancement. Current defects and
+incomplete verification prevent an unconditional all-phases-complete and
+verified claim.</p>
 <table>
 <thead>
 <tr>
@@ -1855,7 +1855,8 @@ and add CI only after its environment and gates are defined.</p>
 <ul>
 <li>identify the exact evidence commit or repository state;</li>
 <li>separate implementation, test inventory, and executed verification;</li>
-<li>align phase names and numbers with the roadmap, including Phase 12;</li>
+<li>preserve the complete Phase 1–14 register and keep names aligned with the
+  roadmap;</li>
 <li>never carry test counts forward to a changed commit;</li>
 <li>record unavailable tools, skipped checks, and live-provider checks explicitly;</li>
 <li>update PDF/ODS companions separately if they remain in use; and</li>
