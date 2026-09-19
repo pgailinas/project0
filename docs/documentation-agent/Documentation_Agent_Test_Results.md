@@ -31,7 +31,8 @@ for the following Documentation Agent boundaries:
 - fail-closed proposal safeguards for paths, operations, anchors, sections,
   semantic alignment, concrete Markdown, Python declarations, and endpoint
   return claims checked against literal returned-dictionary fields rather than
-  docstring paraphrases, with absent-field gaps preserved;
+  docstring paraphrases, with absent-field gaps preserved; exact-claim semantic
+  subset rejection; and established inline-code enumeration preservation;
 - validation models and aggregation, Markdown, links, MkDocs, and assembled
   validation flows;
 - approve, revise, reject, and skip decisions; stale-content detection;

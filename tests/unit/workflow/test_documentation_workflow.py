@@ -2172,6 +2172,95 @@ def test_source_grounded_established_claim_becomes_exact_replace_anchor(
     assert proposal.artifact_location is None
 
 
+def test_redundant_exact_claim_replacement_is_skipped(
+    tmp_path: Path,
+) -> None:
+    """A shorter restatement of an existing claim is not reviewable."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    target_claim = (
+        "Page states are `ready`, `processing`, `review_required`, "
+        "`revision_required`, `completed`, `completed_with_warnings`, and "
+        "`failed`. The page carries request, workflow ID, proposals, "
+        "validation, summary, warnings, and error."
+    )
+    document.write_text(
+        f"# Interface\n## Presentation\n{target_claim}\n",
+        encoding="utf-8",
+    )
+    change = ProposedDocumentationChange(
+        document_path=Path("docs/index.md"),
+        operation=DocumentationChangeOperation.UPDATE,
+        rationale="Document the processing page status.",
+        proposed_content=(
+            "The page status is `PROCESSING` when the workflow is processing."
+        ),
+        section="Presentation",
+        edit_type=DocumentationEditType.REPLACE,
+    )
+    reasoning_result = _reasoning_result(proposed_changes=(change,))
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=reasoning_result,
+        validation_results=(),
+    )[0]
+    context = (
+        "=== ESTABLISHED DOCUMENTATION GAPS ===\n"
+        "Gap 1:\n"
+        "Document Path: docs/index.md\n"
+        "Section: Presentation\n"
+        f"Target Claim: {target_claim}\n"
+        "Gap: The processing state should be documented.\n"
+        "Source Evidence: The processing page uses PROCESSING.\n"
+    )
+
+    proposals, warnings = workflow._build_proposals(
+        reasoning_result=reasoning_result,
+        target_paths=("docs/index.md",),
+        source_grounded=True,
+        context=context,
+    )
+
+    assert proposals == ()
+    assert any(
+        "restated information already present in the target claim"
+        in warning
+        for warning in warnings
+    )
+
+
+def test_destructive_contract_enumeration_replacement_is_skipped() -> None:
+    """An exact-claim edit cannot silently discard most contract values."""
+
+    reason = (
+        DocumentationWorkflow._exact_claim_replacement_rejection_reason(
+            target_claim=(
+                "Supported states are `ready`, `processing`, `completed`, "
+                "and `failed`."
+            ),
+            proposed_content="Supported state is `queued`.",
+        )
+    )
+
+    assert reason == (
+        "discarded most values from an established contract enumeration"
+    )
+
+
+def test_concise_exact_claim_correction_remains_allowed() -> None:
+    """A shorter replacement with a new factual value remains eligible."""
+
+    reason = (
+        DocumentationWorkflow._exact_claim_replacement_rejection_reason(
+            target_claim="The request timeout is `60` seconds.",
+            proposed_content="The timeout is `120` seconds.",
+        )
+    )
+
+    assert reason is None
+
+
 def test_reasoning_failure_stops_workflow(tmp_path: Path) -> None:
     """A failed reasoning result stops validation and review."""
 

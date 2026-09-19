@@ -2440,6 +2440,26 @@ class DocumentationWorkflow:
                     )
                 )
 
+                exact_claim_rejection = (
+                    self._exact_claim_replacement_rejection_reason(
+                        target_claim=established_target_claim,
+                        proposed_content=proposed_content,
+                    )
+                )
+                if exact_claim_rejection is not None:
+                    logger.debug(
+                        "Rejected exact-claim documentation replacement: "
+                        "reason=%r document_path=%r section=%r",
+                        exact_claim_rejection,
+                        repository_path,
+                        proposed_change.section,
+                    )
+                    warnings.append(
+                        f"Proposed documentation replacement {exact_claim_rejection} "
+                        f"and was skipped: {repository_path}."
+                    )
+                    continue
+
             if (
                 source_grounded
                 and not self._python_declarations_are_source_grounded(
@@ -2663,6 +2683,71 @@ class DocumentationWorkflow:
             proposals.append(proposal)
 
         return tuple(proposals), tuple(warnings)
+
+    @classmethod
+    def _exact_claim_replacement_rejection_reason(
+        cls,
+        target_claim: str,
+        proposed_content: str,
+    ) -> str | None:
+        """Reject redundant or destructively incomplete exact-claim edits.
+
+        Exact-claim replacement is the narrowest strict-mode edit boundary.
+        A replacement must add or correct semantic information, and it may not
+        silently collapse an established enumeration of contract literals.
+        """
+
+        target_tokens = cls._replacement_meaning_tokens(target_claim)
+        proposed_tokens = cls._replacement_meaning_tokens(proposed_content)
+
+        if proposed_tokens and proposed_tokens.issubset(target_tokens):
+            return "restated information already present in the target claim"
+
+        target_literals = cls._inline_code_literals(target_claim)
+        proposed_literals = cls._inline_code_literals(proposed_content)
+
+        if (
+            len(target_literals) >= 3
+            and len(target_literals.intersection(proposed_literals)) * 2
+            < len(target_literals)
+        ):
+            return "discarded most values from an established contract enumeration"
+
+        return None
+
+    @classmethod
+    def _replacement_meaning_tokens(
+        cls,
+        text: str,
+    ) -> frozenset[str]:
+        """Return normalized words and numbers for redundancy comparison."""
+
+        tokens: set[str] = set()
+
+        for raw_token in re.findall(r"[A-Za-z][A-Za-z0-9_-]*|\d+", text):
+            token = raw_token.casefold().replace("-", "_")
+
+            if token in {"a", "an", "and", "is", "the", "when"}:
+                continue
+
+            if token == "status":
+                token = "state"
+            elif token.endswith("s") and len(token) > 3:
+                token = token[:-1]
+
+            tokens.add(token)
+
+        return frozenset(tokens)
+
+    @staticmethod
+    def _inline_code_literals(text: str) -> frozenset[str]:
+        """Return distinct nonempty single-backtick contract literals."""
+
+        return frozenset(
+            match.group(1).strip().casefold()
+            for match in re.finditer(r"(?<!`)`([^`\n]+)`(?!`)", text)
+            if match.group(1).strip()
+        )
 
     @staticmethod
     def _is_meta_instruction_content(
