@@ -254,7 +254,7 @@ python -m compileall -q src
 mkdocs build --strict
 ```
 
-At pinned commit `da217ae42f7ceeffc95a84c6baad3dc4376a18f9`, `compileall` fails because `src/project0/interfaces/knowledge_interfaces.py` contains Markdown fence lines. Treat this as a known source-integrity defect until corrected; it is not a pytest result.
+At pinned commit `da217ae42f7ceeffc95a84c6baad3dc4376a18f9`, `compileall` failed because `src/project0/interfaces/knowledge_interfaces.py` contained Markdown fence lines. The fences were subsequently removed, and compilation of `src` and `tests` passed in the local checkout at `70cf6f7` on 2026-09-19. Rerun the command above for the revision being validated.
 
 ## 11. Run Applications for Manual or Browser Validation
 

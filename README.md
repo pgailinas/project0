@@ -149,13 +149,34 @@ Closing the notebook or browser tab does not necessarily stop Project0. Restarti
 
 ## Testing
 
-Run the full automated test suite with:
+The declared `test` extra supports the unit and integration suites:
+
+```bash
+python -m pytest tests/unit tests/integration
+```
+
+Browser acceptance tests additionally require Playwright, its pytest integration,
+and a Chromium browser installation:
+
+```bash
+python -m pip install playwright pytest-playwright
+python -m playwright install chromium
+```
+
+After those browser dependencies are provisioned, run the complete collection
+with:
 
 ```bash
 python -m pytest
 ```
 
-Project0 uses unit and integration tests to validate shared platform services, agent behavior, Dashboard routes, workflows, and UI flows.
+The browser acceptance suites require a separately running Dashboard at
+`http://127.0.0.1:8001`. See [Testing Guide](docs/platform/Testing_Guide.md) and
+[`TEST_COMMANDS.md`](TEST_COMMANDS.md) for provider configuration, browser
+procedures, focused suites, and result interpretation.
+
+Project0 uses unit, integration, and browser acceptance tests to validate shared
+platform services, agent behavior, Dashboard routes, workflows, and UI flows.
 
 For current verification details, see:
 

@@ -1,6 +1,6 @@
 # Implementation Status
 
-**Version:** 1.4  
+**Version:** 1.5  
 **Owner:** Project0  
 **Last Updated:** 2026-09-19  
 **Source Baseline:** `main` at `eedad41a4a055ca79cdaf623a598103b5db902df`
@@ -33,8 +33,6 @@ the platform display record reports the Dashboard's current test text.
 **Latest named roadmap phase:** Phase 14 — Project0 Agent Skills Foundation  
 **Implementation state:** Source corresponding to Phases 1–14 is present  
 **Repository-wide verification state:** Deterministic pytest passed; other gates remain incomplete  
-**Known blocking integrity issue:** Python compilation fails in
-`knowledge_interfaces.py`
 
 The complete phase register below presents Phases 1–14 in roadmap order,
 including Phase 12 — Documentation Agent Enhancement. Current defects and
@@ -124,22 +122,12 @@ deterministic pytest suite at the source baseline. Browser acceptance, strict
 MkDocs, compilation, and live-provider execution are separate gates and are not
 established by that count.
 
-`python -m compileall -q src` failed because
-`src/project0/interfaces/knowledge_interfaces.py` contains Markdown fence lines
-around the Python module. This is a verified source-integrity defect, not a
-pytest result.
-
-Browser tests import Playwright and use pytest browser fixtures, but the browser
-dependencies are absent from `pyproject.toml`.
-`tests/acceptance/platform/test_ollama_acceptance.py` and
-`tests/unit/models/test_skill_models.py` are empty. Test-file presence is not
-execution evidence.
+Browser tests import Playwright and use pytest browser fixtures, but the browser dependencies are absent from `pyproject.toml`.
 
 ## Gaps and Priorities
 
 Verified gaps and current operational boundaries are:
 
-- fenced content in `knowledge_interfaces.py` prevents Python compilation;
 - the Dashboard hard-codes the stale Phase 11 project label;
 - Documentation Consistency is absent from the default Documentation Workflow;
 - two test modules are empty and browser dependencies are undeclared;
@@ -153,11 +141,11 @@ Verified gaps and current operational boundaries are:
 - `/activity` and `/settings` are placeholders; and
 - `/documentation` redirects to local MkDocs but does not start or host it.
 
-Immediate priorities are to restore compilation; decide and align the default
-validator set; make the Dashboard phase authoritative; define the Playwright
-environment; populate or remove empty test modules; run strict MkDocs and the
-remaining browser/live gates against the corrected commit; record exact results;
-and add CI only after its environment and gates are defined.
+Immediate priorities are to decide and align the default validator set; make
+the Dashboard phase authoritative; define the Playwright environment; populate
+or remove empty test modules; run strict MkDocs and the remaining browser/live
+gates against the corrected commit; record exact results; and add CI only after
+its environment and gates are defined.
 
 ## Update Rules
 
