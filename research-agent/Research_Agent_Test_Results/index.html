@@ -1549,24 +1549,30 @@
 
 
 <h1 id="research-agent-test-results">Research Agent Test Results</h1>
-<p><strong>Version:</strong> 0.9<br />
+<p><strong>Version:</strong> 1.0<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-11</p>
+<strong>Last Updated:</strong> 2026-09-19</p>
 <hr />
 <h2 id="execution-basis">Execution Basis</h2>
 <p>This record is synchronized to the Research Agent implementation and automated
-test inventory on GitHub <code>main</code> at commit
-<code>9372cc13e9c47a4b768e2ad435669403c99bec32</code>.</p>
-<p>No tests were executed during the documentation-only repository audit, and no
-GitHub Actions run for <code>main</code> supplied an independently verifiable current
-result. Test presence is therefore reported as available coverage, not as
-execution success; no new aggregate pass or skip count is claimed.</p>
+test inventory at commit
+<code>eedad41a4a055ca79cdaf623a598103b5db902df</code>.</p>
+<p>The project validation record reports a complete deterministic repository
+regression of <strong>1410 passed, 11 skipped</strong> on 2026-09-18. The record does not
+identify the exact revision, command, duration, or environment, so the result
+is retained as executed validation evidence but is not attributed to the
+current source baseline. It also does not establish that browser acceptance,
+live-provider/model checks, Python compilation, or strict documentation builds
+were executed as part of that run.</p>
 <h2 id="results-summary">Results Summary</h2>
 <p>The repository contains Research Agent unit, integration, and browser
 acceptance coverage for:</p>
 <ul>
 <li>request handling, routes, UI services, immutable view models, Dashboard
   composition, and system-status configuration;</li>
+<li>immediate background-run submission and redirect, run-scoped progress and
+  result lookup, elapsed-time restoration, retained submitted fields, and
+  progress-state reset between requests;</li>
 <li>Markdown, text, and PDF context ingestion, structured context analysis,
   provenance, inferred solution concepts, and retry behavior;</li>
 <li>bounded query generation and Semantic Scholar, OpenAlex, OpenReview,
@@ -1628,12 +1634,12 @@ balanced dispatch, metadata-preserving deduplication, alignment traceability,
 evidence shortlisting, evidence-free paper handling, retry/skip behavior,
 grounded Direction Analysis, effective-model display, and consolidated results.</p>
 <h2 id="failures-and-risks">Failures and Risks</h2>
-<p>The available evidence does not establish a current aggregate result, live
-provider availability or ranking, model-quality equivalence, exhaustive
-literature coverage, OCR or context chunking, complete PDF parsing beyond the
-bounded heading extractor, or server-side persistence of the browser-saved
-Markdown package. Passing tests would establish the specified candidate
-heuristics, not general domain-independent relevance.</p>
+<p>The recorded deterministic regression does not establish live provider
+availability or ranking, model-quality equivalence, exhaustive literature
+coverage, OCR or context chunking, complete PDF parsing beyond the bounded
+heading extractor, or server-side persistence of the browser-saved Markdown
+package. Passing tests establish the specified candidate heuristics, not
+general domain-independent relevance.</p>
 <p>There is also an implementation/test gap in
 <code>src/project0/dashboard/dashboard_app.py</code>: the built-in Research reasoning stub
 lacks an Existing Research Context response branch; its paper-analysis response
@@ -1643,9 +1649,13 @@ identifiers. Dashboard unit coverage reaches the evaluation branch but not
 these later branches, so the stub is not evidence of a successful full Research
 workflow.</p>
 <h2 id="validation-decision">Validation Decision</h2>
-<p>Coverage is present across the major Research Agent boundaries, but execution
-status for the audited commit is not established. A current pass claim requires
-an executed suite tied to an exact revision, command, and environment.</p>
+<p>Coverage is present across the major Research Agent boundaries, and the
+project record contains a complete deterministic regression result of 1410
+passes and 11 skips. Because its exact revision and command were not recorded,
+it is not proof that the audited source baseline passed. Browser acceptance,
+strict documentation validation, live providers, and live model quality remain
+separate verification activities unless their exact commands and results are
+recorded.</p>
 <h2 id="next-verification">Next Verification</h2>
 <p>Run the commands in the Research Agent Testing Guide and repository
 <code>TEST_COMMANDS.md</code>, then record:</p>

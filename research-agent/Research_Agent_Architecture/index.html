@@ -1751,9 +1751,9 @@
 
 
 <h1 id="research-agent-architecture">Research Agent Architecture</h1>
-<p><strong>Version:</strong> 0.7<br />
+<p><strong>Version:</strong> 0.8<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-18</p>
+<strong>Last Updated:</strong> 2026-09-19</p>
 <h2 id="1-executive-summary">1. Executive Summary</h2>
 <p>The Project0 Research Agent is a local-first workflow hosted in the shared Dashboard and invoked through the Platform Dispatcher. Its workflow remains synchronous internally, while the Dashboard executes it as a platform-managed background run so the submission request returns immediately. Deterministic services control context ingestion, strategy, bounded query generation, provider dispatch, deduplication, shortlist boundaries, validation, and presentation mapping. Schema-constrained reasoning services perform context interpretation, evidence evaluation, retained-paper analysis, and research-direction synthesis. Generated findings remain distinct from source metadata and evidence, and recoverable defects are reported rather than silently treated as supported conclusions.</p>
 <h2 id="2-purpose-and-scope">2. Purpose and Scope</h2>
@@ -1770,10 +1770,10 @@
     PR --&gt; ME["Metadata and evidence"]
     ME --&gt; EA["Evaluation and analysis"]
     EA --&gt; RV["Result and browser view"]</code></pre>
-<p>The workflow is synchronous internally. The request route submits the UI-service call to the shared <code>BackgroundRunManager</code> and immediately redirects the browser to a run page. The run page polls run-scoped lifecycle state plus the Research workflow's backend stage snapshot, restores elapsed time from the run timestamp, and reloads the same URL to render the retained final page model.</p>
+<p>The workflow is synchronous internally. The request route creates a processing page model that preserves the normalized question, guidance, maximum-results value, and optional context filename, submits the UI-service call to the shared <code>BackgroundRunManager</code>, and immediately redirects the browser to a run page. The run page polls run-scoped lifecycle state plus the Research workflow's backend stage snapshot, restores elapsed time from the run timestamp, and reloads the same URL to render the retained final page model. Starting a new request clears prior client-side progress classes before the new run begins.</p>
 <h3 id="browser-and-platform-components">Browser and platform components</h3>
 <ul>
-<li><strong>Research Agent routes</strong> expose the ready page, request submission, run page, and progress endpoint; read optional upload bytes before background submission; return a <code>303</code> redirect; and render processing or retained final page state by run ID.</li>
+<li><strong>Research Agent routes</strong> expose the ready page, request submission, run page, and progress endpoint; read optional upload bytes before background submission; retain submitted values in interim and terminal page models; return a <code>303</code> redirect; and render processing or retained final page state by run ID.</li>
 <li><strong>Background Run Manager</strong> assigns run IDs, serializes Research runs through the router's default worker, records lifecycle timestamps and terminal results, and captures unexpected failures outside the UI service.</li>
 <li><strong>UI Service and view models</strong> validate the question, invoke the dispatcher, map <code>ResearchResult</code> into immutable browser models, consolidate paper data by source identity, merge evaluation warnings into relevance limitations, and derive page status.</li>
 <li><strong>Platform Dispatcher</strong> constructs <code>ResearchRequest</code>, invokes the Research Workflow, and wires the current services, providers, and agent-specific model.</li>

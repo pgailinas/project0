@@ -1695,9 +1695,9 @@
 
 
 <h1 id="research-agent-test-plan">Research Agent Test Plan</h1>
-<p><strong>Version:</strong> 0.9<br />
+<p><strong>Version:</strong> 1.0<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-11</p>
+<strong>Last Updated:</strong> 2026-09-19</p>
 <h2 id="1-purpose-and-scope">1. Purpose and Scope</h2>
 <p>This plan defines verification of the implemented Research Agent across deterministic unit, assembled integration, browser acceptance, live-provider, and repository regression boundaries. It covers requests/context, strategy/query bounds, all configured providers, balancing/deduplication, metadata/evidence, evaluation, paper and Direction Analysis, UI/save behavior, configuration, safety, and failure handling.</p>
 <p>Live Ollama and research APIs provide environment-dependent evidence and do not replace deterministic regression. The Dashboard's built-in Research stub is not a complete integration oracle because later analysis fixtures are not fully aligned with current schemas.</p>
@@ -1705,14 +1705,14 @@
 <ul>
 <li><strong>Unit:</strong> Isolate provider parsing, deterministic services, workflow decisions, models, UI mapping, routes, settings, and reasoning-provider behavior.</li>
 <li><strong>Integration:</strong> Assemble production components with controlled external boundaries and verify handoffs, consolidation, upload forwarding, rendering, and dispatcher behavior.</li>
-<li><strong>Browser acceptance:</strong> Exercise the local Dashboard form, processing state, consolidated results, unsupported-information safeguards, and end-to-end outcomes through Playwright.</li>
+<li><strong>Browser acceptance:</strong> Exercise the local Dashboard form, immediate background-run redirect, processing and elapsed-time state, progress polling, retained submitted values, progress reset between requests, consolidated results, unsupported-information safeguards, and end-to-end outcomes through Playwright.</li>
 <li><strong>Live checks:</strong> Evaluate Ollama and configured APIs separately, recording environmental failures, rate limits, rankings, and model variability independently from deterministic counts.</li>
 <li><strong>Regression:</strong> Run the complete Project0 suite so Research changes do not break shared platform or other-agent behavior.</li>
 </ul>
 <p>Repository content and tests are authoritative. Missing evidence must remain absent or explicitly warned; model output, inventory, and historical results do not establish current correctness.</p>
 <h2 id="3-test-coverage-and-scenarios">3. Test Coverage and Scenarios</h2>
 <h3 id="requests-and-context">Requests and context</h3>
-<p>Verify route registration, ready state, normalization and multiline preservation, blank-question rejection without execution, paired filename/bytes, supported Markdown/text/PDF ingestion, safe failure for invalid or non-extractable content, provenance, exactly three distinct solution concepts, preservation of model anchors, and one retry for invalid structured output.</p>
+<p>Verify route registration, ready state, normalization and multiline preservation, blank-question rejection without execution, immediate <code>303</code> redirect for accepted requests, run-scoped processing/failure/completion lookup, elapsed-time restoration, submitted-value retention in processing and terminal models, paired filename/bytes, supported Markdown/text/PDF ingestion, safe failure for invalid or non-extractable content, provenance, exactly three distinct solution concepts, preservation of model anchors, and one retry for invalid structured output.</p>
 <h3 id="strategy-queries-and-providers">Strategy, queries, and providers</h3>
 <p>Verify ordered concepts/constraints/sub-questions, seed extraction and ordering, context-inferred solution concepts, exclusion of existing-project findings and conclusions from search concepts, objective deduplication, at most three complementary discovery dimensions, overlap removal, eight-word compaction, role diversity, deterministic empty input, and all six provider-factory entries.</p>
 <p>Provider scenarios shall cover request construction, parsing, credentials, retries/failures, independent provider/query dispatch, Crossref omission for arXiv-only queries, multi-provider aggregation, partial and aggregate failure, 24-candidate bound, round-robin balance, query-anchor priority, seed preservation, DOI/arXiv/title-author-year identity, richest-version merge, trace reasons, alignment-profile inclusion/exclusion, and rejection of generic teacher/representation lexical matches without a complete visual-language alignment mechanism.</p>
@@ -1721,7 +1721,7 @@
 <h3 id="paper-and-direction-analysis">Paper and Direction Analysis</h3>
 <p>Verify evidence-limited prompts, exact section/page citations, abstract versus full-paper basis, discovery-only skip, one structural retry and per-paper skip, Direction minimum two and maximum three papers, literature grounding, two-paper support for themes/comparisons/shared limitations, one-paper unresolved questions, direction context/literature requirements, handle type/uniqueness/count, speculative anchors, performance-order rejection, omission of ordinary invalid synthesis items, and full retry for semantic or candidate-direction failure.</p>
 <h3 id="ui-save-and-safety">UI, save, and safety</h3>
-<p>Verify consolidated cards, one title URL, recommended versus reviewed counts, warning/error states, context filename in form and analysis, Direction display, hidden legacy artifacts, completion-gated <strong>Save Results</strong>, and saved filename/content.</p>
+<p>Verify consolidated cards, one title URL, recommended versus reviewed counts, warning/error states, context filename in form and analysis, Direction display, hidden legacy artifacts, completion-gated <strong>Save Results</strong>, saved filename/content, and clearing of prior success/error workflow styling when a subsequent request starts.</p>
 <p>A test must fail if the agent executes a blank question; accepts unsupported context; invents metadata/evidence; confuses source IDs with model handles; accepts unknown/wrong-type evidence; presents unsupported performance comparisons or ungrounded non-speculative directions; scores evidence-free records as final evidence results; exceeds documented bounds; or writes to the Project0 repository.</p>
 <p>Primary coverage resides under <code>tests/unit/agents/research/</code>, <code>tests/unit/workflow/test_research_workflow.py</code>, Research models/configuration/dispatcher/Dashboard/reasoning tests, <code>tests/integration/agents/research/</code>, relevant platform integration, and <code>tests/acceptance/agents/research/</code>. Evidence acquisition belongs to <code>test_paper_metadata_service.py</code>; no separate acquisition or ingestion service test files exist.</p>
 <h2 id="4-environment-and-test-data">4. Environment and Test Data</h2>

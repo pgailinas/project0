@@ -1717,9 +1717,9 @@
 
 
 <h1 id="research-agent-design">Research Agent Design</h1>
-<p><strong>Version:</strong> 0.6<br />
+<p><strong>Version:</strong> 0.7<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-11</p>
+<strong>Last Updated:</strong> 2026-09-19</p>
 <h2 id="1-executive-summary">1. Executive Summary</h2>
 <p>The Research Agent combines deterministic request parsing, bounded multi-query retrieval, provider balancing, metadata/evidence acquisition, and presentation with schema-constrained reasoning for context analysis, relevance evaluation, paper analysis, and research-direction synthesis. The design preserves explicit evidence provenance, isolates retryable generated-output defects, and limits search, evidence, evaluation, and synthesis work. Several candidate-selection rules remain specialized for visual/video-language representation research and are not domain-independent.</p>
 <h2 id="2-purpose-and-scope">2. Purpose and Scope</h2>
@@ -1727,7 +1727,7 @@
 <p><code>create_project0_dashboard_app()</code> assembles the Research dispatcher with strategy, query, source, metadata, evaluation, artifact, context-ingestion, context-analysis, paper-analysis, and direction-analysis services. Selected source names and the Research model are supplied to the relevant services.</p>
 <h2 id="3-component-design">3. Component Design</h2>
 <h3 id="request-and-context">Request and context</h3>
-<p>The POST route accepts <code>question</code>, <code>guidance</code>, integer <code>max_results</code> defaulting to 10, and optional <code>context_document</code>. The UI trims text, retains the normalized filename, and forwards bytes without storage.</p>
+<p>The POST route accepts <code>question</code>, <code>guidance</code>, integer <code>max_results</code> defaulting to 10, and optional <code>context_document</code>. The UI trims text, retains the normalized filename, and forwards bytes without storage. The route builds an interim processing model from normalized inputs, submits the synchronous UI-service operation to the shared background-run manager, and redirects to a run-scoped page. Processing and terminal models retain submitted parameters. Client-side submission removes prior terminal progress classes and applies a fresh processing state before navigation.</p>
 <p>Markdown/text are decoded as UTF-8. PDF page text is extracted with pypdf and joined with two newlines; page boundaries are not retained in <code>extracted_text</code>. <code>ResearchContextDocument</code> records UUID, filename, type, extraction method, status, and PDF page count. The service performs no OCR or chunking.</p>
 <p>Context reasoning returns an optional research problem; prior work, approaches, findings, limitations, unresolved questions, and future work; and solution-search concepts. Findings receive the upload UUID and optional section provenance. With a question, exactly three source/target/mechanism concepts with distinct mechanisms are required. Acronym and encoder/decoder anchors from the question are restored when absent. Retryable structural or field errors receive one retry; provider exceptions do not.</p>
 <h3 id="strategy-and-queries">Strategy and queries</h3>

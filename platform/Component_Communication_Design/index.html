@@ -1651,10 +1651,10 @@
 
 
 <h1 id="component-communication-design">Component Communication Design</h1>
-<p><strong>Version:</strong> 1.0<br />
+<p><strong>Version:</strong> 1.1<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-18<br />
-<strong>Source Baseline:</strong> working tree based on <code>e23a957a152d500649b7a8bf2702347bc308464f</code></p>
+<strong>Last Updated:</strong> 2026-09-19<br />
+<strong>Source Baseline:</strong> <code>main</code> at <code>eedad41a4a055ca79cdaf623a598103b5db902df</code></p>
 <h2 id="executive-summary">Executive Summary</h2>
 <p>Project0 components communicate through typed, in-process requests and results.
 Workflow and reasoning implementations remain synchronous, while Dashboard
@@ -1736,9 +1736,14 @@ Only source-grounded Documentation proposal generation currently loads
 <h2 id="interactions-and-contracts">Interactions and Contracts</h2>
 <p>Documentation Workflow coordinates context, reasoning, placement, validation,
 review, updates, and Git differences, retaining review state in memory. Gap
-analysis precedes source-grounded proposals; deterministic checks retain
-authority. Revise returns a proposal to reasoning; Reject and Skip do not write;
-Approve may proceed through application and final validation.</p>
+analysis precedes source-grounded proposals. Stage 2 sends the provider a
+compact rewrite context containing the request, exact target claim, verified
+gap, and source evidence, while retaining the complete repository context for
+deterministic validation. When Stage 1 identifies exactly one claim for the
+proposal path, the workflow assigns that verified claim as the anchor instead
+of relying on provider location output. Deterministic checks retain authority.
+Revise returns inputs for resubmission; Reject and Skip do not write; Approve
+may proceed through application and final validation.</p>
 <p>Research Workflow directly coordinates strategy, queries, providers,
 metadata/evidence, evaluation, optional context analysis, paper analysis,
 direction analysis, and artifacts. It returns state and statistics through

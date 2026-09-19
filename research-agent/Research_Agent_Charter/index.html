@@ -1607,9 +1607,9 @@
 
 
 <h1 id="research-agent-charter">Research Agent Charter</h1>
-<p><strong>Version:</strong> 0.6<br />
+<p><strong>Version:</strong> 0.7<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-11</p>
+<strong>Last Updated:</strong> 2026-09-19</p>
 <h2 id="1-purpose-and-objectives">1. Purpose and Objectives</h2>
 <p>The Project0 Research Agent helps a human researcher discover, evaluate, and analyze technical literature. It accepts a research question, optional guidance, and optional Existing Research Context; discovers candidates through configured providers; evaluates a bounded candidate set; acquires bounded evidence; analyzes retained papers; and, when sufficient analyses exist, produces evidence-grounded cross-paper synthesis and candidate research directions.</p>
 <p>The agent shall:</p>
@@ -1622,6 +1622,7 @@
 <li>Preserve discovery-only status when usable evidence is unavailable.</li>
 <li>Produce evidence-cited analyses and bounded Research Direction Analysis when at least two valid paper analyses exist and the feature is enabled.</li>
 <li>Present consolidated results and allow the visible result package to be saved as Markdown.</li>
+<li>Return long-running browser submissions immediately through process-local background execution, preserve submitted parameters for inspection and reuse, and reset prior progress presentation when a new request starts.</li>
 <li>Fail or warn explicitly when inputs, evidence, provenance, or provider output are insufficient.</li>
 </ul>
 <p>Detailed behavior and contracts remain defined by the Research Agent Functional Specification, Architecture, Design, Interface Design, Testing Guide, Test Plan, and Test Results.</p>

@@ -1651,9 +1651,9 @@
 
 
 <h1 id="development-environment">Development Environment</h1>
-<p><strong>Version:</strong> 0.7<br />
+<p><strong>Version:</strong> 0.8<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-15</p>
+<strong>Last Updated:</strong> 2026-09-19</p>
 <hr />
 <h2 id="purpose-and-authority">Purpose and Authority</h2>
 <p>This document defines the repository-supported Project0 development baseline,
@@ -1822,14 +1822,18 @@ Browser acceptance expects the Dashboard and a separate Playwright environment.<
 <p><code>notebooks/Project0_Colab_Launcher.ipynb</code> lets users run the same Project0
 codebase in Google Colab without a local NVIDIA GPU. It is not a separate or
 reduced implementation.</p>
-<p>Because the repository is currently private, users must select a Colab GPU
-runtime and configure the <code>PROJECT0_GITHUB_TOKEN</code> Colab secret. The launcher
-retrieves and installs Project0, prepares Ollama and <code>qwen2.5:7b</code>, configures the
-runtime, and starts the Dashboard. Its core configuration uses Ollama for
-reasoning, <code>qwen2.5:7b</code> for the Documentation Agent, and
-<code>openalex,crossref,arxiv,openreview</code> for research sources.</p>
-<p>Project0 listens on <code>127.0.0.1:8001</code> inside the runtime, and the notebook exposes
-the existing Dashboard through Colab's embedded port proxy.</p>
+<p>The launcher clones the public Project0 repository without a GitHub token.
+Users select a Colab GPU runtime, then the notebook verifies Python 3.12 or
+newer, removes Colab's unused <code>jieba</code> package to avoid MkDocs Material
+compatibility warnings, installs Project0 in editable mode, prepares Ollama and
+<code>qwen2.5:7b</code>, configures the runtime, and starts the Dashboard. Its core
+configuration uses Ollama for reasoning, <code>qwen2.5:7b</code> for the Documentation
+Agent, and <code>openalex,crossref,arxiv,openreview</code> for research sources.</p>
+<p>Project0 listens on <code>127.0.0.1:8001</code> inside the runtime. The notebook starts a
+Cloudflare Quick Tunnel and displays its temporary public HTTPS URL; Ollama
+remains private inside Colab. The cleanup checkbox defaults to false so
+<strong>Run all</strong> does not immediately stop the Dashboard and tunnel. When explicitly
+enabled, cleanup stops both processes without deleting other runtime files.</p>
 <p>Colab storage under <code>/content</code> is temporary. Deleting the runtime removes the
 cloned repository, installed runtime state, downloaded Ollama models, and other
 files stored there. Closing the notebook or browser tab does not necessarily

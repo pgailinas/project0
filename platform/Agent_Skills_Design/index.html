@@ -1651,11 +1651,11 @@
 
 
 <h1 id="agent-skills-design">Agent Skills Design</h1>
-<p><strong>Version:</strong> 0.6<br />
+<p><strong>Version:</strong> 0.7<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-13<br />
+<strong>Last Updated:</strong> 2026-09-19<br />
 <strong>Status:</strong> Implemented foundation with two repository-local skills; selective workflow integration<br />
-<strong>Source Baseline:</strong> <code>main</code> at <code>da217ae42f7ceeffc95a84c6baad3dc4376a18f9</code></p>
+<strong>Source Baseline:</strong> <code>main</code> at <code>eedad41a4a055ca79cdaf623a598103b5db902df</code></p>
 <h2 id="executive-summary">Executive Summary</h2>
 <p>Project0 supports repository-local, version-controlled instruction packages
 that are discovered and validated by a shared registry, explicitly activated by
@@ -1731,9 +1731,13 @@ in provider metadata as <code>skill_names</code>. With no skills, normal prompti
 unchanged and <code>skill_names</code> is empty.</p>
 <p>For source-grounded Documentation requests, gap analysis runs first without a
 skill and cannot propose edits. When gaps exist, proposal generation receives
-those gaps and the strict skill. No-gap processing stops without proposals. A
-required-skill load failure fails the source-grounded workflow. Ordinary
-Documentation requests do not activate the skill.</p>
+the request, exact target claims, verified gaps, and source evidence in a
+compact rewrite context together with the strict skill. The workflow retains
+the full repository context for deterministic validation and assigns a uniquely
+known exact-claim anchor itself; the skill and model do not have location
+authority. No-gap processing stops without proposals. A required-skill load
+failure fails the source-grounded workflow. Ordinary Documentation requests do
+not activate the skill.</p>
 <h2 id="configuration-and-failure-behavior">Configuration and Failure Behavior</h2>
 <p>Documentation activation depends on non-empty
 <code>DocumentationWorkflowRequest.source_paths</code> and an available registry. Registry

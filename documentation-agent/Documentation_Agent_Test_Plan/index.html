@@ -1651,9 +1651,9 @@
 
 
 <h1 id="documentation-agent-test-plan">Documentation Agent Test Plan</h1>
-<p><strong>Version:</strong> 1.1<br />
+<p><strong>Version:</strong> 1.2<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-11</p>
+<strong>Last Updated:</strong> 2026-09-19</p>
 <h2 id="1-purpose-and-scope">1. Purpose and Scope</h2>
 <p>This plan defines verification and acceptance criteria for the Documentation Agent across deterministic unit testing, assembled integration, Dashboard browser acceptance, repository-safety checks, and separate live-provider exploration.</p>
 <p>The central safety claim is that model output remains a proposal and only an individually approved, current, valid proposal may modify an existing Markdown file. Verification must prove intended behavior and required non-mutation. Exact commands/environment belong in the Testing Guide; observed outcomes belong in Test Results.</p>
@@ -1673,7 +1673,7 @@
 <ul>
 <li><strong>DA-FUN-001 — Request processing:</strong> Verify ready route, normalized request/path input, blank failure, correct source/target roles, and no invalid-input mutation.</li>
 <li><strong>DA-FUN-002 — Context selection:</strong> Verify ordinary Knowledge Service behavior with baseline disabled and exact source-grounded reads/labels with fail-closed read errors.</li>
-<li><strong>DA-FUN-003 — Reasoning mode:</strong> Verify ordinary one-stage updates versus source-grounded gap analysis, deduplication, established-gap-only Stage 2, no-gap behavior, and safe Stage 1 failure.</li>
+<li><strong>DA-FUN-003 — Reasoning mode:</strong> Verify ordinary one-stage updates versus source-grounded gap analysis, deduplication, compact established-gap-only Stage 2 with one proposal-generation call, no-gap behavior, and safe Stage 1 failure.</li>
 <li><strong>DA-FUN-004 — Proposal construction:</strong> Verify path, snapshot, concrete content, rationale, ID, location/anchor, structured parsing, and deterministic guards before review.</li>
 <li><strong>DA-FUN-005 — Preliminary validation:</strong> Verify distinct proposal paths, Markdown/Link/MkDocs tuple, pass/warn/fail mapping, retained proposals, and no assumption that Consistency Validator is included.</li>
 <li><strong>DA-FUN-006 — Review:</strong> Verify one decision per proposal; rejection of unknown/duplicate/unsupported input; immediate approve, non-writing reject/skip, retained revise with repopulated request, and no automatic regeneration.</li>
@@ -1688,7 +1688,7 @@
 <li><strong>DA-SAF-004 — Stale proposals:</strong> Change target after proposal generation and verify failed application preserves intervening work.</li>
 <li><strong>DA-SAF-005 — Minimum change:</strong> Compare original, candidate preview, final file, and Git diff; preserve unrelated content/files.</li>
 <li><strong>DA-SAF-006 — Non-transactional set:</strong> Approve one proposal while another is pending/rejected and verify independent effects without rollback assumptions. Approve compatible proposals for the same file in sequence and confirm both persist; introduce an external edit between approvals and confirm the later proposal fails stale without overwriting that edit.</li>
-<li><strong>DA-SAF-007 — Exact-claim content preservation:</strong> Reject a source-grounded replacement that only restates meaning already present in the exact target claim, reject loss of most values from an established inline-code contract enumeration, retain a concise replacement that introduces a corrected factual value, and verify that an exact unique subclaim anchor preserves surrounding prose on the same Markdown line while an unverified anchor cannot narrow the established boundary.</li>
+<li><strong>DA-SAF-007 — Exact-claim content preservation:</strong> Reject a source-grounded replacement that only restates meaning already present in the exact target claim, reject loss of most values from an established inline-code contract enumeration, retain a concise replacement that introduces a corrected factual value, verify that a sole established claim deterministically replaces a missing or invented model anchor, verify that an exact unique subclaim anchor preserves surrounding prose on the same Markdown line while an unverified anchor cannot narrow the established boundary, and reject contradictory fail-closed continuation wording.</li>
 <li><strong>DA-SAF-008 — Exact-claim insertion grounding:</strong> Reject an insertion that restates its target, exposes a paired private helper, or promotes an already named identifier to standalone response prose; retain a material insertion and verify that it is anchored directly after the resolved established claim. When multiple claims share a section, verify that a normalized proposal anchor selects only its unique matching claim and that a missing or ambiguous anchor fails closed.</li>
 </ul>
 <p>Any unauthorized or unintended repository mutation is release-blocking.</p>

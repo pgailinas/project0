@@ -1651,10 +1651,10 @@
 
 
 <h1 id="dashboard-design">Dashboard Design</h1>
-<p><strong>Version:</strong> 1.1<br />
+<p><strong>Version:</strong> 1.2<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-18<br />
-<strong>Source Baseline:</strong> working tree based on <code>e23a957a152d500649b7a8bf2702347bc308464f</code></p>
+<strong>Last Updated:</strong> 2026-09-19<br />
+<strong>Source Baseline:</strong> <code>main</code> at <code>eedad41a4a055ca79cdaf623a598103b5db902df</code></p>
 <h2 id="executive-summary">Executive Summary</h2>
 <p>The Project0 Dashboard is a local FastAPI/Jinja2 browser application with a
 persistent shared shell and separately owned Documentation and Research agent
@@ -1798,7 +1798,10 @@ unexpected failure capture. Agent routes submit callables and expose agent-owned
 run and status URLs. A <code>303 See Other</code> response redirects the browser from a
 submission to its processing page. Processing pages restore elapsed time, poll
 run state, and replace themselves with the same run URL when work reaches a
-terminal state; the run page then renders the retained agent page model.</p>
+terminal state; the run page then renders the retained agent page model.
+Agent request fields remain populated when a retained review or terminal page
+is rendered. Starting a new request clears the prior run's workflow-stage
+presentation so completed progress markers are not carried into the next run.</p>
 <p>System status accepts an optional agent selector. With Ollama, Research uses
 <code>PROJECT0_RESEARCH_OLLAMA_MODEL</code>, then <code>PROJECT0_OLLAMA_MODEL</code>, defaulting to
 <code>qwen2.5:7b</code>; Documentation uses its agent variable, then the shared variable,

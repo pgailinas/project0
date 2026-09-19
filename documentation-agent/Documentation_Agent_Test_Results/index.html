@@ -1551,18 +1551,22 @@
 
 
 <h1 id="documentation-agent-test-results">Documentation Agent Test Results</h1>
-<p><strong>Version:</strong> 1.1<br />
+<p><strong>Version:</strong> 1.2<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-11</p>
+<strong>Last Updated:</strong> 2026-09-19</p>
 <hr />
 <h2 id="execution-basis">Execution Basis</h2>
-<p>The September 11, 2026 documentation audit inspected the Documentation Agent
-implementation, tests, templates, configuration, and Markdown documentation on
-GitHub <code>main</code> at commit <code>e4f96f4eb5f15b75018a2f3eddc399e317ef78a9</code>.
-It did not execute pytest, Playwright, MkDocs, or a live Ollama workflow.</p>
-<p>Accordingly, test presence is reported as repository-supported coverage rather
-than execution success. No new passed, failed, or skipped count is claimed, and
-historical counts are not treated as evidence for the audited commit.</p>
+<p>The current repository-level validation record is tied to GitHub <code>main</code> at
+commit <code>eedad41a4a055ca79cdaf623a598103b5db902df</code>. It records the deterministic
+regression suite as <strong>1410 passed, 11 skipped</strong> on September 19, 2026. The count
+includes Documentation Workflow regression coverage added for compact Stage 2
+proposal context, deterministic exact-claim anchors, bounded subclaim
+replacement, multi-claim disambiguation, and strict proposal filtering.</p>
+<p>This record does not claim that Playwright browser acceptance, strict MkDocs,
+source compilation, or a live Ollama workflow was part of that pytest result.
+Those remain separate evidence. Live runs demonstrated reduced Stage 2 context
+and a reviewable exact-claim proposal, but model output is qualitative evidence
+rather than a deterministic pass count.</p>
 <h2 id="results-summary">Results Summary</h2>
 <p>The current repository contains deterministic unit and integration coverage
 for the following Documentation Agent boundaries:</p>
@@ -1581,7 +1585,10 @@ for the following Documentation Agent boundaries:</p>
   identifier-response insertion rejection; unique normalized-anchor claim
   selection when one section contains multiple established claims; bounded
   exact-subclaim replacement that preserves surrounding same-line prose; exact
-  insertion anchoring; and established inline-code enumeration preservation;</li>
+  insertion anchoring; deterministic replacement of missing or invented model
+  anchors when one verified claim exists; compact single-call Stage 2 proposal
+  context; contradictory fail-closed continuation rejection; and established
+  inline-code enumeration preservation;</li>
 <li>validation models and aggregation, Markdown, links, MkDocs, and assembled
   validation flows;</li>
 <li>approve, revise, reject, and skip decisions; stale-content detection;
@@ -1611,11 +1618,10 @@ The formerly documented
 is absent, so its historical result is not current evidence or a runnable
 command.</p>
 <h2 id="failures-and-risks">Failures and Risks</h2>
-<p>No runtime defect was established because tests were not run. The audit did
-identify and correct five reporting issues: a historical aggregate count was
-presented as current; a removed integration path was referenced; one browser
-case implied current acceptance status; “validation complete” exceeded the
-evidence; and test presence was conflated with test success.</p>
+<p>The recorded deterministic regression completed without test failures. That
+result does not remove separately known repository or environment limitations,
+and it does not convert unexecuted browser, MkDocs, compilation, or live-model
+checks into passing evidence.</p>
 <p>Current implementation constraints remain:</p>
 <ul>
 <li>review state is process-local and has no restart durability;</li>
@@ -1629,10 +1635,11 @@ evidence; and test presence was conflated with test success.</p>
   and runtime environment.</li>
 </ul>
 <h2 id="validation-decision">Validation Decision</h2>
-<p>Repository inspection shows coverage across the major functional, safety,
-provider, UI, and platform boundaries in the Documentation Agent Test Plan. It
-does not establish that those tests pass. Publication of a current aggregate
-result should wait for executed focused and full regression suites.</p>
+<p>The recorded deterministic regression passed at the identified commit and
+covers the major functional, safety, provider, UI, and platform boundaries in
+the Documentation Agent Test Plan. Browser acceptance, strict MkDocs, source
+compilation, and live-provider quality require their own explicit results and
+must not be inferred from the pytest count.</p>
 <h2 id="next-verification">Next Verification</h2>
 <p>From the repository root, run focused verification:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span><span class="se">\</span>

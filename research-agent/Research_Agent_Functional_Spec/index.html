@@ -1751,9 +1751,9 @@
 
 
 <h1 id="research-agent-functional-specification">Research Agent Functional Specification</h1>
-<p><strong>Version:</strong> 0.6<br />
+<p><strong>Version:</strong> 0.7<br />
 <strong>Owner:</strong> Project0<br />
-<strong>Last Updated:</strong> 2026-09-11</p>
+<strong>Last Updated:</strong> 2026-09-19</p>
 <h2 id="1-purpose-and-scope">1. Purpose and Scope</h2>
 <p>This specification defines the implemented inputs, processing behavior, outputs, configuration, and failure handling of the Project0 Research Agent. The agent performs bounded, multi-provider technical-literature discovery and evidence-grounded analysis; it does not provide exhaustive coverage, independently verify scientific claims, or establish novelty.</p>
 <h2 id="2-functional-requirements">2. Functional Requirements</h2>
@@ -1775,6 +1775,7 @@
 <h3 id="analysis-and-presentation">Analysis and presentation</h3>
 <p>Each retained paper with usable evidence shall be analyzed independently. Problem and approach are required; representations, modalities, objectives, datasets/tasks, findings, limitations, and warnings are optional. Findings must cite supplied evidence and page numbers when present. A structurally invalid response is retried once; persistent structural failure skips that analysis, while a provider exception fails the workflow.</p>
 <p>Research Direction Analysis is enabled by default when configured and at least two valid paper analyses exist. It receives at most three analyses, uses opaque evidence handles, requires cross-paper findings to cite at least two papers, restricts performance ordering to directly supported claims, and enforces context/literature grounding for candidate directions. Invalid items may be omitted; semantic grounding or direction-structure errors cause one full retry. Persistent failure produces a warning and omits Direction Analysis.</p>
+<p>The browser shall enqueue valid long-running requests in the process-local background-run manager and return an immediate <code>303</code> redirect to the run page. The processing page shall poll run-scoped lifecycle state and the backend Research workflow snapshot, restore elapsed time across reloads, and retain the normalized question, guidance, Maximum Results, and context filename in processing and terminal page models. Starting another submission shall clear prior workflow-step completion and error styling before displaying new progress.</p>
 <p>The browser shall present workflow status, warnings, request values, context filename and findings, consolidated retained-paper cards, available analyses, Direction Analysis, and source/evaluation counts. <strong>Save Results</strong> shall create <code>project0_research_results.md</code> from the visible package. Legacy in-memory artifacts remain in the result model but are not rendered.</p>
 <h2 id="3-inputs-and-outputs">3. Inputs and Outputs</h2>
 <h3 id="inputs">Inputs</h3>
