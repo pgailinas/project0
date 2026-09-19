@@ -2,7 +2,7 @@
 
 **Purpose:** Quick reference for repository verification.  
 **Location:** Run every command from the Project0 repository root.  
-**Last Updated:** 2026-09-11
+**Last Updated:** 2026-09-19
 
 For testing principles, ownership boundaries, environment details, naming, result interpretation, and test-development guidance, see `docs/platform/Testing_Guide.md`.
 
@@ -226,9 +226,6 @@ python -m pytest tests/unit/validation/test_validation_service.py -v
 python -m pytest tests/unit/agents/documentation/test_documentation_agent_routes.py -v
 python -m pytest tests/unit/agents/documentation/test_documentation_agent_ui_service.py -v
 python -m pytest tests/unit/agents/documentation/test_documentation_agent_view_models.py -v
-python -m pytest tests/unit/agents/research/test_research_paper_acquisition_service.py -v
-python -m pytest tests/unit/agents/research/test_research_paper_ingestion_service.py -v
-python -m pytest tests/acceptance/platform/test_ollama_acceptance.py -v
 python -m pytest tests/acceptance/agents/documentation/test_documentation_agent_ui_approval_acceptance.py -v
 python -m pytest tests/acceptance/agents/documentation/test_documentation_agent_ui_request_acceptance.py -v
 python -m pytest tests/acceptance/agents/documentation/test_documentation_agent_ui_review_acceptance.py -v
