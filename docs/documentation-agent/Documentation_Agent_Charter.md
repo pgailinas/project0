@@ -14,7 +14,7 @@ The agent shall:
 - Identify material gaps and produce concrete, minimal, style-preserving Markdown proposals with a rationale.
 - Restrict proposals to permitted existing Markdown targets.
 - Present focused differences, warnings, and errors for human review.
-- Filter source-grounded exact-claim replacements that merely restate existing information or destructively collapse an established contract enumeration.
+- Filter source-grounded exact-claim replacements or insertions that merely restate existing information, expose private implementation details, misrepresent already named identifiers as standalone response documentation, or destructively collapse an established contract enumeration.
 - Support approve, revise, reject, and skip decisions for each proposal and apply only individually approved changes.
 - Validate affected documentation at the implemented workflow stages and provide a final Git diff.
 - Reuse generic Project0 services while keeping agent-specific behavior outside shared platform components.

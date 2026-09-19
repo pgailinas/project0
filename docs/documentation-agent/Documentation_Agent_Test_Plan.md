@@ -45,6 +45,7 @@ Verification levels include direct agent units, workflow/model units, supporting
 - **DA-SAF-005 — Minimum change:** Compare original, candidate preview, final file, and Git diff; preserve unrelated content/files.
 - **DA-SAF-006 — Non-transactional set:** Approve one proposal while another is pending/rejected and verify independent effects without rollback assumptions. Approve compatible proposals for the same file in sequence and confirm both persist; introduce an external edit between approvals and confirm the later proposal fails stale without overwriting that edit.
 - **DA-SAF-007 — Exact-claim content preservation:** Reject a source-grounded replacement that only restates meaning already present in the exact target claim, reject loss of most values from an established inline-code contract enumeration, and retain a concise replacement that introduces a corrected factual value.
+- **DA-SAF-008 — Exact-claim insertion grounding:** Reject an insertion that restates its target, exposes a paired private helper, or promotes an already named identifier to standalone response prose; retain a material insertion and verify that it is anchored directly after the unique established claim.
 
 Any unauthorized or unintended repository mutation is release-blocking.
 

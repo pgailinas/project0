@@ -2261,6 +2261,121 @@ def test_concise_exact_claim_correction_remains_allowed() -> None:
     assert reason is None
 
 
+def test_redundant_exact_claim_insertion_is_skipped() -> None:
+    """An insertion cannot repeat a state already named by the claim."""
+
+    reason = DocumentationWorkflow._exact_claim_insertion_rejection_reason(
+        target_claim=(
+            "Page states are `ready`, `processing`, `completed`, and `failed`. "
+            "The page carries the workflow ID."
+        ),
+        proposed_content=(
+            "**PROCESSING** is a valid page status when the workflow is "
+            "processing."
+        ),
+        context="",
+    )
+
+    assert reason == (
+        "restated information already present in the target claim"
+    )
+
+
+def test_identifier_response_insertion_is_skipped() -> None:
+    """An already named identifier is not promoted to standalone prose."""
+
+    reason = DocumentationWorkflow._exact_claim_insertion_rejection_reason(
+        target_claim=(
+            "| `GET` | `/runs/{run_id}/status` | Run ID | "
+            "Return run lifecycle state and result URL. |"
+        ),
+        proposed_content="**Run ID is included in the response**.",
+        context="",
+    )
+
+    assert reason == (
+        "recast an identifier already named by the target as a standalone "
+        "response detail"
+    )
+
+
+def test_private_helper_insertion_is_skipped() -> None:
+    """Strict prose cannot expose a paired private implementation helper."""
+
+    reason = DocumentationWorkflow._exact_claim_insertion_rejection_reason(
+        target_claim=(
+            "| `GET` | `/runs/{run_id}` | Run ID | Render the run state. |"
+        ),
+        proposed_content=(
+            "The function _get_documentation_run only checks whether a run "
+            "exists."
+        ),
+        context=(
+            "=== AUTHORITATIVE SOURCE ===\n"
+            "Path: src/project0/routes.py\n"
+            "def _get_documentation_run(run_id: str):\n"
+            "    return runs[run_id]\n"
+        ),
+    )
+
+    assert reason == (
+        "exposed a private implementation helper not named by the target claim"
+    )
+
+
+def test_valid_exact_claim_insertion_uses_verified_claim_anchor(
+    tmp_path: Path,
+) -> None:
+    """A material insertion is anchored after its verified target claim."""
+
+    document = tmp_path / "docs/index.md"
+    document.parent.mkdir()
+    target_claim = "The endpoint returns a lifecycle state."
+    document.write_text(
+        f"# Interface\n## Status\n{target_claim}\n## Other\nDetails.\n",
+        encoding="utf-8",
+    )
+    change = ProposedDocumentationChange(
+        document_path=Path("docs/index.md"),
+        operation=DocumentationChangeOperation.UPDATE,
+        rationale="Document terminal polling behavior.",
+        proposed_content=(
+            "Clients stop polling after a terminal lifecycle state."
+        ),
+        section="Status",
+        anchor_text=None,
+        edit_type=DocumentationEditType.INSERT,
+    )
+    reasoning_result = _reasoning_result(proposed_changes=(change,))
+    workflow = _create_workflow(
+        tmp_path,
+        reasoning_result=reasoning_result,
+        validation_results=(),
+    )[0]
+    context = (
+        "=== ESTABLISHED DOCUMENTATION GAPS ===\n"
+        "Gap 1:\n"
+        "Document Path: docs/index.md\n"
+        "Section: Status\n"
+        f"Target Claim: {target_claim}\n"
+        "Gap: Terminal polling behavior is not documented.\n"
+        "Source Evidence: The client stops after terminal states.\n"
+    )
+
+    proposals, warnings = workflow._build_proposals(
+        reasoning_result=reasoning_result,
+        target_paths=("docs/index.md",),
+        source_grounded=True,
+        context=context,
+    )
+
+    assert warnings == ()
+    assert len(proposals) == 1
+    assert proposals[0].anchor_text == target_claim
+    assert proposals[0].anchor_mode is DocumentationAnchorMode.INSERT_AFTER
+    assert proposals[0].artifact_location is None
+
+
 def test_reasoning_failure_stops_workflow(tmp_path: Path) -> None:
     """A failed reasoning result stops validation and review."""
 

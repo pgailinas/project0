@@ -2462,6 +2462,33 @@ class DocumentationWorkflow:
 
             if (
                 source_grounded
+                and established_target_claim is not None
+                and proposed_change.edit_type
+                is DocumentationEditType.INSERT
+            ):
+                exact_claim_rejection = (
+                    self._exact_claim_insertion_rejection_reason(
+                        target_claim=established_target_claim,
+                        proposed_content=proposed_content,
+                        context=context,
+                    )
+                )
+                if exact_claim_rejection is not None:
+                    logger.debug(
+                        "Rejected exact-claim documentation insertion: "
+                        "reason=%r document_path=%r section=%r",
+                        exact_claim_rejection,
+                        repository_path,
+                        proposed_change.section,
+                    )
+                    warnings.append(
+                        f"Proposed documentation insertion {exact_claim_rejection} "
+                        f"and was skipped: {repository_path}."
+                    )
+                    continue
+
+            if (
+                source_grounded
                 and not self._python_declarations_are_source_grounded(
                     proposed_content=proposed_content,
                     context=context,
@@ -2572,7 +2599,11 @@ class DocumentationWorkflow:
                 continue
 
             if artifact_location is None and source_grounded:
-                anchor_text = proposed_change.anchor_text
+                anchor_text = (
+                    established_target_claim
+                    if established_target_claim is not None
+                    else proposed_change.anchor_text
+                )
 
                 if anchor_text is None:
                     warnings.append(
@@ -2611,7 +2642,10 @@ class DocumentationWorkflow:
                 source_grounded
                 and established_target_claim is not None
                 and proposed_change.edit_type
-                is DocumentationEditType.REPLACE
+                in {
+                    DocumentationEditType.INSERT,
+                    DocumentationEditType.REPLACE,
+                }
             ):
                 anchor_count = original_content.count(
                     established_target_claim
@@ -2627,7 +2661,12 @@ class DocumentationWorkflow:
 
                 proposal_artifact_location = None
                 proposal_anchor_text = established_target_claim
-                proposal_anchor_mode = DocumentationAnchorMode.REPLACE
+                proposal_anchor_mode = (
+                    DocumentationAnchorMode.INSERT_AFTER
+                    if proposed_change.edit_type
+                    is DocumentationEditType.INSERT
+                    else DocumentationAnchorMode.REPLACE
+                )
 
             elif (
                 source_grounded
@@ -2716,6 +2755,51 @@ class DocumentationWorkflow:
         return None
 
     @classmethod
+    def _exact_claim_insertion_rejection_reason(
+        cls,
+        target_claim: str,
+        proposed_content: str,
+        context: str,
+    ) -> str | None:
+        """Reject redundant or implementation-leaking exact-claim inserts."""
+
+        target_tokens = cls._replacement_meaning_tokens(target_claim)
+        proposed_tokens = cls._replacement_meaning_tokens(proposed_content)
+
+        if proposed_tokens and proposed_tokens.issubset(target_tokens):
+            return "restated information already present in the target claim"
+
+        private_helpers = {
+            function_name
+            for _, function_name, _
+            in cls._extract_authoritative_function_records(context)
+            if function_name.startswith("_")
+        }
+        normalized_target = target_claim.casefold()
+        normalized_proposal = proposed_content.casefold()
+
+        if any(
+            helper.casefold() in normalized_proposal
+            and helper.casefold() not in normalized_target
+            for helper in private_helpers
+        ):
+            return "exposed a private implementation helper not named by the target claim"
+
+        response_addition = re.search(
+            r"(?i)\b([A-Za-z][A-Za-z0-9_ ]{0,40}?)\s+"
+            r"is\s+(?:also\s+)?included\s+in\s+(?:the\s+)?response\b",
+            proposed_content,
+        )
+        if response_addition is not None:
+            field_tokens = cls._replacement_meaning_tokens(
+                response_addition.group(1)
+            )
+            if field_tokens and field_tokens.issubset(target_tokens):
+                return "recast an identifier already named by the target as a standalone response detail"
+
+        return None
+
+    @classmethod
     def _replacement_meaning_tokens(
         cls,
         text: str,
@@ -2727,7 +2811,7 @@ class DocumentationWorkflow:
         for raw_token in re.findall(r"[A-Za-z][A-Za-z0-9_-]*|\d+", text):
             token = raw_token.casefold().replace("-", "_")
 
-            if token in {"a", "an", "and", "is", "the", "when"}:
+            if token in {"a", "an", "and", "is", "the", "valid", "when"}:
                 continue
 
             if token == "status":
