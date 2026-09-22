@@ -889,15 +889,18 @@ class ResearchSourceService:
         ):
             return False
 
+        first_authors = cls._normalized_authors(first.authors)
+        second_authors = cls._normalized_authors(second.authors)
+
         if (
             first.publication_year is not None
             and second.publication_year is not None
             and first.publication_year != second.publication_year
         ):
-            return False
-
-        first_authors = cls._normalized_authors(first.authors)
-        second_authors = cls._normalized_authors(second.authors)
+            return (
+                abs(first.publication_year - second.publication_year) <= 2
+                and bool(first_authors & second_authors)
+            )
 
         return (
             not first_authors

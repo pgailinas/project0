@@ -1018,6 +1018,76 @@ def test_research_source_service_keeps_distinct_same_year_papers() -> None:
     assert result == (first, second)
 
 
+def test_research_source_service_merges_preprint_and_proceedings_years() -> None:
+    """The R001 OpenReview versions are one paper despite different years."""
+
+    title = "Topological Alignment of Shared Vision-Language Embedding Space"
+    preprint = ResearchSourceReference(
+        source_name="openreview",
+        source_id="vMiFuiWTjp",
+        title=title,
+        source_url="https://openreview.net/forum?id=vMiFuiWTjp",
+        authors=("Junwon You", "Dasol Kang", "Jae-Hun Jung"),
+        publication_year=2025,
+        metadata={"abstract": "Short preprint abstract."},
+    )
+    proceedings = ResearchSourceReference(
+        source_name="openreview",
+        source_id="ecd8cgWZr6",
+        title=title,
+        source_url="https://openreview.net/forum?id=ecd8cgWZr6",
+        authors=("Junwon You", "Kang Dasol", "Jae-Hun Jung"),
+        publication_year=2026,
+        metadata={"abstract": "Longer proceedings abstract with more detail."},
+    )
+    service = ResearchSourceService(
+        providers={
+            "stub": StubResearchSourceProvider(
+                references=(preprint, proceedings),
+            ),
+        },
+    )
+
+    assert service.search(create_research_strategy()) == (proceedings,)
+
+
+@pytest.mark.parametrize(
+    ("second_authors", "second_year"),
+    [
+        (("Author Two",), 2026),
+        ((), 2026),
+        (("Author One",), 2029),
+    ],
+)
+def test_research_source_service_keeps_uncertain_same_title_matches(
+    second_authors: tuple[str, ...],
+    second_year: int,
+) -> None:
+    """Year differences need shared authors and a plausible version gap."""
+
+    first = replace(
+        create_reference("first"),
+        title="Shared Space Alignment",
+        authors=("Author One",),
+        publication_year=2025,
+    )
+    second = replace(
+        create_reference("second"),
+        title="Shared Space Alignment",
+        authors=second_authors,
+        publication_year=second_year,
+    )
+    service = ResearchSourceService(
+        providers={
+            "stub": StubResearchSourceProvider(
+                references=(first, second),
+            ),
+        },
+    )
+
+    assert service.search(create_research_strategy()) == (first, second)
+
+
 def test_research_source_service_preserves_provider_order() -> None:
     """Verify reference ordering follows provider ordering."""
 
