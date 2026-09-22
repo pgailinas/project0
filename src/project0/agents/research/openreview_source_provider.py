@@ -155,15 +155,28 @@ class OpenReviewSourceProvider(
                 "OpenReview response did not include a notes list."
             )
 
-        references = [
-            self._build_reference(note)
-            for note in notes
-            if self._is_submission_note(note)
-        ]
+        references = []
 
-        return tuple(
-            references[:self.maximum_results]
-        )
+        for note in notes:
+            if not self._is_submission_note(note):
+                continue
+
+            try:
+                reference = self._build_reference(note)
+            except (TypeError, ValueError) as error:
+                LOGGER.warning(
+                    "Skipping malformed OpenReview submission %s: %s",
+                    note.get("id"),
+                    error,
+                )
+                continue
+
+            references.append(reference)
+
+            if len(references) >= self.maximum_results:
+                break
+
+        return tuple(references)
 
     def _retry_delay_seconds(
         self,

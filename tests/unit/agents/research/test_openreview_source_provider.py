@@ -405,10 +405,10 @@ def test_openreview_provider_requires_notes_list(
         )
 
 
-def test_openreview_provider_requires_content_object(
+def test_openreview_provider_skips_note_without_content_object(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Verify OpenReview notes include a content object."""
+    """A malformed submission must not fail the provider search."""
 
     response_data = create_openreview_response_data()
     response_data["notes"][0]["content"] = None
@@ -421,16 +421,13 @@ def test_openreview_provider_requires_content_object(
         ),
     )
 
-    with pytest.raises(TypeError):
-        OpenReviewSourceProvider().search(
-            create_strategy()
-        )
+    assert OpenReviewSourceProvider().search(create_strategy()) == ()
 
 
-def test_openreview_provider_requires_title_value(
+def test_openreview_provider_skips_note_without_title_value(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Verify OpenReview notes require a title value."""
+    """A submission without a title must not fail the provider search."""
 
     response_data = create_openreview_response_data()
     response_data["notes"][0]["content"]["title"] = {
@@ -445,10 +442,46 @@ def test_openreview_provider_requires_title_value(
         ),
     )
 
-    with pytest.raises(TypeError):
-        OpenReviewSourceProvider().search(
-            create_strategy()
-        )
+    assert OpenReviewSourceProvider().search(create_strategy()) == ()
+
+
+def test_openreview_provider_skips_bad_authors_and_keeps_next_paper(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """One bad author entry must not discard later valid submissions."""
+
+    response_data = create_openreview_response_data()
+    valid_note = response_data["notes"][0]
+    malformed_note = {
+        **valid_note,
+        "id": "malformed-note-001",
+        "content": {
+            **valid_note["content"],
+            "authors": {"value": ["Author One", 123]},
+        },
+    }
+    response_data["notes"] = [malformed_note, valid_note]
+
+    monkeypatch.setattr(
+        httpx,
+        "get",
+        lambda *args, **kwargs: create_http_response(
+            data=response_data,
+        ),
+    )
+
+    result = OpenReviewSourceProvider(maximum_results=1).search(
+        create_strategy()
+    )
+
+    assert tuple(reference.source_id for reference in result) == (
+        "openreview-note-001",
+    )
+    assert "Skipping malformed OpenReview submission malformed-note-001" in (
+        caplog.text
+    )
+    assert "OpenReview author name must be a string" in caplog.text
 
 
 def test_openreview_provider_retries_transient_request_failure(
