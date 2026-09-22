@@ -202,6 +202,14 @@ class ResearchQueryService:
             if not normalized:
                 continue
 
+            if (
+                objective_query
+                and normalized.casefold().startswith(
+                    "include older foundational work only where needed"
+                )
+            ):
+                continue
+
             if normalized.casefold() in inferred_concepts:
                 continue
 
@@ -269,6 +277,7 @@ class ResearchQueryService:
                 ),
                 directive_queries=tuple(directive_queries),
                 role_queries=tuple(role_queries),
+                objective_query=objective_query,
             )
         discovery_queries = tuple(
             query
@@ -301,6 +310,14 @@ class ResearchQueryService:
             word.casefold()
             for word in words
         }
+
+        if (
+            "videoqa" in normalized_terms
+            and any(word.startswith("video") for word in normalized_terms)
+            and "text" in normalized_terms
+            and any(word.startswith("align") for word in normalized_terms)
+        ):
+            return "video text alignment temporal representations VideoQA"
 
         if not (
             normalized_terms & {"image", "video", "vision", "visual"}
@@ -661,6 +678,7 @@ class ResearchQueryService:
         prioritized_queries: tuple[str, ...] = (),
         directive_queries: tuple[str, ...] = (),
         role_queries: tuple[tuple[str, str], ...] = (),
+        objective_query: str = "",
     ) -> tuple[str, ...]:
         """Select at most three ordered query dimensions."""
 
@@ -692,7 +710,7 @@ class ResearchQueryService:
                 role_candidates = tuple(
                     (query, role)
                     for query, role in available_role_queries
-                    if query in directives
+                    if query in directives or query == objective_query
                 )
 
             for role in cls._QUERY_ROLE_ORDER:

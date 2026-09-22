@@ -267,6 +267,41 @@ def test_research_query_service_uses_focus_constraint_when_needed():
     )
 
 
+def test_research_query_service_keeps_r002_videoqa_question_in_search():
+    """R002 must search the question, not a foundational-work instruction."""
+
+    objective = (
+        "How do recent video-language models align video representations "
+        "with text across frames, events, and longer time spans, and which "
+        "approaches improve VideoQA performance?"
+    )
+    strategy = ResearchStrategy(
+        concepts=(
+            "Compare alignment objectives, representation granularity, use "
+            "of image-text pretrained models, and how temporal information "
+            "enters the video representation",
+            "Include older foundational work only where needed for comparison",
+            "Identify remaining limitations relevant to learned video representations",
+            objective.rstrip("?"),
+        ),
+        search_terms=(),
+        objective=objective,
+        constraints=(
+            "Focus on primary research from 2023-2026.",
+        ),
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms[0] == (
+        "video text alignment temporal representations VideoQA"
+    )
+    assert all(
+        "older foundational work only where needed" not in query.casefold()
+        for query in result.search_terms
+    )
+
+
 def test_research_query_service_preserves_focus_mechanism_dimensions():
     """Explicit mechanism lists become separate provider searches."""
 
