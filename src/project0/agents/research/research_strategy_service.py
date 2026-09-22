@@ -137,7 +137,11 @@ class ResearchStrategyService:
         for focus_area in request.focus_areas:
             normalized = focus_area.strip()
 
-            if normalized and normalized not in concepts:
+            if (
+                normalized
+                and not cls._is_constraint(normalized)
+                and normalized not in concepts
+            ):
                 concepts.append(normalized)
 
         guidance = request.guidance.strip()
@@ -316,15 +320,17 @@ class ResearchStrategyService:
     def _guidance_items(
         guidance: str,
     ) -> tuple[str, ...]:
-        """Split guidance without breaking decimal identifiers."""
+        """Split guidance sentences without treating line wraps as items."""
+
+        normalized_guidance = " ".join(guidance.split())
 
         return tuple(
             item
             for item in (
                 value.strip()
                 for value in re.split(
-                    r"(?<!\d)\.|\.(?!\d)|[\r\n]+",
-                    guidance,
+                    r"(?<!\d)\.|\.(?!\d)",
+                    normalized_guidance,
                 )
             )
             if item
@@ -365,4 +371,5 @@ class ResearchStrategyService:
             or lowered.startswith("focus ")
             or lowered.startswith("avoid ")
             or lowered.startswith("require ")
+            or lowered.startswith("prioritize ")
         )

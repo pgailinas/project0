@@ -527,6 +527,49 @@ def test_research_source_service_excludes_alignment_profile_mismatch() -> None:
     )
 
 
+def test_research_source_service_keeps_direct_video_text_representations(
+) -> None:
+    """R001 candidates reach evaluation without title-level mechanism words."""
+
+    unrelated = replace(
+        create_reference("unrelated"),
+        title="Representations for Video Compression",
+    )
+    actbert = replace(
+        create_reference("actbert"),
+        title="ActBERT: Learning Global-Local Video-Text Representations",
+    )
+    provider = QueryMappedResearchSourceProvider(
+        {
+            "representations for VideoQA": (
+                unrelated,
+                actbert,
+            ),
+        }
+    )
+    service = ResearchSourceService(
+        providers={"openalex": provider},
+        evaluation_candidate_limit=2,
+    )
+    strategy = ResearchStrategy(
+        concepts=(
+            "How do vision-language and video-language models create "
+            "a shared semantic representation space",
+        ),
+        search_terms=("representations for VideoQA",),
+        source_names=("openalex",),
+    )
+
+    assert service.search(strategy) == (actbert,)
+    assert service.last_search_statistics["evaluation_candidate_count"] == 1
+    assert service.last_candidate_trace[0]["selection_status"] == (
+        "outside_alignment_profile"
+    )
+    assert service.last_candidate_trace[1]["selection_status"] == (
+        "balanced_selection"
+    )
+
+
 def test_research_source_service_excludes_lexical_alignment_noise() -> None:
     """Alignment retrieval requires a concrete visual-language mechanism."""
 

@@ -469,6 +469,64 @@ def test_build_strategy_separates_directive_guidance_from_concepts() -> None:
     )
 
 
+def test_build_strategy_excludes_prioritization_from_search_concepts() -> None:
+    """Source-selection instructions must not become provider queries."""
+
+    result = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    ).build_strategy(
+        ResearchRequest(
+            question=(
+                "How do vision-language and video-language models create "
+                "a shared semantic representation space?"
+            ),
+            focus_areas=("Prioritize primary research papers",),
+            guidance="Prioritize primary research papers.",
+        )
+    )
+
+    assert "Prioritize primary research papers" not in result.concepts
+    assert result.constraints == (
+        "Prioritize primary research papers.",
+    )
+
+
+def test_build_strategy_does_not_split_wrapped_guidance_into_concepts() -> None:
+    """Visual line wrapping must preserve one directive sentence."""
+
+    result = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    ).build_strategy(
+        ResearchRequest(
+            question=(
+                "How do state-of-the-art vision-language and "
+                "video-language models learn or create a shared semantic "
+                "representation space between visual and textual "
+                "information?"
+            ),
+            guidance=(
+                "Focus on major alignment approaches, foundational work, "
+                "2023-2026 SOTA\n"
+                "developments, and open problems relevant to learned video\n"
+                "representations for VideoQA.\n"
+                "Prioritize primary research papers."
+            ),
+        )
+    )
+
+    assert result.concepts == (
+        "How do state-of-the-art vision-language and video-language models "
+        "learn or create a shared semantic representation space between "
+        "visual and textual information",
+    )
+    assert result.constraints == (
+        "Focus on major alignment approaches, foundational work, 2023-2026 "
+        "SOTA developments, and open problems relevant to learned video "
+        "representations for VideoQA.",
+        "Prioritize primary research papers.",
+    )
+
+
 def test_build_strategy_preserves_seed_free_technical_guidance() -> None:
     """Verify technical guidance remains available for query generation."""
 

@@ -572,7 +572,6 @@ class ResearchSourceService:
             "video" in candidate_terms
             and has_language
             and has_representation
-            and has_transfer_mechanism
             and not (
                 prioritize_representation_learning
                 and is_synthesis_candidate
