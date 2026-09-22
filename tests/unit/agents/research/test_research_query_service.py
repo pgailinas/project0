@@ -211,6 +211,35 @@ def test_research_query_service_excludes_objective_from_long_concept_query():
     )
 
 
+def test_research_query_service_searches_substantive_r001_objective():
+    """The R001 technical question must contribute a direct query."""
+
+    objective = (
+        "How do state-of-the-art vision-language and video-language models "
+        "learn or create a shared semantic representation space between "
+        "visual and textual information?"
+    )
+    strategy = ResearchStrategy(
+        concepts=(objective.rstrip("?"),),
+        search_terms=(),
+        objective=objective,
+        constraints=(
+            "Focus on major alignment approaches, foundational work, "
+            "2023-2026 SOTA developments, and open problems relevant to "
+            "learned video representations for VideoQA.",
+            "Prioritize primary research papers.",
+        ),
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms[0] == (
+        "vision-language video-language shared semantic representation "
+        "space visual textual"
+    )
+    assert "primary research papers" not in result.search_terms
+
+
 def test_research_query_service_uses_focus_constraint_when_needed():
     """Verify a Focus on constraint can supply a technical query."""
 

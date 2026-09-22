@@ -156,6 +156,12 @@ class ResearchQueryService:
         objective = self._normalize_query(
             strategy.objective or ""
         )
+        objective_query = self._build_objective_query(objective)
+
+        if objective_query:
+            queries.append(objective_query)
+            role_queries.append((objective_query, "direct"))
+
         has_directive_candidates = any(
             self._is_directive_candidate(
                 self._normalize_query(candidate)
@@ -253,6 +259,7 @@ class ResearchQueryService:
             discovery_queries = self._select_bounded_queries(
                 self._deduplicate_complementary_queries(queries),
                 prioritized_queries=(
+                    *((objective_query,) if objective_query else ()),
                     *directive_queries,
                     *(
                         query
@@ -281,6 +288,66 @@ class ResearchQueryService:
                 [*seed_queries, *discovery_queries]
             ),
         )
+
+    @classmethod
+    def _build_objective_query(
+        cls,
+        objective: str,
+    ) -> str:
+        """Build a direct query from a substantive technical objective."""
+
+        words = cls._query_words(objective)
+        normalized_terms = {
+            word.casefold()
+            for word in words
+        }
+
+        if not (
+            normalized_terms & {"image", "video", "vision", "visual"}
+            and normalized_terms & {"language", "text", "textual"}
+            and normalized_terms
+            & {"embedding", "representation", "semantic", "space"}
+        ):
+            return ""
+
+        ignored_words = {
+            "a",
+            "an",
+            "and",
+            "are",
+            "be",
+            "between",
+            "can",
+            "create",
+            "do",
+            "does",
+            "for",
+            "how",
+            "information",
+            "investigate",
+            "learn",
+            "models",
+            "next",
+            "of",
+            "or",
+            "should",
+            "state-of-the-art",
+            "the",
+            "to",
+            "what",
+            "which",
+            "with",
+        }
+        query_words = [
+            word
+            for word in words
+            if word.casefold() not in ignored_words
+        ]
+
+        if len(query_words) < 3:
+            return ""
+
+        return " ".join(query_words[:8])
 
     @classmethod
     def _build_dimension_query(
