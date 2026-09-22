@@ -284,6 +284,23 @@ class ResearchDirectionAnalysisService:
             == ResearchEvidenceSourceType.RESEARCH_PAPER
         ]
 
+        if context_evidence_ids:
+            context_evidence_schema = {
+                "type": "array",
+                "items": {
+                    "type": "string",
+                    "enum": context_evidence_ids,
+                },
+                "uniqueItems": True,
+            }
+        else:
+            context_evidence_schema = {
+                "type": "array",
+                "items": {"type": "string"},
+                "uniqueItems": True,
+                "maxItems": 0,
+            }
+
         user_prompt = json.dumps(
             {
                 "research_request": {
@@ -325,14 +342,7 @@ class ResearchDirectionAnalysisService:
             "properties": {
                 "direction": {"type": "string"},
                 "rationale": {"type": "string"},
-                "context_evidence_ids": {
-                    "type": "array",
-                    "items": {
-                        "type": "string",
-                        "enum": context_evidence_ids,
-                    },
-                    "uniqueItems": True,
-                },
+                "context_evidence_ids": context_evidence_schema,
                 "literature_evidence_ids": {
                     "type": "array",
                     "items": {

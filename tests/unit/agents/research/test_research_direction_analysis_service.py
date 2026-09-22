@@ -198,6 +198,18 @@ def test_analyze_allows_literature_grounded_direction_without_context():
     assert direction.literature_evidence
     assert direction.speculative is False
 
+    context_evidence_schema = provider.requests[0].response_schema[
+        "properties"
+    ]["candidate_directions"]["items"]["properties"][
+        "context_evidence_ids"
+    ]
+    assert context_evidence_schema == {
+        "type": "array",
+        "items": {"type": "string"},
+        "uniqueItems": True,
+        "maxItems": 0,
+    }
+
 
 def test_analyze_retries_once_after_invalid_output_then_succeeds():
     invalid = _valid_output()
