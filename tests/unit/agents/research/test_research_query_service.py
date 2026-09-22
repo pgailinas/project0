@@ -233,15 +233,14 @@ def test_research_query_service_searches_substantive_r001_objective():
 
     result = ResearchQueryService().generate_queries(strategy)
 
-    assert result.search_terms[0] == (
-        "vision-language video-language shared semantic representation "
-        "space visual textual"
-    )
+    assert "vision-language" in result.search_terms[0]
+    assert "semantic representation space" in result.search_terms[0]
+    assert "textual information" in result.search_terms[0]
     assert "primary research papers" not in result.search_terms
 
 
-def test_research_query_service_uses_focus_constraint_when_needed():
-    """Verify a Focus on constraint can supply a technical query."""
+def test_research_query_service_keeps_question_and_focus_constraint():
+    """Search the substantive question and its explicit technical focus."""
 
     strategy = ResearchStrategy(
         concepts=(
@@ -263,6 +262,7 @@ def test_research_query_service_uses_focus_constraint_when_needed():
     result = ResearchQueryService().generate_queries(strategy)
 
     assert result.search_terms == (
+        "self-supervised video representations improved VideoQA",
         "vision-language alignment",
     )
 
@@ -293,13 +293,52 @@ def test_research_query_service_keeps_r002_videoqa_question_in_search():
 
     result = ResearchQueryService().generate_queries(strategy)
 
-    assert result.search_terms[0] == (
-        "video text alignment temporal representations VideoQA"
-    )
+    assert "video-language" in result.search_terms[0]
+    assert "video representations text frames events" in result.search_terms[0]
+    assert "VideoQA performance" in result.search_terms[0]
     assert all(
         "older foundational work only where needed" not in query.casefold()
         for query in result.search_terms
     )
+
+
+def test_research_query_service_searches_non_video_technical_question():
+    """Question priority and planning-guidance filtering are topic-neutral."""
+
+    objective = (
+        "How do urban wetlands reduce flood risk during extreme storms, "
+        "and which restoration strategies improve water retention?"
+    )
+    strategy = ResearchStrategy(
+        concepts=(
+            "Include older foundational work only where needed for comparison",
+            "Compare restoration methods and flood outcomes",
+            objective.rstrip("?"),
+        ),
+        search_terms=(),
+        objective=objective,
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert "urban wetlands reduce flood risk" in result.search_terms[0]
+    assert "water retention" in result.search_terms[0]
+    assert not any("only where needed" in query for query in result.search_terms)
+
+
+def test_research_query_service_searches_short_substantive_question():
+    """A short question in another field still becomes a direct query."""
+
+    objective = "What causes battery degradation?"
+    strategy = ResearchStrategy(
+        concepts=(objective.rstrip("?"),),
+        search_terms=(),
+        objective=objective,
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms == ("causes battery degradation",)
 
 
 def test_research_query_service_preserves_focus_mechanism_dimensions():

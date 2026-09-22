@@ -158,17 +158,21 @@ class ResearchQueryService:
         )
         objective_query = self._build_objective_query(objective)
 
-        if objective_query:
-            queries.append(objective_query)
-            role_queries.append((objective_query, "direct"))
-
         has_directive_candidates = any(
             self._is_directive_candidate(
+                self._normalize_query(candidate)
+            )
+            and not self._is_planning_directive(
                 self._normalize_query(candidate)
             )
             for candidate in candidates
             if self._normalize_query(candidate)
         )
+        if objective_query and not seed_queries and not has_directive_candidates:
+            queries.append(objective_query)
+            role_queries.append((objective_query, "direct"))
+        else:
+            objective_query = ""
         derived_role_queries: tuple[tuple[str, str], ...] = ()
 
         if (
@@ -202,12 +206,7 @@ class ResearchQueryService:
             if not normalized:
                 continue
 
-            if (
-                objective_query
-                and normalized.casefold().startswith(
-                    "include older foundational work only where needed"
-                )
-            ):
+            if objective_query and self._is_planning_directive(normalized):
                 continue
 
             if normalized.casefold() in inferred_concepts:
@@ -306,27 +305,6 @@ class ResearchQueryService:
         """Build a direct query from a substantive technical objective."""
 
         words = cls._query_words(objective)
-        normalized_terms = {
-            word.casefold()
-            for word in words
-        }
-
-        if (
-            "videoqa" in normalized_terms
-            and any(word.startswith("video") for word in normalized_terms)
-            and "text" in normalized_terms
-            and any(word.startswith("align") for word in normalized_terms)
-        ):
-            return "video text alignment temporal representations VideoQA"
-
-        if not (
-            normalized_terms & {"image", "video", "vision", "visual"}
-            and normalized_terms & {"language", "text", "textual"}
-            and normalized_terms
-            & {"embedding", "representation", "semantic", "space"}
-        ):
-            return ""
-
         ignored_words = {
             "a",
             "an",
@@ -335,18 +313,19 @@ class ResearchQueryService:
             "be",
             "between",
             "can",
-            "create",
+            "across",
             "do",
             "does",
+            "find",
             "for",
             "how",
-            "information",
             "investigate",
-            "learn",
-            "models",
             "next",
             "of",
             "or",
+            "recent",
+            "relevant",
+            "research",
             "should",
             "state-of-the-art",
             "the",
@@ -364,7 +343,10 @@ class ResearchQueryService:
         if len(query_words) < 3:
             return ""
 
-        return " ".join(query_words[:8])
+        if len(query_words) > 12:
+            query_words = [*query_words[:9], *query_words[-3:]]
+
+        return " ".join(query_words)
 
     @classmethod
     def _build_dimension_query(
@@ -816,6 +798,13 @@ class ResearchQueryService:
             lowered.startswith(prefix)
             for prefix in cls._DIRECTIVE_PREFIXES
         )
+
+    @staticmethod
+    def _is_planning_directive(candidate: str) -> bool:
+        """Recognize inclusion guidance that is not a search topic."""
+
+        lowered = candidate.casefold()
+        return lowered.startswith("include ") and "only where needed" in lowered
 
     @classmethod
     def _directive_anchor_terms(
