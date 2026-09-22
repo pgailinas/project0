@@ -418,7 +418,114 @@ def test_arxiv_provider_sends_user_agent(
 
     assert captured_headers == {
         "User-Agent": "Project0-Test-Agent",
+        "Accept": "application/atom+xml",
+        "Accept-Encoding": "identity",
     }
+
+
+def test_arxiv_provider_retries_not_acceptable_response(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify transient HTTP 406 responses are retried."""
+
+    get_attempts = 0
+    post_attempts = 0
+    post_data = {}
+    sleep_calls = []
+    xml_response = (
+        '<feed xmlns="http://www.w3.org/2005/Atom"></feed>'
+    )
+
+    def mock_get(*args, **kwargs):
+        nonlocal get_attempts
+        get_attempts += 1
+
+        return httpx.Response(
+            406,
+            text="not acceptable",
+            request=httpx.Request(
+                "GET",
+                "https://export.arxiv.org/api/query",
+            ),
+        )
+
+    def mock_post(url, *, data, headers, timeout):
+        nonlocal post_attempts
+        post_attempts += 1
+        post_data.update(data)
+
+        return httpx.Response(
+            200,
+            text=xml_response,
+            request=httpx.Request(
+                "POST",
+                url,
+            ),
+        )
+
+    monkeypatch.setattr(
+        "project0.agents.research.arxiv_source_provider.httpx.get",
+        mock_get,
+    )
+    monkeypatch.setattr(
+        "project0.agents.research.arxiv_source_provider.httpx.post",
+        mock_post,
+    )
+    monkeypatch.setattr(
+        "project0.agents.research.arxiv_source_provider.time.sleep",
+        sleep_calls.append,
+    )
+
+    result = ArxivSourceProvider(
+        maximum_attempts=2,
+        retry_delay_seconds=0.0,
+    ).search(create_strategy())
+
+    assert get_attempts == 1
+    assert post_attempts == 1
+    assert post_data["search_query"] == (
+        "all:video AND all:alignment AND all:representation"
+    )
+    assert sleep_calls == [3.0]
+    assert result == ()
+
+
+def test_arxiv_provider_spaces_independent_searches(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify consecutive searches respect the arXiv request interval."""
+
+    xml_response = (
+        '<feed xmlns="http://www.w3.org/2005/Atom"></feed>'
+    )
+    sleep_calls = []
+    monotonic_values = iter((100.0, 101.0, 104.0))
+
+    monkeypatch.setattr(
+        "project0.agents.research.arxiv_source_provider.httpx.get",
+        lambda url, **kwargs: httpx.Response(
+            200,
+            text=xml_response,
+            request=httpx.Request("GET", url),
+        ),
+    )
+    monkeypatch.setattr(
+        "project0.agents.research.arxiv_source_provider.time.monotonic",
+        lambda: next(monotonic_values),
+    )
+    monkeypatch.setattr(
+        "project0.agents.research.arxiv_source_provider.time.sleep",
+        sleep_calls.append,
+    )
+
+    provider = ArxivSourceProvider(
+        minimum_request_interval_seconds=3.0,
+    )
+
+    provider.search(create_strategy())
+    provider.search(create_strategy())
+
+    assert sleep_calls == [2.0]
 
 
 def test_arxiv_provider_retries_rate_limit_response(

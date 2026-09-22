@@ -428,7 +428,11 @@ def _create_workflow(
                     "semantic_scholar": SemanticScholarSourceProvider(
                         maximum_results=5,
                     ),
-                    "arxiv": ArxivSourceProvider(),
+                    # Requests are mocked in this deterministic workflow test;
+                    # disable production pacing so the suite stays fast.
+                    "arxiv": ArxivSourceProvider(
+                        minimum_request_interval_seconds=0.0,
+                    ),
                 },
             )
         ),
@@ -989,7 +993,9 @@ def test_research_workflow_prioritizes_context_query_anchor_matches(
                 "semantic_scholar": SemanticScholarSourceProvider(
                     maximum_results=5,
                 ),
-                "arxiv": ArxivSourceProvider(),
+                "arxiv": ArxivSourceProvider(
+                    minimum_request_interval_seconds=0.0,
+                ),
             },
             evaluation_candidate_limit=1,
         ),

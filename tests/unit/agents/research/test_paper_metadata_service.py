@@ -1188,6 +1188,26 @@ def test_paper_metadata_service_retains_abstract_after_pdf_http_failure(
     )
 
 
+def test_paper_metadata_service_normalizes_openreview_api_pdf_url() -> None:
+    """OpenReview API PDF links use the public download host for evidence."""
+
+    paper = PaperMetadata(
+        source_reference=ResearchSourceReference(
+            source_name="openreview",
+            source_id="f36LaK7M0F",
+            title="OpenReview Paper",
+            metadata={
+                "pdf_url": "https://api2.openreview.net/pdf?id=f36LaK7M0F",
+            },
+        ),
+        title="OpenReview Paper",
+    )
+
+    assert PaperMetadataService._paper_pdf_url(paper) == (
+        "https://openreview.net/pdf?id=f36LaK7M0F"
+    )
+
+
 def test_paper_metadata_service_enriches_canonical_seed_title_from_pdf(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

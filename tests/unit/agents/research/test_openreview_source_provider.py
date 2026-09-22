@@ -254,6 +254,31 @@ def test_openreview_provider_normalizes_references(
     }
 
 
+def test_openreview_provider_uses_api_pdf_endpoint_for_attachment_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Attachment paths use the API endpoint and stable note identifier."""
+
+    response_data = create_openreview_response_data()
+    response_data["notes"][0]["content"]["pdf"]["value"] = (
+        "/pdf/attachment-hash.pdf"
+    )
+
+    monkeypatch.setattr(
+        httpx,
+        "get",
+        lambda *args, **kwargs: create_http_response(
+            data=response_data,
+        ),
+    )
+
+    result = OpenReviewSourceProvider().search(create_strategy())
+
+    assert result[0].metadata["pdf_url"] == (
+        "https://openreview.net/pdf?id=openreview-note-001"
+    )
+
+
 def test_openreview_provider_uses_creation_year_fallback(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -759,4 +784,3 @@ def test_openreview_provider_limits_filtered_results(
         "openreview-note-001",
         "openreview-note-002",
     )
-

@@ -44,13 +44,18 @@ class ArxivSourceProvider:
         max_results: int = 10,
         maximum_attempts: int = 3,
         retry_delay_seconds: float = 1.0,
+        minimum_request_interval_seconds: float = 3.0,
         user_agent: str = "Project0 Research Agent",
     ) -> None:
         self.timeout_seconds = timeout_seconds
         self.max_results = max_results
         self.maximum_attempts = maximum_attempts
         self.retry_delay_seconds = retry_delay_seconds
+        self.minimum_request_interval_seconds = (
+            minimum_request_interval_seconds
+        )
         self.user_agent = user_agent
+        self._last_request_completed_at: float | None = None
 
     def search(
         self,
@@ -82,21 +87,38 @@ class ArxivSourceProvider:
 
         headers = {
             "User-Agent": self.user_agent,
+            "Accept": "application/atom+xml",
+            "Accept-Encoding": "identity",
         }
 
         last_error: httpx.HTTPError | None = None
+
+        self._wait_for_request_slot()
 
         for attempt in range(
             1,
             self.maximum_attempts + 1,
         ):
             try:
-                response = httpx.get(
-                    ARXIV_API_URL,
-                    params=params,
-                    headers=headers,
-                    timeout=self.timeout_seconds,
+                use_post = (
+                    isinstance(last_error, httpx.HTTPStatusError)
+                    and last_error.response.status_code == 406
                 )
+
+                if use_post:
+                    response = httpx.post(
+                        ARXIV_API_URL,
+                        data=params,
+                        headers=headers,
+                        timeout=self.timeout_seconds,
+                    )
+                else:
+                    response = httpx.get(
+                        ARXIV_API_URL,
+                        params=params,
+                        headers=headers,
+                        timeout=self.timeout_seconds,
+                    )
 
                 response.raise_for_status()
 
@@ -109,7 +131,7 @@ class ArxivSourceProvider:
                 status_code = error.response.status_code
 
                 if (
-                    status_code != 429
+                    status_code not in (406, 429)
                     and status_code < 500
                 ):
                     break
@@ -120,6 +142,9 @@ class ArxivSourceProvider:
             except httpx.HTTPError as error:
                 last_error = error
                 break
+
+            finally:
+                self._last_request_completed_at = time.monotonic()
 
             if attempt < self.maximum_attempts:
                 LOGGER.warning(
@@ -146,6 +171,24 @@ class ArxivSourceProvider:
             "arXiv request failed."
         ) from last_error
 
+    def _wait_for_request_slot(self) -> None:
+        """Respect arXiv's minimum interval between independent searches."""
+
+        if self._last_request_completed_at is None:
+            return
+
+        elapsed_seconds = (
+            time.monotonic()
+            - self._last_request_completed_at
+        )
+        remaining_seconds = (
+            self.minimum_request_interval_seconds
+            - elapsed_seconds
+        )
+
+        if remaining_seconds > 0:
+            time.sleep(remaining_seconds)
+
     def _retry_delay_seconds(
         self,
         attempt: int,
@@ -166,6 +209,13 @@ class ArxivSourceProvider:
                     return float(retry_after)
                 except ValueError:
                     pass
+
+            if error.response.status_code == 406:
+                return max(
+                    self.minimum_request_interval_seconds,
+                    self.retry_delay_seconds
+                    * (2 ** (attempt - 1)),
+                )
 
         return (
             self.retry_delay_seconds

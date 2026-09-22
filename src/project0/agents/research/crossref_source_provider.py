@@ -173,8 +173,8 @@ class CrossrefSourceProvider(
                     self._build_reference(item)
                 )
             except TypeError as error:
-                LOGGER.warning(
-                    "Skipping invalid Crossref search result: %s",
+                LOGGER.debug(
+                    "Skipping incomplete Crossref search result: %s",
                     error,
                 )
 
@@ -260,9 +260,7 @@ class CrossrefSourceProvider(
         return ResearchSourceReference(
             source_name="crossref",
             source_id=doi,
-            title=self._get_title(
-                item.get("title")
-            ),
+            title=self._get_title(item),
             source_url=self._get_source_url(
                 item,
                 doi,
@@ -281,17 +279,37 @@ class CrossrefSourceProvider(
 
     @staticmethod
     def _get_title(
-        value: Any,
+        item: dict[str, Any],
     ) -> str:
         """Return the primary Crossref title."""
 
+        value = item.get("title")
+
+        if value is None:
+            for field_name in (
+                "subtitle",
+                "original-title",
+                "short-title",
+                "container-title",
+            ):
+                fallback = item.get(field_name)
+                if isinstance(fallback, str) and fallback.strip():
+                    return fallback.strip()
+                if (
+                    isinstance(fallback, list)
+                    and fallback
+                    and isinstance(fallback[0], str)
+                    and fallback[0].strip()
+                ):
+                    return fallback[0].strip()
+
         if isinstance(value, str):
-            if not value:
+            if not value.strip():
                 raise TypeError(
                     "Crossref title must not be empty."
                 )
 
-            return value
+            return value.strip()
 
         if not isinstance(value, list):
             raise TypeError(
@@ -311,7 +329,12 @@ class CrossrefSourceProvider(
                 "Crossref title must contain strings."
             )
 
-        return title
+        if not title.strip():
+            raise TypeError(
+                "Crossref title must not be empty."
+            )
+
+        return title.strip()
 
     def _get_metadata(
         self,

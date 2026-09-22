@@ -274,14 +274,13 @@ class OpenReviewSourceProvider(
             publication_year=self._get_publication_year(
                 note
             ),
-            metadata=self._get_metadata(
-                content,
-            ),
+            metadata=self._get_metadata(content, note_id),
         )
 
     def _get_metadata(
         self,
         content: dict[str, Any],
+        note_id: str,
     ) -> dict[str, Any]:
         """Return acquisition metadata from an OpenReview result."""
 
@@ -299,9 +298,7 @@ class OpenReviewSourceProvider(
             if isinstance(value, str):
                 metadata["abstract"] = value
 
-        pdf = content.get(
-            "pdf"
-        )
+        pdf = content.get("pdf")
 
         if isinstance(pdf, dict):
             value = pdf.get(
@@ -309,12 +306,10 @@ class OpenReviewSourceProvider(
             )
 
             if isinstance(value, str):
-                if value.startswith("http"):
-                    metadata["pdf_url"] = value
-                elif value.startswith("/"):
-                    metadata["pdf_url"] = (
-                        f"https://openreview.net{value}"
-                    )
+                # Keep a stable public URL regardless of attachment shape.
+                metadata["pdf_url"] = (
+                    f"https://openreview.net/pdf?id={note_id}"
+                )
 
         return metadata
 

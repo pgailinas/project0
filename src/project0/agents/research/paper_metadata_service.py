@@ -14,6 +14,7 @@ from __future__ import annotations
 import logging
 import re
 import time
+from urllib.parse import urlsplit, urlunsplit
 from dataclasses import dataclass, field, replace
 from io import BytesIO
 from typing import Any
@@ -337,7 +338,9 @@ class PaperMetadataService:
             ):
                 value = metadata.get(key)
                 if isinstance(value, str) and value.strip():
-                    return value.strip()
+                    return PaperMetadataService._normalize_openreview_pdf_url(
+                        value.strip(), paper.source_reference.source_name
+                    )
 
         source_url = paper.source_url or paper.source_reference.source_url
         if (
@@ -348,6 +351,21 @@ class PaperMetadataService:
             return source_url.replace("/abs/", "/pdf/", 1)
 
         return None
+
+    @staticmethod
+    def _normalize_openreview_pdf_url(url: str, source_name: str) -> str:
+        """Use OpenReview's public PDF host for downloadable evidence.
+
+        OpenReview search results may return the API host (api2.openreview.net),
+        whose PDF route rejects anonymous evidence requests with 403. The
+        public host serves the same note PDF and keeps abstract fallback intact.
+        """
+        if source_name != "openreview":
+            return url
+        parsed = urlsplit(url)
+        if parsed.hostname != "api2.openreview.net":
+            return url
+        return urlunsplit(("https", "openreview.net", parsed.path, parsed.query, parsed.fragment))
 
     def _retrieve_semantic_scholar_metadata(
         self,
