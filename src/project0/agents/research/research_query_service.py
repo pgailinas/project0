@@ -278,8 +278,12 @@ class ResearchQueryService:
                 list(mechanism_focus_queries)
             )
         else:
-            discovery_queries = self._select_bounded_queries(
-                self._deduplicate_complementary_queries(queries),
+            complementary_queries = (
+                self._deduplicate_complementary_queries(queries)
+            )
+            discovery_queries = self._select_context_balanced_queries(
+                complementary_queries,
+                inferred_queries=inferred_queries,
                 prioritized_queries=(
                     *((objective_query,) if objective_query else ()),
                     *directive_queries,
@@ -767,6 +771,126 @@ class ResearchQueryService:
             queries[1],
             queries[-1],
         )
+
+    @classmethod
+    def _select_context_balanced_queries(
+        cls,
+        queries: tuple[str, ...],
+        *,
+        inferred_queries: tuple[str, ...],
+        prioritized_queries: tuple[str, ...] = (),
+        directive_queries: tuple[str, ...] = (),
+        role_queries: tuple[tuple[str, str], ...] = (),
+        objective_query: str = "",
+    ) -> tuple[str, ...]:
+        """Keep uploaded-context hypotheses supplemental to the request."""
+
+        full_selection = cls._select_bounded_queries(
+            queries,
+            prioritized_queries=prioritized_queries,
+            directive_queries=directive_queries,
+            role_queries=role_queries,
+            objective_query=objective_query,
+        )
+
+        available_inferred = tuple(
+            query
+            for query in cls._deduplicate_queries(
+                list(inferred_queries)
+            )
+            if query in queries
+        )
+        if not available_inferred:
+            return full_selection
+
+        preferred_context_queries = cls._deduplicate_queries(
+            [
+                *(
+                    query
+                    for query in full_selection
+                    if any(
+                        cls._query_overlap(
+                            cls._query_term_stems(query),
+                            cls._query_term_stems(inferred_query),
+                        )
+                        >= 0.50
+                        for inferred_query in available_inferred
+                    )
+                ),
+                *available_inferred,
+            ]
+        )
+
+        request_queries = tuple(
+            query
+            for query in queries
+            if query not in available_inferred
+        )
+        if not request_queries:
+            return full_selection
+
+        request_priorities = tuple(
+            query
+            for query in prioritized_queries
+            if query not in available_inferred
+        )
+        request_directives = tuple(
+            query
+            for query in directive_queries
+            if query in request_queries
+        )
+        request_roles = tuple(
+            (query, role)
+            for query, role in role_queries
+            if query in request_queries
+        )
+        if (
+            not objective_query
+            and not request_directives
+            and not request_roles
+        ):
+            return full_selection
+
+        request_selection = cls._select_bounded_queries(
+            request_queries,
+            prioritized_queries=request_priorities,
+            directive_queries=request_directives,
+            role_queries=request_roles,
+            objective_query=(
+                objective_query
+                if objective_query in request_queries
+                else ""
+            ),
+        )
+
+        if len(request_directives) >= 3:
+            return request_selection
+
+        selected = list(request_selection[:2])
+        context_query = next(
+            (
+                query
+                for query in preferred_context_queries
+                if not any(
+                    cls._query_overlap(
+                        cls._query_term_stems(query),
+                        cls._query_term_stems(selected_query),
+                    )
+                    >= 0.60
+                    for selected_query in selected
+                )
+            ),
+            None,
+        )
+        if context_query is not None:
+            selected.append(context_query)
+
+        for query in request_selection[2:]:
+            if len(selected) == 3:
+                break
+            selected.append(query)
+
+        return tuple(selected)
 
     @classmethod
     def _directive_query_role(

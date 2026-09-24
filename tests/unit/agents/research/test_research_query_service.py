@@ -140,6 +140,52 @@ def test_r003_queries_use_subjects_instead_of_procedural_guidance() -> None:
     )
 
 
+def test_r003_context_hypotheses_remain_supplemental_to_request_queries() -> None:
+    """Uploaded context must not displace broad solution discovery."""
+
+    objective = (
+        "What current approaches can transfer or acquire semantic knowledge "
+        "for representations learned from unlabeled video without requiring "
+        "manual video annotation?"
+    )
+    inferred_concepts = (
+        "Pretrained CLIP latent space for semantic video representations",
+        "self-supervised autoencoder with semantic consistency objectives",
+        "hybrid CLIP-autoencoder representation learning",
+    )
+    strategy = ResearchStrategy(
+        objective=objective,
+        concepts=(
+            (
+                "learning semantic video representations from large "
+                "unlabeled video collections"
+            ),
+            "pretrained teachers",
+            "self-supervised or multimodal objectives",
+            "pseudo-labels/captions",
+            "video-language foundation models",
+            "naturally occurring video metadata",
+            "audio or other modalities",
+            "distillation",
+            "NExT-QA modest Colab-scale compute",
+            *inferred_concepts,
+        ),
+        search_terms=(),
+        inferred_solution_search_concepts=inferred_concepts,
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms == (
+        (
+            "transfer acquire semantic knowledge representations learned "
+            "from unlabeled video"
+        ),
+        "pretrained teachers learned from unlabeled video",
+        "Pretrained CLIP latent space for semantic video representations",
+    )
+
+
 def test_research_query_service_handles_empty_strategy():
     """Verify empty strategies produce no queries."""
 
