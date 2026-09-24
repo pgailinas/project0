@@ -152,11 +152,29 @@ class ResearchEvaluationService:
                 "retrying the paper independently. Paper: %s",
                 evaluation.paper.title,
             )
-            retry = self.evaluate(
-                request,
-                strategy,
-                (evaluation.paper,),
-            )[0]
+            try:
+                retry = self.evaluate(
+                    request,
+                    strategy,
+                    (evaluation.paper,),
+                )[0]
+            except (OSError, RuntimeError, TypeError, ValueError) as error:
+                LOGGER.warning(
+                    "Independent final research evaluation retry failed; "
+                    "preserving the preliminary evaluation. Paper: %s; "
+                    "error: %s",
+                    evaluation.paper.title,
+                    error,
+                )
+                guarded.append(
+                    self._preserve_preliminary_evaluation(
+                        paper=evaluation.paper,
+                        preliminary=preliminary,
+                        retry_failed=True,
+                    )
+                )
+                continue
+
             if not self._is_unexplained_severe_downgrade(
                 preliminary,
                 retry,
@@ -219,14 +237,23 @@ class ResearchEvaluationService:
         *,
         paper: PaperMetadata,
         preliminary: ResearchEvaluation,
+        retry_failed: bool = False,
     ) -> ResearchEvaluation:
         """Bind a validated preliminary judgment to acquired paper evidence."""
 
-        warning = (
-            "Preserved the preliminary relevance evaluation because final "
-            "evidence evaluation repeatedly downgraded the mechanism to "
-            "none without evidence-supported contradiction."
-        )
+        if retry_failed:
+            warning = (
+                "Preserved the preliminary relevance evaluation because "
+                "the independent final evidence retry could not be "
+                "completed."
+            )
+        else:
+            warning = (
+                "Preserved the preliminary relevance evaluation because "
+                "final evidence evaluation repeatedly downgraded the "
+                "mechanism to none without evidence-supported "
+                "contradiction."
+            )
         LOGGER.warning("%s Paper: %s", warning, paper.title)
         return ResearchEvaluation(
             paper=paper,

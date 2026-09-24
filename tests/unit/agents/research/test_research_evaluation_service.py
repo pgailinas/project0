@@ -110,7 +110,7 @@ class SequentialStubProvider:
 
     def __init__(
         self,
-        responses: tuple[ProviderResponse, ...],
+        responses: tuple[ProviderResponse | Exception, ...],
     ) -> None:
         """Initialize the configured provider responses."""
 
@@ -125,7 +125,11 @@ class SequentialStubProvider:
 
         self.requests.append(request)
 
-        return self.responses[len(self.requests) - 1]
+        response = self.responses[len(self.requests) - 1]
+        if isinstance(response, Exception):
+            raise response
+
+        return response
 
 
 class RequestAwareStubProvider:
@@ -1115,6 +1119,102 @@ def test_final_evaluation_uses_valid_independent_retry() -> None:
         "Preserved the preliminary" in warning
         for warning in result[0].warnings
     )
+
+
+def test_final_evaluation_preserves_preliminary_when_retry_fails(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A failed downgrade retry must not discard the run or later papers."""
+
+    downgraded_paper = create_evidence_paper(
+        source_id="downgraded-paper-id",
+        title="Transferable Video Teacher",
+        evidence_characters=500,
+    )
+    adjacent_paper = create_evidence_paper(
+        source_id="adjacent-paper-id",
+        title="Adjacent Video Method",
+        evidence_characters=500,
+    )
+    initial_response = create_valid_provider_response(
+        evaluations=[
+            {
+                "source_id": "paper-001",
+                "relevance_score": 0,
+                "mechanism_match": "none",
+                "source_mechanism": "Raw video representation learning.",
+                "target_problem_dimension": (
+                    create_research_request().question
+                ),
+                "required_adaptation": "None.",
+                "evidence_support": [
+                    "The evidence describes teacher-guided video learning."
+                ],
+                "relevance_summary": "The mechanism is not retained.",
+                "strengths": [],
+                "limitations": [],
+                "research_connections": [],
+                "warnings": [],
+            },
+            {
+                "source_id": "paper-002",
+                "relevance_score": 49,
+                "mechanism_match": "adjacent",
+                "source_mechanism": "Related multimodal learning.",
+                "target_problem_dimension": (
+                    create_research_request().question
+                ),
+                "required_adaptation": "Adapt to video.",
+                "evidence_support": [
+                    "The evidence describes an adjacent multimodal method."
+                ],
+                "relevance_summary": "An adjacent mechanism.",
+                "strengths": [],
+                "limitations": [],
+                "research_connections": [],
+                "warnings": [],
+            },
+        ]
+    )
+    provider = SequentialStubProvider(
+        (
+            initial_response,
+            RuntimeError(
+                "Ollama service could not be reached: ReadTimeout"
+            ),
+        )
+    )
+    preliminary = (
+        create_preliminary_evaluation(downgraded_paper),
+        create_preliminary_evaluation(
+            adjacent_paper,
+            mechanism_match=ResearchMechanismMatch.ADJACENT,
+            relevance_score=0.49,
+        ),
+    )
+
+    with caplog.at_level(logging.WARNING):
+        result = ResearchEvaluationService(
+            provider=provider,
+            model_name="qwen3:8b",
+        ).evaluate_final(
+            create_research_request(),
+            create_research_strategy(),
+            (downgraded_paper, adjacent_paper),
+            preliminary,
+        )
+
+    assert len(provider.requests) == 2
+    assert tuple(evaluation.paper for evaluation in result) == (
+        downgraded_paper,
+        adjacent_paper,
+    )
+    assert result[0].mechanism_match is ResearchMechanismMatch.TRANSFERABLE
+    assert result[0].relevance_score == 0.74
+    assert "retry could not be completed" in result[0].warnings[-1]
+    assert result[1].mechanism_match is ResearchMechanismMatch.ADJACENT
+    assert result[1].relevance_score == 0.49
+    assert "Independent final research evaluation retry failed" in caplog.text
 
 
 def test_final_evaluation_accepts_evidence_supported_downgrade() -> None:
