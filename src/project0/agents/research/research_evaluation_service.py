@@ -206,6 +206,11 @@ class ResearchEvaluationService:
     ) -> tuple[ResearchEvaluation, ...]:
         """Evaluate one bounded paper batch with one validation retry."""
 
+        target_problem_dimension = self._build_target_problem_dimension(
+            request,
+            strategy,
+        )
+
         provider_request = self._build_provider_request(
             request=request,
             strategy=strategy,
@@ -223,6 +228,7 @@ class ResearchEvaluationService:
                 provider_response=provider_response,
                 enforce_evidence=not preliminary,
                 evaluation_attempt="initial",
+                target_problem_dimension=target_problem_dimension,
             )
         except ValueError as error:
             if not self._is_retryable_evaluation_error(
@@ -241,6 +247,7 @@ class ResearchEvaluationService:
                 enforce_evidence=not preliminary,
                 tolerate_identifier_errors=True,
                 evaluation_attempt="initial_recovery",
+                target_problem_dimension=target_problem_dimension,
             )
 
         if not missing_papers:
@@ -262,6 +269,7 @@ class ResearchEvaluationService:
                 provider_response=retry_response,
                 enforce_evidence=not preliminary,
                 evaluation_attempt="retry",
+                target_problem_dimension=target_problem_dimension,
             )
             unresolved_papers = ()
         except ValueError as error:
@@ -282,6 +290,7 @@ class ResearchEvaluationService:
                     tolerate_identifier_errors=True,
                     evaluation_attempt="boundary_recovery",
                     recover_one_point_boundaries=True,
+                    target_problem_dimension=target_problem_dimension,
                 )
             )
 
@@ -312,6 +321,7 @@ class ResearchEvaluationService:
         tolerate_identifier_errors: bool = False,
         evaluation_attempt: str = "initial",
         recover_one_point_boundaries: bool = False,
+        target_problem_dimension: str = "",
     ) -> tuple[
         tuple[ResearchEvaluation, ...],
         tuple[PaperMetadata, ...],
@@ -381,6 +391,7 @@ class ResearchEvaluationService:
                     enforce_evidence=enforce_evidence,
                     evaluation_attempt=evaluation_attempt,
                     batch_source_id=source_id,
+                    target_problem_dimension=target_problem_dimension,
                 )
             except ValueError as error:
                 if recover_one_point_boundaries:
@@ -390,6 +401,7 @@ class ResearchEvaluationService:
                         error=error,
                         enforce_evidence=enforce_evidence,
                         batch_source_id=source_id,
+                        target_problem_dimension=target_problem_dimension,
                     )
                     if recovered is not None:
                         evaluations.append(recovered)
@@ -427,6 +439,7 @@ class ResearchEvaluationService:
         error: ValueError,
         enforce_evidence: bool,
         batch_source_id: str,
+        target_problem_dimension: str,
     ) -> ResearchEvaluation | None:
         """Recover an exact one-point score-band error after retry."""
 
@@ -476,6 +489,7 @@ class ResearchEvaluationService:
                 enforce_evidence=enforce_evidence,
                 evaluation_attempt="boundary_recovery",
                 batch_source_id=batch_source_id,
+                target_problem_dimension=target_problem_dimension,
             )
         except (TypeError, ValueError):
             return None
@@ -528,6 +542,11 @@ class ResearchEvaluationService:
     ) -> ProviderRequest:
         """Build a provider-neutral paper evaluation request."""
 
+        target_problem_dimension = self._build_target_problem_dimension(
+            request,
+            strategy,
+        )
+
         paper_payload = [
             {
                 "source_id": source_id,
@@ -571,6 +590,7 @@ class ResearchEvaluationService:
                     else "final_evidence_evaluation"
                 ),
                 "research_question": request.question,
+                "target_problem_dimension": target_problem_dimension,
                 "guidance": request.guidance,
                 "research_concepts": list(strategy.concepts),
                 "papers": paper_payload,
@@ -611,6 +631,7 @@ class ResearchEvaluationService:
                             },
                             "target_problem_dimension": {
                                 "type": "string",
+                                "const": target_problem_dimension,
                             },
                             "required_adaptation": {
                                 "type": "string",
@@ -719,8 +740,11 @@ class ResearchEvaluationService:
                 "allowed score band: direct 75-100, transferable 50-74, "
                 "adjacent 25-49, and none 0-24. "
                 "Populate source_mechanism with the paper's actual training "
-                "objective or transformation, target_problem_dimension with "
-                "the exact research limitation it addresses, "
+                "objective or transformation. Copy the top-level "
+                "target_problem_dimension exactly into every evaluation; "
+                "it is an immutable request-scoped value and must not be "
+                "replaced with a paper's task, dataset, benchmark, or "
+                "application. Populate "
                 "required_adaptation with what must change for the target "
                 "setting (or state that none is needed), and evidence_support "
                 "with one or more concise facts grounded in the supplied "
@@ -798,6 +822,23 @@ class ResearchEvaluationService:
         )
 
     @staticmethod
+    def _build_target_problem_dimension(
+        request: ResearchRequest,
+        strategy: ResearchStrategy,
+    ) -> str:
+        """Build the immutable problem dimension shared by every paper."""
+
+        question = " ".join(request.question.split()).strip()
+        if question:
+            return question.rstrip(".?").strip()
+
+        objective = " ".join((strategy.objective or "").split()).strip()
+        if objective:
+            return objective.rstrip(".?").strip()
+
+        return "Research relevance to the submitted strategy"
+
+    @staticmethod
     def _index_papers(
         papers: tuple[PaperMetadata, ...],
     ) -> dict[str, PaperMetadata]:
@@ -814,6 +855,7 @@ class ResearchEvaluationService:
         provider_response: ProviderResponse,
         enforce_evidence: bool = True,
         evaluation_attempt: str = "initial",
+        target_problem_dimension: str = "",
     ) -> tuple[ResearchEvaluation, ...]:
         """Create research evaluations from a provider response."""
 
@@ -868,6 +910,7 @@ class ResearchEvaluationService:
                     enforce_evidence=enforce_evidence,
                     evaluation_attempt=evaluation_attempt,
                     batch_source_id=source_id,
+                    target_problem_dimension=target_problem_dimension,
                 )
             )
 
@@ -926,6 +969,7 @@ class ResearchEvaluationService:
         enforce_evidence: bool = True,
         evaluation_attempt: str = "initial",
         batch_source_id: str = "unknown",
+        target_problem_dimension: str = "",
     ) -> ResearchEvaluation:
         """Create one validated research evaluation."""
 
@@ -951,9 +995,13 @@ class ResearchEvaluationService:
             mapping,
             "source_mechanism",
         )
-        target_problem_dimension = self._require_string(
+        provider_target_problem_dimension = self._require_string(
             mapping,
             "target_problem_dimension",
+        )
+        authoritative_target_problem_dimension = (
+            target_problem_dimension.strip()
+            or provider_target_problem_dimension
         )
         required_adaptation = self._require_string(
             mapping,
@@ -989,6 +1037,7 @@ class ResearchEvaluationService:
         target_problem_dimension = (
             reconciliation.target_problem_dimension
         )
+        target_problem_dimension = authoritative_target_problem_dimension
         required_adaptation = reconciliation.required_adaptation
         evidence_support = reconciliation.evidence_support
         if reconciliation.warning is not None:

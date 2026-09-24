@@ -1498,7 +1498,11 @@ def test_research_evaluation_service_logs_structured_decision(caplog) -> None:
     assert "mechanism_match=direct" in trace
     assert "relevance_score=0.82" in trace
     assert "source_mechanism='Frozen CLIP token distillation.'" in trace
-    assert "target_problem_dimension='Video semantic alignment.'" in trace
+    assert (
+        "target_problem_dimension='How can self-supervised video "
+        "representations be improved for VideoQA'"
+        in trace
+    )
     assert "required_adaptation='Use the target video encoder.'" in trace
     assert "evidence_support=" in trace
     assert "validation_status=valid" in trace
@@ -1699,6 +1703,86 @@ def test_research_evaluation_service_preserves_structured_benchmark_bands(
         ResearchMechanismMatch.DIRECT,
         ResearchMechanismMatch.TRANSFERABLE,
         ResearchMechanismMatch.ADJACENT,
+    )
+
+
+def test_target_problem_dimension_is_request_scoped_across_batch() -> None:
+    """One paper's task cannot replace another paper's target dimension."""
+
+    papers = (
+        create_paper_metadata(title="Masked Video Distillation"),
+        create_paper_metadata(title="VATT"),
+        create_paper_metadata(title="Time-Contrastive Networks"),
+    )
+    contaminated_dimensions = (
+        "sequential decision making",
+        "zero-shot transfer and fully-supervised learning",
+        "robot imitation learning",
+    )
+    response = create_valid_provider_response(
+        evaluations=[
+            {
+                "source_id": f"paper-{index:03d}",
+                "relevance_score": 24,
+                "relevance_summary": "Provider response.",
+                "strengths": [],
+                "limitations": [],
+                "research_connections": [],
+                "warnings": [],
+                "mechanism_match": "none",
+                "source_mechanism": "Provider mechanism.",
+                "target_problem_dimension": contaminated_dimension,
+                "required_adaptation": "Provider adaptation.",
+                "evidence_support": [],
+            }
+            for index, contaminated_dimension in enumerate(
+                contaminated_dimensions,
+                start=1,
+            )
+        ]
+    )
+
+    result = ResearchEvaluationService(
+        provider=StubProvider(response),
+        model_name="qwen3:8b",
+    ).evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        papers,
+    )
+
+    expected = (
+        "How can self-supervised video representations be improved for "
+        "VideoQA"
+    )
+    assert {item.target_problem_dimension for item in result} == {expected}
+
+
+def test_provider_request_constrains_target_problem_dimension() -> None:
+    """Strict output schema exposes one immutable request-scoped target."""
+
+    provider = StubProvider(create_valid_provider_response())
+    ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    ).evaluate(
+        create_research_request(),
+        create_research_strategy(),
+        (create_paper_metadata(),),
+    )
+
+    expected = (
+        "How can self-supervised video representations be improved for "
+        "VideoQA"
+    )
+    payload = __import__("json").loads(provider.requests[0].user_prompt)
+    target_schema = provider.requests[0].response_schema["properties"][
+        "evaluations"
+    ]["items"]["properties"]["target_problem_dimension"]
+    assert payload["target_problem_dimension"] == expected
+    assert target_schema["const"] == expected
+    assert "immutable request-scoped value" in (
+        provider.requests[0].system_instructions
     )
 
 
