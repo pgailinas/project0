@@ -2017,6 +2017,9 @@ def test_workflow_separates_preliminary_ranking_from_final_evaluation(
     evidence_requests: list[tuple[PaperMetadata, ...]] = []
     ranking_requests: list[tuple[PaperMetadata, ...]] = []
     final_requests: list[tuple[PaperMetadata, ...]] = []
+    final_preliminary_requests: list[
+        tuple[ResearchEvaluation, ...]
+    ] = []
 
     def acquire_evidence(
         candidates: tuple[PaperMetadata, ...],
@@ -2034,19 +2037,21 @@ def test_workflow_separates_preliminary_ranking_from_final_evaluation(
         ranking_requests.append(candidates)
         return preliminary
 
-    def evaluate(
+    def evaluate_final(
         request: ResearchRequest,
         strategy: ResearchStrategy,
         candidates: tuple[PaperMetadata, ...],
+        prior_evaluations: tuple[ResearchEvaluation, ...],
     ) -> tuple[ResearchEvaluation, ...]:
         del request
         del strategy
         final_requests.append(candidates)
+        final_preliminary_requests.append(prior_evaluations)
         return tuple(_evaluation(paper) for paper in candidates)
 
     metadata_service.acquire_evidence = acquire_evidence
     evaluation_service.rank_candidates = rank_candidates
-    evaluation_service.evaluate = evaluate
+    evaluation_service.evaluate_final = evaluate_final
 
     with caplog.at_level(logging.INFO):
         workflow.execute(_research_request())
@@ -2054,6 +2059,7 @@ def test_workflow_separates_preliminary_ranking_from_final_evaluation(
     assert ranking_requests == [papers]
     assert evidence_requests == [tuple(reversed(papers[2:]))]
     assert final_requests == evidence_requests
+    assert final_preliminary_requests == [preliminary]
     assert "candidates=10 selected=8" in caplog.text
 
 

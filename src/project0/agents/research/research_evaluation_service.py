@@ -53,6 +53,19 @@ HIGH_RELEVANCE_CONTRADICTION_MARKERS = (
     "cannot support a concrete transfer path",
     "insufficient metadata",
 )
+EVIDENCE_DOWNGRADE_MARKERS = (
+    "does not address",
+    "does not provide",
+    "not relevant",
+    "unrelated to",
+    "off-topic",
+    "lacks a",
+    "no mechanism",
+    "no transfer",
+    "insufficient evidence",
+    "cannot support",
+    "fails to",
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -101,6 +114,135 @@ class ResearchEvaluationService:
             strategy=strategy,
             papers=papers,
             preliminary=False,
+        )
+
+    def evaluate_final(
+        self,
+        request: ResearchRequest,
+        strategy: ResearchStrategy,
+        papers: tuple[PaperMetadata, ...],
+        preliminary_evaluations: tuple[ResearchEvaluation, ...],
+    ) -> tuple[ResearchEvaluation, ...]:
+        """Evaluate evidence and guard unexplained severe downgrades."""
+
+        evaluations = self.evaluate(request, strategy, papers)
+        preliminary_by_paper = {
+            self._paper_evaluation_key(evaluation.paper): evaluation
+            for evaluation in preliminary_evaluations
+        }
+        guarded: list[ResearchEvaluation] = []
+
+        for evaluation in evaluations:
+            preliminary = preliminary_by_paper.get(
+                self._paper_evaluation_key(evaluation.paper)
+            )
+            if (
+                preliminary is None
+                or not self._is_unexplained_severe_downgrade(
+                    preliminary,
+                    evaluation,
+                )
+            ):
+                guarded.append(evaluation)
+                continue
+
+            LOGGER.warning(
+                "Final research evaluation severely downgraded a "
+                "preliminary mechanism without contradictory evidence; "
+                "retrying the paper independently. Paper: %s",
+                evaluation.paper.title,
+            )
+            retry = self.evaluate(
+                request,
+                strategy,
+                (evaluation.paper,),
+            )[0]
+            if not self._is_unexplained_severe_downgrade(
+                preliminary,
+                retry,
+            ):
+                guarded.append(retry)
+                continue
+
+            guarded.append(
+                self._preserve_preliminary_evaluation(
+                    paper=evaluation.paper,
+                    preliminary=preliminary,
+                )
+            )
+
+        return tuple(guarded)
+
+    @staticmethod
+    def _paper_evaluation_key(
+        paper: PaperMetadata,
+    ) -> tuple[str, str]:
+        """Return stable provider provenance for one paper."""
+
+        reference = paper.source_reference
+        return reference.source_name, reference.source_id
+
+    @staticmethod
+    def _is_unexplained_severe_downgrade(
+        preliminary: ResearchEvaluation,
+        final: ResearchEvaluation,
+    ) -> bool:
+        """Return whether final evidence removed a strong mechanism silently."""
+
+        if preliminary.mechanism_match not in {
+            ResearchMechanismMatch.DIRECT,
+            ResearchMechanismMatch.TRANSFERABLE,
+        }:
+            return False
+        if final.mechanism_match is not ResearchMechanismMatch.NONE:
+            return False
+
+        paper_evidence = " ".join(
+            (
+                final.paper.abstract or "",
+                *(
+                    section.content
+                    for section in final.paper.evidence_sections
+                ),
+            )
+        ).casefold()
+        return not any(
+            marker in support.casefold()
+            and support.strip().casefold() in paper_evidence
+            for support in final.evidence_support
+            if len(support.strip()) >= 20
+            for marker in EVIDENCE_DOWNGRADE_MARKERS
+        )
+
+    @staticmethod
+    def _preserve_preliminary_evaluation(
+        *,
+        paper: PaperMetadata,
+        preliminary: ResearchEvaluation,
+    ) -> ResearchEvaluation:
+        """Bind a validated preliminary judgment to acquired paper evidence."""
+
+        warning = (
+            "Preserved the preliminary relevance evaluation because final "
+            "evidence evaluation repeatedly downgraded the mechanism to "
+            "none without evidence-supported contradiction."
+        )
+        LOGGER.warning("%s Paper: %s", warning, paper.title)
+        return ResearchEvaluation(
+            paper=paper,
+            relevance_score=preliminary.relevance_score,
+            relevance_summary=preliminary.relevance_summary,
+            strengths=preliminary.strengths,
+            limitations=preliminary.limitations,
+            research_connections=preliminary.research_connections,
+            warnings=(*preliminary.warnings, warning),
+            mechanism_match=preliminary.mechanism_match,
+            source_mechanism=preliminary.source_mechanism,
+            target_problem_dimension=(
+                preliminary.target_problem_dimension
+            ),
+            required_adaptation=preliminary.required_adaptation,
+            evidence_support=preliminary.evidence_support,
         )
 
     def rank_candidates(

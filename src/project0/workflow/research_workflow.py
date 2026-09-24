@@ -128,6 +128,7 @@ class ResearchWorkflow:
         evidence_shortlist_count = 0
         discovery_only_count = 0
         recommended_evaluations = ()
+        preliminary_evaluations = ()
 
         _set_research_workflow_progress(
             stage="strategy",
@@ -289,11 +290,24 @@ class ResearchWorkflow:
                 request_id=request.request_id,
             )
 
-            evaluations = self._evaluation_service.evaluate(
-                request,
-                strategy,
-                papers,
+            evaluate_final = getattr(
+                self._evaluation_service,
+                "evaluate_final",
+                None,
             )
+            if callable(evaluate_final):
+                evaluations = evaluate_final(
+                    request,
+                    strategy,
+                    papers,
+                    preliminary_evaluations,
+                )
+            else:
+                evaluations = self._evaluation_service.evaluate(
+                    request,
+                    strategy,
+                    papers,
+                )
 
             (
                 source_references,

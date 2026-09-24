@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import logging
+from dataclasses import replace
 
 import pytest
 
@@ -26,6 +27,7 @@ from project0.models.reasoning_models import (
 from project0.models.research_models import (
     PaperMetadata,
     ResearchGuidanceRelevance,
+    ResearchEvaluation,
     ResearchMechanismMatch,
     ResearchPaperEvidenceStatus,
     ResearchPaperEvidenceSection,
@@ -253,6 +255,58 @@ def create_evidence_paper(
             ),
         ),
     )
+
+
+def create_preliminary_evaluation(
+    paper: PaperMetadata,
+    mechanism_match: ResearchMechanismMatch = (
+        ResearchMechanismMatch.TRANSFERABLE
+    ),
+    relevance_score: float = 0.74,
+) -> ResearchEvaluation:
+    """Create one validated preliminary mechanism judgment."""
+
+    return ResearchEvaluation(
+        paper=paper,
+        relevance_score=relevance_score,
+        relevance_summary="Promising metadata-supported mechanism.",
+        strengths=("Relevant representation-learning objective.",),
+        limitations=("Full evidence review is pending.",),
+        research_connections=("Maps the mechanism to the target problem.",),
+        mechanism_match=mechanism_match,
+        source_mechanism="Teacher-guided representation learning.",
+        target_problem_dimension=create_research_request().question,
+        required_adaptation="Apply the mechanism to the target encoder.",
+        evidence_support=("The abstract describes the mechanism.",),
+    )
+
+
+def create_none_evaluation_response(
+    evidence_support: list[str],
+) -> ProviderResponse:
+    """Create a final response that removes the supplied mechanism."""
+
+    return create_valid_provider_response(
+        evaluations=[
+            {
+                "source_id": "paper-001",
+                "relevance_score": 0,
+                "mechanism_match": "none",
+                "source_mechanism": "Raw video representation learning.",
+                "target_problem_dimension": (
+                    create_research_request().question
+                ),
+                "required_adaptation": "None.",
+                "evidence_support": evidence_support,
+                "relevance_summary": "The mechanism is not retained.",
+                "strengths": [],
+                "limitations": [],
+                "research_connections": [],
+                "warnings": [],
+            }
+        ]
+    )
+
 
 def create_valid_provider_response(
     evaluations: list[dict] | None = None,
@@ -954,6 +1008,193 @@ def test_oversized_single_paper_uses_its_own_batch(
     assert len(provider.requests) == 1
     assert provider.requests[0].metadata["paper_count"] == 1
     assert "exceeds the prompt-size budget" in caplog.text
+
+
+def test_final_evaluation_preserves_preliminary_after_repeated_unexplained_downgrade(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Repeated unsupported none judgments retain preliminary relevance."""
+
+    preliminary_paper = create_paper_metadata(
+        source_id="stable-paper-id",
+        title="Transferable Video Teacher",
+    )
+    evidence_paper = create_evidence_paper(
+        source_id="stable-paper-id",
+        title="Transferable Video Teacher",
+        evidence_characters=500,
+    )
+    preliminary = create_preliminary_evaluation(preliminary_paper)
+    provider = SequentialStubProvider(
+        (
+            create_none_evaluation_response(
+                ["The evidence describes teacher-guided video learning."]
+            ),
+            create_none_evaluation_response(
+                ["The evidence describes teacher-guided video learning."]
+            ),
+        )
+    )
+
+    with caplog.at_level(logging.WARNING):
+        result = ResearchEvaluationService(
+            provider=provider,
+            model_name="qwen3:8b",
+        ).evaluate_final(
+            create_research_request(),
+            create_research_strategy(),
+            (evidence_paper,),
+            (preliminary,),
+        )
+
+    assert len(provider.requests) == 2
+    assert result[0].paper is evidence_paper
+    assert result[0].mechanism_match is ResearchMechanismMatch.TRANSFERABLE
+    assert result[0].relevance_score == 0.74
+    assert "Preserved the preliminary relevance evaluation" in (
+        result[0].warnings[-1]
+    )
+    assert "retrying the paper independently" in caplog.text
+
+
+def test_final_evaluation_uses_valid_independent_retry() -> None:
+    """A corrected per-paper retry replaces the unsupported downgrade."""
+
+    paper = create_evidence_paper(
+        source_id="stable-paper-id",
+        title="Transferable Video Teacher",
+        evidence_characters=500,
+    )
+    corrected = create_valid_provider_response(
+        evaluations=[
+            {
+                "source_id": "paper-001",
+                "relevance_score": 74,
+                "mechanism_match": "transferable",
+                "source_mechanism": "Teacher-guided video learning.",
+                "target_problem_dimension": (
+                    create_research_request().question
+                ),
+                "required_adaptation": "Apply to the target encoder.",
+                "evidence_support": [
+                    "The evidence describes teacher-guided video learning."
+                ],
+                "relevance_summary": "Transferable mechanism.",
+                "strengths": [],
+                "limitations": [],
+                "research_connections": [
+                    "Teacher guidance maps to the target representation."
+                ],
+                "warnings": [],
+            }
+        ]
+    )
+    provider = SequentialStubProvider(
+        (
+            create_none_evaluation_response(
+                ["The evidence describes teacher-guided video learning."]
+            ),
+            corrected,
+        )
+    )
+
+    result = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    ).evaluate_final(
+        create_research_request(),
+        create_research_strategy(),
+        (paper,),
+        (create_preliminary_evaluation(paper),),
+    )
+
+    assert len(provider.requests) == 2
+    assert result[0].mechanism_match is ResearchMechanismMatch.TRANSFERABLE
+    assert result[0].relevance_score == 0.74
+    assert not any(
+        "Preserved the preliminary" in warning
+        for warning in result[0].warnings
+    )
+
+
+def test_final_evaluation_accepts_evidence_supported_downgrade() -> None:
+    """Contradictory paper evidence may legitimately remove a mechanism."""
+
+    contradiction = (
+        "The acquired evidence does not address semantic representation "
+        "transfer from video."
+    )
+    paper = create_evidence_paper(
+        source_id="stable-paper-id",
+        title="Unrelated Evidence Paper",
+        evidence_characters=500,
+    )
+    paper = replace(
+        paper,
+        evidence_sections=(
+            ResearchPaperEvidenceSection(
+                section="Conclusion",
+                page_number=8,
+                content=contradiction,
+            ),
+        ),
+    )
+    provider = SequentialStubProvider(
+        (
+            create_none_evaluation_response(
+                [contradiction]
+            ),
+        )
+    )
+
+    result = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    ).evaluate_final(
+        create_research_request(),
+        create_research_strategy(),
+        (paper,),
+        (create_preliminary_evaluation(paper),),
+    )
+
+    assert len(provider.requests) == 1
+    assert result[0].mechanism_match is ResearchMechanismMatch.NONE
+    assert result[0].relevance_score == 0.0
+
+
+def test_final_evaluation_does_not_guard_adjacent_preliminary_match() -> None:
+    """The guard targets severe direct or transferable downgrades only."""
+
+    paper = create_evidence_paper(
+        source_id="stable-paper-id",
+        title="Adjacent Evidence Paper",
+        evidence_characters=500,
+    )
+    provider = SequentialStubProvider(
+        (
+            create_none_evaluation_response(
+                ["The evidence describes a broad adjacent research topic."]
+            ),
+        )
+    )
+    preliminary = create_preliminary_evaluation(
+        paper,
+        mechanism_match=ResearchMechanismMatch.ADJACENT,
+        relevance_score=0.49,
+    )
+
+    result = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    ).evaluate_final(
+        create_research_request(),
+        create_research_strategy(),
+        (paper,),
+        (preliminary,),
+    )
+
+    assert len(provider.requests) == 1
+    assert result[0].mechanism_match is ResearchMechanismMatch.NONE
 
 
 def test_research_evaluation_service_batches_eleven_papers() -> None:

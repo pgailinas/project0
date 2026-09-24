@@ -152,6 +152,17 @@ class ResearchEvaluationServiceProtocol(Protocol):
 
         ...
 
+    def evaluate_final(
+        self,
+        request: ResearchRequest,
+        strategy: ResearchStrategy,
+        papers: tuple[PaperMetadata, ...],
+        preliminary_evaluations: tuple[ResearchEvaluation, ...],
+    ) -> tuple[ResearchEvaluation, ...]:
+        """Evaluate evidence with preliminary-ranking safeguards."""
+
+        ...
+
 
 class ResearchArtifactServiceProtocol(Protocol):
     """Interface for Research Agent artifact services."""
