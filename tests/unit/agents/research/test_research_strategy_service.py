@@ -567,6 +567,61 @@ def test_build_strategy_preserves_seed_free_technical_guidance() -> None:
     )
 
 
+def test_build_strategy_separates_r003_instructions_from_subjects() -> None:
+    """Procedural guidance is retained without becoming search concepts."""
+
+    question = (
+        "What current approaches can transfer or acquire semantic knowledge "
+        "for representations learned from unlabeled video without requiring "
+        "manual video annotation?"
+    )
+    guidance = (
+        "Search broadly for methods applicable to learning semantic video "
+        "representations from large unlabeled video collections. Identify "
+        "distinct solution families and representative primary research, "
+        "particularly 2023–2026 work. Do not assume that CLIP alignment, "
+        "autoencoders, VideoQA supervision, or projection into an image-text "
+        "embedding space is the preferred solution. Include approaches using "
+        "pretrained teachers, self-supervised or multimodal objectives, "
+        "pseudo-labels/captions, video-language foundation models, naturally "
+        "occurring video metadata, audio or other modalities, distillation, "
+        "and other relevant methods discovered in the literature. For each "
+        "approach, explain where the semantic knowledge originates, how it is "
+        "transferred into the video representation, whether manually labeled "
+        "video is required, and its principal limitations. Highlight "
+        "approaches that could realistically be tested using NExT-QA and "
+        "modest Colab-scale compute."
+    )
+
+    result = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    ).build_strategy(
+        ResearchRequest(question=question, guidance=guidance)
+    )
+
+    assert result.concepts == (
+        (
+            "learning semantic video representations from large unlabeled "
+            "video collections"
+        ),
+        "pretrained teachers",
+        "self-supervised or multimodal objectives",
+        "pseudo-labels/captions",
+        "video-language foundation models",
+        "naturally occurring video metadata",
+        "audio or other modalities",
+        "distillation",
+        question.rstrip("?"),
+    )
+    assert len(result.constraints) == 6
+    assert all(
+        not concept.startswith(
+            ("Search ", "Identify ", "Do not ", "Include ", "For each ", "Highlight ")
+        )
+        for concept in result.concepts
+    )
+
+
 def test_build_strategy_extracts_benchmark_question_concept() -> None:
     """Verify benchmark research wording produces a concise concept."""
 

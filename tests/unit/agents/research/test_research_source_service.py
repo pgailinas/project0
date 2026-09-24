@@ -527,6 +527,39 @@ def test_research_source_service_excludes_alignment_profile_mismatch() -> None:
     )
 
 
+def test_broad_objective_does_not_enable_specialized_alignment_filter() -> None:
+    """Comparative alignment guidance must not narrow a broader objective."""
+
+    audio_teacher = replace(
+        create_reference("audio-teacher"),
+        title="Audio Teachers for Self-Supervised Video Learning",
+    )
+    service = ResearchSourceService(
+        providers={
+            "stub": StubResearchSourceProvider(
+                references=(audio_teacher,),
+            ),
+        },
+    )
+    strategy = ResearchStrategy(
+        objective=(
+            "What approaches transfer semantic knowledge to representations "
+            "learned from unlabeled video?"
+        ),
+        concepts=(
+            "video language representation alignment",
+            "audio or other modalities",
+        ),
+        search_terms=("audio teacher self-supervised video learning",),
+        source_names=("stub",),
+    )
+
+    assert service.search(strategy) == (audio_teacher,)
+    assert service.last_candidate_trace[0]["selection_status"] == (
+        "balanced_selection"
+    )
+
+
 def test_research_source_service_keeps_direct_video_text_representations(
 ) -> None:
     """R001 candidates reach evaluation without title-level mechanism words."""

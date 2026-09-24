@@ -29,6 +29,18 @@ LOGGER = logging.getLogger(__name__)
 class ResearchStrategyService:
     """Build structured Research Agent strategies."""
 
+    _PROCEDURAL_GUIDANCE_PREFIXES = (
+        "compare ",
+        "do not ",
+        "explain ",
+        "for each ",
+        "highlight ",
+        "identify ",
+        "report ",
+        "search ",
+        "summarize ",
+    )
+
     def __init__(
         self,
         source_names: tuple[str, ...],
@@ -148,15 +160,9 @@ class ResearchStrategyService:
 
         if guidance:
             for concept in cls._guidance_items(guidance):
-                normalized = concept.strip()
-
-                if (
-                    normalized
-                    and not cls._is_constraint(normalized)
-                    and not normalized.endswith("?")
-                    and normalized not in concepts
-                ):
-                    concepts.append(normalized)
+                for normalized in cls._guidance_concepts(concept):
+                    if normalized not in concepts:
+                        concepts.append(normalized)
 
         question_concept = cls._build_question_concept(
             request.question
@@ -358,8 +364,58 @@ class ResearchStrategyService:
 
         return normalized.rstrip(".?").strip()
 
-    @staticmethod
+    @classmethod
+    def _guidance_concepts(
+        cls,
+        value: str,
+    ) -> tuple[str, ...]:
+        """Extract searchable subjects without retaining research commands."""
+
+        normalized = value.strip()
+
+        if not normalized or normalized.endswith("?"):
+            return ()
+
+        inclusion_match = re.match(
+            r"include (?:approaches|methods|research|work) "
+            r"(?:that |which )?(?:use|using|based on|involving) (.+)",
+            normalized,
+            flags=re.IGNORECASE,
+        )
+        if inclusion_match:
+            payload = re.sub(
+                r",?\s+and other (?:relevant )?(?:approaches|methods|work)"
+                r"(?: discovered in the literature)?$",
+                "",
+                inclusion_match.group(1),
+                flags=re.IGNORECASE,
+            )
+            return tuple(
+                item
+                for item in (
+                    part.strip()
+                    for part in re.split(r",\s*", payload)
+                )
+                if item
+            )
+
+        applicable_match = re.match(
+            r"search (?:broadly )?for (?:approaches|methods|research|work) "
+            r"applicable to (.+)",
+            normalized,
+            flags=re.IGNORECASE,
+        )
+        if applicable_match:
+            return (applicable_match.group(1).strip(),)
+
+        if cls._is_constraint(normalized):
+            return ()
+
+        return (normalized,)
+
+    @classmethod
     def _is_constraint(
+        cls,
         value: str,
     ) -> bool:
         """Return whether a guidance item is a strategy constraint."""
@@ -372,4 +428,12 @@ class ResearchStrategyService:
             or lowered.startswith("avoid ")
             or lowered.startswith("require ")
             or lowered.startswith("prioritize ")
+            or lowered.startswith(cls._PROCEDURAL_GUIDANCE_PREFIXES)
+            or bool(
+                re.match(
+                    r"include (?:approaches|methods|research|work) "
+                    r"(?:that |which )?(?:use|using|based on|involving) ",
+                    lowered,
+                )
+            )
         )

@@ -221,6 +221,21 @@ class ResearchQueryService:
 
             query = self._build_dimension_query(normalized)
 
+            if (
+                objective_query
+                and len(self._query_term_stems(query)) < 3
+                and not self._is_directive_candidate(normalized)
+                and query not in constraint_queries
+            ):
+                query = self._deduplicate_words(
+                    (
+                        query,
+                        " ".join(
+                            self._query_words(objective_query)[-4:]
+                        ),
+                    )
+                )
+
             if self._is_directive_candidate(normalized):
                 query = self._anchor_directive_query(
                     query,
@@ -304,11 +319,19 @@ class ResearchQueryService:
     ) -> str:
         """Build a direct query from a substantive technical objective."""
 
+        objective = re.sub(
+            r"\bwithout\b.*$",
+            "",
+            objective,
+            flags=re.IGNORECASE,
+        ).strip()
         words = cls._query_words(objective)
         ignored_words = {
             "a",
             "an",
             "and",
+            "approach",
+            "approaches",
             "are",
             "be",
             "between",
@@ -316,6 +339,7 @@ class ResearchQueryService:
             "across",
             "do",
             "does",
+            "current",
             "find",
             "for",
             "how",

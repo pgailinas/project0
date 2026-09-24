@@ -526,15 +526,23 @@ class ResearchSourceService:
     ) -> bool:
         """Return whether strategy anchors define shared-space alignment."""
 
+        # Guidance may mention alignment as one excluded or comparative
+        # approach in a broader discovery request.  When an objective exists,
+        # it is the authoritative scope for deciding whether the specialized
+        # alignment prefilter applies.
+        scope = strategy.objective or " ".join(
+            (*strategy.search_terms, *strategy.concepts)
+        )
         strategy_terms = cls._meaningful_terms(
-            " ".join(
-                (*strategy.search_terms, *strategy.concepts)
-            )
+            scope
         )
 
         return (
             bool(strategy_terms & cls._VISUAL_ALIGNMENT_TERMS)
-            and bool(strategy_terms & cls._LANGUAGE_ALIGNMENT_TERMS)
+            and bool(
+                strategy_terms
+                & (cls._LANGUAGE_ALIGNMENT_TERMS - {"semantic"})
+            )
             and bool(strategy_terms & cls._MECHANISM_ALIGNMENT_TERMS)
         )
 
