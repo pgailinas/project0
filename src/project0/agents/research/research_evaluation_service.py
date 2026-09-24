@@ -14,7 +14,7 @@ from __future__ import annotations
 import json
 import logging
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
 
 from project0.interfaces.reasoning_interfaces import (
@@ -65,6 +65,16 @@ EVIDENCE_DOWNGRADE_MARKERS = (
     "insufficient evidence",
     "cannot support",
     "fails to",
+)
+DIRECT_CONTRADICTION_MARKERS = (
+    "could be adapted",
+    "does not address",
+    "does not directly address",
+    "does not explicitly address",
+    "is not directly related",
+    "not directly applicable",
+    "requires adaptation",
+    "would require",
 )
 
 
@@ -1409,7 +1419,7 @@ class ResearchEvaluationService:
         inferred_match = cls._infer_mechanism_match(evidence_text)
 
         if inferred_match is None or inferred_match is mechanism_match:
-            return _MechanismReconciliation(
+            reconciliation = _MechanismReconciliation(
                 mechanism_match=mechanism_match,
                 relevance_score=relevance_score,
                 relevance_summary=relevance_summary,
@@ -1419,6 +1429,10 @@ class ResearchEvaluationService:
                 target_problem_dimension=target_problem_dimension,
                 required_adaptation=required_adaptation,
                 evidence_support=evidence_support,
+            )
+            return cls._reconcile_decision_consistency(
+                paper=paper,
+                reconciliation=reconciliation,
             )
 
         corrected_score = cls._score_for_inferred_match(
@@ -1495,7 +1509,7 @@ class ResearchEvaluationService:
             paper.title,
         )
 
-        return _MechanismReconciliation(
+        reconciliation = _MechanismReconciliation(
             mechanism_match=inferred_match,
             relevance_score=corrected_score,
             relevance_summary=relevance_summary,
@@ -1507,6 +1521,189 @@ class ResearchEvaluationService:
             evidence_support=grounded_support or evidence_support,
             warning=warning,
         )
+        return cls._reconcile_decision_consistency(
+            paper=paper,
+            reconciliation=reconciliation,
+        )
+
+    @classmethod
+    def _reconcile_decision_consistency(
+        cls,
+        *,
+        paper: PaperMetadata,
+        reconciliation: _MechanismReconciliation,
+    ) -> _MechanismReconciliation:
+        """Align mechanism strength with explicit gaps and paper evidence."""
+
+        mechanism_match = reconciliation.mechanism_match
+        target_terms = cls._target_subject_terms(
+            reconciliation.target_problem_dimension
+        )
+
+        if mechanism_match is ResearchMechanismMatch.DIRECT:
+            gap_terms = cls._direct_contradiction_terms(
+                reconciliation,
+                target_terms,
+            )
+            if gap_terms:
+                corrected_match = (
+                    ResearchMechanismMatch.ADJACENT
+                    if len(gap_terms) >= 2
+                    else ResearchMechanismMatch.TRANSFERABLE
+                )
+                warning = (
+                    "Direct mechanism classification corrected "
+                    f"deterministically to '{corrected_match.value}' "
+                    "because the evaluation states that adaptation is "
+                    "required for central target conditions."
+                )
+                LOGGER.warning("%s Paper: %s", warning, paper.title)
+                return replace(
+                    reconciliation,
+                    mechanism_match=corrected_match,
+                    relevance_score=cls._score_for_inferred_match(
+                        reconciliation.relevance_score,
+                        corrected_match,
+                    ),
+                    warning=warning,
+                )
+
+        if mechanism_match is ResearchMechanismMatch.NONE:
+            evidence_terms = cls._meaningful_term_stems(
+                cls._paper_mechanism_evidence_text(paper)
+            )
+            overlap = target_terms & evidence_terms
+            source_mechanism = (
+                reconciliation.source_mechanism.strip().casefold()
+            )
+            if (
+                len(overlap) >= 3
+                and source_mechanism
+                and source_mechanism not in {"none", "n/a", "unknown"}
+            ):
+                corrected_match = ResearchMechanismMatch.ADJACENT
+                warning = (
+                    "None mechanism classification corrected "
+                    "deterministically to 'adjacent' because supplied "
+                    "paper evidence substantively overlaps the target "
+                    "problem despite requiring downstream adaptation."
+                )
+                LOGGER.warning("%s Paper: %s", warning, paper.title)
+                return replace(
+                    reconciliation,
+                    mechanism_match=corrected_match,
+                    relevance_score=cls._score_for_inferred_match(
+                        reconciliation.relevance_score,
+                        corrected_match,
+                    ),
+                    warning=warning,
+                )
+
+        return reconciliation
+
+    @classmethod
+    def _direct_contradiction_terms(
+        cls,
+        reconciliation: _MechanismReconciliation,
+        target_terms: set[str],
+    ) -> set[str]:
+        """Return central target terms named in explicit direct-match gaps."""
+
+        statements = (
+            reconciliation.required_adaptation,
+            *reconciliation.limitations,
+        )
+        contradictory_text = " ".join(
+            statement
+            for statement in statements
+            if any(
+                marker in statement.casefold()
+                for marker in DIRECT_CONTRADICTION_MARKERS
+            )
+        )
+        if not contradictory_text:
+            return set()
+
+        return target_terms & cls._meaningful_term_stems(
+            contradictory_text
+        )
+
+    @classmethod
+    def _target_subject_terms(
+        cls,
+        target_problem_dimension: str,
+    ) -> set[str]:
+        """Return substantive subject terms without feasibility criteria."""
+
+        subject = re.split(
+            r"\s*,?\s+and\s+(?:which|whether|how)\b",
+            target_problem_dimension,
+            maxsplit=1,
+            flags=re.IGNORECASE,
+        )[0]
+        return cls._meaningful_term_stems(subject)
+
+    @classmethod
+    def _meaningful_term_stems(cls, value: str) -> set[str]:
+        """Return stable content stems for evidence-overlap checks."""
+
+        ignored_words = {
+            "a",
+            "an",
+            "and",
+            "approach",
+            "approaches",
+            "be",
+            "can",
+            "could",
+            "current",
+            "do",
+            "does",
+            "evaluate",
+            "evaluated",
+            "evaluation",
+            "feasible",
+            "for",
+            "from",
+            "how",
+            "learn",
+            "learning",
+            "method",
+            "methods",
+            "of",
+            "on",
+            "or",
+            "representation",
+            "representations",
+            "research",
+            "the",
+            "to",
+            "using",
+            "what",
+            "which",
+            "with",
+        }
+        return {
+            cls._consistency_term_stem(word)
+            for word in re.findall(
+                r"[A-Za-z0-9][A-Za-z0-9_-]*",
+                value,
+            )
+            if word.casefold() not in ignored_words
+        }
+
+    @staticmethod
+    def _consistency_term_stem(word: str) -> str:
+        """Normalize common endings for consistency overlap checks."""
+
+        normalized = word.casefold()
+        for suffix in ("ment", "ing", "ed", "s"):
+            if (
+                normalized.endswith(suffix)
+                and len(normalized) > len(suffix) + 3
+            ):
+                return normalized[: -len(suffix)]
+        return normalized
 
     @staticmethod
     def _remove_contradictory_limitations(

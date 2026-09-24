@@ -2445,6 +2445,152 @@ def test_research_evaluation_service_caps_generic_clip_adaptation(
     assert result[0].relevance_score == 0.49
 
 
+def test_direct_match_is_capped_when_central_conditions_need_adaptation(
+) -> None:
+    """A provider cannot call an explicitly adapted central mechanism direct."""
+
+    base_paper = create_paper_metadata(
+        title="Temporal Dataset Distillation"
+    )
+    paper = PaperMetadata(
+        source_reference=base_paper.source_reference,
+        title=base_paper.title,
+        abstract=(
+            "We compress labeled video datasets into synthetic videos using "
+            "temporal saliency-guided dataset distillation."
+        ),
+    )
+    response = create_valid_provider_response()
+    response.structured_output["evaluations"][0].update(
+        {
+            "relevance_score": 85,
+            "mechanism_match": "direct",
+            "source_mechanism": "Temporal video dataset distillation.",
+            "required_adaptation": (
+                "The paper does not directly address unlabeled video and "
+                "would require adaptation to learn semantic representations."
+            ),
+            "limitations": [
+                "The method does not address unlabeled video learning."
+            ],
+            "evidence_support": [
+                "The paper generates synthetic videos from labeled datasets."
+            ],
+        }
+    )
+
+    result = ResearchEvaluationService(
+        provider=StubProvider(response),
+        model_name="qwen3:8b",
+    ).evaluate(
+        ResearchRequest(
+            question=(
+                "What methods learn semantic and temporal video "
+                "representations from unlabeled video?"
+            ),
+        ),
+        create_research_strategy(),
+        (paper,),
+    )
+
+    assert result[0].mechanism_match is ResearchMechanismMatch.ADJACENT
+    assert result[0].relevance_score == 0.49
+    assert "central target conditions" in result[0].warnings[-1]
+
+
+def test_missing_downstream_benchmark_does_not_erase_adjacent_mechanism(
+) -> None:
+    """Strong subject evidence remains adjacent without target-task results."""
+
+    base_paper = create_paper_metadata(
+        title="Multimodal Clustering from Unlabeled Videos"
+    )
+    paper = PaperMetadata(
+        source_reference=base_paper.source_reference,
+        title=base_paper.title,
+        abstract=(
+            "We learn semantic video representations from unlabeled videos "
+            "using multimodal self-supervision and evaluate temporal action "
+            "localization and text-to-video retrieval."
+        ),
+    )
+    response = create_valid_provider_response()
+    response.structured_output["evaluations"][0].update(
+        {
+            "relevance_score": 0,
+            "mechanism_match": "none",
+            "source_mechanism": (
+                "Multimodal clustering with self-supervised learning."
+            ),
+            "required_adaptation": (
+                "Evaluate the learned representation on the requested "
+                "downstream benchmark."
+            ),
+            "evidence_support": [
+                "The method learns from unlabeled videos."
+            ],
+        }
+    )
+
+    result = ResearchEvaluationService(
+        provider=StubProvider(response),
+        model_name="qwen3:8b",
+    ).evaluate(
+        ResearchRequest(
+            question=(
+                "What methods learn semantic and temporal video "
+                "representations from unlabeled video, and which can be "
+                "evaluated on a downstream benchmark?"
+            ),
+        ),
+        create_research_strategy(),
+        (paper,),
+    )
+
+    assert result[0].mechanism_match is ResearchMechanismMatch.ADJACENT
+    assert result[0].relevance_score == 0.25
+    assert "substantively overlaps" in result[0].warnings[-1]
+
+
+def test_missing_downstream_benchmark_does_not_cap_direct_mechanism(
+) -> None:
+    """Benchmark-only limitations do not negate a demonstrated mechanism."""
+
+    response = create_valid_provider_response()
+    response.structured_output["evaluations"][0].update(
+        {
+            "relevance_score": 82,
+            "mechanism_match": "direct",
+            "source_mechanism": "Self-supervised temporal video learning.",
+            "required_adaptation": "Evaluate on NExT-QA.",
+            "limitations": [
+                "The paper does not explicitly address NExT-QA evaluation."
+            ],
+            "evidence_support": [
+                "The method learns temporal video features without labels."
+            ],
+        }
+    )
+
+    result = ResearchEvaluationService(
+        provider=StubProvider(response),
+        model_name="qwen3:8b",
+    ).evaluate(
+        ResearchRequest(
+            question=(
+                "What methods learn semantic and temporal video "
+                "representations from unlabeled video, and which are "
+                "feasible to evaluate on NExT-QA?"
+            ),
+        ),
+        create_research_strategy(),
+        (create_paper_metadata(title="Temporal Video Learning"),),
+    )
+
+    assert result[0].mechanism_match is ResearchMechanismMatch.DIRECT
+    assert result[0].relevance_score == 0.82
+
+
 def test_research_evaluation_service_rejects_missing_structured_output() -> None:
     """Verify missing structured output is rejected."""
 
