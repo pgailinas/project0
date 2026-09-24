@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 
 import pytest
@@ -27,6 +28,7 @@ from project0.models.research_models import (
     ResearchGuidanceRelevance,
     ResearchMechanismMatch,
     ResearchPaperEvidenceStatus,
+    ResearchPaperEvidenceSection,
     ResearchRequest,
     ResearchSourceReference,
     ResearchStrategy,
@@ -124,6 +126,38 @@ class SequentialStubProvider:
         return self.responses[len(self.requests) - 1]
 
 
+class RequestAwareStubProvider:
+    """Return valid evaluations for each received request batch."""
+
+    def __init__(self) -> None:
+        """Initialize request recording."""
+
+        self.requests: list[ProviderRequest] = []
+
+    def generate(
+        self,
+        request: ProviderRequest,
+    ) -> ProviderResponse:
+        """Build one response matching the request's opaque paper IDs."""
+
+        self.requests.append(request)
+        payload = json.loads(request.user_prompt)
+        return create_valid_provider_response(
+            evaluations=[
+                {
+                    "source_id": paper["source_id"],
+                    "relevance_score": 24,
+                    "relevance_summary": "Weakly related.",
+                    "strengths": [],
+                    "limitations": [],
+                    "research_connections": [],
+                    "warnings": [],
+                }
+                for paper in payload["papers"]
+            ]
+        )
+
+
 def create_research_request() -> ResearchRequest:
     """Create a research request for testing."""
 
@@ -191,6 +225,34 @@ def create_paper_metadata(
         venue="Example Conference",
     )
 
+
+def create_evidence_paper(
+    source_id: str,
+    title: str,
+    evidence_characters: int,
+) -> PaperMetadata:
+    """Create paper metadata with bounded acquired evidence."""
+
+    paper = create_paper_metadata(
+        source_id=source_id,
+        title=title,
+    )
+    return PaperMetadata(
+        source_reference=paper.source_reference,
+        title=paper.title,
+        authors=paper.authors,
+        publication_year=paper.publication_year,
+        abstract=paper.abstract,
+        venue=paper.venue,
+        evidence_status=ResearchPaperEvidenceStatus.AVAILABLE,
+        evidence_sections=(
+            ResearchPaperEvidenceSection(
+                section="Method",
+                page_number=1,
+                content="e" * evidence_characters,
+            ),
+        ),
+    )
 
 def create_valid_provider_response(
     evaluations: list[dict] | None = None,
@@ -794,6 +856,104 @@ def test_research_evaluation_service_batches_six_papers() -> None:
         request.metadata["paper_count"]
         for request in provider.requests
     ] == [3, 3]
+
+
+def test_final_evaluation_batches_by_serialized_prompt_size() -> None:
+    """Large evidence prompts are split before provider invocation."""
+
+    papers = tuple(
+        create_evidence_paper(
+            source_id=f"paper-{index:03d}",
+            title=f"Evidence Paper {index}",
+            evidence_characters=3000,
+        )
+        for index in range(1, 4)
+    )
+    provider = RequestAwareStubProvider()
+    service = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    )
+    request = create_research_request()
+    strategy = create_research_strategy()
+    two_paper_size = service._evaluation_prompt_characters(
+        request=request,
+        strategy=strategy,
+        papers=papers[:2],
+    )
+    service._maximum_final_prompt_characters = two_paper_size
+
+    result = service.evaluate(request, strategy, papers)
+
+    assert tuple(evaluation.paper for evaluation in result) == papers
+    assert [
+        provider_request.metadata["paper_count"]
+        for provider_request in provider.requests
+    ] == [2, 1]
+    assert all(
+        len(provider_request.system_instructions)
+        + len(provider_request.user_prompt)
+        <= two_paper_size
+        for provider_request in provider.requests
+    )
+
+
+def test_preliminary_ranking_keeps_count_based_batches() -> None:
+    """Metadata ranking retains established three-paper batching."""
+
+    papers = tuple(
+        create_evidence_paper(
+            source_id=f"paper-{index:03d}",
+            title=f"Evidence Paper {index}",
+            evidence_characters=3000,
+        )
+        for index in range(1, 4)
+    )
+    provider = RequestAwareStubProvider()
+    service = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    )
+    service._maximum_final_prompt_characters = 1
+
+    service.rank_candidates(
+        create_research_request(),
+        create_research_strategy(),
+        papers,
+    )
+
+    assert len(provider.requests) == 1
+    assert provider.requests[0].metadata["paper_count"] == 3
+
+
+def test_oversized_single_paper_uses_its_own_batch(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """One over-budget paper remains evaluable and is diagnosed."""
+
+    paper = create_evidence_paper(
+        source_id="paper-001",
+        title="Oversized Evidence Paper",
+        evidence_characters=3000,
+    )
+    provider = RequestAwareStubProvider()
+    service = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    )
+    service._maximum_final_prompt_characters = 1
+
+    with caplog.at_level(logging.WARNING):
+        result = service.evaluate(
+            create_research_request(),
+            create_research_strategy(),
+            (paper,),
+        )
+
+    assert result[0].paper is paper
+    assert len(provider.requests) == 1
+    assert provider.requests[0].metadata["paper_count"] == 1
+    assert "exceeds the prompt-size budget" in caplog.text
 
 
 def test_research_evaluation_service_batches_eleven_papers() -> None:

@@ -38,6 +38,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 HIGH_RELEVANCE_SCORE = 0.75
+MAXIMUM_FINAL_EVALUATION_PROMPT_CHARACTERS = 24000
 MECHANISM_SCORE_BANDS = {
     ResearchMechanismMatch.DIRECT: (0.75, 1.0),
     ResearchMechanismMatch.TRANSFERABLE: (0.50, 0.74),
@@ -83,6 +84,9 @@ class ResearchEvaluationService:
         self._provider = provider
         self._model_name = model_name
         self._batch_size = 3
+        self._maximum_final_prompt_characters = (
+            MAXIMUM_FINAL_EVALUATION_PROMPT_CHARACTERS
+        )
 
     def evaluate(
         self,
@@ -134,15 +138,12 @@ class ResearchEvaluationService:
         )
         evaluations: list[ResearchEvaluation] = []
 
-        for start in range(
-            0,
-            len(evaluable_papers),
-            self._batch_size,
+        for batch in self._evaluation_batches(
+            request=request,
+            strategy=strategy,
+            papers=evaluable_papers,
+            preliminary=preliminary,
         ):
-            batch = evaluable_papers[
-                start:start + self._batch_size
-            ]
-
             evaluations.extend(
                 self._evaluate_batch(
                     request=request,
@@ -162,6 +163,110 @@ class ResearchEvaluationService:
                 self._discovery_only_evaluation(paper),
             )
             for paper in papers
+        )
+
+    def _evaluation_batches(
+        self,
+        *,
+        request: ResearchRequest,
+        strategy: ResearchStrategy,
+        papers: tuple[PaperMetadata, ...],
+        preliminary: bool,
+    ) -> tuple[tuple[PaperMetadata, ...], ...]:
+        """Build bounded paper batches for one evaluation stage."""
+
+        if preliminary:
+            return tuple(
+                papers[start:start + self._batch_size]
+                for start in range(0, len(papers), self._batch_size)
+            )
+
+        batches: list[tuple[PaperMetadata, ...]] = []
+        current: tuple[PaperMetadata, ...] = ()
+
+        for paper in papers:
+            candidate = (*current, paper)
+            prompt_characters = self._evaluation_prompt_characters(
+                request=request,
+                strategy=strategy,
+                papers=candidate,
+            )
+
+            if (
+                not current
+                and prompt_characters
+                > self._maximum_final_prompt_characters
+            ):
+                LOGGER.warning(
+                    "Final research evaluation paper exceeds the "
+                    "prompt-size budget and will be evaluated alone: "
+                    "characters=%d budget=%d title=%r",
+                    prompt_characters,
+                    self._maximum_final_prompt_characters,
+                    paper.title,
+                )
+
+            if (
+                current
+                and (
+                    len(candidate) > self._batch_size
+                    or prompt_characters
+                    > self._maximum_final_prompt_characters
+                )
+            ):
+                batches.append(current)
+                current = (paper,)
+
+                single_prompt_characters = (
+                    self._evaluation_prompt_characters(
+                        request=request,
+                        strategy=strategy,
+                        papers=current,
+                    )
+                )
+                if (
+                    single_prompt_characters
+                    > self._maximum_final_prompt_characters
+                ):
+                    LOGGER.warning(
+                        "Final research evaluation paper exceeds the "
+                        "prompt-size budget and will be evaluated alone: "
+                        "characters=%d budget=%d title=%r",
+                        single_prompt_characters,
+                        self._maximum_final_prompt_characters,
+                        paper.title,
+                    )
+                continue
+
+            current = candidate
+
+            if len(current) == self._batch_size:
+                batches.append(current)
+                current = ()
+
+        if current:
+            batches.append(current)
+
+        return tuple(batches)
+
+    def _evaluation_prompt_characters(
+        self,
+        *,
+        request: ResearchRequest,
+        strategy: ResearchStrategy,
+        papers: tuple[PaperMetadata, ...],
+    ) -> int:
+        """Return the serialized final-evaluation prompt size."""
+
+        provider_request = self._build_provider_request(
+            request=request,
+            strategy=strategy,
+            papers=papers,
+            preliminary=False,
+        )
+        return (
+            len(provider_request.system_instructions)
+            + len(provider_request.user_prompt)
         )
 
     @staticmethod
