@@ -588,12 +588,12 @@ def test_research_evaluation_service_stops_after_one_retry() -> None:
         ("none", 25, 0.24),
     ),
 )
-def test_research_evaluation_service_recovers_one_point_boundary_after_retry(
+def test_research_evaluation_service_normalizes_score_band(
     mechanism_match: str,
     raw_score: int,
     expected_score: float,
 ) -> None:
-    """Only exact neighboring-band scores recover after normal retry."""
+    """Mechanism-inconsistent scores normalize without another model call."""
 
     responses = []
     for _ in range(2):
@@ -617,16 +617,15 @@ def test_research_evaluation_service_recovers_one_point_boundary_after_retry(
         (create_paper_metadata(),),
     )
 
-    assert len(provider.requests) == 2
+    assert len(provider.requests) == 1
     assert result[0].relevance_score == expected_score
     assert result[0].mechanism_match.value == mechanism_match
     assert len(result[0].warnings) == 1
-    assert "Relevance score corrected" in result[0].warnings[0]
-    assert "after retry" in result[0].warnings[0]
+    assert "Relevance score normalized" in result[0].warnings[0]
 
 
-def test_research_evaluation_service_rejects_large_boundary_disagreement() -> None:
-    """A material score/mechanism contradiction remains unscored."""
+def test_research_evaluation_service_normalizes_large_disagreement() -> None:
+    """A large mismatch clamps to the declared mechanism's upper bound."""
 
     responses = []
     for _ in range(2):
@@ -646,12 +645,22 @@ def test_research_evaluation_service_rejects_large_boundary_disagreement() -> No
     ).evaluate(
         create_research_request(),
         create_research_strategy(),
-        (create_paper_metadata(),),
+        (
+            create_paper_metadata(
+                title=(
+                    "VATT: Transformers for Multimodal Self-Supervised "
+                    "Learning from Raw Video, Audio and Text"
+                ),
+            ),
+        ),
     )
 
-    assert result[0].relevance_score is None
+    assert len(provider.requests) == 1
+    assert result[0].relevance_score == 0.74
+    assert result[0].mechanism_match is ResearchMechanismMatch.TRANSFERABLE
     assert result[0].warnings == (
-        "Excluded from scoring after an invalid evaluation response.",
+        "Relevance score normalized from 85 to 74 because the transferable "
+        "mechanism band is 50-74.",
     )
 
 
@@ -1508,10 +1517,10 @@ def test_research_evaluation_service_logs_structured_decision(caplog) -> None:
     assert "validation_status=valid" in trace
 
 
-def test_research_evaluation_service_logs_initial_and_retry_decisions(
+def test_research_evaluation_service_logs_normalized_decision(
     caplog,
 ) -> None:
-    """A rejected decision and its corrected retry are both traceable."""
+    """A normalized decision remains traceable without a retry."""
 
     caplog.set_level(
         logging.DEBUG,
@@ -1526,16 +1535,9 @@ def test_research_evaluation_service_logs_initial_and_retry_decisions(
             "mechanism_match": "direct",
         }
     )
-    corrected = create_valid_provider_response()
-    corrected.structured_output["evaluations"][0].update(
-        {
-            "relevance_score": 82,
-            "mechanism_match": "direct",
-        }
-    )
-
-    ResearchEvaluationService(
-        provider=SequentialStubProvider((invalid, corrected)),
+    provider = SequentialStubProvider((invalid,))
+    result = ResearchEvaluationService(
+        provider=provider,
         model_name="qwen3:8b",
     ).evaluate(
         create_research_request(),
@@ -1548,25 +1550,24 @@ def test_research_evaluation_service_logs_initial_and_retry_decisions(
         for record in caplog.records
         if "Research evaluation trace:" in record.getMessage()
     ]
+    assert len(provider.requests) == 1
+    assert result[0].relevance_score == 0.75
+    assert result[0].warnings == (
+        "Relevance score normalized from 25 to 75 because the direct "
+        "mechanism band is 75-100.",
+    )
     assert any(
         "attempt=initial" in trace
-        and "validation_status=invalid" in trace
-        and "mechanism_match=direct" in trace
-        and "relevance_score=0.25" in trace
-        for trace in traces
-    )
-    assert any(
-        "attempt=retry" in trace
         and "validation_status=valid" in trace
         and "mechanism_match=direct" in trace
-        and "relevance_score=0.82" in trace
+        and "relevance_score=0.75" in trace
         for trace in traces
     )
 
 
-def test_research_evaluation_service_retries_direct_mechanism_scored_adjacent(
+def test_research_evaluation_service_normalizes_direct_mechanism_score(
 ) -> None:
-    """A recognized direct mechanism cannot remain in the adjacent band."""
+    """A recognized direct mechanism cannot retain an adjacent score."""
 
     invalid = create_valid_provider_response()
     invalid.structured_output["evaluations"][0].update(
@@ -1589,27 +1590,7 @@ def test_research_evaluation_service_retries_direct_mechanism_scored_adjacent(
             ],
         }
     )
-    corrected = create_valid_provider_response()
-    corrected.structured_output["evaluations"][0].update(
-        {
-            "relevance_score": 82,
-            "mechanism_match": "direct",
-            "source_mechanism": invalid.structured_output[
-                "evaluations"
-            ][0]["source_mechanism"],
-            "target_problem_dimension": invalid.structured_output[
-                "evaluations"
-            ][0]["target_problem_dimension"],
-            "required_adaptation": invalid.structured_output[
-                "evaluations"
-            ][0]["required_adaptation"],
-            "evidence_support": invalid.structured_output[
-                "evaluations"
-            ][0]["evidence_support"],
-        }
-    )
-
-    provider = SequentialStubProvider((invalid, corrected))
+    provider = SequentialStubProvider((invalid,))
     result = ResearchEvaluationService(
         provider=provider,
         model_name="qwen3:8b",
@@ -1624,9 +1605,10 @@ def test_research_evaluation_service_retries_direct_mechanism_scored_adjacent(
         ),
     )
 
-    assert len(provider.requests) == 2
-    assert result[0].relevance_score == 0.82
+    assert len(provider.requests) == 1
+    assert result[0].relevance_score == 0.75
     assert result[0].mechanism_match is ResearchMechanismMatch.DIRECT
+    assert "normalized from 25 to 75" in result[0].warnings[0]
 
 
 def test_research_evaluation_service_preserves_structured_benchmark_bands(

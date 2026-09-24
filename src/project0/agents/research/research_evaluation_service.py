@@ -1043,6 +1043,16 @@ class ResearchEvaluationService:
         if reconciliation.warning is not None:
             warnings = (*warnings, reconciliation.warning)
 
+        relevance_score, score_warning = (
+            self._normalize_mechanism_score(
+                paper=paper,
+                relevance_score=relevance_score,
+                mechanism_match=mechanism_match,
+            )
+        )
+        if score_warning is not None:
+            warnings = (*warnings, score_warning)
+
         validation_error: ValueError | None = None
         try:
             self._validate_mechanism_score_band(
@@ -1470,6 +1480,32 @@ class ResearchEvaluationService:
             raise ValueError(
                 "mechanism_match must be one of: " + supported
             ) from error
+
+    @staticmethod
+    def _normalize_mechanism_score(
+        paper: PaperMetadata,
+        relevance_score: float | None,
+        mechanism_match: ResearchMechanismMatch,
+    ) -> tuple[float | None, str | None]:
+        """Clamp a provider score to its evidence-derived mechanism band."""
+
+        if relevance_score is None:
+            return None, None
+
+        minimum, maximum = MECHANISM_SCORE_BANDS[mechanism_match]
+        normalized_score = min(max(relevance_score, minimum), maximum)
+        if normalized_score == relevance_score:
+            return relevance_score, None
+
+        warning = (
+            "Relevance score normalized from "
+            f"{round(relevance_score * 100)} to "
+            f"{round(normalized_score * 100)} because the "
+            f"{mechanism_match.value} mechanism band is "
+            f"{round(minimum * 100)}-{round(maximum * 100)}."
+        )
+        LOGGER.warning("%s Paper: %s", warning, paper.title)
+        return normalized_score, warning
 
     @staticmethod
     def _validate_mechanism_score_band(
