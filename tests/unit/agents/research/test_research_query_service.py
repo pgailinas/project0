@@ -29,12 +29,8 @@ def create_research_strategy() -> ResearchStrategy:
             "video representation learning",
             "multimodal alignment",
         ),
-        constraints=(
-            "Prefer recent research.",
-        ),
-        source_names=(
-            "semantic_scholar",
-        ),
+        constraints=("Prefer recent research.",),
+        source_names=("semantic_scholar",),
         rationale="Investigate VideoQA research directions.",
     )
 
@@ -42,9 +38,7 @@ def create_research_strategy() -> ResearchStrategy:
 def test_research_query_service_generates_queries_from_strategy():
     """Verify queries are generated from research concepts."""
 
-    result = ResearchQueryService().generate_queries(
-        create_research_strategy()
-    )
+    result = ResearchQueryService().generate_queries(create_research_strategy())
 
     assert result.search_terms == (
         "video representation learning",
@@ -55,21 +49,15 @@ def test_research_query_service_generates_queries_from_strategy():
 def test_research_query_service_removes_duplicate_queries():
     """Verify duplicate queries are removed."""
 
-    result = ResearchQueryService().generate_queries(
-        create_research_strategy()
-    )
+    result = ResearchQueryService().generate_queries(create_research_strategy())
 
-    assert result.search_terms.count(
-        "video representation learning"
-    ) == 1
+    assert result.search_terms.count("video representation learning") == 1
 
 
 def test_research_query_service_preserves_query_order():
     """Verify query order is deterministic."""
 
-    result = ResearchQueryService().generate_queries(
-        create_research_strategy()
-    )
+    result = ResearchQueryService().generate_queries(create_research_strategy())
 
     assert result.search_terms == (
         "video representation learning",
@@ -81,21 +69,13 @@ def test_research_query_service_normalizes_query_whitespace():
     """Verify query whitespace is normalized."""
 
     strategy = ResearchStrategy(
-        concepts=(
-            "  video   representation   learning  ",
-        ),
-        search_terms=(
-            "video representation learning",
-        ),
+        concepts=("  video   representation   learning  ",),
+        search_terms=("video representation learning",),
     )
 
-    result = ResearchQueryService().generate_queries(
-        strategy
-    )
+    result = ResearchQueryService().generate_queries(strategy)
 
-    assert result.search_terms == (
-        "video representation learning",
-    )
+    assert result.search_terms == ("video representation learning",)
 
 
 def test_r003_queries_use_subjects_instead_of_procedural_guidance() -> None:
@@ -135,8 +115,7 @@ def test_r003_queries_use_subjects_instead_of_procedural_guidance() -> None:
         "self-supervised or multimodal objectives",
     )
     assert all(
-        not query.startswith(("Search ", "Identify "))
-        for query in result.search_terms
+        not query.startswith(("Search ", "Identify ")) for query in result.search_terms
     )
 
 
@@ -186,6 +165,75 @@ def test_r003_context_hypotheses_remain_supplemental_to_request_queries() -> Non
     )
 
 
+def test_r004_decomposes_method_families_into_anchored_queries() -> None:
+    """Compound family guidance becomes diverse domain-specific searches."""
+
+    objective = (
+        "What lightweight methods can learn semantic and temporal video "
+        "representations from unlabeled video, and which are feasible to "
+        "evaluate on NExT-QA using Colab-scale compute?"
+    )
+    strategy = ResearchStrategy(
+        objective=objective,
+        concepts=(
+            (
+                "Relevant method families include frozen-teacher or "
+                "student-teacher distillation, masked video feature "
+                "prediction, multimodal self-supervision, motion-aware or "
+                "temporal objectives, and lightweight temporal adapters"
+            ),
+            objective.rstrip("?"),
+        ),
+        search_terms=(),
+        constraints=(
+            "For each family, identify its knowledge source.",
+            "Prioritize reproducible primary research from 2022-2026.",
+        ),
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms == (
+        (
+            "temporal representations unlabeled video frozen-teacher or "
+            "student-teacher distillation"
+        ),
+        ("temporal representations unlabeled video multimodal self-supervision"),
+        ("temporal representations unlabeled video lightweight adapters"),
+    )
+    assert all(
+        "Relevant method families include" not in query for query in result.search_terms
+    )
+    assert result.constraints == strategy.constraints
+
+
+def test_compound_family_decomposition_is_domain_independent() -> None:
+    """The decomposition rule does not depend on video terminology."""
+
+    objective = (
+        "What methods can estimate battery health from unlabeled sensor measurements?"
+    )
+    strategy = ResearchStrategy(
+        objective=objective,
+        concepts=(
+            (
+                "Candidate approaches include contrastive pretraining, "
+                "teacher-student distillation, and masked signal modeling"
+            ),
+            objective.rstrip("?"),
+        ),
+        search_terms=(),
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms == (
+        "health unlabeled sensor measurements contrastive pretraining",
+        "health unlabeled sensor measurements teacher-student distillation",
+        "health unlabeled sensor measurements masked signal modeling",
+    )
+
+
 def test_research_query_service_handles_empty_strategy():
     """Verify empty strategies produce no queries."""
 
@@ -220,9 +268,7 @@ def test_research_query_service_preserves_strategy_planning_fields():
     assert result.source_names == strategy.source_names
     assert result.rationale == strategy.rationale
     assert result.seed_terms == strategy.seed_terms
-    assert result.search_terms == (
-        "video representation alignment",
-    )
+    assert result.search_terms == ("video representation alignment",)
 
 
 def test_research_query_service_prioritizes_exact_seed_queries():
@@ -269,9 +315,7 @@ def test_research_query_service_excludes_objective_question_concept():
 
     result = ResearchQueryService().generate_queries(strategy)
 
-    assert result.search_terms == (
-        "semantic alignment objectives",
-    )
+    assert result.search_terms == ("semantic alignment objectives",)
 
 
 def test_research_query_service_excludes_objective_from_long_concept_query():
@@ -292,10 +336,7 @@ def test_research_query_service_excludes_objective_from_long_concept_query():
     result = ResearchQueryService().generate_queries(strategy)
 
     assert result.search_terms == (
-        (
-            "Video representations require stronger semantic "
-            "alignment with language"
-        ),
+        ("Video representations require stronger semantic alignment with language"),
     )
 
 
@@ -332,19 +373,13 @@ def test_research_query_service_keeps_question_and_focus_constraint():
 
     strategy = ResearchStrategy(
         concepts=(
-            (
-                "How can self-supervised video representations "
-                "be improved for VideoQA"
-            ),
+            ("How can self-supervised video representations be improved for VideoQA"),
         ),
         search_terms=(),
         objective=(
-            "How can self-supervised video representations "
-            "be improved for VideoQA?"
+            "How can self-supervised video representations be improved for VideoQA?"
         ),
-        constraints=(
-            "Focus on vision-language alignment.",
-        ),
+        constraints=("Focus on vision-language alignment.",),
     )
 
     result = ResearchQueryService().generate_queries(strategy)
@@ -374,9 +409,7 @@ def test_research_query_service_keeps_r002_videoqa_question_in_search():
         ),
         search_terms=(),
         objective=objective,
-        constraints=(
-            "Focus on primary research from 2023-2026.",
-        ),
+        constraints=("Focus on primary research from 2023-2026.",),
     )
 
     result = ResearchQueryService().generate_queries(strategy)
@@ -491,14 +524,10 @@ def test_research_query_service_preserves_follow_on_and_domain_queries():
     result = ResearchQueryService().generate_queries(strategy)
 
     assert result.search_terms == (
-        (
-            "semantic alignment objectives for video "
-            "representations and language"
-        ),
-        (
-            "VideoQA requires semantically aligned video and language"
-        ),
+        ("semantic alignment objectives for video representations and language"),
+        ("VideoQA requires semantically aligned video and language"),
     )
+
 
 def test_research_query_service_strips_future_research_framing():
     """Verify future-research framing does not consume query budget."""
@@ -510,10 +539,7 @@ def test_research_query_service_strips_future_research_framing():
                 "Contrastive objectives latent-space regularization "
                 "for representation learning approaches in video"
             ),
-            (
-                "Future research should focus on video language "
-                "semantic alignment"
-            ),
+            ("Future research should focus on video language semantic alignment"),
         ),
         search_terms=(),
         objective="What should I investigate next?",
@@ -526,9 +552,7 @@ def test_research_query_service_strips_future_research_framing():
             "Contrastive objectives latent-space regularization for "
             "representation learning approaches"
         ),
-        (
-            "video language semantic alignment"
-        ),
+        ("video language semantic alignment"),
     )
 
 
@@ -566,13 +590,11 @@ def test_research_query_service_converts_guidance_directives_to_queries():
     result = ResearchQueryService().generate_queries(strategy)
 
     assert result.search_terms == (
-        (
-            "align self-supervised masked-model autoencoder frozen "
-            "CLIP vision features"
-        ),
+        ("align self-supervised masked-model autoencoder frozen CLIP vision features"),
         "transferable image-domain methods CLIP alignment",
         "aligning autoencoder-generated video representations CLIP",
     )
+
 
 def test_research_query_service_generates_complementary_context_queries():
     """Verify context concepts produce complementary bounded queries."""
@@ -624,14 +646,8 @@ def test_research_query_service_generates_complementary_context_queries():
             "contrastive objectives latent-space regularization "
             "transformer-based video encoders"
         ),
-        (
-            "improving semantic organization of self-supervised "
-            "video representations"
-        ),
-        (
-            "effectiveness of self-supervised video representations "
-            "for VideoQA CLIP"
-        ),
+        ("improving semantic organization of self-supervised video representations"),
+        ("effectiveness of self-supervised video representations for VideoQA CLIP"),
     )
 
 
@@ -680,10 +696,7 @@ def test_research_query_service_compacts_long_inferred_solution_query():
     result = ResearchQueryService().generate_queries(strategy)
 
     assert result.search_terms == (
-        (
-            "autoencoder video representations CLIP space feature "
-            "distillation"
-        ),
+        ("autoencoder video representations CLIP space feature distillation"),
     )
 
 
@@ -703,10 +716,7 @@ def test_research_query_service_preserves_verbose_target_and_mechanism():
     result = ResearchQueryService().generate_queries(strategy)
 
     assert result.search_terms == (
-        (
-            "autoencoder-generated video representations CLIP model "
-            "feature distillation"
-        ),
+        ("autoencoder-generated video representations CLIP model feature distillation"),
     )
 
 
@@ -750,6 +760,7 @@ def test_research_query_service_removes_overlapping_dimensions():
         "semantic video language alignment",
         "temporal representation evaluation",
     )
+
 
 def test_research_query_service_selects_distinct_research_roles():
     """Verify distinct guidance roles leave room for inferred context."""
@@ -805,7 +816,6 @@ def test_research_query_service_does_not_fill_roles_with_inferred_variants():
         "source representation target space token alignment",
         "source representation target space contrastive projection",
     )
-
 
 
 def test_research_query_service_prioritizes_directives_over_inferred_queries():
@@ -866,10 +876,7 @@ def test_research_query_service_avoids_mixed_quality_query_when_roles_exist():
 
     strategy = ResearchStrategy(
         concepts=(
-            (
-                "source representations align with pretrained target "
-                "embedding space"
-            ),
+            ("source representations align with pretrained target embedding space"),
             (
                 "source reconstruction quality semantic understanding "
                 "jointly optimizing fidelity and consistency"
@@ -878,10 +885,7 @@ def test_research_query_service_avoids_mixed_quality_query_when_roles_exist():
                 "Future work should explore contrastive objectives, "
                 "latent-space regularization, and projection losses"
             ),
-            (
-                "latent representations map into frozen target "
-                "embedding space"
-            ),
+            ("latent representations map into frozen target embedding space"),
         ),
         search_terms=(),
     )
@@ -893,10 +897,8 @@ def test_research_query_service_avoids_mixed_quality_query_when_roles_exist():
         "contrastive objectives latent-space regularization projection losses",
         "latent representations map frozen target embedding space",
     )
-    assert all(
-        "fidelity" not in query.casefold()
-        for query in result.search_terms
-    )
+    assert all("fidelity" not in query.casefold() for query in result.search_terms)
+
 
 def test_research_query_service_derives_roles_when_inferred_queries_exist():
     """Verify rich strategy roles outrank broad inferred query phrases."""
@@ -946,10 +948,7 @@ def test_research_query_service_derives_roles_when_inferred_queries_exist():
         "contrastive objectives latent-space regularization transformer-based encoders",
         "representation model aligned latent representations mapping pretrained target",
     )
-    assert all(
-        "fidelity" not in query.casefold()
-        for query in result.search_terms
-    )
+    assert all("fidelity" not in query.casefold() for query in result.search_terms)
 
 
 def test_research_query_service_rejects_degenerate_derived_role_query():

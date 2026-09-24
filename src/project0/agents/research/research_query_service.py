@@ -104,6 +104,15 @@ class ResearchQueryService:
         "target",
     )
 
+    _COMPOUND_FAMILY_PREFIX: ClassVar[re.Pattern[str]] = re.compile(
+        r"^(?:the\s+)?"
+        r"(?:(?:relevant|candidate|potential|promising|applicable)\s+)?"
+        r"(?:methods?|solutions?|approaches?|techniques?)"
+        r"(?:\s+famil(?:y|ies))?\s+"
+        r"(?:include|comprise|cover)\s+",
+        flags=re.IGNORECASE,
+    )
+
     def generate_queries(
         self,
         strategy: ResearchStrategy,
@@ -135,36 +144,27 @@ class ResearchQueryService:
         }
         queries: list[str] = list(inferred_queries)
         directive_queries: list[str] = []
+        compound_queries: list[str] = []
         constraint_queries = tuple(
             query
             for constraint in strategy.constraints
             for query in self._focus_constraint_queries(constraint)
         )
         mechanism_focus_queries = (
-            constraint_queries
-            if len(constraint_queries) > 1
-            else ()
+            constraint_queries if len(constraint_queries) > 1 else ()
         )
         candidates = (
             *strategy.search_terms,
             *strategy.concepts,
             *constraint_queries,
         )
-        directive_anchors = self._directive_anchor_terms(
-            candidates
-        )
-        objective = self._normalize_query(
-            strategy.objective or ""
-        )
+        directive_anchors = self._directive_anchor_terms(candidates)
+        objective = self._normalize_query(strategy.objective or "")
         objective_query = self._build_objective_query(objective)
 
         has_directive_candidates = any(
-            self._is_directive_candidate(
-                self._normalize_query(candidate)
-            )
-            and not self._is_planning_directive(
-                self._normalize_query(candidate)
-            )
+            self._is_directive_candidate(self._normalize_query(candidate))
+            and not self._is_planning_directive(self._normalize_query(candidate))
             for candidate in candidates
             if self._normalize_query(candidate)
         )
@@ -175,10 +175,7 @@ class ResearchQueryService:
             objective_query = ""
         derived_role_queries: tuple[tuple[str, str], ...] = ()
 
-        if (
-            not seed_queries
-            and not has_directive_candidates
-        ):
+        if not seed_queries and not has_directive_candidates:
             derived_role_queries = self._build_strategy_role_queries(
                 candidates,
                 objective,
@@ -193,10 +190,7 @@ class ResearchQueryService:
                     *role_queries,
                 ]
                 queries = [
-                    *(
-                        query
-                        for query, _role in derived_role_queries
-                    ),
+                    *(query for query, _role in derived_role_queries),
                     *queries,
                 ]
 
@@ -219,6 +213,15 @@ class ResearchQueryService:
             ):
                 continue
 
+            decomposed_queries = self._decompose_compound_concept(
+                normalized,
+                objective,
+            )
+            if decomposed_queries:
+                queries.extend(decomposed_queries)
+                compound_queries.extend(decomposed_queries)
+                continue
+
             query = self._build_dimension_query(normalized)
 
             if (
@@ -230,9 +233,7 @@ class ResearchQueryService:
                 query = self._deduplicate_words(
                     (
                         query,
-                        " ".join(
-                            self._query_words(objective_query)[-4:]
-                        ),
+                        " ".join(self._query_words(objective_query)[-4:]),
                     )
                 )
 
@@ -267,35 +268,37 @@ class ResearchQueryService:
                 ]
 
             if fallback_queries:
-                queries.append(
-                    self._build_fallback_query(
-                        fallback_queries
-                    )
-                )
+                queries.append(self._build_fallback_query(fallback_queries))
 
         if mechanism_focus_queries:
-            discovery_queries = self._deduplicate_queries(
-                list(mechanism_focus_queries)
-            )
+            discovery_queries = self._deduplicate_queries(list(mechanism_focus_queries))
         else:
+            selection_role_queries = tuple(role_queries)
+            selection_objective_query = objective_query
+            if compound_queries:
+                selection_role_queries = tuple(
+                    (query, "mechanism") for query in compound_queries
+                )
+                selection_objective_query = ""
+
             complementary_queries = (
-                self._deduplicate_complementary_queries(queries)
+                self._deduplicate_queries(queries)
+                if compound_queries
+                else self._deduplicate_complementary_queries(queries)
             )
             discovery_queries = self._select_context_balanced_queries(
                 complementary_queries,
                 inferred_queries=inferred_queries,
                 prioritized_queries=(
+                    *compound_queries,
                     *((objective_query,) if objective_query else ()),
                     *directive_queries,
-                    *(
-                        query
-                        for query, _role in derived_role_queries
-                    ),
+                    *(query for query, _role in derived_role_queries),
                     *inferred_queries,
                 ),
                 directive_queries=tuple(directive_queries),
-                role_queries=tuple(role_queries),
-                objective_query=objective_query,
+                role_queries=selection_role_queries,
+                objective_query=selection_objective_query,
             )
         discovery_queries = tuple(
             query
@@ -304,17 +307,116 @@ class ResearchQueryService:
                 self._query_overlap(
                     self._query_term_stems(query),
                     self._query_term_stems(seed_query),
-                ) >= 0.60
+                )
+                >= 0.60
                 for seed_query in seed_queries
             )
         )
 
         return replace(
             strategy,
-            search_terms=self._deduplicate_queries(
-                [*seed_queries, *discovery_queries]
-            ),
+            search_terms=self._deduplicate_queries([*seed_queries, *discovery_queries]),
         )
+
+    @classmethod
+    def _decompose_compound_concept(
+        cls,
+        candidate: str,
+        objective: str,
+    ) -> tuple[str, ...]:
+        """Split an explicit method-family list into anchored searches."""
+
+        match = cls._COMPOUND_FAMILY_PREFIX.match(candidate)
+        if match is None:
+            return ()
+
+        items = tuple(
+            item
+            for component in re.split(
+                r"\s*[;,]\s*(?:and\s+)?",
+                candidate[match.end() :].rstrip(". ?"),
+            )
+            if (item := cls._normalize_query(component))
+        )
+        if len(items) < 2:
+            return ()
+
+        anchors = cls._objective_domain_anchors(objective)
+        queries = tuple(
+            " ".join(
+                cls._deduplicate_words((*anchors, *cls._query_words(item))).split()[:8]
+            )
+            for item in items
+        )
+        queries = cls._deduplicate_complementary_queries(list(queries))
+
+        if len(queries) <= 3:
+            return queries
+
+        middle_index = len(queries) // 2
+        return (
+            queries[0],
+            queries[middle_index],
+            queries[-1],
+        )
+
+    @classmethod
+    def _objective_domain_anchors(
+        cls,
+        objective: str,
+    ) -> tuple[str, ...]:
+        """Extract trailing subject terms without feasibility guidance."""
+
+        subject_clause = re.split(
+            r"\s*,?\s+and\s+(?:which|whether|how)\b",
+            objective,
+            maxsplit=1,
+            flags=re.IGNORECASE,
+        )[0]
+        ignored_words = {
+            "a",
+            "an",
+            "and",
+            "approach",
+            "approaches",
+            "be",
+            "can",
+            "could",
+            "current",
+            "do",
+            "does",
+            "for",
+            "from",
+            "how",
+            "learn",
+            "method",
+            "methods",
+            "of",
+            "or",
+            "the",
+            "to",
+            "what",
+            "which",
+            "with",
+        }
+        subject_words = [
+            word
+            for word in cls._query_words(subject_clause)
+            if word.casefold() not in ignored_words
+        ]
+        unique_reversed: list[str] = []
+        seen_stems: set[str] = set()
+
+        for word in reversed(subject_words):
+            stem = cls._word_stem(word)
+            if stem in seen_stems:
+                continue
+            seen_stems.add(stem)
+            unique_reversed.append(word)
+            if len(unique_reversed) == 4:
+                break
+
+        return tuple(reversed(unique_reversed))
 
     @classmethod
     def _build_objective_query(
@@ -362,11 +464,7 @@ class ResearchQueryService:
             "which",
             "with",
         }
-        query_words = [
-            word
-            for word in words
-            if word.casefold() not in ignored_words
-        ]
+        query_words = [word for word in words if word.casefold() not in ignored_words]
 
         if len(query_words) < 3:
             return ""
@@ -385,12 +483,9 @@ class ResearchQueryService:
 
         normalized = cls._normalize_query(candidate)
 
-        if (
-            len(normalized.split()) <= 8
-            and not any(
-                normalized.casefold().startswith(prefix)
-                for prefix in cls._DIRECTIVE_PREFIXES
-            )
+        if len(normalized.split()) <= 8 and not any(
+            normalized.casefold().startswith(prefix)
+            for prefix in cls._DIRECTIVE_PREFIXES
         ):
             return normalized
 
@@ -428,11 +523,9 @@ class ResearchQueryService:
             }
         ]
 
-        salient_words = [
-            word
-            for word in compact_words
-            if cls._is_salient_term(word)
-        ][:2]
+        salient_words = [word for word in compact_words if cls._is_salient_term(word)][
+            :2
+        ]
 
         return " ".join(
             cls._deduplicate_words(
@@ -483,10 +576,7 @@ class ResearchQueryService:
             if cls._mechanism_term_count(candidate)
         )
 
-        if (
-            len(relation_candidates) < 2
-            or not mechanism_candidates
-        ):
+        if len(relation_candidates) < 2 or not mechanism_candidates:
             return ()
 
         mechanism_candidate = max(
@@ -495,21 +585,15 @@ class ResearchQueryService:
         )
         role_queries = (
             (
-                cls._build_direct_role_query(
-                    relation_candidates[0]
-                ),
+                cls._build_direct_role_query(relation_candidates[0]),
                 "direct",
             ),
             (
-                cls._build_mechanism_role_query(
-                    mechanism_candidate
-                ),
+                cls._build_mechanism_role_query(mechanism_candidate),
                 "mechanism",
             ),
             (
-                cls._build_transfer_role_query(
-                    relation_candidates[-1]
-                ),
+                cls._build_transfer_role_query(relation_candidates[-1]),
                 "transfer",
             ),
         )
@@ -517,10 +601,7 @@ class ResearchQueryService:
         return tuple(
             (query, role)
             for query, role in role_queries
-            if (
-                query
-                and cls._is_useful_derived_role_query(query)
-            )
+            if (query and cls._is_useful_derived_role_query(query))
         )
 
     @classmethod
@@ -532,15 +613,12 @@ class ResearchQueryService:
 
         words = cls._query_words(query)
 
-        return (
-            len(cls._query_term_stems(query)) >= 3
-            and any(
-                not cls._term_matches_prefixes(
-                    word,
-                    cls._GENERIC_DERIVED_ROLE_PREFIXES,
-                )
-                for word in words
+        return len(cls._query_term_stems(query)) >= 3 and any(
+            not cls._term_matches_prefixes(
+                word,
+                cls._GENERIC_DERIVED_ROLE_PREFIXES,
             )
+            for word in words
         )
 
     @classmethod
@@ -580,11 +658,7 @@ class ResearchQueryService:
             for word in cls._query_words(candidate)
             if word.casefold() not in ignored_words
         ]
-        salient_words = [
-            word
-            for word in words
-            if cls._is_salient_term(word)
-        ][:2]
+        salient_words = [word for word in words if cls._is_salient_term(word)][:2]
 
         return " ".join(
             cls._deduplicate_words(
@@ -633,11 +707,7 @@ class ResearchQueryService:
             )
         ]
 
-        return " ".join(
-            cls._deduplicate_words(
-                tuple(selected_words)
-            ).split()[:8]
-        )
+        return " ".join(cls._deduplicate_words(tuple(selected_words)).split()[:8])
 
     @classmethod
     def _contains_prefix_term(
@@ -676,10 +746,7 @@ class ResearchQueryService:
 
         lowered = word.casefold()
 
-        return any(
-            lowered.startswith(prefix)
-            for prefix in prefixes
-        )
+        return any(lowered.startswith(prefix) for prefix in prefixes)
 
     @classmethod
     def _select_bounded_queries(
@@ -693,25 +760,19 @@ class ResearchQueryService:
         """Select at most three ordered query dimensions."""
 
         available_role_queries = tuple(
-            (query, role)
-            for query, role in role_queries
-            if query in queries
+            (query, role) for query, role in role_queries if query in queries
         )
 
         if available_role_queries:
             selected: list[str] = []
             directives = tuple(
                 query
-                for query in cls._deduplicate_queries(
-                    list(directive_queries)
-                )
+                for query in cls._deduplicate_queries(list(directive_queries))
                 if query in queries
             )
             prioritized = tuple(
                 query
-                for query in cls._deduplicate_queries(
-                    list(prioritized_queries)
-                )
+                for query in cls._deduplicate_queries(list(prioritized_queries))
                 if query in queries
             )
             role_candidates = available_role_queries
@@ -748,22 +809,16 @@ class ResearchQueryService:
 
         prioritized = tuple(
             query
-            for query in cls._deduplicate_queries(
-                list(prioritized_queries)
-            )
+            for query in cls._deduplicate_queries(list(prioritized_queries))
             if query in queries
         )[:3]
 
         if prioritized:
-            remaining = tuple(
-                query
-                for query in queries
-                if query not in prioritized
-            )
+            remaining = tuple(query for query in queries if query not in prioritized)
 
             return (
                 *prioritized,
-                *remaining[:3 - len(prioritized)],
+                *remaining[: 3 - len(prioritized)],
             )
 
         return (
@@ -795,9 +850,7 @@ class ResearchQueryService:
 
         available_inferred = tuple(
             query
-            for query in cls._deduplicate_queries(
-                list(inferred_queries)
-            )
+            for query in cls._deduplicate_queries(list(inferred_queries))
             if query in queries
         )
         if not available_inferred:
@@ -822,33 +875,21 @@ class ResearchQueryService:
         )
 
         request_queries = tuple(
-            query
-            for query in queries
-            if query not in available_inferred
+            query for query in queries if query not in available_inferred
         )
         if not request_queries:
             return full_selection
 
         request_priorities = tuple(
-            query
-            for query in prioritized_queries
-            if query not in available_inferred
+            query for query in prioritized_queries if query not in available_inferred
         )
         request_directives = tuple(
-            query
-            for query in directive_queries
-            if query in request_queries
+            query for query in directive_queries if query in request_queries
         )
         request_roles = tuple(
-            (query, role)
-            for query, role in role_queries
-            if query in request_queries
+            (query, role) for query, role in role_queries if query in request_queries
         )
-        if (
-            not objective_query
-            and not request_directives
-            and not request_roles
-        ):
+        if not objective_query and not request_directives and not request_roles:
             return full_selection
 
         request_selection = cls._select_bounded_queries(
@@ -857,9 +898,7 @@ class ResearchQueryService:
             directive_queries=request_directives,
             role_queries=request_roles,
             objective_query=(
-                objective_query
-                if objective_query in request_queries
-                else ""
+                objective_query if objective_query in request_queries else ""
             ),
         )
 
@@ -942,10 +981,7 @@ class ResearchQueryService:
 
         lowered = candidate.casefold()
 
-        return any(
-            lowered.startswith(prefix)
-            for prefix in cls._DIRECTIVE_PREFIXES
-        )
+        return any(lowered.startswith(prefix) for prefix in cls._DIRECTIVE_PREFIXES)
 
     @staticmethod
     def _is_planning_directive(candidate: str) -> bool:
@@ -967,18 +1003,11 @@ class ResearchQueryService:
 
             words = cls._query_words(candidate)
             salient_terms = cls._deduplicate_words(
-                tuple(
-                    word
-                    for word in words
-                    if cls._is_salient_term(word)
-                )
+                tuple(word for word in words if cls._is_salient_term(word))
             ).split()
             anchors = salient_terms[:1]
 
-            if any(
-                cls._word_stem(word) == "align"
-                for word in words
-            ):
+            if any(cls._word_stem(word) == "align" for word in words):
                 anchors.append("alignment")
 
             return tuple(anchors)
@@ -994,10 +1023,7 @@ class ResearchQueryService:
         """Add missing primary guidance anchors to one query."""
 
         words = query.split()
-        query_stems = {
-            cls._word_stem(word)
-            for word in words
-        }
+        query_stems = {cls._word_stem(word) for word in words}
 
         for anchor in anchors:
             anchor_stem = cls._word_stem(anchor)
@@ -1021,9 +1047,7 @@ class ResearchQueryService:
         """Build a bounded fallback from prioritized concepts."""
 
         if len(candidates) == 1:
-            return " ".join(
-                candidates[0].split()[:8]
-            )
+            return " ".join(candidates[0].split()[:8])
 
         first_fragment = cls._query_fragment(
             candidates[0],
@@ -1047,9 +1071,7 @@ class ResearchQueryService:
             )
         )
 
-        return " ".join(
-            combined.split()[:8]
-        )
+        return " ".join(combined.split()[:8])
 
     @classmethod
     def _shared_terms_fragment(
@@ -1093,12 +1115,7 @@ class ResearchQueryService:
                 for token in cls._normalize_query(candidate).split()
             ]
             filtered_words = [
-                word
-                for word in words
-                if (
-                    word
-                    and word not in ignored_words
-                )
+                word for word in words if (word and word not in ignored_words)
             ]
             candidate_words.append(filtered_words)
             term_counts.update(set(filtered_words))
@@ -1108,10 +1125,7 @@ class ResearchQueryService:
                     first_positions[word] = position
                     position += 1
 
-        excluded_stems = {
-            cls._word_stem(word)
-            for word in excluded_words
-        }
+        excluded_stems = {cls._word_stem(word) for word in excluded_words}
 
         shared_words = sorted(
             (
@@ -1129,9 +1143,7 @@ class ResearchQueryService:
             ),
         )
 
-        return " ".join(
-            shared_words[:maximum_words]
-        )
+        return " ".join(shared_words[:maximum_words])
 
     @staticmethod
     def _word_stem(
@@ -1147,11 +1159,8 @@ class ResearchQueryService:
             "ed",
             "s",
         ):
-            if (
-                normalized.endswith(suffix)
-                and len(normalized) > len(suffix) + 3
-            ):
-                return normalized[:-len(suffix)]
+            if normalized.endswith(suffix) and len(normalized) > len(suffix) + 3:
+                return normalized[: -len(suffix)]
 
         return normalized
 
@@ -1191,7 +1200,7 @@ class ResearchQueryService:
 
         for prefix in cls._DIRECTIVE_PREFIXES:
             if lowered.startswith(prefix):
-                normalized = normalized[len(prefix):]
+                normalized = normalized[len(prefix) :]
                 compact_directive = True
                 break
 
@@ -1214,20 +1223,12 @@ class ResearchQueryService:
             target_index = lowered.find(target_separator)
 
             if target_index >= 0:
-                method_words = cls._query_words(
-                    normalized[:target_index]
-                )
+                method_words = cls._query_words(normalized[:target_index])
                 target_words = cls._query_words(
-                    normalized[
-                        target_index + len(target_separator):
-                    ]
+                    normalized[target_index + len(target_separator) :]
                 )
-                method_words = cls._compact_directive_words(
-                    method_words
-                )
-                target_words = cls._compact_directive_words(
-                    target_words
-                )
+                method_words = cls._compact_directive_words(method_words)
+                target_words = cls._compact_directive_words(target_words)
 
                 return " ".join(
                     cls._deduplicate_words(
@@ -1258,7 +1259,7 @@ class ResearchQueryService:
 
         for prefix in prefixes:
             if lowered.startswith(prefix):
-                normalized = normalized[len(prefix):]
+                normalized = normalized[len(prefix) :]
                 break
 
         words = cls._query_words(normalized)
@@ -1266,11 +1267,7 @@ class ResearchQueryService:
         if compact_directive:
             words = cls._compact_directive_words(words)
         salient_words = cls._deduplicate_words(
-            tuple(
-                word
-                for word in words
-                if cls._is_salient_term(word)
-            )
+            tuple(word for word in words if cls._is_salient_term(word))
         ).split()[:2]
         base_word_count = max(
             maximum_words - len(salient_words),
@@ -1283,16 +1280,12 @@ class ResearchQueryService:
             )
         ).split()[:maximum_words]
 
-        while (
-            selected_words
-            and selected_words[-1].casefold()
-            in {
-                "and",
-                "or",
-                "rather",
-                "than",
-            }
-        ):
+        while selected_words and selected_words[-1].casefold() in {
+            "and",
+            "or",
+            "rather",
+            "than",
+        }:
             selected_words.pop()
 
         return " ".join(selected_words)
@@ -1306,8 +1299,7 @@ class ResearchQueryService:
         return [
             word
             for word in (
-                token.strip(",.;:?()\"'\u201c\u201d")
-                for token in value.split()
+                token.strip(",.;:?()\"'\u201c\u201d") for token in value.split()
             )
             if word
         ]
@@ -1340,18 +1332,13 @@ class ResearchQueryService:
     ) -> bool:
         """Return whether a term carries acronym-like domain detail."""
 
-        letters = [
-            character
-            for character in term
-            if character.isalpha()
-        ]
+        letters = [character for character in term if character.isalpha()]
 
         if len(letters) < 2:
             return False
 
-        return (
-            all(character.isupper() for character in letters)
-            or any(character.isupper() for character in term[1:])
+        return all(character.isupper() for character in letters) or any(
+            character.isupper() for character in term[1:]
         )
 
     @staticmethod
@@ -1404,13 +1391,10 @@ class ResearchQueryService:
             return (focus,) if focus else ()
 
         mechanism_queries = tuple(
-            cls._build_focus_mechanism_query(item)
-            for item in mechanism_items
+            cls._build_focus_mechanism_query(item) for item in mechanism_items
         )
 
-        return cls._deduplicate_queries(
-            [query for query in mechanism_queries if query]
-        )
+        return cls._deduplicate_queries([query for query in mechanism_queries if query])
 
     @classmethod
     def _build_focus_mechanism_query(
@@ -1419,13 +1403,8 @@ class ResearchQueryService:
     ) -> str:
         """Anchor one requested mechanism to the target representation task."""
 
-        mechanism_words = cls._query_words(
-            mechanism.replace("-", " ")
-        )
-        lowered_words = {
-            word.casefold()
-            for word in mechanism_words
-        }
+        mechanism_words = cls._query_words(mechanism.replace("-", " "))
+        lowered_words = {word.casefold() for word in mechanism_words}
         anchors = (
             ("video", "representations")
             if "teacher" in lowered_words
@@ -1433,9 +1412,7 @@ class ResearchQueryService:
         )
 
         return " ".join(
-            cls._deduplicate_words(
-                (*anchors, *mechanism_words)
-            ).split()[:8]
+            cls._deduplicate_words((*anchors, *mechanism_words)).split()[:8]
         )
 
     @staticmethod
@@ -1475,7 +1452,8 @@ class ResearchQueryService:
                 cls._query_overlap(
                     query_terms,
                     cls._query_term_stems(existing_query),
-                ) >= 0.75
+                )
+                >= 0.75
                 for existing_query in unique_queries
             ):
                 continue
@@ -1529,7 +1507,6 @@ class ResearchQueryService:
         if not first_terms or not second_terms:
             return 0.0
 
-        return (
-            len(first_terms & second_terms)
-            / min(len(first_terms), len(second_terms))
+        return len(first_terms & second_terms) / min(
+            len(first_terms), len(second_terms)
         )
