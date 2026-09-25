@@ -2375,6 +2375,57 @@ def test_research_evaluation_service_corrects_image_clip_token_alignment(
     )
 
 
+def test_research_evaluation_service_does_not_promote_causal_tabular_terms(
+) -> None:
+    """Generic statistical terms cannot fabricate a visual transfer path."""
+
+    base_paper = create_paper_metadata(
+        title=(
+            "Learning to Fluctuate: Statistical Foundations for Causal "
+            "Tabular Pretraining"
+        )
+    )
+    paper = PaperMetadata(
+        source_reference=base_paper.source_reference,
+        title=base_paper.title,
+        abstract=(
+            "Causal tabular foundation models amortize effect estimation "
+            "across synthetic mechanisms. Latent-effect supervision rewards "
+            "posterior shrinkage rather than encoding the repeated-sample "
+            "response needed in a fixed deployment population. A frozen "
+            "forward pass uses studentized coverage, and matched Raw FSP "
+            "lowers checkpoint-mean RMSE."
+        ),
+    )
+    response = create_valid_provider_response()
+    response.structured_output["evaluations"][0].update(
+        {
+            "relevance_score": 0,
+            "mechanism_match": "none",
+            "source_mechanism": "",
+            "target_problem_dimension": "",
+            "required_adaptation": "",
+            "evidence_support": [],
+        }
+    )
+
+    result = ResearchEvaluationService(
+        provider=StubProvider(response),
+        model_name="qwen3:8b",
+    ).rank_candidates(
+        create_research_request(),
+        create_research_strategy(),
+        (paper,),
+    )
+
+    assert result[0].mechanism_match is ResearchMechanismMatch.NONE
+    assert result[0].relevance_score == 0.0
+    assert not any(
+        "corrected deterministically" in warning
+        for warning in result[0].warnings
+    )
+
+
 def test_research_evaluation_service_corrects_clip_latent_autoencoder_band(
 ) -> None:
     """Image autoencoder alignment belongs in the transferable band."""

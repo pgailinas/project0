@@ -32,7 +32,7 @@ class ResearchStrategyService:
     _MAX_GUIDANCE_SEEDS = 8
 
     _NAMED_METHOD_CUE_PATTERN = re.compile(
-        r"\b(?:include|including|such as|for example|e\.g\.,?|"
+        r"\b(?:assess|include|including|such as|for example|e\.g\.,?|"
         r"named methods?\s*:|methods?\s*:|papers?\s*:|"
         r"pay special attention to)\s+"
         r"([^.;!?]+)",

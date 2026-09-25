@@ -1800,7 +1800,6 @@ class ResearchEvaluationService:
             marker in evidence_text
             for marker in (
                 "autoencoder",
-                "student",
                 "from scratch",
                 "vision transformer",
                 "vit model",
@@ -1812,7 +1811,10 @@ class ResearchEvaluationService:
                 "masked image modeling",
                 "masked video modeling",
             )
-        )
+        ) or re.search(
+            r"\bstudents?\b",
+            evidence_text,
+        ) is not None
 
         has_complete_mapping = all(
             (

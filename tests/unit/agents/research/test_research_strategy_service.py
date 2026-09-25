@@ -212,6 +212,41 @@ def test_build_strategy_extracts_individually_named_methods() -> None:
     )
 
 
+def test_build_strategy_extracts_methods_from_assess_guidance() -> None:
+    """Production Assess guidance creates individual exact method seeds."""
+
+    request = ResearchRequest(
+        question=(
+            "Which semantic and temporal video-representation methods can "
+            "be realistically adapted and evaluated on NExT-QA using "
+            "Colab-scale compute?"
+        ),
+        guidance=(
+            "Assess Unmasked Teacher, Masked Video Distillation, Delta "
+            "Distillation, MAViL, and other directly comparable methods "
+            "discovered in the literature. Separate full pretraining from "
+            "feasible experiments using released checkpoints."
+        ),
+    )
+
+    result = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    ).build_strategy(request)
+
+    assert result.seed_terms == (
+        "Unmasked Teacher",
+        "Masked Video Distillation",
+        "Delta Distillation",
+        "MAViL",
+    )
+    assert tuple(seed.term for seed in result.guidance_seeds) == (
+        "Unmasked Teacher",
+        "Masked Video Distillation",
+        "Delta Distillation",
+        "MAViL",
+    )
+
+
 def test_build_strategy_removes_duplicate_guidance_concepts() -> None:
     """Verify duplicate guidance concepts are removed."""
 
