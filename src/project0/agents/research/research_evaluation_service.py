@@ -1568,6 +1568,38 @@ class ResearchEvaluationService:
                     warning=warning,
                 )
 
+        if mechanism_match is ResearchMechanismMatch.TRANSFERABLE:
+            evidence_text = cls._paper_mechanism_evidence_text(paper)
+            evidence_terms = cls._meaningful_term_stems(evidence_text)
+            if (
+                "video" in target_terms
+                and "video" not in evidence_terms
+                and not target_terms & evidence_terms
+                and cls._infer_mechanism_match(evidence_text) is None
+                and re.search(
+                    r"\b(?:language models?|llms?|text-based|"
+                    r"mathematics|math|code reasoning)\b",
+                    evidence_text,
+                ) is not None
+            ):
+                corrected_match = ResearchMechanismMatch.NONE
+                warning = (
+                    "Transferable mechanism classification corrected "
+                    "deterministically to 'none' because supplied paper "
+                    "evidence contains neither a target-subject connection "
+                    "nor an evidence-derived transfer mechanism."
+                )
+                LOGGER.warning("%s Paper: %s", warning, paper.title)
+                return replace(
+                    reconciliation,
+                    mechanism_match=corrected_match,
+                    relevance_score=cls._score_for_inferred_match(
+                        reconciliation.relevance_score,
+                        corrected_match,
+                    ),
+                    warning=warning,
+                )
+
         if mechanism_match is ResearchMechanismMatch.NONE:
             evidence_terms = cls._meaningful_term_stems(
                 cls._paper_mechanism_evidence_text(paper)

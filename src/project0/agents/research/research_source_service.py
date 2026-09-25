@@ -683,7 +683,7 @@ class ResearchSourceService:
         reference: ResearchSourceReference,
         seed_terms: tuple[str, ...],
     ) -> bool:
-        """Return whether a reference exactly matches a supplied seed."""
+        """Return whether a reference matches a supplied seed identity."""
 
         reference_title = cls._normalize_text(reference.title)
         reference_identifiers = cls._stable_identifiers(reference)
@@ -692,6 +692,12 @@ class ResearchSourceService:
             normalized_seed = cls._normalize_text(seed)
 
             if normalized_seed and normalized_seed == reference_title:
+                return True
+
+            if cls._matches_abbreviated_title_seed(
+                reference.title,
+                seed,
+            ):
                 return True
 
             seed_identifiers = cls._stable_identifiers(
@@ -707,6 +713,34 @@ class ResearchSourceService:
                 return True
 
         return False
+
+    @classmethod
+    def _matches_abbreviated_title_seed(
+        cls,
+        reference_title: str,
+        seed: str,
+    ) -> bool:
+        """Match a named method followed by a subtitle or ``for`` clause."""
+
+        title_terms = cls._normalize_text(reference_title).split()
+        seed_terms = cls._normalize_text(seed).split()
+        if (
+            not seed_terms
+            or len(title_terms) <= len(seed_terms)
+            or title_terms[: len(seed_terms)] != seed_terms
+        ):
+            return False
+
+        normalized_title_prefix = " ".join(reference_title.split())
+        normalized_seed_prefix = " ".join(seed.split())
+        prefix_remainder = normalized_title_prefix[
+            len(normalized_seed_prefix):
+        ].lstrip()
+
+        return (
+            prefix_remainder.startswith((":", "-", "–", "—"))
+            or title_terms[len(seed_terms)] == "for"
+        )
 
     @classmethod
     def _fallback_arxiv_seed_references(

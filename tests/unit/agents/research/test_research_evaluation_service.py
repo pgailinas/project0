@@ -2426,6 +2426,56 @@ def test_research_evaluation_service_does_not_promote_causal_tabular_terms(
     )
 
 
+def test_research_evaluation_service_rejects_hypothetical_llm_transfer(
+) -> None:
+    """Hypothetical adaptation cannot make LLM distillation transferable."""
+
+    base_paper = create_paper_metadata(title="On-Policy Delta Distillation")
+    paper = PaperMetadata(
+        source_reference=base_paper.source_reference,
+        title=base_paper.title,
+        abstract=(
+            "On-policy distillation trains small reasoning language models "
+            "with token-level supervision from a teacher model. The delta "
+            "signal improves mathematics, science, and code reasoning "
+            "benchmarks after a short post-training period."
+        ),
+    )
+    response = create_valid_provider_response()
+    response.structured_output["evaluations"][0].update(
+        {
+            "relevance_score": 75,
+            "mechanism_match": "transferable",
+            "source_mechanism": "On-policy delta distillation for LLMs.",
+            "target_problem_dimension": (
+                "Semantic and temporal video representations for NExT-QA."
+            ),
+            "required_adaptation": (
+                "Adapt the language-model method to video data."
+            ),
+            "evidence_support": [
+                (
+                    "The method is evaluated on mathematics, science, and "
+                    "code reasoning tasks."
+                )
+            ],
+        }
+    )
+
+    result = ResearchEvaluationService(
+        provider=StubProvider(response),
+        model_name="qwen3:8b",
+    ).rank_candidates(
+        create_research_request(),
+        create_research_strategy(),
+        (paper,),
+    )
+
+    assert result[0].mechanism_match is ResearchMechanismMatch.NONE
+    assert result[0].relevance_score == 0.24
+    assert "target-subject connection" in result[0].warnings[-1]
+
+
 def test_research_evaluation_service_corrects_clip_latent_autoencoder_band(
 ) -> None:
     """Image autoencoder alignment belongs in the transferable band."""

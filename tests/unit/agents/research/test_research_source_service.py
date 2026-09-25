@@ -306,6 +306,68 @@ def test_research_source_service_preserves_each_named_method_candidate() -> None
     assert service.last_search_statistics["seed_preserved_count"] == 4
 
 
+def test_research_source_service_preserves_abbreviated_named_titles() -> None:
+    """Named seeds match safe subtitle and ``for`` title expansions."""
+
+    methods = (
+        "Unmasked Teacher",
+        "Masked Video Distillation",
+        "Delta Distillation",
+        "MAViL",
+    )
+    intended_titles = (
+        "Unmasked Teacher: Towards Training-Efficient Video Foundation Models",
+        (
+            "Masked Video Distillation: Rethinking Masked Feature Modeling "
+            "for Self-supervised Video Representation Learning"
+        ),
+        "Delta Distillation for Efficient Video Processing",
+        "MAViL: Masked Audio-Video Learners",
+    )
+    intended = tuple(
+        replace(
+            create_reference(f"intended-{index}"),
+            title=title,
+        )
+        for index, title in enumerate(intended_titles, start=1)
+    )
+    unrelated = replace(
+        create_reference("unrelated-delta"),
+        title="On-Policy Delta Distillation",
+    )
+    provider = QueryMappedResearchSourceProvider(
+        {
+            methods[0]: (intended[0],),
+            methods[1]: (intended[1],),
+            methods[2]: (intended[2], unrelated),
+            methods[3]: (intended[3],),
+        }
+    )
+    service = ResearchSourceService(
+        providers={"stub": provider},
+        evaluation_candidate_limit=4,
+    )
+    strategy = ResearchStrategy(
+        concepts=("video representation distillation",),
+        search_terms=methods,
+        seed_terms=methods,
+        guidance_seeds=tuple(
+            ResearchGuidanceSeed(term=method)
+            for method in methods
+        ),
+        source_names=("stub",),
+    )
+
+    result = service.search(strategy)
+
+    assert tuple(reference.title for reference in result) == intended_titles
+    assert all(reference.is_guidance_seed for reference in result)
+    assert service.last_search_statistics["seed_preserved_count"] == 4
+    assert unrelated.title not in {
+        reference.title for reference in result
+    }
+
+
 def test_research_source_service_bounds_balanced_evaluation_pool() -> None:
     """Seeds survive a bounded pool balanced across result groups."""
 
