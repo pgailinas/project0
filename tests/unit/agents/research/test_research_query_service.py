@@ -301,6 +301,26 @@ def test_research_query_service_prioritizes_exact_seed_queries():
     )
 
 
+def test_research_query_service_keeps_each_named_method_as_exact_query():
+    """Each named guidance method receives its own exact lookup query."""
+
+    methods = (
+        "Unmasked Teacher",
+        "Masked Video Distillation",
+        "Delta Distillation",
+        "MAViL",
+    )
+    strategy = ResearchStrategy(
+        concepts=("video representation distillation",),
+        search_terms=(),
+        seed_terms=methods,
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms[: len(methods)] == methods
+
+
 def test_research_query_service_excludes_objective_question_concept():
     """Verify objective question text is not used as a provider query."""
 

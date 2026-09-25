@@ -268,6 +268,44 @@ def test_research_source_service_omits_arxiv_identifier_from_crossref() -> None:
     ]
 
 
+def test_research_source_service_preserves_each_named_method_candidate() -> None:
+    """Exact matches for named methods remain evaluation candidates."""
+
+    methods = (
+        "Unmasked Teacher",
+        "Masked Video Distillation",
+        "Delta Distillation",
+        "MAViL",
+    )
+    references = tuple(
+        replace(
+            create_reference(f"method-{index}"),
+            title=method,
+        )
+        for index, method in enumerate(methods, start=1)
+    )
+    provider = QueryMappedResearchSourceProvider(
+        dict(zip(methods, ((reference,) for reference in references)))
+    )
+    service = ResearchSourceService(providers={"stub": provider})
+    strategy = ResearchStrategy(
+        concepts=("video representation distillation",),
+        search_terms=methods,
+        seed_terms=methods,
+        guidance_seeds=tuple(
+            ResearchGuidanceSeed(term=method)
+            for method in methods
+        ),
+        source_names=("stub",),
+    )
+
+    result = service.search(strategy)
+
+    assert tuple(reference.title for reference in result) == methods
+    assert all(reference.is_guidance_seed for reference in result)
+    assert service.last_search_statistics["seed_preserved_count"] == 4
+
+
 def test_research_source_service_bounds_balanced_evaluation_pool() -> None:
     """Seeds survive a bounded pool balanced across result groups."""
 

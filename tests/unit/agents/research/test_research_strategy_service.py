@@ -183,6 +183,35 @@ def test_build_strategy_structures_high_relevance_seed_designation() -> None:
     )
 
 
+def test_build_strategy_extracts_individually_named_methods() -> None:
+    """Signposted method names become intact ordered guidance seeds."""
+
+    request = ResearchRequest(
+        question="How should video representations align with CLIP?",
+        guidance=(
+            "Prioritize relevant distillation precedents, including "
+            "Unmasked Teacher, Masked Video Distillation, Delta "
+            "Distillation, and MAViL. Assess their applicability to "
+            "video representation alignment."
+        ),
+    )
+
+    result = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    ).build_strategy(request)
+
+    assert result.seed_terms == (
+        "Unmasked Teacher",
+        "Masked Video Distillation",
+        "Delta Distillation",
+        "MAViL",
+    )
+    assert result.guidance_seeds == tuple(
+        ResearchGuidanceSeed(term=term)
+        for term in result.seed_terms
+    )
+
+
 def test_build_strategy_removes_duplicate_guidance_concepts() -> None:
     """Verify duplicate guidance concepts are removed."""
 

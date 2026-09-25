@@ -29,6 +29,16 @@ LOGGER = logging.getLogger(__name__)
 class ResearchStrategyService:
     """Build structured Research Agent strategies."""
 
+    _MAX_GUIDANCE_SEEDS = 8
+
+    _NAMED_METHOD_CUE_PATTERN = re.compile(
+        r"\b(?:include|including|such as|for example|e\.g\.,?|"
+        r"named methods?\s*:|methods?\s*:|papers?\s*:|"
+        r"pay special attention to)\s+"
+        r"([^.;!?]+)",
+        flags=re.IGNORECASE,
+    )
+
     _PROCEDURAL_GUIDANCE_PREFIXES = (
         "compare ",
         "do not ",
@@ -267,7 +277,7 @@ class ResearchStrategyService:
                 if candidate not in seeds:
                     seeds.append(candidate)
 
-        return tuple(seeds[:3])
+        return tuple(seeds[: cls._MAX_GUIDANCE_SEEDS])
 
     @classmethod
     def _extract_seed_terms(
@@ -305,7 +315,45 @@ class ResearchStrategyService:
                 f"doi:{match.group(1).rstrip('.,;:)}]')}",
             )
 
-        return tuple(seed_terms[:3])
+        for match in cls._NAMED_METHOD_CUE_PATTERN.finditer(guidance):
+            for candidate in re.split(
+                r"\s*,\s*|\s*;\s*|\s+and\s+",
+                match.group(1),
+                flags=re.IGNORECASE,
+            ):
+                normalized = re.sub(
+                    r"^(?:and|or|the|a|an)\s+",
+                    "",
+                    candidate.strip(" \t\r\n:()[]{}"),
+                    flags=re.IGNORECASE,
+                )
+                if cls._is_named_method(normalized):
+                    cls._append_unique(seed_terms, normalized)
+
+        return tuple(seed_terms[: cls._MAX_GUIDANCE_SEEDS])
+
+    @staticmethod
+    def _is_named_method(value: str) -> bool:
+        """Return whether a signposted list item looks like a proper name."""
+
+        words = value.split()
+        if not 1 <= len(words) <= 8:
+            return False
+
+        connecting_words = {"a", "an", "for", "in", "of", "the", "to"}
+        significant_words = [
+            word
+            for word in words
+            if word.casefold() not in connecting_words
+        ]
+        if not significant_words:
+            return False
+
+        return all(
+            word[0].isupper()
+            and any(character.isalpha() for character in word)
+            for word in significant_words
+        )
 
     @staticmethod
     def _append_unique(
