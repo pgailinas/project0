@@ -211,6 +211,69 @@ def test_analyze_allows_literature_grounded_direction_without_context():
     }
 
 
+def test_non_speculative_direction_rejects_adjacent_literature():
+    """Adjacent evidence cannot support a non-speculative direction."""
+
+    invalid = _valid_output(with_context=False)
+    invalid["candidate_directions"][0]["literature_evidence_ids"] = [
+        "literature-007"
+    ]
+    provider = StubProvider([invalid, invalid])
+    service = ResearchDirectionAnalysisService(provider, "test-model")
+    papers = (
+        _paper_analysis("Paper-A", "Paper A", 3),
+        _paper_analysis("Paper-B", "Paper B", 7),
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="not classified as direct or transferable",
+    ):
+        service.analyze(
+            _request(),
+            None,
+            papers,
+            direction_eligible_source_ids=frozenset({"Paper-A"}),
+        )
+
+    payload = json.loads(provider.requests[0].user_prompt)
+    assert payload["allowed_evidence_ids"][
+        "non_speculative_direction_literature_evidence_ids"
+    ] == [
+        "literature-001",
+        "literature-002",
+        "literature-003",
+        "literature-004",
+    ]
+
+
+def test_speculative_direction_allows_adjacent_literature_anchor():
+    """Adjacent evidence remains available for labeled extrapolation."""
+
+    output = _valid_output(with_context=False)
+    direction = output["candidate_directions"][0]
+    direction["literature_evidence_ids"] = ["literature-007"]
+    direction["speculative"] = True
+    provider = StubProvider([output])
+    service = ResearchDirectionAnalysisService(provider, "test-model")
+    papers = (
+        _paper_analysis("Paper-A", "Paper A", 3),
+        _paper_analysis("Paper-B", "Paper B", 7),
+    )
+
+    result = service.analyze(
+        _request(),
+        None,
+        papers,
+        direction_eligible_source_ids=frozenset({"Paper-A"}),
+    )
+
+    assert result.candidate_directions[0].speculative is True
+    assert result.candidate_directions[0].literature_evidence[
+        0
+    ].source_id == "Paper-B"
+
+
 def test_analyze_retries_once_after_invalid_output_then_succeeds():
     invalid = _valid_output()
     invalid["candidate_directions"][0]["literature_evidence_ids"] = [

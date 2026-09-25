@@ -73,6 +73,8 @@ class ResearchDirectionAnalysisService:
         request: ResearchRequest,
         context: ExistingResearchContext | None,
         paper_analyses: tuple[PaperAnalysis, ...],
+        *,
+        direction_eligible_source_ids: frozenset[str] | None = None,
     ) -> ResearchDirectionAnalysis:
         """Synthesize analyzed literature and identify research directions."""
 
@@ -96,6 +98,7 @@ class ResearchDirectionAnalysisService:
             context=context,
             paper_analyses=selected_paper_analyses,
             evidence_catalog=evidence_catalog,
+            direction_eligible_source_ids=direction_eligible_source_ids,
         )
 
         provider_response = self._provider.generate(
@@ -108,6 +111,7 @@ class ResearchDirectionAnalysisService:
                 evidence_catalog=evidence_catalog,
                 provider_response=provider_response,
                 skip_unsupported_comparisons=False,
+                direction_eligible_source_ids=direction_eligible_source_ids,
             )
         except ValueError as error:
             LOGGER.warning(
@@ -123,6 +127,7 @@ class ResearchDirectionAnalysisService:
             paper_analyses=selected_paper_analyses,
             evidence_catalog=evidence_catalog,
             validation_error=validation_error,
+            direction_eligible_source_ids=direction_eligible_source_ids,
         )
 
         provider_response = self._provider.generate(
@@ -134,6 +139,7 @@ class ResearchDirectionAnalysisService:
             evidence_catalog=evidence_catalog,
             provider_response=provider_response,
             skip_unsupported_comparisons=True,
+            direction_eligible_source_ids=direction_eligible_source_ids,
         )
 
     def _build_evidence_catalog(
@@ -250,6 +256,7 @@ class ResearchDirectionAnalysisService:
         paper_analyses: tuple[PaperAnalysis, ...],
         evidence_catalog: dict[str, _EvidenceCatalogEntry],
         validation_error: str | None = None,
+        direction_eligible_source_ids: frozenset[str] | None = None,
     ) -> ProviderRequest:
         """Build a provider-neutral research direction analysis request."""
 
@@ -283,6 +290,21 @@ class ResearchDirectionAnalysisService:
             if entry.source_type
             == ResearchEvidenceSourceType.RESEARCH_PAPER
         ]
+        eligible_direction_evidence_ids = [
+            entry.provider_id
+            for entry in evidence_catalog.values()
+            if entry.source_type
+            == ResearchEvidenceSourceType.RESEARCH_PAPER
+            and (
+                direction_eligible_source_ids is None
+                or any(
+                    reference.source_id in direction_eligible_source_ids
+                    for reference in entry.finding.evidence
+                    if reference.source_type
+                    == ResearchEvidenceSourceType.RESEARCH_PAPER
+                )
+            )
+        ]
 
         if context_evidence_ids:
             context_evidence_schema = {
@@ -312,6 +334,9 @@ class ResearchDirectionAnalysisService:
                 "allowed_evidence_ids": {
                     "context_evidence_ids": context_evidence_ids,
                     "literature_evidence_ids": literature_evidence_ids,
+                    "non_speculative_direction_literature_evidence_ids": (
+                        eligible_direction_evidence_ids
+                    ),
                 },
                 "validation_feedback": validation_error,
                 "existing_research_context": context_payload,
@@ -436,7 +461,14 @@ class ResearchDirectionAnalysisService:
                 "retained-paper findings. Use context_evidence_ids only from "
                 "allowed_evidence_ids.context_evidence_ids and use "
                 "literature_evidence_ids only from "
-                "allowed_evidence_ids.literature_evidence_ids. When existing "
+                "allowed_evidence_ids.literature_evidence_ids. "
+                "A non-speculative candidate direction may cite literature "
+                "evidence only from allowed_evidence_ids."
+                "non_speculative_direction_literature_evidence_ids. Other "
+                "literature evidence was classified as adjacent or unrelated "
+                "to the requested mechanism and may support only an explicitly "
+                "speculative direction whose wording and rationale clearly "
+                "state that adaptation is required. When existing "
                 "research context is supplied, a non-speculative candidate "
                 "direction must connect at least one context finding with at "
                 "least one literature finding. Without existing "
@@ -576,6 +608,7 @@ class ResearchDirectionAnalysisService:
         evidence_catalog: dict[str, _EvidenceCatalogEntry],
         provider_response: ProviderResponse,
         skip_unsupported_comparisons: bool,
+        direction_eligible_source_ids: frozenset[str] | None,
     ) -> ResearchDirectionAnalysis:
         """Create a research direction analysis from structured output."""
 
@@ -643,6 +676,7 @@ class ResearchDirectionAnalysisService:
             maximum_literature_evidence_ids=(
                 maximum_literature_evidence_ids
             ),
+            direction_eligible_source_ids=direction_eligible_source_ids,
         )
 
         return ResearchDirectionAnalysis(
@@ -750,6 +784,7 @@ class ResearchDirectionAnalysisService:
         context: ExistingResearchContext | None,
         evidence_catalog: dict[str, _EvidenceCatalogEntry],
         maximum_literature_evidence_ids: int,
+        direction_eligible_source_ids: frozenset[str] | None,
     ) -> tuple[ResearchDirection, ...]:
         """Parse candidate research directions."""
 
@@ -827,6 +862,21 @@ class ResearchDirectionAnalysisService:
                     raise ValueError(
                         "Non-speculative candidate direction requires "
                         "literature evidence."
+                    )
+
+                ineligible_source_ids = {
+                    reference.source_id
+                    for reference in literature_evidence
+                    if (
+                        direction_eligible_source_ids is not None
+                        and reference.source_id
+                        not in direction_eligible_source_ids
+                    )
+                }
+                if ineligible_source_ids:
+                    raise ValueError(
+                        "Non-speculative candidate direction cites literature "
+                        "that was not classified as direct or transferable."
                     )
             elif not context_evidence and not literature_evidence:
                 raise ValueError(

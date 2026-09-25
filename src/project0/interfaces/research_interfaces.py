@@ -76,6 +76,8 @@ class ResearchDirectionAnalysisServiceProtocol(Protocol):
         request: ResearchRequest,
         context: ExistingResearchContext | None,
         paper_analyses: tuple[PaperAnalysis, ...],
+        *,
+        direction_eligible_source_ids: frozenset[str] | None = None,
     ) -> ResearchDirectionAnalysis:
         """Analyze evidence and identify research directions."""
 

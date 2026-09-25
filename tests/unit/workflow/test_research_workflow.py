@@ -285,12 +285,17 @@ class StubResearchDirectionAnalysisService:
         )
         self._error = error
         self.requests: list[tuple] = []
+        self.direction_eligible_source_ids_requests: list[
+            frozenset[str] | None
+        ] = []
 
     def analyze(
         self,
         request: ResearchRequest,
         context: ExistingResearchContext | None,
         paper_analyses: tuple[PaperAnalysis, ...],
+        *,
+        direction_eligible_source_ids: frozenset[str] | None = None,
     ) -> ResearchDirectionAnalysis:
         self.requests.append(
             (
@@ -298,6 +303,9 @@ class StubResearchDirectionAnalysisService:
                 context,
                 paper_analyses,
             )
+        )
+        self.direction_eligible_source_ids_requests.append(
+            direction_eligible_source_ids
         )
 
         if self._error is not None:
@@ -2184,8 +2192,16 @@ def test_workflow_synthesizes_reviewed_evidence_across_thresholds() -> None:
         for reference in references
     )
     evaluations = (
-        _evaluation(papers[0], relevance_score=0.80),
-        _evaluation(papers[1], relevance_score=0.50),
+        _evaluation(
+            papers[0],
+            relevance_score=0.80,
+            mechanism_match=ResearchMechanismMatch.DIRECT,
+        ),
+        _evaluation(
+            papers[1],
+            relevance_score=0.50,
+            mechanism_match=ResearchMechanismMatch.ADJACENT,
+        ),
     )
     analyses = tuple(_paper_analysis(paper) for paper in papers)
     analysis_service = StubPaperAnalysisService(analyses=analyses)
@@ -2215,6 +2231,9 @@ def test_workflow_synthesizes_reviewed_evidence_across_thresholds() -> None:
             result.existing_research_context,
             analyses,
         )
+    ]
+    assert direction_service.direction_eligible_source_ids_requests == [
+        frozenset({"paper-001"})
     ]
     assert result.metadata["evidence_review"] == {
         "shortlisted_count": 2,

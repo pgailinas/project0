@@ -382,6 +382,15 @@ class ResearchWorkflow:
                                 request,
                                 context,
                                 direction_paper_analyses,
+                                direction_eligible_source_ids=frozenset(
+                                    evaluation.paper.source_reference.source_id
+                                    for evaluation in evaluations
+                                    if evaluation.mechanism_match
+                                    in {
+                                        ResearchMechanismMatch.DIRECT,
+                                        ResearchMechanismMatch.TRANSFERABLE,
+                                    }
+                                ),
                             )
                         )
                     except (
