@@ -393,6 +393,7 @@ class ResearchWorkflow:
                                 ),
                             )
                         )
+                        warnings.extend(direction_analysis.warnings)
                     except (
                         OSError,
                         RuntimeError,

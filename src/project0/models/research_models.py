@@ -262,6 +262,7 @@ class ResearchDirectionAnalysis:
 
     synthesis: ResearchSynthesis
     candidate_directions: tuple[ResearchDirection, ...] = ()
+    warnings: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

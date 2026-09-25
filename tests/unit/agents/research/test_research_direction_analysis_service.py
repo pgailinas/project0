@@ -211,30 +211,55 @@ def test_analyze_allows_literature_grounded_direction_without_context():
     }
 
 
-def test_non_speculative_direction_rejects_adjacent_literature():
-    """Adjacent evidence cannot support a non-speculative direction."""
+def test_retry_skips_adjacent_direction_and_preserves_valid_results(caplog):
+    """A bad retried direction does not erase valid synthesis or directions."""
 
     invalid = _valid_output(with_context=False)
     invalid["candidate_directions"][0]["literature_evidence_ids"] = [
         "literature-007"
     ]
-    provider = StubProvider([invalid, invalid])
+    retry = _valid_output(with_context=False)
+    retry["candidate_directions"].insert(
+        0,
+        {
+            "direction": "Misclassified adjacent direction.",
+            "rationale": "Adjacent literature would require adaptation.",
+            "context_evidence_ids": [],
+            "literature_evidence_ids": ["literature-007"],
+            "speculative": False,
+        },
+    )
+    provider = StubProvider([invalid, retry])
     service = ResearchDirectionAnalysisService(provider, "test-model")
     papers = (
         _paper_analysis("Paper-A", "Paper A", 3),
         _paper_analysis("Paper-B", "Paper B", 7),
     )
 
-    with pytest.raises(
-        ValueError,
-        match="not classified as direct or transferable",
-    ):
-        service.analyze(
+    with caplog.at_level("WARNING"):
+        result = service.analyze(
             _request(),
             None,
             papers,
             direction_eligible_source_ids=frozenset({"Paper-A"}),
         )
+
+    assert result.synthesis.themes
+    assert [
+        direction.direction
+        for direction in result.candidate_directions
+    ] == ["Investigate improved semantic alignment."]
+    assert result.warnings == (
+        "1 invalid candidate research direction was omitted after "
+        "corrective validation.",
+    )
+    assert len(provider.requests) == 2
+    assert (
+        "Skipping invalid candidate research direction after the corrective "
+        "retry: Non-speculative candidate direction cites literature that "
+        "was not classified as direct or transferable."
+        in caplog.text
+    )
 
     payload = json.loads(provider.requests[0].user_prompt)
     assert payload["allowed_evidence_ids"][

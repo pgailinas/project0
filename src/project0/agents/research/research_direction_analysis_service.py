@@ -111,6 +111,7 @@ class ResearchDirectionAnalysisService:
                 evidence_catalog=evidence_catalog,
                 provider_response=provider_response,
                 skip_unsupported_comparisons=False,
+                skip_invalid_directions=False,
                 direction_eligible_source_ids=direction_eligible_source_ids,
             )
         except ValueError as error:
@@ -139,6 +140,7 @@ class ResearchDirectionAnalysisService:
             evidence_catalog=evidence_catalog,
             provider_response=provider_response,
             skip_unsupported_comparisons=True,
+            skip_invalid_directions=True,
             direction_eligible_source_ids=direction_eligible_source_ids,
         )
 
@@ -608,6 +610,7 @@ class ResearchDirectionAnalysisService:
         evidence_catalog: dict[str, _EvidenceCatalogEntry],
         provider_response: ProviderResponse,
         skip_unsupported_comparisons: bool,
+        skip_invalid_directions: bool,
         direction_eligible_source_ids: frozenset[str] | None,
     ) -> ResearchDirectionAnalysis:
         """Create a research direction analysis from structured output."""
@@ -669,7 +672,7 @@ class ResearchDirectionAnalysisService:
             ),
         )
 
-        candidate_directions = self._parse_directions(
+        candidate_directions, skipped_direction_count = self._parse_directions(
             value=structured_output.get("candidate_directions"),
             context=context,
             evidence_catalog=evidence_catalog,
@@ -677,11 +680,26 @@ class ResearchDirectionAnalysisService:
                 maximum_literature_evidence_ids
             ),
             direction_eligible_source_ids=direction_eligible_source_ids,
+            skip_invalid_directions=skip_invalid_directions,
         )
+
+        direction_warnings = ()
+        if skipped_direction_count:
+            direction_verb = (
+                "directions were"
+                if skipped_direction_count != 1
+                else "direction was"
+            )
+            direction_warnings = (
+                f"{skipped_direction_count} invalid candidate research "
+                f"{direction_verb} "
+                "omitted after corrective validation.",
+            )
 
         return ResearchDirectionAnalysis(
             synthesis=synthesis,
             candidate_directions=candidate_directions,
+            warnings=direction_warnings,
         )
 
     def _parse_synthesis_findings(
@@ -785,7 +803,8 @@ class ResearchDirectionAnalysisService:
         evidence_catalog: dict[str, _EvidenceCatalogEntry],
         maximum_literature_evidence_ids: int,
         direction_eligible_source_ids: frozenset[str] | None,
-    ) -> tuple[ResearchDirection, ...]:
+        skip_invalid_directions: bool,
+    ) -> tuple[tuple[ResearchDirection, ...], int]:
         """Parse candidate research directions."""
 
         if not isinstance(value, list):
@@ -794,107 +813,136 @@ class ResearchDirectionAnalysisService:
             )
 
         directions: list[ResearchDirection] = []
+        skipped_direction_count = 0
 
         for item in value:
-            if not isinstance(item, dict):
-                raise ValueError(
-                    "Provider field 'candidate_directions' items must be "
-                    "objects."
-                )
-
-            direction = self._require_non_empty_string(
-                item.get("direction"),
-                "candidate_directions.direction",
-            )
-            rationale = self._require_non_empty_string(
-                item.get("rationale"),
-                "candidate_directions.rationale",
-            )
-
-            speculative = item.get("speculative")
-            if not isinstance(speculative, bool):
-                raise ValueError(
-                    "Provider field 'candidate_directions.speculative' "
-                    "must be a boolean."
-                )
-
-            context_ids = self._parse_candidate_evidence_ids(
-                item.get("context_evidence_ids"),
-                "candidate_directions.context_evidence_ids",
-            )
-            literature_ids = self._parse_candidate_evidence_ids(
-                item.get("literature_evidence_ids"),
-                "candidate_directions.literature_evidence_ids",
-                maximum_count=maximum_literature_evidence_ids,
-            )
-
-            context_evidence = self._resolve_evidence(
-                evidence_ids=context_ids,
-                field_name="candidate_directions.context_evidence_ids",
-                expected_source_type=(
-                    ResearchEvidenceSourceType.CONTEXT_DOCUMENT
-                ),
-                evidence_catalog=evidence_catalog,
-            )
-            literature_evidence = self._resolve_evidence(
-                evidence_ids=literature_ids,
-                field_name="candidate_directions.literature_evidence_ids",
-                expected_source_type=(
-                    ResearchEvidenceSourceType.RESEARCH_PAPER
-                ),
-                evidence_catalog=evidence_catalog,
-            )
-
-            if context is None and context_evidence:
-                raise ValueError(
-                    "Candidate direction returned context evidence when no "
-                    "existing research context was supplied."
-                )
-
-            if not speculative:
-                if context is not None and not context_evidence:
-                    raise ValueError(
-                        "Non-speculative candidate direction requires context "
-                        "evidence when existing research context is supplied."
+            try:
+                directions.append(
+                    self._parse_direction(
+                        item=item,
+                        context=context,
+                        evidence_catalog=evidence_catalog,
+                        maximum_literature_evidence_ids=(
+                            maximum_literature_evidence_ids
+                        ),
+                        direction_eligible_source_ids=(
+                            direction_eligible_source_ids
+                        ),
                     )
-
-                if not literature_evidence:
-                    raise ValueError(
-                        "Non-speculative candidate direction requires "
-                        "literature evidence."
-                    )
-
-                ineligible_source_ids = {
-                    reference.source_id
-                    for reference in literature_evidence
-                    if (
-                        direction_eligible_source_ids is not None
-                        and reference.source_id
-                        not in direction_eligible_source_ids
-                    )
-                }
-                if ineligible_source_ids:
-                    raise ValueError(
-                        "Non-speculative candidate direction cites literature "
-                        "that was not classified as direct or transferable."
-                    )
-            elif not context_evidence and not literature_evidence:
-                raise ValueError(
-                    "Speculative candidate direction requires an evidence "
-                    "anchor."
                 )
+            except ValueError as error:
+                if not skip_invalid_directions:
+                    raise
 
-            directions.append(
-                ResearchDirection(
-                    direction=direction,
-                    rationale=rationale,
-                    context_evidence=context_evidence,
-                    literature_evidence=literature_evidence,
-                    speculative=speculative,
+                LOGGER.warning(
+                    "Skipping invalid candidate research direction after "
+                    "the corrective retry: %s",
+                    error,
                 )
+                skipped_direction_count += 1
+
+        return tuple(directions), skipped_direction_count
+
+    def _parse_direction(
+        self,
+        *,
+        item: Any,
+        context: ExistingResearchContext | None,
+        evidence_catalog: dict[str, _EvidenceCatalogEntry],
+        maximum_literature_evidence_ids: int,
+        direction_eligible_source_ids: frozenset[str] | None,
+    ) -> ResearchDirection:
+        """Parse and validate one candidate research direction."""
+
+        if not isinstance(item, dict):
+            raise ValueError(
+                "Provider field 'candidate_directions' items must be objects."
             )
 
-        return tuple(directions)
+        direction = self._require_non_empty_string(
+            item.get("direction"),
+            "candidate_directions.direction",
+        )
+        rationale = self._require_non_empty_string(
+            item.get("rationale"),
+            "candidate_directions.rationale",
+        )
+
+        speculative = item.get("speculative")
+        if not isinstance(speculative, bool):
+            raise ValueError(
+                "Provider field 'candidate_directions.speculative' "
+                "must be a boolean."
+            )
+
+        context_ids = self._parse_candidate_evidence_ids(
+            item.get("context_evidence_ids"),
+            "candidate_directions.context_evidence_ids",
+        )
+        literature_ids = self._parse_candidate_evidence_ids(
+            item.get("literature_evidence_ids"),
+            "candidate_directions.literature_evidence_ids",
+            maximum_count=maximum_literature_evidence_ids,
+        )
+
+        context_evidence = self._resolve_evidence(
+            evidence_ids=context_ids,
+            field_name="candidate_directions.context_evidence_ids",
+            expected_source_type=ResearchEvidenceSourceType.CONTEXT_DOCUMENT,
+            evidence_catalog=evidence_catalog,
+        )
+        literature_evidence = self._resolve_evidence(
+            evidence_ids=literature_ids,
+            field_name="candidate_directions.literature_evidence_ids",
+            expected_source_type=ResearchEvidenceSourceType.RESEARCH_PAPER,
+            evidence_catalog=evidence_catalog,
+        )
+
+        if context is None and context_evidence:
+            raise ValueError(
+                "Candidate direction returned context evidence when no "
+                "existing research context was supplied."
+            )
+
+        if not speculative:
+            if context is not None and not context_evidence:
+                raise ValueError(
+                    "Non-speculative candidate direction requires context "
+                    "evidence when existing research context is supplied."
+                )
+
+            if not literature_evidence:
+                raise ValueError(
+                    "Non-speculative candidate direction requires literature "
+                    "evidence."
+                )
+
+            ineligible_source_ids = {
+                reference.source_id
+                for reference in literature_evidence
+                if (
+                    direction_eligible_source_ids is not None
+                    and reference.source_id
+                    not in direction_eligible_source_ids
+                )
+            }
+            if ineligible_source_ids:
+                raise ValueError(
+                    "Non-speculative candidate direction cites literature "
+                    "that was not classified as direct or transferable."
+                )
+        elif not context_evidence and not literature_evidence:
+            raise ValueError(
+                "Speculative candidate direction requires an evidence anchor."
+            )
+
+        return ResearchDirection(
+            direction=direction,
+            rationale=rationale,
+            context_evidence=context_evidence,
+            literature_evidence=literature_evidence,
+            speculative=speculative,
+        )
 
     def _validate_explicit_performance_comparison(
         self,

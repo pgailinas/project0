@@ -2205,7 +2205,16 @@ def test_workflow_synthesizes_reviewed_evidence_across_thresholds() -> None:
     )
     analyses = tuple(_paper_analysis(paper) for paper in papers)
     analysis_service = StubPaperAnalysisService(analyses=analyses)
-    direction_service = StubResearchDirectionAnalysisService()
+    direction_warning = (
+        "1 invalid candidate research direction was omitted after "
+        "corrective validation."
+    )
+    direction_service = StubResearchDirectionAnalysisService(
+        analysis=ResearchDirectionAnalysis(
+            synthesis=ResearchSynthesis(),
+            warnings=(direction_warning,),
+        )
+    )
     components = _create_workflow(
         references=references,
         papers=papers,
@@ -2235,6 +2244,7 @@ def test_workflow_synthesizes_reviewed_evidence_across_thresholds() -> None:
     assert direction_service.direction_eligible_source_ids_requests == [
         frozenset({"paper-001"})
     ]
+    assert result.warnings == (direction_warning,)
     assert result.metadata["evidence_review"] == {
         "shortlisted_count": 2,
         "reviewed_count": 2,
