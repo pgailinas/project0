@@ -537,6 +537,15 @@ class ResearchSourceService:
             scope
         )
 
+        # A broad representation-learning objective may mention CLIP only
+        # as a baseline.  Do not impose a visual-language alignment filter
+        # unless an explicit objective actually requests alignment.
+        if strategy.objective and not (
+            strategy_terms & {"align", "alignment"}
+            or "shared space" in scope.casefold()
+        ):
+            return False
+
         return (
             bool(strategy_terms & cls._VISUAL_ALIGNMENT_TERMS)
             and bool(

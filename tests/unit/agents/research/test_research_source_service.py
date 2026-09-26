@@ -1430,3 +1430,72 @@ def test_research_source_service_retains_clip_latent_alignment_transfer():
     )
 
     assert service.search(strategy) == (transferable_alignment,)
+
+
+def test_autoencoder_objective_with_clip_baseline_retains_video_methods() -> None:
+    """R006: comparing against CLIP must not require video-text alignment."""
+
+    videomae = replace(
+        create_reference("videomae"),
+        title="VideoMAE: Masked Autoencoders are Data-Efficient Learners "
+        "for Self-Supervised Video Pre-Training",
+    )
+    mavil = replace(
+        create_reference("mavil"),
+        title="MAViL: Masked Audio-Video Learners",
+    )
+    service = ResearchSourceService(
+        providers={
+            "stub": StubResearchSourceProvider(
+                references=(videomae, mavil),
+            ),
+        },
+    )
+    strategy = ResearchStrategy(
+        objective=(
+            "How can self-supervised autoencoders learn semantic and "
+            "temporal video representations that can be integrated with "
+            "and evaluated against CLIP baselines on NExT-QA using "
+            "Google Colab?"
+        ),
+        concepts=("CLIP teacher alignment",),
+        search_terms=("self-supervised video autoencoder CLIP",),
+        source_names=("stub",),
+    )
+
+    assert service.search(strategy) == (videomae, mavil)
+    assert all(
+        item["selection_status"] == "balanced_selection"
+        for item in service.last_candidate_trace
+    )
+
+
+def test_explicit_alignment_objective_preserves_specialized_filter() -> None:
+    """Explicit video-language alignment objectives retain prior filtering."""
+
+    videomae = replace(
+        create_reference("videomae"),
+        title="VideoMAE: Masked Autoencoders for Video Pre-Training",
+    )
+    aligned = replace(
+        create_reference("aligned"),
+        title="Video Autoencoder CLIP Latent Alignment",
+    )
+    service = ResearchSourceService(
+        providers={
+            "stub": StubResearchSourceProvider(
+                references=(videomae, aligned),
+            ),
+        },
+    )
+    strategy = ResearchStrategy(
+        objective="How can video autoencoders align with CLIP text embeddings?",
+        concepts=("video representation learning",),
+        search_terms=("video autoencoder CLIP alignment",),
+        source_names=("stub",),
+    )
+
+    assert service.search(strategy) == (aligned,)
+    assert service.last_candidate_trace[0]["selection_status"] == (
+        "outside_alignment_profile"
+    )
