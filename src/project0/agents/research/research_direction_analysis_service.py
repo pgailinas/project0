@@ -155,47 +155,47 @@ class ResearchDirectionAnalysisService:
         return analysis
 
     @staticmethod
+    def _requested_direction_details(request: ResearchRequest) -> frozenset[str]:
+        """Derive synthesis requirements from the request, not the research domain."""
+        text = " ".join((request.question, request.guidance,
+                         *request.constraints, *request.focus_areas)).lower()
+        cues = {
+            "method": r"\b(?:experiment\w*|ablat\w*|empirical|trial\w*)\b",
+            "comparison": r"\b(?:ablat\w*|controlled compar\w*)\b",
+            "evaluation": r"\b(?:evaluat\w*|metric\w*|benchmark\w*|measur\w*)\b",
+            "feasibility": r"\b(?:gpu|colab|comput\w*|resource\w*|feasib\w*|budget\w*|cost\w*)\b",
+        }
+        return frozenset(name for name, cue in cues.items()
+                         if re.search(cue, text))
+
+    @classmethod
     def _validate_experimental_synthesis(
-        request: ResearchRequest,
+        cls, request: ResearchRequest,
         context: ExistingResearchContext | None,
         analysis: ResearchDirectionAnalysis,
     ) -> None:
-        """Retry generic experiment plans when ablations and compute are requested."""
-
-        guidance = request.guidance.lower()
-        if (
-            context is None
-            or "ablation" not in guidance
-            or not re.search(r"gpu|compute|resource|colab", guidance)
-            or not analysis.candidate_directions
-        ):
-            return
-
-        required_details = {
-            "existing baseline or fixed component":
-                r"\b(?:baseline|existing|retain|fixed|unchanged)\b",
-            "controlled comparison or ablation":
-                r"\b(?:ablat\w*|compar\w*|control\w*|versus|vs\.?)\b",
-            "downstream evaluation":
-                r"\b(?:evaluat\w*|metric\w*|accuracy|next.qa|test set)\b",
-            "compute feasibility or unresolved resource dependency":
-                r"\b(?:gpu|colab|comput\w*|resource\w*|feasib\w*|"
-                r"checkpoint\w*|unverified|unknown|unresolved)\b",
+        """Validate only requested direction details; preserve evidence checks."""
+        requested = cls._requested_direction_details(request)
+        checks = {
+            "method": ("proposed investigation or method",
+                       r"\b(?:adapt\w*|test\w*|investigat\w*|experiment\w*|implement\w*|analy\w*|stud\w*)\b"),
+            "comparison": ("controlled comparison or ablation",
+                           r"\b(?:ablat\w*|compar\w*|control\w*|versus|vs\.?)\b"),
+            "evaluation": ("evaluation or unresolved evaluation dependency",
+                           r"\b(?:evaluat\w*|metric\w*|measur\w*|benchmark\w*|assess\w*|unresolved|unknown|unverified)\b"),
+            "feasibility": ("feasibility or unresolved resource dependency",
+                            r"\b(?:gpu|colab|comput\w*|resource\w*|feasib\w*|budget\w*|cost\w*|checkpoint\w*|unresolved|unknown|unverified)\b"),
         }
         for index, direction in enumerate(analysis.candidate_directions, 1):
             description = f"{direction.direction} {direction.rationale}".lower()
-            missing = [
-                name for name, pattern in required_details.items()
-                if not re.search(pattern, description)
-            ]
+            missing = [label for key, (label, pattern) in checks.items()
+                       if key in requested and not re.search(pattern, description)]
             if missing:
                 raise ValueError(
-                    f"Candidate direction {index} lacks requested experimental "
-                    f"details: {', '.join(missing)}. Revise each direction "
-                    "using supplied evidence; mark unsupported details "
-                    "unresolved rather than inventing them."
+                    f"Candidate direction {index} lacks requested details: "
+                    f"{', '.join(missing)}. Revise using supplied evidence; "
+                    "mark unsupported details unresolved rather than inventing them."
                 )
-
 
     def _build_evidence_catalog(
         self,
@@ -497,52 +497,27 @@ class ResearchDirectionAnalysisService:
                 "analyzed methods where their findings support a "
                 "comparison, distinguishing established results from "
                 "proposed adaptations. For each candidate direction, "
-                "state a concrete experiment in direction and explain "
-                "in rationale: which evidenced mechanism or training "
-                "objective would be reused or adapted; how it would "
-                "integrate with relevant existing implementations or "
-                "representations when documented in context; what "
-                "controlled baseline and ablation could test its value; "
-                "and what evaluation and compute constraints from the "
-                "request must be respected. Identify when a proposal "
-                "requires adapting a published method rather than "
-                "claiming its reported results transfer directly. "
-                "Do not invent training recipes, checkpoints, numerical "
-                "resource estimates, datasets, or prior results absent "
-                "from supplied evidence; explicitly describe unsupported "
-                "implementation details as proposed experiments to "
-                "validate, not established facts. When the supplied "
-                "evidence cannot support a requested experimental "
-                "detail, state that limitation instead of fabricating it. "
-                "Treat the candidate directions as an experimental "
-                "design deliverable, not a list of paper titles or "
-                "suggestions to integrate one method with another. "
-                "When the evidence permits, propose distinct, testable "
-                "directions that change different training objectives "
-                "or representation mechanisms rather than rephrasing "
-                "the same integration. Use the available paper analyses "
-                "to contrast plausible alternatives, without requiring "
-                "a direction for every paper or inventing a missing "
-                "method. In each direction, name the specific component "
-                "or learned representation to change. In each rationale, "
-                "give an actionable experimental sequence: (1) identify "
-                "the documented existing baseline and what remains "
-                "fixed, (2) identify the literature-supported mechanism "
-                "and label its proposed adaptation, (3) specify the "
-                "controlled comparison and at least one isolation "
-                "ablation, (4) name the requested downstream evaluation "
-                "and metric only when supplied in the request or "
-                "context, and (5) distinguish a small-scale feasibility "
-                "check from full pretraining and state any unverified "
-                "compute or checkpoint dependency. If an item lacks "
-                "support, explicitly mark it unresolved rather than "
-                "silently skipping the experimental design. Make "
-                "comparisons identify the methodological difference "
-                "and a measurable test, not unsupported performance "
-                "rankings. Keep rationales concise but specific enough "
-                "to distinguish the proposed experiments. "
-                "Avoid directions that merely repeat the research "
-                "question without a testable methodological change. "
+                "Adapt each candidate direction to the research question, "
+                "guidance, constraints, and focus areas. State a concrete "
+                "proposed direction and evidence-based rationale. Do not "
+                "impose experimental design on conceptual, theoretical, "
+                "literature-review, or exploratory requests. When an "
+                "experiment is requested, describe a testable method. "
+                "When a controlled comparison or ablation is requested, "
+                "identify what changes and what remains fixed where known. "
+                "When evaluation is requested, describe how to evaluate "
+                "using supplied metrics if available; otherwise mark "
+                "the metric unresolved. When feasibility or resource "
+                "constraints are requested, identify a preliminary "
+                "feasibility check and any unverified dependencies. "
+                "Connect existing implementations only when documented "
+                "in context. Distinguish published findings from proposed "
+                "adaptations; do not invent datasets, training recipes, "
+                "checkpoints, numerical estimates, or prior results. "
+                "Prefer distinct, evidence-supported directions instead "
+                "of generic suggestions or unjustified method combinations. "
+                "Comparisons should identify methodological differences "
+                "rather than unsupported performance rankings. "
                 "Every synthesis item must be supported by supplied paper "
                 "evidence identifiers. Each cited evidence identifier must "
                 "directly support the specific claim content; do not cite an "

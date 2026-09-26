@@ -678,59 +678,55 @@ def test_provider_request_uses_structured_findings_and_prohibits_novelty_claims(
     assert "broader literature" in instructions
 
 
-def test_direction_prompt_requests_contextual_controlled_experiments_without_invention():
-    provider = StubProvider([_valid_output()])
+def test_direction_prompt_adapts_to_request_without_invention():
+    provider = StubProvider([_valid_output(), _valid_output()])
     service = ResearchDirectionAnalysisService(provider, "test-model")
     request = ResearchRequest(
         question="How can video autoencoders learn temporal representations?",
-        guidance="Compare published methods against existing CLIP baselines.",
+        guidance="Compare methods against existing baselines.",
         constraints=("Limited GPU resources",),
     )
-    service.analyze(
-        request,
-        _context(),
-        (
-            _paper_analysis("Paper-A", "Paper A", 3),
-            _paper_analysis("Paper-B", "Paper B", 7),
-        ),
-    )
-
-    provider_request = provider.requests[0]
-    payload = json.loads(provider_request.user_prompt)
-    instructions = provider_request.system_instructions.lower()
-    assert payload["research_request"]["constraints"] == [
-        "Limited GPU resources"
-    ]
-    assert "existing research context" in instructions
-    assert "concrete experiment" in instructions
-    assert "controlled baseline and ablation" in instructions
-    assert "evaluation and compute constraints" in instructions
-    assert "distinguishing established results from" in instructions
-    assert "requires adapting a published method" in instructions
-    assert "do not invent training recipes" in instructions
-    assert "state that limitation instead of fabricating it" in instructions
+    service.analyze(request, _context(), (
+        _paper_analysis("Paper-A", "Paper A", 3),
+        _paper_analysis("Paper-B", "Paper B", 7),
+    ))
+    payload = json.loads(provider.requests[0].user_prompt)
+    instructions = provider.requests[0].system_instructions.lower()
+    assert payload["research_request"]["constraints"] == ["Limited GPU resources"]
+    assert "do not impose experimental design" in instructions
+    assert "when a controlled comparison" in instructions
+    assert "when feasibility" in instructions
+    assert "do not invent datasets" in instructions
 
 
-def test_direction_prompt_requires_distinct_testable_experimental_design():
+def test_conceptual_request_does_not_require_experiment():
     provider = StubProvider([_valid_output()])
     service = ResearchDirectionAnalysisService(provider, "test-model")
-    service.analyze(
-        _request(),
-        _context(),
-        (
-            _paper_analysis("Paper-A", "Paper A", 3),
-            _paper_analysis("Paper-B", "Paper B", 7),
-        ),
-    )
+    service.analyze(ResearchRequest(
+        question="Which theoretical interpretations emerge?",
+        guidance="Provide a conceptual literature review.",
+    ), _context(), (
+        _paper_analysis("Paper-A", "Paper A", 3),
+        _paper_analysis("Paper-B", "Paper B", 7),
+    ))
+    assert len(provider.requests) == 1
 
-    instructions = provider.requests[0].system_instructions.lower()
-    assert "experimental design deliverable" in instructions
-    assert "different training objectives" in instructions
-    assert "what remains fixed" in instructions
-    assert "at least one isolation ablation" in instructions
-    assert "small-scale feasibility" in instructions
-    assert "unverified compute or checkpoint" in instructions
-    assert "not unsupported performance" in instructions
+
+def test_requirements_in_constraints_trigger_targeted_retry():
+    provider = StubProvider([_valid_output(), _valid_output()])
+    service = ResearchDirectionAnalysisService(provider, "test-model")
+    service.analyze(ResearchRequest(
+        question="What should be investigated?",
+        constraints=("Include ablations, evaluation and compute budget",),
+    ), _context(), (
+        _paper_analysis("Paper-A", "Paper A", 3),
+        _paper_analysis("Paper-B", "Paper B", 7),
+    ))
+    assert len(provider.requests) == 2
+    feedback = json.loads(provider.requests[1].user_prompt)["validation_feedback"]
+    assert "controlled comparison or ablation" in feedback
+    assert "evaluation or unresolved" in feedback
+    assert "resource dependency" in feedback
 
 
 def test_compute_constrained_ablation_request_retries_generic_directions():
