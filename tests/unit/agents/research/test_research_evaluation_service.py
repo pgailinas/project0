@@ -1178,7 +1178,15 @@ def test_final_evaluation_preserves_preliminary_when_retry_fails(
     )
     provider = SequentialStubProvider(
         (
-            initial_response,
+            create_valid_provider_response(
+                evaluations=[initial_response.structured_output["evaluations"][0]]
+            ),
+            create_valid_provider_response(
+                evaluations=[{
+                    **initial_response.structured_output["evaluations"][1],
+                    "source_id": "paper-001",
+                }]
+            ),
             RuntimeError(
                 "Ollama service could not be reached: ReadTimeout"
             ),
@@ -1204,7 +1212,7 @@ def test_final_evaluation_preserves_preliminary_when_retry_fails(
             preliminary,
         )
 
-    assert len(provider.requests) == 2
+    assert len(provider.requests) == 3
     assert tuple(evaluation.paper for evaluation in result) == (
         downgraded_paper,
         adjacent_paper,
@@ -3149,3 +3157,40 @@ def test_research_evaluation_service_ranks_pre_acquisition_metadata() -> None:
         "decision."
         in provider.requests[0].system_instructions
     )
+
+
+def test_final_evaluation_never_shares_other_papers_evidence() -> None:
+    """Final model calls cannot see another paper's distinct evidence."""
+
+    first = create_evidence_paper(
+        source_id="first-id",
+        title="Video Teacher Method",
+        evidence_characters=500,
+    )
+    second = create_evidence_paper(
+        source_id="second-id",
+        title="Medical Alignment Method",
+        evidence_characters=500,
+    )
+    provider = RequestAwareStubProvider()
+    service = ResearchEvaluationService(
+        provider=provider,
+        model_name="qwen3:8b",
+    )
+
+    results = service.evaluate_final(
+        create_research_request(),
+        create_research_strategy(),
+        (first, second),
+        (),
+    )
+
+    assert tuple(result.paper for result in results) == (first, second)
+    assert len(provider.requests) == 2
+    assert all(req.metadata["paper_count"] == 1 for req in provider.requests)
+    prompts = [json.loads(req.user_prompt) for req in provider.requests]
+    assert [len(prompt["papers"]) for prompt in prompts] == [1, 1]
+    assert prompts[0]["papers"][0]["title"] == first.title
+    assert prompts[1]["papers"][0]["title"] == second.title
+    assert second.title not in provider.requests[0].user_prompt
+    assert first.title not in provider.requests[1].user_prompt

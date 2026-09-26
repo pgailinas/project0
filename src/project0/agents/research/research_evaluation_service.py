@@ -135,7 +135,14 @@ class ResearchEvaluationService:
     ) -> tuple[ResearchEvaluation, ...]:
         """Evaluate evidence and guard unexplained severe downgrades."""
 
-        evaluations = self.evaluate(request, strategy, papers)
+        # Final judgments must not receive neighboring papers' evidence.
+        evaluations = self._evaluate(
+            request=request,
+            strategy=strategy,
+            papers=papers,
+            preliminary=False,
+            isolate_papers=True,
+        )
         preliminary_by_paper = {
             self._paper_evaluation_key(evaluation.paper): evaluation
             for evaluation in preliminary_evaluations
@@ -304,6 +311,7 @@ class ResearchEvaluationService:
         strategy: ResearchStrategy,
         papers: tuple[PaperMetadata, ...],
         preliminary: bool,
+        isolate_papers: bool = False,
     ) -> tuple[ResearchEvaluation, ...]:
         """Evaluate papers for preliminary ranking or final selection."""
 
@@ -317,12 +325,17 @@ class ResearchEvaluationService:
         )
         evaluations: list[ResearchEvaluation] = []
 
-        for batch in self._evaluation_batches(
-            request=request,
-            strategy=strategy,
-            papers=evaluable_papers,
-            preliminary=preliminary,
-        ):
+        batches = (
+            tuple((paper,) for paper in evaluable_papers)
+            if isolate_papers
+            else self._evaluation_batches(
+                request=request,
+                strategy=strategy,
+                papers=evaluable_papers,
+                preliminary=preliminary,
+            )
+        )
+        for batch in batches:
             evaluations.extend(
                 self._evaluate_batch(
                     request=request,
