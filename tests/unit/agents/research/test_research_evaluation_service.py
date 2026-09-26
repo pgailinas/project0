@@ -489,6 +489,34 @@ def test_research_evaluation_service_requires_exact_source_ids() -> None:
     )
 
 
+def test_final_evaluation_separates_mechanism_from_feasibility() -> None:
+    """Require distinct evidence-based methodological and practical judgments."""
+
+    provider = StubProvider(create_valid_provider_response())
+    service = ResearchEvaluationService(provider=provider, model_name="qwen3:8b")
+    request = replace(
+        create_research_request(),
+        guidance="Compare CLIP baselines on NExT-QA using Google Colab.",
+    )
+
+    service.evaluate_final(
+        request,
+        create_research_strategy(),
+        (create_paper_metadata(),),
+        preliminary_evaluations=(),
+    )
+
+    instructions = provider.requests[0].system_instructions
+    assert "methodological relevance" in instructions
+    assert "direct applicability" in instructions
+    assert "experimental feasibility" in instructions
+    assert "must not by itself lower the mechanism classification" in instructions
+    assert "say it is unverified" in instructions
+    assert "proposed work from experiments reported by the paper" in instructions
+    assert "do not invent compute" in instructions.lower()
+    assert request.guidance in provider.requests[0].user_prompt
+
+
 def test_research_evaluation_service_uses_opaque_source_ids() -> None:
     """Verify provider-native identifiers are hidden from evaluation."""
 
