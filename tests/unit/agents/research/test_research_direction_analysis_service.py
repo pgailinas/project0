@@ -731,3 +731,59 @@ def test_direction_prompt_requires_distinct_testable_experimental_design():
     assert "small-scale feasibility" in instructions
     assert "unverified compute or checkpoint" in instructions
     assert "not unsupported performance" in instructions
+
+
+def test_compute_constrained_ablation_request_retries_generic_directions():
+    generic = _valid_output()
+    corrected = _valid_output()
+    corrected["candidate_directions"][0]["direction"] = (
+        "Adapt the documented encoder objective for the existing baseline."
+    )
+    corrected["candidate_directions"][0]["rationale"] = (
+        "Keep the existing baseline fixed; compare against a controlled "
+        "ablation, evaluate downstream accuracy, and check GPU feasibility "
+        "before any full training."
+    )
+    provider = StubProvider([generic, corrected])
+    service = ResearchDirectionAnalysisService(provider, "test-model")
+    request = ResearchRequest(
+        question="Which experiment should be run?",
+        guidance="Include ablation studies feasible with limited GPU resources.",
+    )
+
+    result = service.analyze(
+        request,
+        _context(),
+        (
+            _paper_analysis("Paper-A", "Paper A", 3),
+            _paper_analysis("Paper-B", "Paper B", 7),
+        ),
+    )
+
+    assert len(provider.requests) == 2
+    assert "controlled comparison or ablation" in json.loads(
+        provider.requests[1].user_prompt
+    )["validation_feedback"]
+    assert "GPU feasibility" in result.candidate_directions[0].rationale
+
+
+def test_compute_constrained_ablation_retry_preserves_evidence_valid_result(caplog):
+    provider = StubProvider([_valid_output(), _valid_output()])
+    service = ResearchDirectionAnalysisService(provider, "test-model")
+    request = ResearchRequest(
+        question="Which experiment should be run?",
+        guidance="Include ablations feasible with limited Colab compute.",
+    )
+
+    result = service.analyze(
+        request,
+        _context(),
+        (
+            _paper_analysis("Paper-A", "Paper A", 3),
+            _paper_analysis("Paper-B", "Paper B", 7),
+        ),
+    )
+
+    assert len(provider.requests) == 2
+    assert len(result.candidate_directions) == 1
+    assert "synthesis remains incomplete" in caplog.text

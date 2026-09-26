@@ -106,7 +106,7 @@ class ResearchDirectionAnalysisService:
         )
 
         try:
-            return self._create_analysis(
+            analysis = self._create_analysis(
                 context=context,
                 evidence_catalog=evidence_catalog,
                 provider_response=provider_response,
@@ -114,6 +114,8 @@ class ResearchDirectionAnalysisService:
                 skip_invalid_directions=False,
                 direction_eligible_source_ids=direction_eligible_source_ids,
             )
+            self._validate_experimental_synthesis(request, context, analysis)
+            return analysis
         except ValueError as error:
             LOGGER.warning(
                 "Research direction analysis response failed structural "
@@ -135,7 +137,7 @@ class ResearchDirectionAnalysisService:
             provider_request
         )
 
-        return self._create_analysis(
+        analysis = self._create_analysis(
             context=context,
             evidence_catalog=evidence_catalog,
             provider_response=provider_response,
@@ -143,6 +145,57 @@ class ResearchDirectionAnalysisService:
             skip_invalid_directions=True,
             direction_eligible_source_ids=direction_eligible_source_ids,
         )
+        try:
+            self._validate_experimental_synthesis(request, context, analysis)
+        except ValueError as error:
+            LOGGER.warning(
+                "Research direction synthesis remains incomplete after "
+                "the corrective retry: %s", error,
+            )
+        return analysis
+
+    @staticmethod
+    def _validate_experimental_synthesis(
+        request: ResearchRequest,
+        context: ExistingResearchContext | None,
+        analysis: ResearchDirectionAnalysis,
+    ) -> None:
+        """Retry generic experiment plans when ablations and compute are requested."""
+
+        guidance = request.guidance.lower()
+        if (
+            context is None
+            or "ablation" not in guidance
+            or not re.search(r"gpu|compute|resource|colab", guidance)
+            or not analysis.candidate_directions
+        ):
+            return
+
+        required_details = {
+            "existing baseline or fixed component":
+                r"\b(?:baseline|existing|retain|fixed|unchanged)\b",
+            "controlled comparison or ablation":
+                r"\b(?:ablat\w*|compar\w*|control\w*|versus|vs\.?)\b",
+            "downstream evaluation":
+                r"\b(?:evaluat\w*|metric\w*|accuracy|next.qa|test set)\b",
+            "compute feasibility or unresolved resource dependency":
+                r"\b(?:gpu|colab|comput\w*|resource\w*|feasib\w*|"
+                r"checkpoint\w*|unverified|unknown|unresolved)\b",
+        }
+        for index, direction in enumerate(analysis.candidate_directions, 1):
+            description = f"{direction.direction} {direction.rationale}".lower()
+            missing = [
+                name for name, pattern in required_details.items()
+                if not re.search(pattern, description)
+            ]
+            if missing:
+                raise ValueError(
+                    f"Candidate direction {index} lacks requested experimental "
+                    f"details: {', '.join(missing)}. Revise each direction "
+                    "using supplied evidence; mark unsupported details "
+                    "unresolved rather than inventing them."
+                )
+
 
     def _build_evidence_catalog(
         self,
