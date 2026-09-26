@@ -724,9 +724,10 @@ def test_requirements_in_constraints_trigger_targeted_retry():
     ))
     assert len(provider.requests) == 2
     feedback = json.loads(provider.requests[1].user_prompt)["validation_feedback"]
-    assert "controlled comparison or ablation" in feedback
-    assert "evaluation or unresolved" in feedback
-    assert "resource dependency" in feedback
+    assert "Changed variable" in feedback
+    assert "Fixed conditions" in feedback
+    assert "Evaluation" in feedback
+    assert "Unverified dependencies" in feedback
 
 
 def test_compute_constrained_ablation_request_retries_generic_directions():
@@ -735,11 +736,16 @@ def test_compute_constrained_ablation_request_retries_generic_directions():
     corrected["candidate_directions"][0]["direction"] = (
         "Adapt the documented encoder objective for the existing baseline."
     )
-    corrected["candidate_directions"][0]["rationale"] = (
-        "Keep the existing baseline fixed; compare against a controlled "
-        "ablation, evaluate downstream accuracy, and check GPU feasibility "
-        "before any full training."
-    )
+    corrected["candidate_directions"][0]["rationale"] = "\n".join((
+        "Hypothesis: The proposed objective may improve the documented limitation of alignment.",
+        "Proposed method: Adapt the documented encoder objective and test its representations.",
+        "Existing resources: Reuse the documented context pipeline and its baseline evaluation.",
+        "Changed variable: Change only the encoder objective for this controlled ablation.",
+        "Fixed conditions: Hold the existing baseline evaluation and data selection fixed.",
+        "Feasibility check: Check GPU feasibility using a preliminary small scale run.",
+        "Unverified dependencies: Actual resource demand and checkpoint availability remain unresolved here.",
+        "Evidence boundary: The proposed adaptation is speculative beyond the cited paper findings.",
+    ))
     provider = StubProvider([generic, corrected])
     service = ResearchDirectionAnalysisService(provider, "test-model")
     request = ResearchRequest(
@@ -757,7 +763,7 @@ def test_compute_constrained_ablation_request_retries_generic_directions():
     )
 
     assert len(provider.requests) == 2
-    assert "controlled comparison or ablation" in json.loads(
+    assert "Changed variable" in json.loads(
         provider.requests[1].user_prompt
     )["validation_feedback"]
     assert "GPU feasibility" in result.candidate_directions[0].rationale
@@ -781,5 +787,51 @@ def test_compute_constrained_ablation_retry_preserves_evidence_valid_result(capl
     )
 
     assert len(provider.requests) == 2
-    assert len(result.candidate_directions) == 1
+    assert result.candidate_directions == ()
+    assert result.synthesis.themes
+    assert "requested synthesis details remained incomplete" in result.warnings[-1]
     assert "synthesis remains incomplete" in caplog.text
+
+
+def test_structured_plan_sections_are_request_adaptive():
+    provider = StubProvider([_valid_output(with_context=False)])
+    service = ResearchDirectionAnalysisService(provider, "test-model")
+    service.analyze(ResearchRequest(
+        question="Which conceptual interpretations follow from the evidence?",
+        guidance="Provide a theoretical literature review.",
+    ), None, (
+        _paper_analysis("Paper-A", "Paper A", 3),
+        _paper_analysis("Paper-B", "Paper B", 7),
+    ))
+    payload = json.loads(provider.requests[0].user_prompt)
+    assert payload["required_direction_sections"] == []
+
+
+def test_retry_keeps_complete_direction_and_omits_incomplete_direction():
+    first = _valid_output()
+    second = _valid_output()
+    complete = dict(second["candidate_directions"][0])
+    complete["rationale"] = "\n".join((
+        "Hypothesis: Changing the documented approach may address the recorded limitation.",
+        "Proposed method: Adapt the documented approach in one controlled investigation.",
+        "Existing resources: Reuse the documented baseline and existing evaluation context.",
+        "Changed variable: Change the proposed approach while holding other inputs constant.",
+        "Fixed conditions: Hold the existing dataset and evaluation procedure unchanged.",
+        "Evaluation: Measure the existing metric or document its unresolved availability.",
+        "Feasibility check: Run a small resource profiling trial before full execution.",
+        "Unverified dependencies: Exact resource demand and implementation details remain unverified.",
+        "Evidence boundary: The source documents the approach but this adaptation is proposed.",
+    ))
+    second["candidate_directions"] = [complete, dict(first["candidate_directions"][0])]
+    provider = StubProvider([first, second])
+    service = ResearchDirectionAnalysisService(provider, "test-model")
+    result = service.analyze(ResearchRequest(
+        question="Which experiments can we evaluate?",
+        guidance="Include controlled ablations and feasibility with limited GPU.",
+    ), _context(), (
+        _paper_analysis("Paper-A", "Paper A", 3),
+        _paper_analysis("Paper-B", "Paper B", 7),
+    ))
+    assert len(result.candidate_directions) == 1
+    assert result.candidate_directions[0].rationale == complete["rationale"]
+    assert "1 candidate research direction(s) omitted" in result.warnings[-1]

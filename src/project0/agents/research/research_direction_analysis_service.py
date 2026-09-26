@@ -145,12 +145,33 @@ class ResearchDirectionAnalysisService:
             skip_invalid_directions=True,
             direction_eligible_source_ids=direction_eligible_source_ids,
         )
-        try:
-            self._validate_experimental_synthesis(request, context, analysis)
-        except ValueError as error:
-            LOGGER.warning(
-                "Research direction synthesis remains incomplete after "
-                "the corrective retry: %s", error,
+        # Do not publish incomplete directions as successfully validated.
+        # Retain independently validated cross-paper synthesis and surface
+        # an explicit warning so callers can distinguish partial results.
+        valid_directions = []
+        omitted = 0
+        for direction in analysis.candidate_directions:
+            try:
+                self._validate_experimental_synthesis(
+                    request, context,
+                    ResearchDirectionAnalysis(synthesis=analysis.synthesis, candidate_directions=(direction,)),
+                )
+                valid_directions.append(direction)
+            except ValueError as error:
+                omitted += 1
+                LOGGER.warning(
+                    "Research direction synthesis remains incomplete after "
+                    "the corrective retry; omitting direction: %s", error,
+                )
+        if omitted:
+            return ResearchDirectionAnalysis(
+                synthesis=analysis.synthesis,
+                candidate_directions=tuple(valid_directions),
+                warnings=analysis.warnings + (
+                    f"{omitted} candidate research direction(s) omitted "
+                    "because requested synthesis details remained incomplete "
+                    "after corrective validation.",
+                ),
             )
         return analysis
 
@@ -169,32 +190,77 @@ class ResearchDirectionAnalysisService:
                          if re.search(cue, text))
 
     @classmethod
+    def _required_direction_sections(
+        cls, request: ResearchRequest, context: ExistingResearchContext | None,
+    ) -> list[str]:
+        """Expose request-derived structure explicitly to the provider."""
+        requested = cls._requested_direction_details(request)
+        sections = []
+        if "method" in requested:
+            sections.extend(("Hypothesis", "Proposed method"))
+            if context is not None:
+                sections.append("Existing resources")
+        if "comparison" in requested:
+            sections.extend(("Changed variable", "Fixed conditions"))
+        if "evaluation" in requested:
+            sections.append("Evaluation")
+        if "feasibility" in requested:
+            sections.extend(("Feasibility check", "Unverified dependencies"))
+        if "method" in requested:
+            sections.append("Evidence boundary")
+        return sections
+
+    @classmethod
     def _validate_experimental_synthesis(
         cls, request: ResearchRequest,
         context: ExistingResearchContext | None,
         analysis: ResearchDirectionAnalysis,
     ) -> None:
-        """Validate only requested direction details; preserve evidence checks."""
+        """Require substantive, labeled plans only when the request calls for them.
+
+        Explicit sections are checked independently; a stray keyword in a
+        generic rationale cannot satisfy several requested requirements.
+        This is structural validation, not a claim of semantic correctness.
+        """
         requested = cls._requested_direction_details(request)
-        checks = {
-            "method": ("proposed investigation or method",
-                       r"\b(?:adapt\w*|test\w*|investigat\w*|experiment\w*|implement\w*|analy\w*|stud\w*)\b"),
-            "comparison": ("controlled comparison or ablation",
-                           r"\b(?:ablat\w*|compar\w*|control\w*|versus|vs\.?)\b"),
-            "evaluation": ("evaluation or unresolved evaluation dependency",
-                           r"\b(?:evaluat\w*|metric\w*|measur\w*|benchmark\w*|assess\w*|unresolved|unknown|unverified)\b"),
-            "feasibility": ("feasibility or unresolved resource dependency",
-                            r"\b(?:gpu|colab|comput\w*|resource\w*|feasib\w*|budget\w*|cost\w*|checkpoint\w*|unresolved|unknown|unverified)\b"),
-        }
+        if not requested:
+            return
+        required = []
+        if "method" in requested:
+            required.extend(("Hypothesis", "Proposed method"))
+        if context is not None and "method" in requested:
+            required.append("Existing resources")
+        if "comparison" in requested:
+            required.extend(("Changed variable", "Fixed conditions"))
+        if "evaluation" in requested:
+            required.append("Evaluation")
+        if "feasibility" in requested:
+            required.extend(("Feasibility check", "Unverified dependencies"))
+        if "method" in requested:
+            required.append("Evidence boundary")
+
         for index, direction in enumerate(analysis.candidate_directions, 1):
-            description = f"{direction.direction} {direction.rationale}".lower()
-            missing = [label for key, (label, pattern) in checks.items()
-                       if key in requested and not re.search(pattern, description)]
+            # Require section labels on their own lines so the final report
+            # remains readable without changes to its public data model.
+            sections = {}
+            for line in direction.rationale.splitlines():
+                match = re.match(r"^([A-Za-z ]+):\s*(.*?)\s*$", line.strip())
+                if match:
+                    sections[match.group(1).lower()] = match.group(2)
+            missing = []
+            for label in required:
+                content = sections.get(label.lower(), "")
+                # A label, a lone keyword, or an empty placeholder is not
+                # enough to constitute a useful proposed investigation.
+                if len(re.findall(r"\b[\w-]+\b", content)) < 6:
+                    missing.append(label)
             if missing:
                 raise ValueError(
-                    f"Candidate direction {index} lacks requested details: "
-                    f"{', '.join(missing)}. Revise using supplied evidence; "
-                    "mark unsupported details unresolved rather than inventing them."
+                    f"Candidate direction {index} lacks substantive labeled "
+                    f"sections: {', '.join(missing)}. Write each required "
+                    "section on its own line with concrete details grounded "
+                    "in supplied evidence, or explicitly explain which "
+                    "dependency remains unresolved."
                 )
 
     def _build_evidence_catalog(
@@ -394,6 +460,9 @@ class ResearchDirectionAnalysisService:
                     ),
                 },
                 "validation_feedback": validation_error,
+                "required_direction_sections": self._required_direction_sections(
+                    request, context
+                ),
                 "existing_research_context": context_payload,
                 "paper_analyses": paper_payload,
             },
@@ -510,6 +579,20 @@ class ResearchDirectionAnalysisService:
                 "the metric unresolved. When feasibility or resource "
                 "constraints are requested, identify a preliminary "
                 "feasibility check and any unverified dependencies. "
+                "For each candidate direction, if the user_prompt has "
+                "required_direction_sections, write every named section "
+                "on a separate line in rationale as 'Section: concrete detail'. "
+                "Each section must contain a substantive, specific sentence. "
+                "Hypothesis states a testable expectation, Proposed method "
+                "states the intervention or investigation, Existing resources "
+                "identifies documented reusable context, Changed variable "
+                "identifies the intervention, Fixed conditions identifies "
+                "controls, Evaluation names the measure or explains why "
+                "it is unresolved, Feasibility check specifies a preliminary "
+                "resource check, Unverified dependencies names remaining "
+                "unknowns, and Evidence boundary separates published "
+                "findings from proposed extrapolations. Never fill missing "
+                "evidence with invented specifics. "
                 "Connect existing implementations only when documented "
                 "in context. Distinguish published findings from proposed "
                 "adaptations; do not invent datasets, training recipes, "
