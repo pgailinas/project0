@@ -674,3 +674,36 @@ def test_provider_request_uses_structured_findings_and_prohibits_novelty_claims(
     assert "synthesis fields are literature-only" in instructions
     assert "do not claim novelty" in instructions
     assert "broader literature" in instructions
+
+
+def test_direction_prompt_requests_contextual_controlled_experiments_without_invention():
+    provider = StubProvider([_valid_output()])
+    service = ResearchDirectionAnalysisService(provider, "test-model")
+    request = ResearchRequest(
+        question="How can video autoencoders learn temporal representations?",
+        guidance="Compare published methods against existing CLIP baselines.",
+        constraints=("Limited GPU resources",),
+    )
+    service.analyze(
+        request,
+        _context(),
+        (
+            _paper_analysis("Paper-A", "Paper A", 3),
+            _paper_analysis("Paper-B", "Paper B", 7),
+        ),
+    )
+
+    provider_request = provider.requests[0]
+    payload = json.loads(provider_request.user_prompt)
+    instructions = provider_request.system_instructions.lower()
+    assert payload["research_request"]["constraints"] == [
+        "Limited GPU resources"
+    ]
+    assert "existing research context" in instructions
+    assert "concrete experiment" in instructions
+    assert "controlled baseline and ablation" in instructions
+    assert "evaluation and compute constraints" in instructions
+    assert "distinguishing established results from" in instructions
+    assert "requires adapting a published method" in instructions
+    assert "do not invent training recipes" in instructions
+    assert "state that limitation instead of fabricating it" in instructions
