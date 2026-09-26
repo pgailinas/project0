@@ -65,7 +65,7 @@ class ResearchDirectionAnalysisService:
 
         self._provider = provider
         self._model_name = model_name
-        self._max_paper_analyses = 3
+        self._max_paper_analyses = 5
         self._timeout_seconds = 600.0
 
     def analyze(
@@ -461,6 +461,33 @@ class ResearchDirectionAnalysisService:
                 "validate, not established facts. When the supplied "
                 "evidence cannot support a requested experimental "
                 "detail, state that limitation instead of fabricating it. "
+                "Treat the candidate directions as an experimental "
+                "design deliverable, not a list of paper titles or "
+                "suggestions to integrate one method with another. "
+                "When the evidence permits, propose distinct, testable "
+                "directions that change different training objectives "
+                "or representation mechanisms rather than rephrasing "
+                "the same integration. Use the available paper analyses "
+                "to contrast plausible alternatives, without requiring "
+                "a direction for every paper or inventing a missing "
+                "method. In each direction, name the specific component "
+                "or learned representation to change. In each rationale, "
+                "give an actionable experimental sequence: (1) identify "
+                "the documented existing baseline and what remains "
+                "fixed, (2) identify the literature-supported mechanism "
+                "and label its proposed adaptation, (3) specify the "
+                "controlled comparison and at least one isolation "
+                "ablation, (4) name the requested downstream evaluation "
+                "and metric only when supplied in the request or "
+                "context, and (5) distinguish a small-scale feasibility "
+                "check from full pretraining and state any unverified "
+                "compute or checkpoint dependency. If an item lacks "
+                "support, explicitly mark it unresolved rather than "
+                "silently skipping the experimental design. Make "
+                "comparisons identify the methodological difference "
+                "and a measurable test, not unsupported performance "
+                "rankings. Keep rationales concise but specific enough "
+                "to distinguish the proposed experiments. "
                 "Avoid directions that merely repeat the research "
                 "question without a testable methodological change. "
                 "Every synthesis item must be supported by supplied paper "

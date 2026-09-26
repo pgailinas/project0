@@ -563,7 +563,7 @@ def test_analyze_accepts_explicit_performance_order_supported_by_literature():
     assert len(provider.requests) == 1
 
 
-def test_provider_request_limits_direction_analysis_to_three_papers():
+def test_provider_request_limits_direction_analysis_to_five_papers():
     provider = StubProvider([_valid_output()])
     service = ResearchDirectionAnalysisService(provider, "test-model")
     papers = tuple(
@@ -580,7 +580,7 @@ def test_provider_request_limits_direction_analysis_to_three_papers():
     request = provider.requests[0]
     payload = json.loads(request.user_prompt)
 
-    assert request.metadata["paper_analysis_count"] == 3
+    assert request.metadata["paper_analysis_count"] == 5
     assert request.metadata["timeout_seconds"] == 600.0
     assert [
         paper["source_id"]
@@ -589,6 +589,8 @@ def test_provider_request_limits_direction_analysis_to_three_papers():
         "Paper-1",
         "Paper-2",
         "Paper-3",
+        "Paper-4",
+        "Paper-5",
     ]
 
 
@@ -707,3 +709,25 @@ def test_direction_prompt_requests_contextual_controlled_experiments_without_inv
     assert "requires adapting a published method" in instructions
     assert "do not invent training recipes" in instructions
     assert "state that limitation instead of fabricating it" in instructions
+
+
+def test_direction_prompt_requires_distinct_testable_experimental_design():
+    provider = StubProvider([_valid_output()])
+    service = ResearchDirectionAnalysisService(provider, "test-model")
+    service.analyze(
+        _request(),
+        _context(),
+        (
+            _paper_analysis("Paper-A", "Paper A", 3),
+            _paper_analysis("Paper-B", "Paper B", 7),
+        ),
+    )
+
+    instructions = provider.requests[0].system_instructions.lower()
+    assert "experimental design deliverable" in instructions
+    assert "different training objectives" in instructions
+    assert "what remains fixed" in instructions
+    assert "at least one isolation ablation" in instructions
+    assert "small-scale feasibility" in instructions
+    assert "unverified compute or checkpoint" in instructions
+    assert "not unsupported performance" in instructions
