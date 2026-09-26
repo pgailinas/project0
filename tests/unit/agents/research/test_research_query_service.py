@@ -995,3 +995,25 @@ def test_research_query_service_rejects_degenerate_derived_role_query():
 
     assert result.search_terms == inferred_concepts
     assert "alignment representations" not in result.search_terms
+
+
+def test_query_service_keeps_all_r006_named_method_searches() -> None:
+    """Exact named-method searches survive complementary-query selection."""
+
+    names = (
+        "Unmasked Teacher",
+        "Masked Video Distillation",
+        "Delta Distillation",
+        "MAViL",
+    )
+    strategy = ResearchStrategy(
+        concepts=("self-supervised video representation learning",),
+        search_terms=(),
+        seed_terms=names,
+        objective="Self-supervised video autoencoders for NExT-QA",
+        source_names=("semantic_scholar", "arxiv"),
+    )
+
+    result = ResearchQueryService().generate_queries(strategy)
+
+    assert result.search_terms[:4] == names

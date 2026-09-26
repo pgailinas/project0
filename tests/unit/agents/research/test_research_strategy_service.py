@@ -942,3 +942,34 @@ def test_build_strategy_uses_inferred_concepts_not_context_prose() -> None:
         "feature distillation frozen teacher representations",
         "token-level alignment learned visual representations",
     )
+
+
+def test_build_strategy_extracts_methods_from_r006_inspired_by_guidance() -> None:
+    """R006's 'inspired by' wording preserves every explicitly named method."""
+
+    request = ResearchRequest(
+        question=(
+            "How can self-supervised autoencoders learn semantic and temporal "
+            "video representations that can be integrated with and evaluated "
+            "against CLIP baselines on NExT-QA using Google Colab?"
+        ),
+        guidance=(
+            "Investigate experimental approaches inspired by Unmasked Teacher, "
+            "Masked Video Distillation, Delta Distillation, and MAViL. "
+            "Identify practical training objectives, integration strategies, "
+            "controlled comparisons, evaluation metrics, and ablation studies "
+            "feasible with limited GPU resources."
+        ),
+    )
+
+    result = ResearchStrategyService(
+        source_names=DEFAULT_RESEARCH_SOURCE_PROVIDERS,
+    ).build_strategy(request)
+
+    assert result.seed_terms == (
+        "Unmasked Teacher",
+        "Masked Video Distillation",
+        "Delta Distillation",
+        "MAViL",
+    )
+    assert tuple(seed.term for seed in result.guidance_seeds) == result.seed_terms
