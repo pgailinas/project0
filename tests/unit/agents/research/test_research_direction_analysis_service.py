@@ -822,6 +822,65 @@ def test_structured_plan_sections_are_request_adaptive():
     ))
     payload = json.loads(provider.requests[0].user_prompt)
     assert payload["required_direction_sections"] == []
+    assert "plan" not in provider.requests[0].response_schema[
+        "properties"
+    ]["candidate_directions"]["items"]["properties"]
+
+
+def test_structured_plan_fields_render_into_validated_rationale():
+    output = _valid_output()
+    output["candidate_directions"][0]["plan"] = {
+        "hypothesis": "The documented alignment objective may address the existing semantic limitation.",
+        "proposed_method": "Adapt the documented objective to the existing video encoder pipeline.",
+        "existing_resources": "Reuse the existing encoder and its documented baseline evaluation.",
+        "changed_variable": "Change the encoder objective in this controlled comparison only.",
+        "fixed_conditions": "Hold the existing dataset and evaluation procedure fixed throughout.",
+        "evaluation": "Measure the baseline metric on the same held out examples.",
+        "feasibility_check": "Profile a small run before committing the available GPU resources.",
+        "unverified_dependencies": "Checkpoint compatibility and actual memory demand still need verification.",
+        "evidence_boundary": "The cited paper supports alignment while this adaptation remains proposed.",
+    }
+    provider = StubProvider([output])
+    service = ResearchDirectionAnalysisService(provider, "test-model")
+    result = service.analyze(ResearchRequest(
+        question="Which experiments can we evaluate?",
+        guidance="Include controlled ablations and feasibility with limited GPU.",
+    ), _context(), (
+        _paper_analysis("Paper-A", "Paper A", 3),
+        _paper_analysis("Paper-B", "Paper B", 7),
+    ))
+
+    schema = provider.requests[0].response_schema["properties"][
+        "candidate_directions"
+    ]["items"]
+    assert "plan" in schema["required"]
+    assert set(schema["properties"]["plan"]["required"]) == set(
+        output["candidate_directions"][0]["plan"]
+    )
+    assert len(provider.requests) == 1
+    assert "Feasibility check: Profile a small run" in (
+        result.candidate_directions[0].rationale
+    )
+
+
+def test_incomplete_structured_plan_is_not_published():
+    output = _valid_output()
+    output["candidate_directions"][0]["plan"] = {
+        "hypothesis": "The documented objective may improve semantic alignment in this setting.",
+    }
+    provider = StubProvider([output, output])
+    service = ResearchDirectionAnalysisService(provider, "test-model")
+    result = service.analyze(ResearchRequest(
+        question="Which experiments can we evaluate?",
+        guidance="Include controlled ablations and feasibility with limited GPU.",
+    ), _context(), (
+        _paper_analysis("Paper-A", "Paper A", 3),
+        _paper_analysis("Paper-B", "Paper B", 7),
+    ))
+
+    assert len(provider.requests) == 2
+    assert result.candidate_directions == ()
+    assert "requested synthesis details remained incomplete" in result.warnings[-1]
 
 
 def test_retry_keeps_complete_direction_and_omits_incomplete_direction():

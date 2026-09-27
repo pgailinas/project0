@@ -486,11 +486,21 @@ class ResearchDirectionAnalysisService:
             "required": ["content", "evidence_ids"],
         }
 
+        required_sections = self._required_direction_sections(request, context)
+        plan_fields = {
+            re.sub(r"\s+", "_", label.lower()): {"type": "string"}
+            for label in required_sections
+        }
         direction_schema = {
             "type": "object",
             "properties": {
                 "direction": {"type": "string"},
                 "rationale": {"type": "string"},
+                **({"plan": {
+                    "type": "object",
+                    "properties": plan_fields,
+                    "required": list(plan_fields),
+                }} if plan_fields else {}),
                 "context_evidence_ids": context_evidence_schema,
                 "literature_evidence_ids": {
                     "type": "array",
@@ -509,6 +519,7 @@ class ResearchDirectionAnalysisService:
                 "context_evidence_ids",
                 "literature_evidence_ids",
                 "speculative",
+                *(["plan"] if plan_fields else []),
             ],
         }
 
@@ -568,6 +579,11 @@ class ResearchDirectionAnalysisService:
                 "three distinct candidate directions. Keep each finding "
                 "and rationale concise while including every required "
                 "direction section. "
+                "When required_direction_sections is nonempty, put each "
+                "requested detail in the matching plan field; use rationale "
+                "for a short overview. Each plan field needs a concrete "
+                "sentence grounded in the supplied evidence or an explicit "
+                "unresolved dependency. "
                 "Use the research question, guidance, constraints, and "
                 "existing research context to define the experimental "
                 "target; do not substitute a generic literature agenda. "
@@ -589,8 +605,8 @@ class ResearchDirectionAnalysisService:
                 "constraints are requested, identify a preliminary "
                 "feasibility check and any unverified dependencies. "
                 "For each candidate direction, if the user_prompt has "
-                "required_direction_sections, write every named section "
-                "on a separate line in rationale as 'Section: concrete detail'. "
+                "required_direction_sections, populate every corresponding "
+                "snake_case key in plan with concrete detail. "
                 "Each section must contain a substantive, specific sentence. "
                 "Hypothesis states a testable expectation, Proposed method "
                 "states the intervention or investigation, Existing resources "
@@ -1042,6 +1058,17 @@ class ResearchDirectionAnalysisService:
             item.get("rationale"),
             "candidate_directions.rationale",
         )
+        plan = item.get("plan")
+        if plan is not None:
+            if not isinstance(plan, dict):
+                raise ValueError(
+                    "Provider field 'candidate_directions.plan' must be an object."
+                )
+            rationale = "\n".join((rationale, *(
+                f"{key.replace('_', ' ').capitalize()}: "
+                f"{self._require_non_empty_string(value, 'candidate_directions.plan.' + key)}"
+                for key, value in plan.items()
+            )))
 
         speculative = item.get("speculative")
         if not isinstance(speculative, bool):
