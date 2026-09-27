@@ -838,7 +838,10 @@ def test_structured_plan_fields_render_into_validated_rationale():
         "evaluation": "Measure the baseline metric on the same held out examples.",
         "feasibility_check": "Profile a small run before committing the available GPU resources.",
         "unverified_dependencies": "Checkpoint compatibility and actual memory demand still need verification.",
-        "evidence_boundary": "The cited paper supports alignment while this adaptation remains proposed.",
+        "evidence_boundary": {
+            "supported_finding": "The cited paper documents an alignment objective for video representations.",
+            "proposed_adaptation": "Applying that objective to the existing encoder remains untested.",
+        },
     }
     provider = StubProvider([output])
     service = ResearchDirectionAnalysisService(provider, "test-model")
@@ -857,10 +860,39 @@ def test_structured_plan_fields_render_into_validated_rationale():
     assert set(schema["properties"]["plan"]["required"]) == set(
         output["candidate_directions"][0]["plan"]
     )
+    assert schema["properties"]["plan"]["properties"][
+        "evidence_boundary"
+    ]["required"] == ["supported_finding", "proposed_adaptation"]
     assert len(provider.requests) == 1
     assert "Feasibility check: Profile a small run" in (
         result.candidate_directions[0].rationale
     )
+    assert "Evidence boundary: Published finding:" in (
+        result.candidate_directions[0].rationale
+    )
+
+
+def test_thin_evidence_boundary_triggers_retry_and_omission():
+    output = _valid_output()
+    output["candidate_directions"][0]["plan"] = {
+        "evidence_boundary": {
+            "supported_finding": "Paper supports alignment.",
+            "proposed_adaptation": "Try it here.",
+        },
+    }
+    provider = StubProvider([output, output])
+    service = ResearchDirectionAnalysisService(provider, "test-model")
+    result = service.analyze(ResearchRequest(
+        question="Which experiments can we evaluate?",
+        guidance="Include controlled ablations and feasibility with limited GPU.",
+    ), _context(), (
+        _paper_analysis("Paper-A", "Paper A", 3),
+        _paper_analysis("Paper-B", "Paper B", 7),
+    ))
+
+    assert len(provider.requests) == 2
+    assert result.candidate_directions == ()
+    assert "invalid candidate research direction" in result.warnings[0]
 
 
 def test_incomplete_structured_plan_is_not_published():

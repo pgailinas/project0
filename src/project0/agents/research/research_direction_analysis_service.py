@@ -491,6 +491,15 @@ class ResearchDirectionAnalysisService:
             re.sub(r"\s+", "_", label.lower()): {"type": "string"}
             for label in required_sections
         }
+        if "evidence_boundary" in plan_fields:
+            plan_fields["evidence_boundary"] = {
+                "type": "object",
+                "properties": {
+                    "supported_finding": {"type": "string"},
+                    "proposed_adaptation": {"type": "string"},
+                },
+                "required": ["supported_finding", "proposed_adaptation"],
+            }
         direction_schema = {
             "type": "object",
             "properties": {
@@ -584,6 +593,10 @@ class ResearchDirectionAnalysisService:
                 "for a short overview. Each plan field needs a concrete "
                 "sentence grounded in the supplied evidence or an explicit "
                 "unresolved dependency. "
+                "For plan.evidence_boundary, state a specific cited paper "
+                "finding in supported_finding and the distinct proposed "
+                "change for this request in proposed_adaptation. Do not "
+                "claim the proposed change was tested by the cited paper. "
                 "Use the research question, guidance, constraints, and "
                 "existing research context to define the experimental "
                 "target; do not substitute a generic literature agenda. "
@@ -1064,11 +1077,32 @@ class ResearchDirectionAnalysisService:
                 raise ValueError(
                     "Provider field 'candidate_directions.plan' must be an object."
                 )
-            rationale = "\n".join((rationale, *(
-                f"{key.replace('_', ' ').capitalize()}: "
-                f"{self._require_non_empty_string(value, 'candidate_directions.plan.' + key)}"
-                for key, value in plan.items()
-            )))
+            plan_lines = []
+            for key, value in plan.items():
+                if key == "evidence_boundary" and isinstance(value, dict):
+                    supported = self._require_non_empty_string(
+                        value.get("supported_finding"),
+                        "candidate_directions.plan.evidence_boundary.supported_finding",
+                    )
+                    proposed = self._require_non_empty_string(
+                        value.get("proposed_adaptation"),
+                        "candidate_directions.plan.evidence_boundary.proposed_adaptation",
+                    )
+                    if any(
+                        len(re.findall(r"\b[\w-]+\b", part)) < 4
+                        for part in (supported, proposed)
+                    ):
+                        raise ValueError(
+                            "Provider field 'candidate_directions.plan."
+                            "evidence_boundary' requires a substantive "
+                            "published finding and proposed adaptation."
+                        )
+                    value = f"Published finding: {supported} Proposed adaptation: {proposed}"
+                detail = self._require_non_empty_string(
+                    value, f"candidate_directions.plan.{key}",
+                )
+                plan_lines.append(f"{key.replace('_', ' ').capitalize()}: {detail}")
+            rationale = "\n".join((rationale, *plan_lines))
 
         speculative = item.get("speculative")
         if not isinstance(speculative, bool):
