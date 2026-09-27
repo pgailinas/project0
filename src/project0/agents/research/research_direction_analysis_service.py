@@ -466,7 +466,7 @@ class ResearchDirectionAnalysisService:
                 "existing_research_context": context_payload,
                 "paper_analyses": paper_payload,
             },
-            indent=2,
+            separators=(",", ":"),
         )
 
         synthesis_item_schema = {
@@ -521,18 +521,22 @@ class ResearchDirectionAnalysisService:
                         "themes": {
                             "type": "array",
                             "items": synthesis_item_schema,
+                            "maxItems": 2,
                         },
                         "comparisons": {
                             "type": "array",
                             "items": synthesis_item_schema,
+                            "maxItems": 2,
                         },
                         "shared_limitations": {
                             "type": "array",
                             "items": synthesis_item_schema,
+                            "maxItems": 2,
                         },
                         "unresolved_questions": {
                             "type": "array",
                             "items": synthesis_item_schema,
+                            "maxItems": 2,
                         },
                     },
                     "required": [
@@ -545,6 +549,7 @@ class ResearchDirectionAnalysisService:
                 "candidate_directions": {
                     "type": "array",
                     "items": direction_schema,
+                    "maxItems": 3,
                 },
             },
             "required": ["synthesis", "candidate_directions"],
@@ -559,6 +564,10 @@ class ResearchDirectionAnalysisService:
                 "concise themes, comparisons, shared limitations, and "
                 "unresolved questions, then propose candidate research "
                 "directions relevant to the supplied research request. "
+                "Return at most two findings per synthesis category and "
+                "three distinct candidate directions. Keep each finding "
+                "and rationale concise while including every required "
+                "direction section. "
                 "Use the research question, guidance, constraints, and "
                 "existing research context to define the experimental "
                 "target; do not substitute a generic literature agenda. "
@@ -651,6 +660,8 @@ class ResearchDirectionAnalysisService:
             response_schema=response_schema,
             model_name=self._model_name,
             temperature=0.0,
+            maximum_output_tokens=4096,
+            context_window_tokens=8192,
             metadata={
                 "research_request_id": request.request_id,
                 "paper_analysis_count": len(paper_analyses),

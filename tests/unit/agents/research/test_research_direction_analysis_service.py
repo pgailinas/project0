@@ -582,6 +582,8 @@ def test_provider_request_limits_direction_analysis_to_five_papers():
 
     assert request.metadata["paper_analysis_count"] == 5
     assert request.metadata["timeout_seconds"] == 600.0
+    assert request.maximum_output_tokens == 4096
+    assert request.context_window_tokens == 8192
     assert [
         paper["source_id"]
         for paper in payload["paper_analyses"]
@@ -630,6 +632,21 @@ def test_provider_request_uses_structured_findings_and_prohibits_novelty_claims(
         "literature-008",
     ]
     assert payload["validation_feedback"] is None
+    assert '"paper_analyses":[' in request.user_prompt
+
+    synthesis_arrays = request.response_schema["properties"][
+        "synthesis"
+    ]["properties"]
+    assert all(
+        synthesis_arrays[name]["maxItems"] == 2
+        for name in (
+            "themes", "comparisons", "shared_limitations",
+            "unresolved_questions",
+        )
+    )
+    assert request.response_schema["properties"][
+        "candidate_directions"
+    ]["maxItems"] == 3
 
     direction_schema = request.response_schema["properties"][
         "candidate_directions"
